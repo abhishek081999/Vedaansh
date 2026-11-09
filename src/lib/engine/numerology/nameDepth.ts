@@ -5,6 +5,8 @@
 //  comparison of alternative spellings.
 // ─────────────────────────────────────────────────────────────
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { NAME_BALANCE_HI, NAME_LESSON_HI, NAME_PASSION_HI } from '@/lib/engine/locale/numerologyExtras.hi'
 import { numberHarmony, reduceToCore, supportScore, type Harmony } from './core'
 import {
   CORE_NUMBERS,
@@ -64,7 +66,7 @@ export interface NameDepthResult {
   letterCount: number
 }
 
-export function getNameDepth(name: string): NameDepthResult | null {
+export function getNameDepth(name: string, lang: EngineLang = 'en'): NameDepthResult | null {
   const words = name.toUpperCase().split(/\s+/).map(w => w.replace(/[^A-Z]/g, '')).filter(Boolean)
   if (words.length === 0) return null
 
@@ -81,20 +83,20 @@ export function getNameDepth(name: string): NameDepthResult | null {
 
   const karmicLessons = CORE_NUMBERS
     .filter(n => intensity[n] === 0)
-    .map(n => ({ number: n, lesson: KARMIC_LESSON[n] }))
+    .map(n => ({ number: n, lesson: lang === 'hi' ? NAME_LESSON_HI[n] : KARMIC_LESSON[n] }))
 
   const max = Math.max(...CORE_NUMBERS.map(n => intensity[n]))
   const passionNums = CORE_NUMBERS.filter(n => intensity[n] === max)
   // A hidden passion needs a value that genuinely repeats and stands out.
   const hiddenPassion = max >= 2 && passionNums.length <= 2
-    ? { numbers: passionNums, count: max, meaning: passionNums.map(n => HIDDEN_PASSION[n]).join(' ') }
+    ? { numbers: passionNums, count: max, meaning: passionNums.map(n => (lang === 'hi' ? NAME_PASSION_HI[n] : HIDDEN_PASSION[n])).join(' ') }
     : null
 
   const initials = words.map(w => w[0]!).join('')
   const initialsSum = [...initials].reduce((s, ch) => s + (PYTHAGOREAN_VALUES[ch] ?? 0), 0)
   const balanceValue = reduceToCore(initialsSum)
   const balance = balanceValue
-    ? { value: balanceValue as CoreNumber, initials, meaning: BALANCE[balanceValue as CoreNumber] }
+    ? { value: balanceValue as CoreNumber, initials, meaning: lang === 'hi' ? NAME_BALANCE_HI[balanceValue as CoreNumber] : BALANCE[balanceValue as CoreNumber] }
     : null
 
   return { intensity, karmicLessons, hiddenPassion, balance, letterCount }
@@ -123,6 +125,7 @@ export function compareNameSpellings(
   spellings: string[],
   moolank: CoreNumber,
   bhagyank: CoreNumber,
+  lang: EngineLang = 'en',
 ): SpellingComparison[] {
   const seen = new Set<string>()
   const rows: SpellingComparison[] = []
@@ -133,7 +136,7 @@ export function compareNameSpellings(
     seen.add(key)
     const n = getNameNumber(spelling, 'chaldean')
     if (!n) continue
-    const compoundMeaning = getCompoundMeaning(n.compound)
+    const compoundMeaning = getCompoundMeaning(n.compound, lang)
     const base = supportScore(n.value, moolank, bhagyank)
     const score = Math.max(0, Math.min(100, base + (compoundMeaning ? QUALITY_ADJUST[compoundMeaning.quality] : 0)))
     rows.push({

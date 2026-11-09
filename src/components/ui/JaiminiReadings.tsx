@@ -5,14 +5,30 @@
 'use client'
 
 import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { RASHI_SHORT } from '@/types/astrology'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import { calculateFamilyKarakas } from '@/lib/engine/jaimini/family'
 import { readKarakamsha } from '@/lib/engine/jaimini/karakamsha'
 import { readJaiminiDasha } from '@/lib/engine/jaimini/dashaReading'
 import { ageInYears, readKarakaLife, readSoulKarakas } from '@/lib/engine/jaimini/judgment'
 import type { CharaKarakaResult } from '@/lib/engine/karakas'
+import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import styles from './JaiminiPanel.module.css'
+
+function useJyotishNames() {
+  const { lang } = useLang()
+  const hi = lang === 'hi'
+  return {
+    lang,
+    graha: (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]),
+    rashi: (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r]),
+    rashiShort: (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r]),
+    term: (name: string) => (hi ? termHi(name) : name),
+  }
+}
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -34,6 +50,8 @@ export function KarakamshaCard({
   karakas: CharaKarakaResult
   arudhaLagna: Rashi
 }) {
+  const t = useTranslations('jaimini.readings')
+  const names = useJyotishNames()
   const reading = useMemo(
     () => readKarakamsha({
       d1: chart.grahas,
@@ -43,15 +61,16 @@ export function KarakamshaCard({
       ak: karakas.AK,
       amk: karakas.AmK,
       dk: karakas.DK,
+      lang: names.lang,
     }),
-    [chart.grahas, chart.vargas, chart.lagnas.ascRashi, arudhaLagna, karakas.AK, karakas.AmK, karakas.DK],
+    [chart.grahas, chart.vargas, chart.lagnas.ascRashi, arudhaLagna, karakas.AK, karakas.AmK, karakas.DK, names.lang],
   )
 
   return (
-    <Card title="Karakamsha and Swamsha">
+    <Card title={t('karakamshaTitle')}>
       <p style={{ margin: '0 0 0.6rem', fontSize: '0.75rem', lineHeight: 1.55 }}>
-        Karakamsha is {RASHI_NAMES[reading.karakamsha]}, the navamsha of Atmakaraka {GRAHA_NAMES[reading.ak]}, read in the birth chart.
-        {reading.swamshaFallback ? ' Navamsha placement of the Atmakaraka is missing, so the birth-chart sign is used.' : ''}
+        {t('karakamshaLead', { sign: names.rashi(reading.karakamsha), planet: names.graha(reading.ak) })}
+        {reading.swamshaFallback ? ` ${t('swamshaFallback')}` : ''}
       </p>
       <p style={{ margin: '0 0 0.6rem', fontSize: '0.72rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
         {reading.usage}
@@ -72,17 +91,17 @@ export function KarakamshaCard({
         <table className={styles.dataTable}>
           <thead>
             <tr>
-              <th>House</th>
-              <th>Sign</th>
-              <th>D1</th>
-              <th>D9</th>
+              <th>{t('house')}</th>
+              <th>{t('sign')}</th>
+              <th>{t('d1')}</th>
+              <th>{t('d9')}</th>
             </tr>
           </thead>
           <tbody>
             {reading.houses.map(row => (
               <tr key={row.house}>
                 <td style={{ fontWeight: 800 }}>{row.house}</td>
-                <td>{RASHI_SHORT[row.rashi]}</td>
+                <td>{names.rashiShort(row.rashi)}</td>
                 <td>{row.d1.join(', ') || '—'}</td>
                 <td>{row.d9.join(', ') || '—'}</td>
               </tr>
@@ -105,6 +124,8 @@ function LineList({ lines }: { lines: string[] }) {
 }
 
 export function SoulKarakaCard({ chart, karakas }: { chart: ChartOutput; karakas: CharaKarakaResult }) {
+  const t = useTranslations('jaimini.readings')
+  const { lang } = useLang()
   const reading = useMemo(
     () => readSoulKarakas({
       grahas: chart.grahas.map(g => ({ id: g.id, rashi: g.rashi, degree: g.degree, dignity: g.dignity })),
@@ -113,23 +134,26 @@ export function SoulKarakaCard({ chart, karakas }: { chart: ChartOutput; karakas
       ak: karakas.AK,
       amk: karakas.AmK,
       d9: chart.vargas?.D9?.map(g => ({ id: g.id, rashi: g.rashi })),
+      lang,
     }),
-    [chart.grahas, chart.lagnas.ascRashi, chart.lagnas.ascDegreeInRashi, chart.vargas, karakas.AK, karakas.AmK],
+    [chart.grahas, chart.lagnas.ascRashi, chart.lagnas.ascDegreeInRashi, chart.vargas, karakas.AK, karakas.AmK, lang],
   )
 
   return (
-    <Card title="Atmakaraka and Amatyakaraka">
-      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>Atmakaraka</div>
+    <Card title={t('soulTitle')}>
+      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>{t('atmakaraka')}</div>
       <LineList lines={reading.akLines} />
-      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', margin: '0.75rem 0 0.35rem' }}>Amatyakaraka</div>
+      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', margin: '0.75rem 0 0.35rem' }}>{t('amatyakaraka')}</div>
       <LineList lines={reading.amkLines} />
-      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', margin: '0.75rem 0 0.35rem' }}>Sagittarius</div>
+      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', margin: '0.75rem 0 0.35rem' }}>{t('sagittarius')}</div>
       <LineList lines={reading.sagittariusLines} />
     </Card>
   )
 }
 
 export function KarakaLifeCard({ chart, karakas }: { chart: ChartOutput; karakas: CharaKarakaResult }) {
+  const t = useTranslations('jaimini.readings')
+  const { lang } = useLang()
   const reading = useMemo(
     () => readKarakaLife({
       grahas: chart.grahas.map(g => ({ id: g.id, rashi: g.rashi, degree: g.degree, dignity: g.dignity })),
@@ -142,12 +166,13 @@ export function KarakaLifeCard({ chart, karakas }: { chart: ChartOutput; karakas
       gk: karakas.GK,
       dk: karakas.DK,
       ageYears: ageInYears(chart.meta.birthDate),
+      lang,
     }),
-    [chart.grahas, chart.lagnas.ascRashi, chart.meta.birthDate, karakas],
+    [chart.grahas, chart.lagnas.ascRashi, chart.meta.birthDate, karakas, lang],
   )
 
   return (
-    <Card title="Karaka life story">
+    <Card title={t('lifeTitle')}>
       {reading.rows.map(row => (
         <div key={row.id} style={{ marginBottom: '0.75rem' }}>
           <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>{row.title}</div>
@@ -162,15 +187,18 @@ export function KarakaLifeCard({ chart, karakas }: { chart: ChartOutput; karakas
 }
 
 export function FamilyKarakaCard({ chart }: { chart: ChartOutput }) {
-  const rows = useMemo(() => calculateFamilyKarakas(chart.grahas), [chart.grahas])
+  const t = useTranslations('jaimini.readings')
+  const { lang } = useLang()
+  const names = useJyotishNames()
+  const rows = useMemo(() => calculateFamilyKarakas(chart.grahas, lang), [chart.grahas, lang])
   return (
-    <Card title="Family significators">
+    <Card title={t('familyTitle')}>
       <table className={styles.dataTable}>
         <thead>
           <tr>
-            <th>Relation</th>
-            <th>Rule</th>
-            <th style={{ textAlign: 'right' }}>Planet</th>
+            <th>{t('relation')}</th>
+            <th>{t('rule')}</th>
+            <th style={{ textAlign: 'right' }}>{t('planet')}</th>
           </tr>
         </thead>
         <tbody>
@@ -183,7 +211,7 @@ export function FamilyKarakaCard({ chart }: { chart: ChartOutput }) {
                 )}
               </td>
               <td style={{ color: 'var(--text-secondary)' }}>{row.rule}</td>
-              <td style={{ textAlign: 'right', fontWeight: 800 }}>{row.planet}</td>
+              <td style={{ textAlign: 'right', fontWeight: 800 }}>{names.graha(row.planet)}</td>
             </tr>
           ))}
         </tbody>
@@ -211,12 +239,16 @@ export function DashaReadingCard({
   upapada?: Rashi
   karakamsha?: Rashi
 }) {
+  const t = useTranslations('jaimini.readings')
+  const { lang } = useLang()
+  const names = useJyotishNames()
   const reading = useMemo(() => {
     if (!sign) return null
     const periodLabel = (nodes?: { isCurrent: boolean; level: number; lord: string; label?: string }[]) => {
       const current = nodes?.find(n => n.isCurrent && n.level === 1) ?? nodes?.find(n => n.isCurrent)
       if (!current) return null
-      return current.label || current.lord
+      const raw = current.label || current.lord
+      return lang === 'hi' ? termHi(raw) : raw
     }
     return readJaiminiDasha({
       sign,
@@ -232,19 +264,20 @@ export function DashaReadingCard({
       upapada,
       karakamsha,
       lagnaDegree: chart.lagnas.ascDegreeInRashi,
+      lang,
     })
-  }, [sign, antarSign, upapada, karakamsha, chart.grahas, chart.lagnas.ascRashi, chart.lagnas.ascDegreeInRashi, chart.vargas, chart.dashas, roleOf, applyPadaExceptions, sequenceForward])
+  }, [sign, antarSign, upapada, karakamsha, chart.grahas, chart.lagnas.ascRashi, chart.lagnas.ascDegreeInRashi, chart.vargas, chart.dashas, roleOf, applyPadaExceptions, sequenceForward, lang])
 
   if (!reading) {
     return (
-      <Card title="Dasha reading">
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>No sign is running in this dasha.</p>
+      <Card title={t('dashaTitle')}>
+        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('noSign')}</p>
       </Card>
     )
   }
 
   return (
-    <Card title={`${reading.signName} dasha reading`}>
+    <Card title={t('dashaNamed', { sign: names.rashi(reading.sign) })}>
       <ol style={{ margin: 0, paddingLeft: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
         {reading.steps.map(step => (
           <li key={step.title} style={{ fontSize: '0.72rem', lineHeight: 1.45 }}>

@@ -22,6 +22,8 @@
 
 import { NAKSHATRA_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 import type { GrahaId } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI, termHi } from '@/i18n/jyotish'
+import type { EngineLang } from '@/lib/engine/lang'
 
 /** Minimal planet data needed by SBC functions — structural subset of GrahaData */
 export interface SBCGrahaInput {
@@ -397,6 +399,23 @@ const PLANET_NAME: Record<GrahaId, string> = {
   Ur: 'Uranus',  Ne: 'Neptune', Pl: 'Pluto',
 }
 
+function vedhaInterpretationHi(transit: GrahaId, natal: GrahaId, nakIdx: number, isPapa: boolean): string {
+  const tn = GRAHA_HI[transit] ?? PLANET_NAME[transit]
+  const nn = GRAHA_HI[natal] ?? PLANET_NAME[natal]
+  const nak = NAKSHATRA_HI[nakIdx] ?? NAKSHATRA_NAMES[nakIdx]
+  if (!isPapa) {
+    if (transit === 'Ju') return `गुरु की कृपा ${nak} में जन्म के ${nn} को छूती है — ज्ञान, वृद्धि और समृद्धि`
+    if (transit === 'Ve') return `शुक्र ${nak} में जन्म के ${nn} को आशीर्वाद देता है — सामंजस्य, सौंदर्य और सुख`
+    if (transit === 'Mo') return `चंद्र की ग्रहणशील ऊर्जा ${nak} में जन्म के ${nn} तक पहुँचती है — अंतर्ज्ञान बढ़ता है`
+    return `${tn} ${nak} में जन्म के ${nn} पर शुभ वेध डालता है`
+  }
+  if (transit === 'Sa') return `शनि की कठोर दृष्टि ${nak} में जन्म के ${nn} पर पड़ती है — अनुशासन और कर्म-सुधार`
+  if (transit === 'Ra') return `राहु की छाया ${nak} में जन्म के ${nn} को ढकती है — अप्रत्याशित व्यवधान`
+  if (transit === 'Ke') return `केतु ${nak} में जन्म के ${nn} को विरक्त करता है — समर्पण और त्याग का संकेत`
+  if (transit === 'Ma') return `मंगल ${nak} में जन्म के ${nn} को उत्तेजित करता है — ऊर्जा का उछाल, टकराव से बचें`
+  return `${tn} ${nak} में जन्म के ${nn} को बाधित करता है — सावधानी रखें`
+}
+
 function vedhaInterpretation(
   transit: GrahaId,
   natal: GrahaId,
@@ -431,6 +450,7 @@ export function analyzeSBC(
   natalGrahas:   SBCGrahaInput[],
   transitGrahas: SBCGrahaInput[],
   grid:          SBCCell[][],
+  lang:          EngineLang = 'en',
 ): SBCAnalysis {
   const vedhas:          VedhaResult[]    = []
   const activations:     SBCActivation[]  = []
@@ -484,7 +504,7 @@ export function analyzeSBC(
             nakshatraName: NAKSHATRA_NAMES[affNak],
             type:          papa ? 'papa' : 'shubha',
             strength:      papa ? 65 : 80,
-            meaning:       vedhaInterpretation(tp.id, np, NAKSHATRA_NAMES[affNak], papa),
+            meaning:       lang === 'hi' ? vedhaInterpretationHi(tp.id, np, affNak, papa) : vedhaInterpretation(tp.id, np, NAKSHATRA_NAMES[affNak], papa),
           })
         })
       })
@@ -507,11 +527,15 @@ export function analyzeSBC(
         if (!papa) {
           const pts = tp.id === 'Ju' ? 20 : tp.id === 'Ve' ? 15 : tp.id === 'Mo' ? 8 : 5
           finScore += pts
-          bullish.push(`${PLANET_NAME[tp.id]} activates wealth sector from ${NAKSHATRA_NAMES[nak]}`)
+          bullish.push(lang === 'hi'
+            ? `${GRAHA_HI[tp.id]} ${NAKSHATRA_HI[nak] ?? NAKSHATRA_NAMES[nak]} से धन क्षेत्र को सक्रिय करता है`
+            : `${PLANET_NAME[tp.id]} activates wealth sector from ${NAKSHATRA_NAMES[nak]}`)
         } else {
           const pts = tp.id === 'Ra' ? 25 : tp.id === 'Sa' ? 20 : tp.id === 'Ke' ? 18 : 12
           finScore -= pts
-          bearish.push(`${PLANET_NAME[tp.id]} obstructs wealth flow from ${NAKSHATRA_NAMES[nak]}`)
+          bearish.push(lang === 'hi'
+            ? `${GRAHA_HI[tp.id]} ${NAKSHATRA_HI[nak] ?? NAKSHATRA_NAMES[nak]} से धन प्रवाह रोकता है`
+            : `${PLANET_NAME[tp.id]} obstructs wealth flow from ${NAKSHATRA_NAMES[nak]}`)
         }
       }
     })
@@ -746,8 +770,39 @@ const LIFE_AREA_META: Record<LifeAreaKey, { icon: string; label: string }> = {
   career:        { icon: '🏆', label: 'Career & Fame' },
 }
 
+const LIFE_AREA_HI: Record<LifeAreaKey, string> = {
+  health: 'स्वास्थ्य और ओज',
+  wealth: 'धन और वित्त',
+  relationships: 'संबंध और प्रेम',
+  travel: 'यात्रा और गति',
+  enemies: 'शत्रु और संघर्ष',
+  career: 'करियर और यश',
+}
+
+const TITHI_TYPE_HI: Record<string, string> = {
+  Nanda: 'नंदा',
+  Bhadra: 'भद्रा',
+  Jaya: 'जया',
+  Rikta: 'रिक्ता',
+  Poorna: 'पूर्णा',
+}
+
+const MUHURTA_HI: Record<string, string> = {
+  marriage: 'विवाह',
+  business: 'व्यवसाय आरंभ',
+  travel: 'यात्रा',
+  investment: 'निवेश',
+  surgery: 'शल्य / चिकित्सा',
+  education: 'शिक्षा आरंभ',
+  career: 'नौकरी / करियर',
+  legal: 'कानूनी विषय',
+  property: 'संपत्ति क्रय',
+  religious: 'धार्मिक संस्कार',
+}
+
 export function getLifeAreaPredictions(
   activations: SBCActivation[],
+  lang: EngineLang = 'en',
 ): LifeAreaPrediction[] {
   const scoreMap: Record<LifeAreaKey, number>   = { health: 0, wealth: 0, relationships: 0, travel: 0, enemies: 0, career: 0 }
   const positiveMap: Record<LifeAreaKey, string[]> = { health: [], wealth: [], relationships: [], travel: [], enemies: [], career: [] }
@@ -759,12 +814,16 @@ export function getLifeAreaPredictions(
     if (act.type === 'shubha') {
       LIFE_AREA_PLANET_POSITIVE[tp]?.forEach(area => {
         scoreMap[area] = Math.min(100, scoreMap[area] + 30)
-        positiveMap[area].push(`${PLANET_NAME_SBC[tp]} blesses ${area} zone via ${nak}`)
+        positiveMap[area].push(lang === 'hi'
+          ? `${GRAHA_HI[tp]} ${nak} के माध्यम से ${LIFE_AREA_HI[area]} क्षेत्र का साथ देता है`
+          : `${PLANET_NAME_SBC[tp]} blesses ${area} zone via ${nak}`)
       })
     } else {
       LIFE_AREA_PLANET_NEGATIVE[tp]?.forEach(area => {
         scoreMap[area] = Math.max(-100, scoreMap[area] - 25)
-        negativeMap[area].push(`${PLANET_NAME_SBC[tp]} puts pressure on ${area} zone via ${nak}`)
+        negativeMap[area].push(lang === 'hi'
+          ? `${GRAHA_HI[tp]} ${nak} के माध्यम से ${LIFE_AREA_HI[area]} क्षेत्र पर दबाव डालता है`
+          : `${PLANET_NAME_SBC[tp]} puts pressure on ${area} zone via ${nak}`)
       })
     }
   })
@@ -772,6 +831,7 @@ export function getLifeAreaPredictions(
   return (Object.keys(LIFE_AREA_META) as LifeAreaKey[]).map(area => ({
     area,
     ...LIFE_AREA_META[area],
+    label: lang === 'hi' ? LIFE_AREA_HI[area] : LIFE_AREA_META[area].label,
     positive: positiveMap[area].slice(0, 3),
     negative: negativeMap[area].slice(0, 3),
     score:    scoreMap[area],
@@ -815,6 +875,7 @@ export const MUHURTA_EVENTS: MuhurtaEvent[] = [
 export function assessMuhurta(
   events: MuhurtaEvent[],
   vedhas: VedhaResult[],
+  lang: EngineLang = 'en',
 ): MuhurtaEvent[] {
   const maleficSet  = new Set(vedhas.filter(v => v.isMalefic).map(v => v.planet))
   const beneficSet  = new Set(vedhas.filter(v => !v.isMalefic).map(v => v.planet))
@@ -824,7 +885,7 @@ export function assessMuhurta(
     const issues: string[] = []
 
     ev.goodPlanets.forEach(p => {
-      if (maleficSet.has(p)) { score -= 25; issues.push(`${PLANET_NAME_SBC[p]} is afflicted`) }
+      if (maleficSet.has(p)) { score -= 25; issues.push(lang === 'hi' ? `${GRAHA_HI[p]} पीड़ित है` : `${PLANET_NAME_SBC[p]} is afflicted`) }
     })
     ev.needStrong.forEach(p => {
       if (beneficSet.has(p)) score += 20
@@ -837,6 +898,7 @@ export function assessMuhurta(
 
     return {
       ...ev,
+      label: lang === 'hi' ? (MUHURTA_HI[ev.id] ?? ev.label) : ev.label,
       score,
       verdict,
       note: issues.length ? issues.join('; ') : undefined,
@@ -913,7 +975,7 @@ export function getTithiIndex(sunLon: number, moonLon: number): number {
   return Math.floor(diff / 12) + 1  // 1 to 30
 }
 
-export function getTithiInfo(sunLon: number, moonLon: number): TithiInfo {
+export function getTithiInfo(sunLon: number, moonLon: number, lang: EngineLang = 'en'): TithiInfo {
   const tNum = getTithiIndex(sunLon, moonLon)  // 1-30
   const idx  = ((tNum - 1) % 15)              // 0-14 (same names in both paksha)
   const [name, type, quality] = TITHI_DATA[idx]
@@ -925,7 +987,13 @@ export function getTithiInfo(sunLon: number, moonLon: number): TithiInfo {
     tNum === 15 ? 'best' :           // Purnima
     quality
 
-  return { num: tNum, name, type, paksha, quality: finalQuality }
+  return {
+    num: tNum,
+    name: lang === 'hi' ? termHi(name) : name,
+    type: lang === 'hi' ? (TITHI_TYPE_HI[type] ?? type) : type,
+    paksha,
+    quality: finalQuality,
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -946,11 +1014,12 @@ export function analyzeSBCExtended(
   grid:             SBCCell[][],
   birthNakIdx?:     number,
   nameNakIdx?:      number,
+  lang:             EngineLang = 'en',
 ): SBCAnalysisExtended {
-  const base = analyzeSBC(natalGrahas, transitGrahas, grid)
+  const base = analyzeSBC(natalGrahas, transitGrahas, grid, lang)
 
-  const lifeAreas = getLifeAreaPredictions(base.activations)
-  const muhurta   = assessMuhurta(MUHURTA_EVENTS, base.vedhas)
+  const lifeAreas = getLifeAreaPredictions(base.activations, lang)
+  const muhurta   = assessMuhurta(MUHURTA_EVENTS, base.vedhas, lang)
 
   const birthVedhas = birthNakIdx !== undefined
     ? base.vedhas.filter(v => v.affectedNakshatras.includes(birthNakIdx))

@@ -4,52 +4,48 @@
 //  Tabbed ACG analysis: Top Cities · Parans · Planetary Guide
 // ─────────────────────────────────────────────────────────────
 import React, { useMemo, useState } from 'react'
-import { ACG_INTERPRETATIONS } from '@/lib/engine/astroInterpretation'
+import { useTranslations } from 'next-intl'
+import { getAcgInterpretation } from '@/lib/engine/astroInterpretation'
+import { grahaName } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import type { GrahaId } from '@/types/astrology'
 
 // ─── Data ────────────────────────────────────────────────────
 
 const MAJOR_CITIES = [
-  // India
-  { name: 'Delhi',      lat: 28.6139,  lng: 77.2090,  flag: '🇮🇳' },
-  { name: 'Mumbai',     lat: 19.0760,  lng: 72.8777,  flag: '🇮🇳' },
-  { name: 'Bengaluru',  lat: 12.9716,  lng: 77.5946,  flag: '🇮🇳' },
-  { name: 'Chennai',    lat: 13.0827,  lng: 80.2707,  flag: '🇮🇳' },
-  { name: 'Kolkata',    lat: 22.5726,  lng: 88.3639,  flag: '🇮🇳' },
-  // SE Asia & Oceania
-  { name: 'Singapore',  lat: 1.3521,   lng: 103.8198, flag: '🇸🇬' },
-  { name: 'Tokyo',      lat: 35.6895,  lng: 139.6917, flag: '🇯🇵' },
-  { name: 'Sydney',     lat: -33.8688, lng: 151.2093, flag: '🇦🇺' },
-  { name: 'Melbourne',  lat: -37.8136, lng: 144.9631, flag: '🇦🇺' },
-  { name: 'Hong Kong',  lat: 22.3193,  lng: 114.1694, flag: '🇭🇰' },
-  { name: 'Bangkok',    lat: 13.7563,  lng: 100.5018, flag: '🇹🇭' },
-  { name: 'Kuala Lumpur',lat:3.1390,  lng: 101.6869, flag: '🇲🇾' },
-  // Middle East
-  { name: 'Dubai',      lat: 25.2048,  lng: 55.2708,  flag: '🇦🇪' },
-  { name: 'Riyadh',     lat: 24.7136,  lng: 46.6753,  flag: '🇸🇦' },
-  { name: 'Istanbul',   lat: 41.0082,  lng: 28.9784,  flag: '🇹🇷' },
-  // Africa
-  { name: 'Johannesburg',lat:-26.2041, lng: 28.0473,  flag: '🇿🇦' },
-  { name: 'Cairo',      lat: 30.0444,  lng: 31.2357,  flag: '🇪🇬' },
-  // Europe
-  { name: 'London',     lat: 51.5074,  lng: -0.1278,  flag: '🇬🇧' },
-  { name: 'Paris',      lat: 48.8566,  lng: 2.3522,   flag: '🇫🇷' },
-  { name: 'Berlin',     lat: 52.5200,  lng: 13.4050,  flag: '🇩🇪' },
-  { name: 'Zurich',     lat: 47.3769,  lng: 8.5417,   flag: '🇨🇭' },
-  { name: 'Rome',       lat: 41.9028,  lng: 12.4964,  flag: '🇮🇹' },
-  { name: 'Madrid',     lat: 40.4168,  lng: -3.7038,  flag: '🇪🇸' },
-  { name: 'Amsterdam',  lat: 52.3676,  lng: 4.9041,   flag: '🇳🇱' },
-  // North America
-  { name: 'New York',   lat: 40.7128,  lng: -74.0060, flag: '🇺🇸' },
-  { name: 'Los Angeles',lat: 34.0522,  lng: -118.2437,flag: '🇺🇸' },
-  { name: 'San Francisco',lat:37.7749, lng: -122.4194,flag: '🇺🇸' },
-  { name: 'Chicago',    lat: 41.8781,  lng: -87.6298, flag: '🇺🇸' },
-  { name: 'Toronto',    lat: 43.6532,  lng: -79.3832, flag: '🇨🇦' },
-  { name: 'Vancouver',  lat: 49.2827,  lng: -123.1207,flag: '🇨🇦' },
-  // South America
-  { name: 'Sao Paulo',  lat: -23.5505, lng: -46.6333, flag: '🇧🇷' },
-  { name: 'Buenos Aires',lat:-34.6037, lng: -58.3816, flag: '🇦🇷' },
-  { name: 'Mexico City',lat: 19.4326,  lng: -99.1332, flag: '🇲🇽' },
+  { id: 'delhi', lat: 28.6139, lng: 77.2090, flag: '🇮🇳' },
+  { id: 'mumbai', lat: 19.0760, lng: 72.8777, flag: '🇮🇳' },
+  { id: 'bengaluru', lat: 12.9716, lng: 77.5946, flag: '🇮🇳' },
+  { id: 'chennai', lat: 13.0827, lng: 80.2707, flag: '🇮🇳' },
+  { id: 'kolkata', lat: 22.5726, lng: 88.3639, flag: '🇮🇳' },
+  { id: 'singapore', lat: 1.3521, lng: 103.8198, flag: '🇸🇬' },
+  { id: 'tokyo', lat: 35.6895, lng: 139.6917, flag: '🇯🇵' },
+  { id: 'sydney', lat: -33.8688, lng: 151.2093, flag: '🇦🇺' },
+  { id: 'melbourne', lat: -37.8136, lng: 144.9631, flag: '🇦🇺' },
+  { id: 'hongKong', lat: 22.3193, lng: 114.1694, flag: '🇭🇰' },
+  { id: 'bangkok', lat: 13.7563, lng: 100.5018, flag: '🇹🇭' },
+  { id: 'kualaLumpur', lat: 3.1390, lng: 101.6869, flag: '🇲🇾' },
+  { id: 'dubai', lat: 25.2048, lng: 55.2708, flag: '🇦🇪' },
+  { id: 'riyadh', lat: 24.7136, lng: 46.6753, flag: '🇸🇦' },
+  { id: 'istanbul', lat: 41.0082, lng: 28.9784, flag: '🇹🇷' },
+  { id: 'johannesburg', lat: -26.2041, lng: 28.0473, flag: '🇿🇦' },
+  { id: 'cairo', lat: 30.0444, lng: 31.2357, flag: '🇪🇬' },
+  { id: 'london', lat: 51.5074, lng: -0.1278, flag: '🇬🇧' },
+  { id: 'paris', lat: 48.8566, lng: 2.3522, flag: '🇫🇷' },
+  { id: 'berlin', lat: 52.5200, lng: 13.4050, flag: '🇩🇪' },
+  { id: 'zurich', lat: 47.3769, lng: 8.5417, flag: '🇨🇭' },
+  { id: 'rome', lat: 41.9028, lng: 12.4964, flag: '🇮🇹' },
+  { id: 'madrid', lat: 40.4168, lng: -3.7038, flag: '🇪🇸' },
+  { id: 'amsterdam', lat: 52.3676, lng: 4.9041, flag: '🇳🇱' },
+  { id: 'newYork', lat: 40.7128, lng: -74.0060, flag: '🇺🇸' },
+  { id: 'losAngeles', lat: 34.0522, lng: -118.2437, flag: '🇺🇸' },
+  { id: 'sanFrancisco', lat: 37.7749, lng: -122.4194, flag: '🇺🇸' },
+  { id: 'chicago', lat: 41.8781, lng: -87.6298, flag: '🇺🇸' },
+  { id: 'toronto', lat: 43.6532, lng: -79.3832, flag: '🇨🇦' },
+  { id: 'vancouver', lat: 49.2827, lng: -123.1207, flag: '🇨🇦' },
+  { id: 'saoPaulo', lat: -23.5505, lng: -46.6333, flag: '🇧🇷' },
+  { id: 'buenosAires', lat: -34.6037, lng: -58.3816, flag: '🇦🇷' },
+  { id: 'mexicoCity', lat: 19.4326, lng: -99.1332, flag: '🇲🇽' },
 ]
 
 const COLORS: Record<string, string> = {
@@ -62,31 +58,6 @@ const GLYPHS: Record<string, string> = {
 const NAMES: Record<string, string> = {
   Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury',
   Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu',
-}
-
-// Known paran pair interpretations
-const PARAN_LIBRARY: Record<string, string> = {
-  'Su-Mo': 'Vitality meets emotion — a place of integrated personal power and authentic self-expression.',
-  'Su-Ju': 'Power meets wisdom — exceptional for career growth, recognition, and spiritual expansion.',
-  'Su-Ve': 'Confidence meets beauty — highly creative, socially magnetic, ideal for arts and leadership.',
-  'Su-Ma': 'Drive meets visibility — intense ambition and physical vitality. Best for competitive goals.',
-  'Su-Sa': 'Discipline under the spotlight — hard-earned success and lasting achievement.',
-  'Mo-Ve': 'Emotions meet harmony — deeply nurturing, romantic, and artistically fertile.',
-  'Mo-Ju': 'Feelings meet abundance — emotional security and spiritual nourishment.',
-  'Mo-Ma': 'Emotion meets action — dynamic but intense; best channelled into creative work.',
-  'Ju-Ve': 'Abundance meets harmony — one of the most auspicious crossings for love and prosperity.',
-  'Ju-Me': 'Wisdom meets communication — outstanding for teaching, publishing, and strategic business.',
-  'Ma-Ju': 'Drive meets expansion — powerful for athletics, entrepreneurship, and competitive success.',
-  'Ve-Me': 'Charm meets intellect — gifted in diplomacy, writing, and aesthetic communication.',
-  'Sa-Ju': 'Structure meets growth — serious long-term ambitions with practical wisdom.',
-  'Sa-Me': 'Precision meets thought — analytical depth; excellent for research and engineering.',
-  'Ra-Ju': 'Transformation meets opportunity — unconventional paths to great success.',
-}
-
-function getParanMeaning(p1: string, p2: string): string {
-  const k1 = `${p1}-${p2}`, k2 = `${p2}-${p1}`
-  return PARAN_LIBRARY[k1] ?? PARAN_LIBRARY[k2] ??
-    `${NAMES[p1] || p1} and ${NAMES[p2] || p2} energies intersect — a zone of powerful planetary synthesis.`
 }
 
 // ─── Types ───────────────────────────────────────────────────
@@ -118,16 +89,32 @@ const ANGLE_MAP: Record<LifeArea, string[]> = {
   identity: ['AS'],
 }
 
-const ANGLE_META: Record<string, { label: string; icon: string; desc: string }> = {
-  AS: { label: 'Identity',     icon: '↑', desc: 'How you appear and feel about yourself here.' },
-  MC: { label: 'Career',       icon: '⌃', desc: 'Professional visibility and public reputation.' },
-  DS: { label: 'Relationships',icon: '↓', desc: 'Partner energies and relational dynamics.' },
-  IC: { label: 'Home',         icon: '⌄', desc: 'Domestic environment and ancestral roots.' },
-}
-
 // ─── Main Component ──────────────────────────────────────────
 
 export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, activeTab, onTabChange, hideTabBar = false }: Props) {
+  const { lang } = useLang()
+  const tTabs = useTranslations('acg.analysisTabs')
+  const tCities = useTranslations('acg.cities')
+  const tNames = useTranslations('acg.cities.names')
+  const tParans = useTranslations('acg.parans')
+  const tPairs = useTranslations('acg.parans.pairs')
+  const tGuide = useTranslations('acg.guide')
+  const tAngles = useTranslations('acg.guide.angles')
+  const tCoords = useTranslations('acg.coords')
+  const planetLabel = (id: string) => grahaName(id as GrahaId, lang, NAMES[id] ?? id)
+  const paranMeaning = (p1: string, p2: string) => {
+    const k1 = `${p1}-${p2}`
+    const k2 = `${p2}-${p1}`
+    if (tPairs.has(k1)) return tPairs(k1)
+    if (tPairs.has(k2)) return tPairs(k2)
+    return tParans('fallback', { p1: planetLabel(p1), p2: planetLabel(p2) })
+  }
+  const hemisphere = (value: number, kind: 'lat' | 'lng') => {
+    const dir = kind === 'lat'
+      ? tCoords(value >= 0 ? 'north' : 'south')
+      : tCoords(value >= 0 ? 'east' : 'west')
+    return `${Math.abs(value).toFixed(2)}°${dir}`
+  }
   const planets = Array.from(visiblePlanets)
   const [internalTab, setInternalTab] = useState<Tab>('cities')
   const tab = activeTab ?? internalTab
@@ -190,24 +177,24 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
       {!hideTabBar && (
         <div style={{ display: 'flex', gap: '3px', background: 'var(--surface-2)', padding: '3px', borderRadius: '12px' }}>
           {([
-            ['cities', '🌐', 'Top Cities'],
-            ['parans', '✨', 'Crossings'],
-            ['guide',  '📖', 'Guide'],
-          ] as [Tab, string, string][]).map(([t, icon, label]) => (
+            ['cities', '🌐'],
+            ['parans', '✨'],
+            ['guide',  '📖'],
+          ] as [Tab, string][]).map(([id, icon]) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={id}
+              onClick={() => setTab(id)}
               style={{
                 flex: 1, padding: '7px 6px', borderRadius: '9px',
-                background: tab === t ? 'var(--surface-0)' : 'transparent',
+                background: tab === id ? 'var(--surface-0)' : 'transparent',
                 border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
-                color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
+                color: tab === id ? 'var(--text-primary)' : 'var(--text-muted)',
                 display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center',
-                boxShadow: tab === t ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                boxShadow: tab === id ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
                 transition: 'all 0.2s',
               }}
             >
-              <span>{icon}</span><span>{label}</span>
+              <span>{icon}</span><span>{tTabs(id)}</span>
             </button>
           ))}
         </div>
@@ -217,11 +204,11 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
       {tab === 'cities' && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.5, padding: '0 0.25rem' }}>
-            Cities scored by proximity to your natal planetary lines and paran latitudes.
+            {tCities('intro')}
           </div>
 
           {topCities.length === 0 ? (
-            <EmptyState icon="🌍" message="Activate planetary layers to discover your top resonance cities." />
+            <EmptyState icon="🌍" message={tCities('empty')} />
           ) : (
             topCities.map((c, i) => {
               const expanded = expandedCity === i
@@ -260,12 +247,12 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                       </div>
                       <div>
                         <div style={{ fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <span>{c.flag}</span> {c.name}
+                          <span>{c.flag}</span> {tNames(c.id)}
                         </div>
                         {c.closestPlanet && (
                           <div style={{ fontSize: '0.62rem', color: COLORS[c.closestPlanet], fontWeight: 700, marginTop: '1px' }}>
-                            {GLYPHS[c.closestPlanet]} {NAMES[c.closestPlanet]} {c.lineType}
-                            {c.minOffset < 20 ? ` · ${c.minOffset.toFixed(1)}° offset` : ''}
+                            {GLYPHS[c.closestPlanet]} {planetLabel(c.closestPlanet)} {c.lineType}
+                            {c.minOffset < 20 ? ` ${tCities('offset', { deg: c.minOffset.toFixed(1) })}` : ''}
                           </div>
                         )}
                       </div>
@@ -304,11 +291,11 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
       {tab === 'parans' && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.5, padding: '0 0.25rem' }}>
-            Parans are latitudinal bands where two planetary lines cross — zones of intensified combined energy.
+            {tParans('intro')}
           </div>
 
           {parans.length === 0 ? (
-            <EmptyState icon="✨" message="No power crossings found within the selected planetary layers." />
+            <EmptyState icon="✨" message={tParans('empty')} />
           ) : (
             parans.slice(0, 10).map((p, i) => (
               <div key={i} style={{ background: 'var(--surface-1)', borderRadius: '14px', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
@@ -320,9 +307,9 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                     <span style={{ fontSize: '1.3rem', color: COLORS[p.p2], filter: `drop-shadow(0 0 6px ${COLORS[p.p2]}80)` }}>{GLYPHS[p.p2]}</span>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>{NAMES[p.p1]} × {NAMES[p.p2]}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>{planetLabel(p.p1)} × {planetLabel(p.p2)}</div>
                     <div style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 800, fontFamily: 'var(--font-mono)', marginTop: '1px' }}>
-                      {Math.abs(p.lat).toFixed(2)}°{p.lat >= 0 ? 'N' : 'S'} · {Math.abs(p.lon).toFixed(2)}°{p.lon >= 0 ? 'E' : 'W'}
+                      {hemisphere(p.lat, 'lat')} · {hemisphere(p.lon, 'lng')}
                     </div>
                   </div>
                   {/* Dual color swatch */}
@@ -334,7 +321,7 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                 {/* Interpretation */}
                 <div style={{ padding: '0.75rem 0.875rem' }}>
                   <p style={{ margin: 0, fontSize: '0.73rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                    {getParanMeaning(p.p1, p.p2)}
+                    {paranMeaning(p.p1, p.p2)}
                   </p>
                 </div>
               </div>
@@ -349,15 +336,15 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
 
           {/* Life-area filter */}
           <div>
-            <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Filter by life area</div>
+            <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>{tGuide('filter')}</div>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
               {([
-                ['all',      '🌐', 'All Lines'],
-                ['career',   '🏆', 'MC · Career'],
-                ['love',     '❤️',  'DS · Love'],
-                ['home',     '🏠', 'IC · Home'],
-                ['identity', '✦',  'AS · Identity'],
-              ] as [LifeArea, string, string][]).map(([a, icon, label]) => (
+                ['all',      '🌐'],
+                ['career',   '🏆'],
+                ['love',     '❤️'],
+                ['home',     '🏠'],
+                ['identity', '✦'],
+              ] as [LifeArea, string][]).map(([a, icon]) => (
                 <button
                   key={a}
                   onClick={() => setLifeArea(a)}
@@ -369,7 +356,7 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                     cursor: 'pointer', display: 'flex', gap: '4px', alignItems: 'center', transition: 'all 0.2s',
                   }}
                 >
-                  <span>{icon}</span><span>{label}</span>
+                  <span>{icon}</span><span>{tGuide(a)}</span>
                 </button>
               ))}
             </div>
@@ -377,13 +364,13 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
             {/* Angle description */}
             {lifeArea !== 'all' && (
               <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: '8px', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                {ANGLE_META[ANGLE_MAP[lifeArea][0]]?.desc}
+                {tAngles(`${ANGLE_MAP[lifeArea][0]}.desc`)}
               </div>
             )}
           </div>
 
           {planets.length === 0 ? (
-            <EmptyState icon="🧿" message="Activate planetary layers on the map to unlock relocation insights." />
+            <EmptyState icon="🧿" message={tGuide('empty')} />
           ) : (
             planets.map(id => (
               <div key={id} style={{ background: 'var(--surface-1)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-soft)' }}>
@@ -393,9 +380,11 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                     {GLYPHS[id]}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.975rem' }}>{NAMES[id]} Lines</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.975rem' }}>{tGuide('lines', { planet: planetLabel(id) })}</div>
                     <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: '1px' }}>
-                      {activeAngles.length === 1 ? `${activeAngles[0]} · ${ANGLE_META[activeAngles[0]].label}` : 'All Angles'}
+                      {activeAngles.length === 1
+                        ? tGuide('angleFocus', { angle: activeAngles[0], label: tAngles(`${activeAngles[0]}.label`) })
+                        : tGuide('allAngles')}
                     </div>
                   </div>
                   {/* Color bar accent */}
@@ -409,7 +398,9 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                       key={angle}
                       angle={angle}
                       color={COLORS[id]}
-                      desc={ACG_INTERPRETATIONS[id as GrahaId]?.[angle]}
+                      label={tAngles(`${angle}.label`)}
+                      pending={tGuide('pending')}
+                      desc={getAcgInterpretation(id as GrahaId, angle, lang)}
                     />
                   ))}
                 </div>
@@ -433,8 +424,7 @@ function EmptyState({ icon, message }: { icon: string; message: string }) {
   )
 }
 
-function AngleBox({ angle, desc, color }: { angle: string; desc?: string; color: string }) {
-  const meta = ANGLE_META[angle]
+function AngleBox({ angle, desc, color, label, pending }: { angle: string; desc?: string; color: string; label: string; pending: string }) {
   return (
     <div
       style={{ padding: '0.75rem', margin: '3px', borderRadius: '10px', cursor: 'default', transition: 'background 0.2s' }}
@@ -443,9 +433,9 @@ function AngleBox({ angle, desc, color }: { angle: string; desc?: string; color:
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
         <span style={{ fontSize: '0.58rem', fontWeight: 900, color, padding: '2px 6px', background: `${color}18`, borderRadius: '4px' }}>{angle}</span>
-        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{meta?.label}</span>
+        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{label}</span>
       </div>
-      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.52, margin: 0 }}>{desc ?? 'Interpretation pending.'}</p>
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.52, margin: 0 }}>{desc ?? pending}</p>
     </div>
   )
 }

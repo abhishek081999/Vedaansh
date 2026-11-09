@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import type { ChartOutput } from '@/types/astrology'
 import type { NumerologyReport } from '@/lib/engine/numerology/calc'
 import { buildNumerologyCore } from '@/lib/engine/numerology/calc'
@@ -25,10 +27,10 @@ import {
   suggestPlateEndings,
   type FriendshipMode,
 } from '@/lib/engine/numerology/advanced'
-import { NUMBER_PROFILES } from '@/lib/engine/numerology/data'
+import { getNumberProfile } from '@/lib/engine/numerology/data'
 import { Field } from '@/components/ui/primitives/Field'
 import { Button } from '@/components/ui/primitives/Button'
-import { HarmonyPill, NumberOrb, SectionCard, TagList, gridColumns } from './shared'
+import { HarmonyPill, NumberOrb, SectionCard, TagList, gridColumns, useNumerologyLang } from './shared'
 import { BusinessNumerologyTool } from './BusinessNumerologyTool'
 
 const SAVE_KEY = 'vedaansh_numerology_saves'
@@ -44,6 +46,10 @@ export function NumerologyToolsSection({
   chart: ChartOutput | null
   friendshipMode: FriendshipMode
 }) {
+  const t = useTranslations('numerology.tools')
+  const tv = useTranslations('numerology.verdict')
+  const tp = useTranslations('numerology.panel')
+  const lang = useNumerologyLang()
   const [sub, setSub] = useState<'labels' | 'business' | 'brand' | 'timing' | 'health' | 'compare' | 'saves'>('labels')
   const cheiro = useMemo(() => getCheiroLabels(report.moolank.value, report.bhagyank.value), [report])
   const friendship = useMemo(
@@ -114,8 +120,8 @@ export function NumerologyToolsSection({
   const [compareName, setCompareName] = useState('')
   const compareReport = useMemo(() => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(compareDob)) return null
-    return buildNumerologyCore({ birthDate: compareDob, name: compareName.trim() || undefined })
-  }, [compareDob, compareName])
+    return buildNumerologyCore({ birthDate: compareDob, name: compareName.trim() || undefined, lang })
+  }, [compareDob, compareName, lang])
 
   const [saves, setSaves] = useState<SaveRow[]>([])
   const [saveLabel, setSaveLabel] = useState('')
@@ -132,25 +138,25 @@ export function NumerologyToolsSection({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div className="tab-bar" role="tablist" aria-label="Advanced tools">
+      <div className="tab-bar" role="tablist" aria-label={t('aria')}>
         {([
-          { id: 'labels' as const, label: 'Labels & Grid' },
-          { id: 'business' as const, label: 'Business' },
-          { id: 'brand' as const, label: 'Brand & Plate' },
-          { id: 'timing' as const, label: 'Timing' },
-          { id: 'health' as const, label: 'Health & Yantra' },
-          { id: 'compare' as const, label: 'Compare' },
-          { id: 'saves' as const, label: 'Saved' },
-        ]).map(t => (
-          <button key={t.id} type="button" role="tab" aria-selected={sub === t.id} className={`tab-btn${sub === t.id ? ' active' : ''}`} onClick={() => setSub(t.id)}>
-            {t.label}
+          { id: 'labels' as const, label: t('labels') },
+          { id: 'business' as const, label: t('business') },
+          { id: 'brand' as const, label: t('brand') },
+          { id: 'timing' as const, label: t('timing') },
+          { id: 'health' as const, label: t('health') },
+          { id: 'compare' as const, label: t('compare') },
+          { id: 'saves' as const, label: t('saves') },
+        ]).map(item => (
+          <button key={item.id} type="button" role="tab" aria-selected={sub === item.id} className={`tab-btn${sub === item.id ? ' active' : ''}`} onClick={() => setSub(item.id)}>
+            {item.label}
           </button>
         ))}
       </div>
 
       {sub === 'labels' && (
         <>
-          <SectionCard title="Driver · Conductor · Essence" subtitle={cheiro.note}>
+          <SectionCard title={t('cheiroTitle')} subtitle={cheiro.note}>
             <div style={gridColumns(180)}>
               {[
                 { n: cheiro.driver, t: cheiro.driverLabel },
@@ -165,15 +171,19 @@ export function NumerologyToolsSection({
             </div>
             {lagna && (
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                <strong style={{ color: 'var(--text-gold)' }}>Lagna number {lagna.value}</strong> — {lagna.note}
+                <strong style={{ color: 'var(--text-gold)' }}>{t('lagna', { n: lagna.value })}</strong> — {lagna.note}
               </p>
             )}
             <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-              Friendship mode <strong>{friendshipMode}</strong>: friends {friendship.friends.join(', ') || '—'} · enemies {friendship.enemies.join(', ') || '—'}
+              {t('friendsLine', {
+                mode: friendshipMode === 'indian' ? tp('indian') : tp('bphs'),
+                friends: friendship.friends.join(', ') || '—',
+                enemies: friendship.enemies.join(', ') || '—',
+              })}
             </div>
           </SectionCard>
 
-          <SectionCard title="Inclusion Table" subtitle="How often each digit appears in your grid build.">
+          <SectionCard title={t('inclusionTitle')} subtitle={t('inclusionSub')}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 4 }}>
               {inclusion.map(c => (
                 <div key={c.number} title={c.effect} style={{
@@ -189,22 +199,22 @@ export function NumerologyToolsSection({
           </SectionCard>
 
           {nakBridge && (
-            <SectionCard title="Nakshatra ↔ Letter Bridge" subtitle={nakBridge.note}>
+            <SectionCard title={t('nakTitle')} subtitle={nakBridge.note}>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                {nakBridge.nakshatraName} pada {nakBridge.pada} · lord {nakBridge.lordName}
-                {nakBridge.lordNumber != null ? ` (number ${nakBridge.lordNumber})` : ''}
+                {t('nakLine', { name: nakBridge.nakshatraName, pada: nakBridge.pada, lord: nakBridge.lordName })}
+                {nakBridge.lordNumber != null ? t('nakNumber', { n: nakBridge.lordNumber }) : ''}
               </div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: 4 }}>Pada sounds: {nakBridge.sounds.join(' · ')}</div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: 4 }}>{t('sounds', { sounds: nakBridge.sounds.join(' · ') })}</div>
               {nakBridge.preferredLetters.length > 0 && (
                 <div style={{ marginTop: 6 }}><TagList items={nakBridge.preferredLetters} color="var(--teal)" /></div>
               )}
             </SectionCard>
           )}
 
-          <SectionCard title="Personal Year × Gochara" subtitle={gochara.tip}>
+          <SectionCard title={t('gocharaTitle')} subtitle={gochara.tip}>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <div><strong style={{ color: 'var(--teal)' }}>Amplify:</strong> {gochara.amplifyWhen}</div>
-              <div><strong style={{ color: 'var(--rose)' }}>Caution:</strong> {gochara.cautionWhen}</div>
+              <div><strong style={{ color: 'var(--teal)' }}>{t('amplify')}</strong> {gochara.amplifyWhen}</div>
+              <div><strong style={{ color: 'var(--rose)' }}>{t('caution')}</strong> {gochara.cautionWhen}</div>
             </div>
           </SectionCard>
         </>
@@ -214,8 +224,8 @@ export function NumerologyToolsSection({
 
       {sub === 'brand' && (
         <>
-          <SectionCard title="Brand / Signature Number" subtitle="Score a business name, brand word, or signature as written.">
-            <Field label="Brand or signature text" value={brand} maxLength={80} placeholder="e.g. Vedaansh Studio" onChange={e => setBrand(e.target.value)} />
+          <SectionCard title={t('brandTitle')} subtitle={t('brandSub')}>
+            <Field label={t('brandLabel')} value={brand} maxLength={80} placeholder={t('brandPh')} onChange={e => setBrand(e.target.value)} />
             {brandScore && (
               <ScoreBlock
                 root={brandScore.root}
@@ -228,7 +238,7 @@ export function NumerologyToolsSection({
             )}
           </SectionCard>
 
-          <SectionCard title="Vehicle Plate Endings" subtitle="Favourable 4-digit endings (root supports Moolank + Bhagyank).">
+          <SectionCard title={t('plateTitle')} subtitle={t('plateSub')}>
             <div style={gridColumns(120)}>
               {plates.map(p => (
                 <div key={p.pattern} style={{ padding: '0.55rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', textAlign: 'center' }}>
@@ -243,16 +253,16 @@ export function NumerologyToolsSection({
 
       {sub === 'timing' && (
         <>
-          <SectionCard title="Month Calendar" subtitle="Personal day for each date — best / good / caution vs Moolank.">
+          <SectionCard title={t('monthTitle')} subtitle={t('monthSub')}>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-              <Field label="Year" type="number" value={String(calYear)} onChange={e => setCalYear(Number(e.target.value) || calYear)} />
-              <Field label="Month" type="number" min={1} max={12} value={String(calMonth)} onChange={e => setCalMonth(Math.min(12, Math.max(1, Number(e.target.value) || calMonth)))} />
+              <Field label={t('year')} type="number" value={String(calYear)} onChange={e => setCalYear(Number(e.target.value) || calYear)} />
+              <Field label={t('month')} type="number" min={1} max={12} value={String(calMonth)} onChange={e => setCalMonth(Math.min(12, Math.max(1, Number(e.target.value) || calMonth)))} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 4 }}>
               {monthDays.map(d => {
                 const color = d.label === 'best' ? 'var(--teal)' : d.label === 'good' ? 'var(--gold)' : d.label === 'caution' ? 'var(--rose)' : 'var(--text-muted)'
                 return (
-                  <div key={d.date} title={`PD ${d.personalDay} · UD ${d.universalDay}${d.isPower ? ' · Power' : ''}${d.isDestiny ? ' · Destiny' : ''}`} style={{
+                  <div key={d.date} title={t('dayTitle', { pd: d.personalDay, ud: d.universalDay, power: d.isPower ? t('power') : '', destiny: d.isDestiny ? t('destiny') : '' })} style={{
                     padding: '0.35rem 0', textAlign: 'center', borderRadius: 'var(--r-sm)', fontSize: '0.72rem',
                     color, border: `1px solid ${d.label === 'neutral' ? 'var(--border-soft)' : color}`,
                     fontWeight: d.isPower || d.label === 'best' ? 700 : 500,
@@ -265,14 +275,14 @@ export function NumerologyToolsSection({
             </div>
           </SectionCard>
 
-          <SectionCard title="Marriage Timing (by numbers)" subtitle="Score upcoming years for both charts' personal years (2 & 6 favoured).">
-            <Field label="Partner DOB" type="date" value={partnerDob} onChange={e => setPartnerDob(e.target.value)} />
+          <SectionCard title={t('marriageTitle')} subtitle={t('marriageSub')}>
+            <Field label={t('partnerDob')} type="date" value={partnerDob} onChange={e => setPartnerDob(e.target.value)} />
             {marriageYears && (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', minWidth: 400 }}>
                   <thead>
                     <tr style={{ color: 'var(--text-muted)', textAlign: 'left' }}>
-                      {['Year', 'You PY', 'Partner PY', 'Score', 'Verdict'].map(h => (
+                      {[t('colYear'), t('colYou'), t('colPartner'), t('colScore'), t('colVerdict')].map(h => (
                         <th key={h} style={{ padding: '0.35rem', fontSize: '0.62rem', textTransform: 'uppercase', borderBottom: '1px solid var(--border-soft)' }}>{h}</th>
                       ))}
                     </tr>
@@ -284,7 +294,7 @@ export function NumerologyToolsSection({
                         <td style={{ padding: '0.35rem', color: 'var(--text-gold)' }}>{y.yourPY}</td>
                         <td style={{ padding: '0.35rem', color: 'var(--text-gold)' }}>{y.partnerPY}</td>
                         <td style={{ padding: '0.35rem' }}>{y.score}</td>
-                        <td style={{ padding: '0.35rem', textTransform: 'capitalize' }}>{y.verdict}</td>
+                        <td style={{ padding: '0.35rem', textTransform: 'capitalize' }}>{tv(y.verdict)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -297,21 +307,21 @@ export function NumerologyToolsSection({
 
       {sub === 'health' && (
         <>
-          <SectionCard title="Health Alert Map" subtitle="Body zones from Moolank, missing numbers, and challenging personal year.">
+          <SectionCard title={t('healthTitle')} subtitle={t('healthSub')}>
             {health.map(h => (
               <div key={`${h.number}-${h.reason}`} style={{
                 padding: '0.55rem 0.7rem', borderRadius: 'var(--r-md)', marginBottom: 4,
                 background: 'var(--surface-2)', borderLeft: `3px solid ${h.priority === 'watch' ? 'var(--rose)' : 'var(--teal)'}`,
               }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  #{h.number} · {NUMBER_PROFILES[h.number].planet} — {h.zone}
+                  #{h.number} · {getNumberProfile(h.number, lang).planet} — {h.zone}
                 </div>
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{h.reason}</div>
               </div>
             ))}
           </SectionCard>
 
-          <SectionCard title="Yantra & Beej Packs" subtitle="Focus numbers from your remedy package.">
+          <SectionCard title={t('yantraTitle')} subtitle={t('yantraSub')}>
             <div style={gridColumns(220)}>
               {yantras.map(y => (
                 <div key={y.number} style={{ padding: '0.75rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
@@ -324,39 +334,39 @@ export function NumerologyToolsSection({
             </div>
           </SectionCard>
 
-          <SectionCard title="Vastu × Kua × Number" subtitle="Quick directional bridge — open Astro Vastu for full overlay.">
+          <SectionCard title={t('vastuTitle')} subtitle={t('vastuSub')}>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              {vastu.tips.map(t => <li key={t}>{t}</li>)}
+              {vastu.tips.map(tip => <li key={tip}>{tip}</li>)}
             </ul>
-            <a href="/vastu" style={{ fontSize: '0.78rem', color: 'var(--text-gold)' }}>Open Astro Vastu →</a>
+            <Link href="/vastu" style={{ fontSize: '0.78rem', color: 'var(--text-gold)' }}>{t('openVastu')}</Link>
           </SectionCard>
         </>
       )}
 
       {sub === 'compare' && (
-        <SectionCard title="Compare Two Readings" subtitle="Side-by-side core numbers for a second person.">
+        <SectionCard title={t('compareTitle')} subtitle={t('compareSub')}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
-            <Field label="Their name" value={compareName} onChange={e => setCompareName(e.target.value)} />
-            <Field label="Their DOB" type="date" value={compareDob} onChange={e => setCompareDob(e.target.value)} />
+            <Field label={t('theirName')} value={compareName} onChange={e => setCompareName(e.target.value)} />
+            <Field label={t('theirDob')} type="date" value={compareDob} onChange={e => setCompareDob(e.target.value)} />
           </div>
           {compareReport && (
             <div style={gridColumns(240)}>
-              <CompareCard title="You" m={report.moolank.value} b={report.bhagyank.value} n={report.name?.value ?? null} />
-              <CompareCard title={compareName || 'Them'} m={compareReport.moolank.value} b={compareReport.bhagyank.value} n={compareReport.name?.value ?? null} />
+              <CompareCard title={t('you')} m={report.moolank.value} b={report.bhagyank.value} n={report.name?.value ?? null} />
+              <CompareCard title={compareName || t('them')} m={compareReport.moolank.value} b={compareReport.bhagyank.value} n={compareReport.name?.value ?? null} />
             </div>
           )}
         </SectionCard>
       )}
 
       {sub === 'saves' && (
-        <SectionCard title="Saved Readings (this device)" subtitle="Stored in browser localStorage — useful for client sessions.">
+        <SectionCard title={t('savesTitle')} subtitle={t('savesSub')}>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'end' }}>
-            <Field label="Label" value={saveLabel} placeholder="Client name" onChange={e => setSaveLabel(e.target.value)} />
+            <Field label={t('label')} value={saveLabel} placeholder={t('labelPh')} onChange={e => setSaveLabel(e.target.value)} />
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
-                const label = saveLabel.trim() || report.name?.words.map(w => w.word).join(' ') || 'Reading'
+                const label = saveLabel.trim() || report.name?.words.map(w => w.word).join(' ') || t('reading')
                 const dob = `${report.date.year}-${String(report.date.month).padStart(2, '0')}-${String(report.date.day).padStart(2, '0')}`
                 persist([
                   { id: `${Date.now()}`, label, birthDate: dob, name: report.name?.words.map(w => w.word).join(' ') || '', savedAt: new Date().toISOString() },
@@ -365,11 +375,11 @@ export function NumerologyToolsSection({
                 setSaveLabel('')
               }}
             >
-              Save current
+              {t('saveCurrent')}
             </Button>
           </div>
           {saves.length === 0 ? (
-            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>No saved readings yet.</p>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>{t('none')}</p>
           ) : (
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
               {saves.map(s => (
@@ -382,7 +392,7 @@ export function NumerologyToolsSection({
                     style={{ background: 'none', border: 'none', color: 'var(--rose)', cursor: 'pointer', fontSize: '0.72rem' }}
                     onClick={() => persist(saves.filter(x => x.id !== s.id))}
                   >
-                    Remove
+                    {t('remove')}
                   </button>
                 </li>
               ))}
@@ -395,28 +405,31 @@ export function NumerologyToolsSection({
 }
 
 function ScoreBlock({ root, compound, verdict, mh, bh, tips }: {
-  root: number; compound: number; verdict: string
+  root: number; compound: number; verdict: 'excellent' | 'good' | 'acceptable' | 'unfavourable'
   mh: Parameters<typeof HarmonyPill>[0]['harmony']
   bh: Parameters<typeof HarmonyPill>[0]['harmony']
   tips: string[]
 }) {
+  const t = useTranslations('numerology.tools')
+  const tv = useTranslations('numerology.verdict')
   return (
     <div style={{ padding: '0.7rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
         <NumberOrb value={root} size={40} />
         <div>
-          <div style={{ fontWeight: 600 }}>Total {compound} → {root} · <span style={{ textTransform: 'capitalize' }}>{verdict}</span></div>
+          <div style={{ fontWeight: 600 }}>{t('scoreLine', { compound, root })} · <span style={{ textTransform: 'capitalize' }}>{tv(verdict)}</span></div>
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.74rem', marginTop: 2 }}>
-            Moolank <HarmonyPill harmony={mh} /> Bhagyank <HarmonyPill harmony={bh} />
+            {t('withM')} <HarmonyPill harmony={mh} /> {t('withB')} <HarmonyPill harmony={bh} />
           </div>
         </div>
       </div>
-      {tips.map(t => <div key={t} style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>• {t}</div>)}
+      {tips.map(tip => <div key={tip} style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>• {tip}</div>)}
     </div>
   )
 }
 
 function CompareCard({ title, m, b, n }: { title: string; m: number; b: number; n: number | null }) {
+  const t = useTranslations('numerology.tools')
   return (
     <div style={{ padding: '0.85rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
       <div style={{ fontWeight: 600, color: 'var(--text-gold)', marginBottom: 6 }}>{title}</div>
@@ -425,7 +438,7 @@ function CompareCard({ title, m, b, n }: { title: string; m: number; b: number; 
         <NumberOrb value={b} size={36} muted />
         {n != null && <NumberOrb value={n} size={36} />}
       </div>
-      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 4 }}>M · B{n != null ? ' · N' : ''}</div>
+      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 4 }}>{t('legend', { name: n != null ? t('legendName') : '' })}</div>
     </div>
   )
 }

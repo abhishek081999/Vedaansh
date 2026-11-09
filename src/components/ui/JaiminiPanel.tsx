@@ -1,8 +1,11 @@
 'use client'
 import React, { useState, useEffect, useMemo, useId, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
-import { KARAKA_NAMES_7, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
+import { FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { isKnRaoCharaForward } from '@/lib/engine/dasha/chara'
 import { DashaTree } from '@/components/dasha/DashaTree'
@@ -19,6 +22,7 @@ import {
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
 import { JaiminiAllDashas, JaiminiDeepReading, type JaiminiInsightSection } from '@/components/ui/JaiminiInsights'
 import { JAIMINI_METHODS, type JaiminiMethod } from '@/lib/engine/jaimini/method'
+import { calculateJaiminiTrinity } from '@/lib/engine/jaimini/trinity'
 import type { BoardSystem } from '@/lib/engine/jaimini/dashaBoard'
 import { DashaReadingCard, FamilyKarakaCard, KarakaLifeCard, KarakamshaCard, SoulKarakaCard } from '@/components/ui/JaiminiReadings'
 import type { LucideIcon } from 'lucide-react'
@@ -109,17 +113,19 @@ const JAIMINI_TABS: { id: JaiminiTabId; label: string; short: string; Icon: Luci
   { id: 'info', label: 'Info Reference', short: 'Info', Icon: Scale },
 ]
 
-const KARAKA_ROLES: { key: keyof KarakaData; short: string; name: string }[] = [
-  { key: 'AK',  short: 'AK',  name: KARAKA_NAMES_7.AK },
-  { key: 'AmK', short: 'AmK', name: KARAKA_NAMES_7.AmK },
-  { key: 'BK',  short: 'BK',  name: KARAKA_NAMES_7.BK },
-  { key: 'MK',  short: 'MK',  name: KARAKA_NAMES_7.MK },
-  { key: 'PK',  short: 'PK',  name: KARAKA_NAMES_7.PK },
-  { key: 'GK',  short: 'GK',  name: KARAKA_NAMES_7.GK },
-  { key: 'DK',  short: 'DK',  name: KARAKA_NAMES_7.DK },
+const KARAKA_ROLES: { key: keyof KarakaData; short: string }[] = [
+  { key: 'AK',  short: 'AK' },
+  { key: 'AmK', short: 'AmK' },
+  { key: 'BK',  short: 'BK' },
+  { key: 'MK',  short: 'MK' },
+  { key: 'PK',  short: 'PK' },
+  { key: 'GK',  short: 'GK' },
+  { key: 'DK',  short: 'DK' },
 ]
 
 function JaiminiFactStrip({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('jaimini.fact')
+  const { lang } = useLang()
   const { meta, arudhas, vargas, lagnas, grahas } = chart
   const karakas = calcCharaKarakas(
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
@@ -128,15 +134,16 @@ function JaiminiFactStrip({ chart }: { chart: ChartOutput }) {
   const akId = karakas.AK
   const akNavamsha = vargas.D9?.find((g) => g.id === akId)
   const mark = (id: GrahaId) => `${id}${grahas.find((g) => g.id === id)?.isRetro ? 'R' : ''}`
+  const rashiShort = (r: Rashi) => (lang === 'hi' ? RASHI_HI[r] : RASHI_SHORT[r])
   const items: { label: string; value: string }[] = [
-    { label: 'Name', value: meta.name },
-    { label: 'DOB', value: meta.birthDate },
-    { label: 'AK', value: `${GRAHA_NAMES[akId]}${grahas.find((g) => g.id === akId)?.isRetro ? 'R' : ''}` },
-    { label: 'Swansha', value: akNavamsha ? RASHI_SHORT[akNavamsha.rashi] : '—' },
-    { label: 'Lagna', value: RASHI_SHORT[lagnas.ascRashi] },
+    { label: t('name'), value: meta.name },
+    { label: t('dob'), value: meta.birthDate },
+    { label: 'AK', value: `${lang === 'hi' ? GRAHA_HI[akId] : GRAHA_NAMES[akId]}${grahas.find((g) => g.id === akId)?.isRetro ? 'R' : ''}` },
+    { label: t('swansha'), value: akNavamsha ? rashiShort(akNavamsha.rashi) : '—' },
+    { label: t('lagna'), value: rashiShort(lagnas.ascRashi) },
     ...KARAKA_ROLES.slice(1).map((role) => ({ label: role.short, value: mark(karakas[role.key]) })),
-    { label: 'AL', value: RASHI_SHORT[arudhas.AL] },
-    { label: 'UL', value: RASHI_SHORT[arudhas.A12] },
+    { label: 'AL', value: rashiShort(arudhas.AL) },
+    { label: 'UL', value: rashiShort(arudhas.A12) },
   ]
 
   return (
@@ -241,6 +248,7 @@ export function JaiminiAspectChart({
   const arScaleVal = arScale || 1.0;
   const plScaleVal = plScale || 1.0;
   const glowId = useId();
+  const tChart = useTranslations('jaimini.chart')
 
   // Create reverse map: { 'Su': 'AK', 'Mo': 'AmK', ... }
   const revKaraka: Record<string, string> = {};
@@ -266,7 +274,7 @@ export function JaiminiAspectChart({
         viewBox={`0 0 ${size} ${size}`}
         width="100%"
         height="auto"
-        aria-label="Jaimini south Indian chart"
+        aria-label={tChart('southAria')}
         style={{ maxWidth: '100%', width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}
       >
         <defs>
@@ -412,6 +420,7 @@ export function JaiminiAspectChartNorth({
   plScale?: number;
   karakas?: Partial<KarakaData>;
 }) {
+  const tChart = useTranslations('jaimini.chart')
   const S = 400
   const Q = S / 4, M = S / 2
   const arScaleVal = arScale || 1.0;
@@ -476,7 +485,7 @@ export function JaiminiAspectChartNorth({
         viewBox="-10 -10 420 420"
         width="100%"
         height="auto"
-        aria-label="Jaimini north Indian chart"
+        aria-label={tChart('northAria')}
         style={{ maxWidth: '100%', width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}
       >
         {/* ── Chart Skeleton ── */}
@@ -619,7 +628,35 @@ export function JaiminiAspectChartNorth({
 }
 
 function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
-  const { grahas, vargas, lagnas, jaiminiBala, jaiminiTrinity } = chart;
+  const t = useTranslations('jaimini')
+  const { lang } = useLang()
+  const hi = lang === 'hi'
+  const rashiName = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const rashiShort = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r])
+  const grahaName = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])
+  const nakName = (name: string, index?: number) => (hi ? (index != null ? NAKSHATRA_HI[index] ?? termHi(name) : termHi(name)) : name)
+  const dignityLine = (detail: string) => {
+    const suffix = ' + Adhipati (+60)'
+    const hasAdhipati = detail.endsWith(suffix)
+    const base = hasAdhipati ? detail.slice(0, -suffix.length) : detail
+    const keys = {
+      Neutral: 'dignity.Neutral',
+      Exalted: 'dignity.Exalted',
+      Debilitated: 'dignity.Debilitated',
+      Moolatrikona: 'dignity.Moolatrikona',
+      'Own Sign': 'dignity.Own Sign',
+      'Friend Sign': 'dignity.Friend Sign',
+      'Enemy Sign': 'dignity.Enemy Sign',
+    } as const
+    const key = keys[base as keyof typeof keys]
+    const label = key ? t(key) : base
+    return hasAdhipati ? `${label} ${t('intel.adhipati')}` : label
+  }
+  const { grahas, vargas, lagnas, jaiminiBala } = chart;
+  const jaiminiTrinity = useMemo(
+    () => (hi ? calculateJaiminiTrinity({ grahas, lagnas }, 'hi') : chart.jaiminiTrinity),
+    [hi, grahas, lagnas, chart.jaiminiTrinity],
+  )
   const karakas = calcCharaKarakas(
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
     7
@@ -647,21 +684,29 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   }, [charaDashaMode, charaDashas, method])
 
   const boardSystems = useMemo<BoardSystem[]>(() => [
-    { id: 'chara', name: 'Chara (K.N. Rao)', kind: 'sign', nodes: charaDashas.chara },
-    { id: 'chara_fe', name: 'Chara (Rangacharya)', kind: 'sign', nodes: charaDashas.chara_fe },
-    { id: 'mandook', name: 'Mandook', kind: 'sign', nodes: method === 'practical' ? charaDashas.mandookPractical : charaDashas.mandook },
-    { id: 'sthir', name: 'Sthira', kind: 'sign', nodes: method === 'practical' ? charaDashas.sthirPractical : charaDashas.sthir },
-    { id: 'vimshottari', name: 'Vimshottari', kind: 'graha', nodes: chart.dashas?.vimshottari ?? [] },
-    { id: 'yogini', name: 'Yogini', kind: 'graha', nodes: chart.dashas?.yogini ?? [] },
-  ], [charaDashas, method, chart.dashas])
+    { id: 'chara', name: t('dasha.systemChara'), kind: 'sign', nodes: charaDashas.chara },
+    { id: 'chara_fe', name: t('dasha.systemCharaFe'), kind: 'sign', nodes: charaDashas.chara_fe },
+    { id: 'mandook', name: t('dasha.systemMandook'), kind: 'sign', nodes: method === 'practical' ? charaDashas.mandookPractical : charaDashas.mandook },
+    { id: 'sthir', name: t('dasha.systemSthir'), kind: 'sign', nodes: method === 'practical' ? charaDashas.sthirPractical : charaDashas.sthir },
+    { id: 'vimshottari', name: t('dasha.systemVimshottari'), kind: 'graha', nodes: chart.dashas?.vimshottari ?? [] },
+    { id: 'yogini', name: t('dasha.systemYogini'), kind: 'graha', nodes: chart.dashas?.yogini ?? [] },
+  ], [charaDashas, method, chart.dashas, t])
 
   const dashaTitle = useMemo(() => {
-    if (charaDashaMode === 'mandook') return 'Mandook Dasha Timeline'
-    if (charaDashaMode === 'sthir') return 'Sthir Dasha Timeline'
-    if (charaDashaMode === 'navamsha') return 'Navamsha Dasha Timeline'
-    if (charaDashaMode === 'brahma') return 'Brahma Dasha Timeline'
-    return 'Chara Dasha Timeline'
-  }, [charaDashaMode])
+    if (charaDashaMode === 'mandook') return t('dasha.titleMandook')
+    if (charaDashaMode === 'sthir') return t('dasha.titleSthir')
+    if (charaDashaMode === 'navamsha') return t('dasha.titleNavamsha')
+    if (charaDashaMode === 'brahma') return t('dasha.titleBrahma')
+    return t('dasha.titleChara')
+  }, [charaDashaMode, t])
+
+  const dashaShort = useMemo(() => {
+    if (charaDashaMode === 'mandook') return t('dasha.shortMandook')
+    if (charaDashaMode === 'sthir') return t('dasha.shortSthir')
+    if (charaDashaMode === 'navamsha') return t('dasha.shortNavamsha')
+    if (charaDashaMode === 'brahma') return t('dasha.shortBrahma')
+    return t('dasha.shortChara')
+  }, [charaDashaMode, t])
 
   // Gateway calculation
   const rashiOfDashaLord = (lord: string | undefined): Rashi | null => {
@@ -675,8 +720,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     currentDashaNode?.children?.find((n) => n.isCurrent && n.level === 2)?.lord,
   )
   const mandookNote = useMemo(
-    () => recommendMandook(grahas, lagnas.ascRashi),
-    [grahas, lagnas.ascRashi],
+    () => recommendMandook(grahas, lagnas.ascRashi, lang),
+    [grahas, lagnas.ascRashi, lang],
   )
   const gateways = dwaraRashi ? calculateGatewaySigns(lagnas.ascRashi as Rashi, dwaraRashi) : null;
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null);
@@ -848,13 +893,18 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       d9Lagna: chart.vargaLagnas?.D9,
       karakamsha: akInD9 ? karakamshaRashi : undefined,
       method,
+      lang,
     }),
-    [grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, vargas.D9, chart.vargaLagnas, akInD9, karakamshaRashi, method],
+    [grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, vargas.D9, chart.vargaLagnas, akInD9, karakamshaRashi, method, lang],
   )
 
-  const tabs = JAIMINI_TABS
+  const tabs = JAIMINI_TABS.map((tab) => ({
+    ...tab,
+    label: t(`tabs.${tab.id}.label`),
+    short: t(`tabs.${tab.id}.short`),
+  }))
 
-  const mobileTabs = JAIMINI_TABS.map((tab) => ({
+  const mobileTabs = tabs.map((tab) => ({
     id: tab.id,
     icon: tab.Icon,
     label: tab.short,
@@ -917,8 +967,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           {label}
           <span className={styles.chartLabelSub}>
             {showArudhaOverlay
-              ? `${arudhaBphsMode ? 'BPHS corrected' : 'Raw pada'} · AL in ${RASHI_SHORT[chartArudhas.AL]}${diffCount > 0 ? ` · ${diffCount} pada(s) differ with BPHS` : ''}`
-              : 'Arudha labels hidden'}
+              ? `${arudhaBphsMode ? t('chart.bphsCorrected') : t('chart.rawPada')} · ${t('chart.alIn', { sign: rashiShort(chartArudhas.AL) })}${diffCount > 0 ? ` · ${t('chart.padasDiffer', { count: diffCount })}` : ''}`
+              : t('chart.arudhaHidden')}
           </span>
         </div>
         {chartStyle === 'south' ? (
@@ -952,14 +1002,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         }}>
           <div className={styles.headerRow}>
             <div>
-              <h1 className={styles.pageTitle}>Jaimini Astrology</h1>
-              <p className={styles.pageSubtitle}>Chara Karakas · Arudha Padas · Rashi Drishti</p>
+              <h1 className={styles.pageTitle}>{t('header.title')}</h1>
+              <p className={styles.pageSubtitle}>{t('header.subtitle')}</p>
             </div>
             <button
               type="button"
               onClick={() => setGlobalChartStyle(chartStyle === 'south' ? 'north' : 'south')}
               className={styles.styleToggle}
-              aria-label={`Switch to ${chartStyle === 'south' ? 'north' : 'south'} Indian chart`}
+              aria-label={t('chart.switchTo', { style: chartStyle === 'south' ? t('chart.north') : t('chart.south') })}
             >
               {chartStyle === 'south' ? 'S' : 'N'}
             </button>
@@ -967,19 +1017,19 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
           <div style={{ margin: '0.5rem 0' }}>
             <label style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)' }}>
-              Method{' '}
+              {t('method.label')}{' '}
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value as JaiminiMethod)}
                 className={styles.dashaSelect}
               >
                 {JAIMINI_METHODS.map(m => (
-                  <option key={m.id} value={m.id}>{m.code} · {m.name}</option>
+                  <option key={m.id} value={m.id}>{m.code} · {t(`method.${m.id}.name`)}</option>
                 ))}
               </select>
             </label>
             <p style={{ margin: '0.3rem 0 0', fontSize: '0.7rem', lineHeight: 1.45, color: 'var(--text-secondary)' }}>
-              {JAIMINI_METHODS.find(m => m.id === method)?.topic}
+              {t(`method.${method}.topic`)}
             </p>
           </div>
 
@@ -987,19 +1037,19 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             <div className={cn(styles.segGroup, 'scrollbar-hide')}>
               {(['drishti', 'argala', 'both'] as const).map(m => (
                 <button key={m} type="button" onClick={() => setVizMode(m)} className={segClass(vizMode === m)}>
-                  {m}
+                  {t(`viz.${m}`)}
                 </button>
               ))}
             </div>
-            <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
-            <ArudhaToggle label="BPHS" value={arudhaBphsMode} onChange={setArudhaBphsMode} disabled={!showArudhaOverlay} />
+            <ArudhaToggle label={t('chart.arudha')} value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+            <ArudhaToggle label={t('chart.bphs')} value={arudhaBphsMode} onChange={setArudhaBphsMode} disabled={!showArudhaOverlay} />
             <button
               type="button"
               onClick={() => setShowSettings(s => !s)}
               className={cn(styles.settingsBtn, showSettings && styles.settingsBtnActive)}
             >
               <Settings size={12} />
-              {isTinyMobile ? 'Set' : 'Settings'}
+              {isTinyMobile ? t('chart.settingsShort') : t('chart.settings')}
             </button>
             <div className={cn(styles.segGroup, 'scrollbar-hide')}>
               {(['natal', 'AL', 'KL', 'dasha', 'house'] as const).map(ref => (
@@ -1027,9 +1077,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   <div className={styles.settingsHeader}>
                     <div className={styles.settingsTitle}>
                       <Settings size={18} style={{ color: 'var(--gold)' }} />
-                      Chart Configuration
+                      {t('chart.configTitle')}
                     </div>
-                    <button type="button" onClick={() => setShowSettings(false)} className="btn-sm btn-ghost" style={{ padding: '2px 8px' }}>Close</button>
+                    <button type="button" onClick={() => setShowSettings(false)} className="btn-sm btn-ghost" style={{ padding: '2px 8px' }}>{t('chart.close')}</button>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
@@ -1037,15 +1087,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                         <RotateCw size={12} />
-                        Lagna Reference
+                        {t('chart.lagnaReference')}
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
                         {[
-                          { id: 'natal', label: 'Janma', sub: 'Birth' },
-                          { id: 'AL',    label: 'Arudha', sub: 'Social' },
-                          { id: 'KL',    label: 'Karakamsha', sub: 'Soul' },
-                          { id: 'dasha', label: 'Dasha', sub: 'Time' },
-                          { id: 'house', label: `House ${rotationHouse}`, sub: 'Manual' }
+                          { id: 'natal', label: t('chart.refNatal'), sub: t('chart.refNatalSub') },
+                          { id: 'AL',    label: t('chart.refArudha'), sub: t('chart.refArudhaSub') },
+                          { id: 'KL',    label: t('chart.refKarakamsha'), sub: t('chart.refKarakamshaSub') },
+                          { id: 'dasha', label: t('chart.refDasha'), sub: t('chart.refDashaSub') },
+                          { id: 'house', label: t('chart.refHouse', { n: rotationHouse }), sub: t('chart.refHouseSub') }
                         ].map(ref => (
                           <button
                             key={ref.id}
@@ -1068,7 +1118,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                        {/* Varga Selector */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Varga Chart</div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('chart.vargaChart')}</div>
                         <select
                           value={activeVarga}
                           onChange={(e) => setActiveVarga(e.target.value)}
@@ -1076,7 +1126,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           style={{ fontSize: '0.8rem', padding: '0.4rem' }}
                         >
                           {['D1', 'D9', 'D10', 'D60', 'D7', 'D2', 'D3', 'D4', 'D12', 'D16', 'D20', 'D24', 'D30'].map(v => (
-                            <option key={v} value={v}>{v} — {v === 'D1' ? 'Rashi' : v === 'D9' ? 'Navamsha' : v === 'D10' ? 'Dasamsha' : v}</option>
+                            <option key={v} value={v}>{v} — {v === 'D1' ? t('chart.rashi') : v === 'D9' ? t('chart.navamsha') : v === 'D10' ? t('chart.dasamsha') : v}</option>
                           ))}
                         </select>
                       </div>
@@ -1084,7 +1134,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       {/* Manual House Selector */}
                       {activeLagnaRef === 'house' && (
                         <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: '6px', border: '1px solid var(--gold-soft)' }}>
-                           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase' }}>Reference House</div>
+                           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase' }}>{t('chart.referenceHouse')}</div>
                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
                               {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
                                 <button
@@ -1109,9 +1159,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   {/* Scaling Controls */}
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem', borderTop: '1px solid var(--border-soft)', paddingTop: '1rem' }}>
                      {[
-                       { id: 'chart', label: 'Zoom', val: chartScale, set: setChartScale, icon: <Maximize size={14}/>, min: 0.5, max: 2.0 },
-                       { id: 'arudha', label: 'Arudha', val: arScale, set: setArScale, icon: <Scaling size={14}/>, min: 0.6, max: 2.5 },
-                       { id: 'planet', label: 'Planet', val: plScale, set: setPlScale, icon: <Type size={14}/>, min: 0.6, max: 2.5 }
+                       { id: 'chart', label: t('chart.zoom'), val: chartScale, set: setChartScale, icon: <Maximize size={14}/>, min: 0.5, max: 2.0 },
+                       { id: 'arudha', label: t('chart.arudhaScale'), val: arScale, set: setArScale, icon: <Scaling size={14}/>, min: 0.6, max: 2.5 },
+                       { id: 'planet', label: t('chart.planet'), val: plScale, set: setPlScale, icon: <Type size={14}/>, min: 0.6, max: 2.5 }
                      ].map(s => (
                        <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -1134,8 +1184,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           {isMobile && (
             <div className={styles.vargaToggle}>
               {([
-                { id: 'D1' as const, label: 'D1', sub: 'Rashi' },
-                { id: 'D9' as const, label: 'D9', sub: 'Navamsha' },
+                { id: 'D1' as const, label: 'D1', sub: t('chart.rashi') },
+                { id: 'D9' as const, label: 'D9', sub: t('chart.navamsha') },
               ]).map(({ id, label, sub }) => {
                 const active = mobileChartVarga === id;
                 return (
@@ -1156,12 +1206,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           <div className={cn('jaimini-chart-wrap', styles.chartStage)}>
             {isMobile ? (
               mobileChartVarga === 'D1'
-                ? renderJaiminiChartBlock('D1 · Rashi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)
-                : renderJaiminiChartBlock('D9 · Navamsha', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)
+                ? renderJaiminiChartBlock(t('chart.d1Rashi'), 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)
+                : renderJaiminiChartBlock(t('chart.d9Navamsha'), 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)
             ) : (
               <>
-                {renderJaiminiChartBlock('D1 · Rashi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
-                {renderJaiminiChartBlock('D9 · Navamsha', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
+                {renderJaiminiChartBlock(t('chart.d1Rashi'), 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
+                {renderJaiminiChartBlock(t('chart.d9Navamsha'), 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
               </>
             )}
           </div>
@@ -1173,17 +1223,17 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               className={styles.aspectPanel}
             >
               <div className={styles.aspectHeader}>
-                <div className={styles.aspectTitle}>{RASHI_NAMES[selectedAspectSign]}</div>
-                <span className={styles.aspectBadge}>Layer: {vizMode}</span>
+                <div className={styles.aspectTitle}>{rashiName(selectedAspectSign)}</div>
+                <span className={styles.aspectBadge}>{t('chart.layer', { mode: t(`viz.${vizMode}`) })}</span>
               </div>
 
               <div className={styles.aspectSection}>
                 {(vizMode === 'drishti' || vizMode === 'both') && (
                   <div>
-                    <div className={styles.aspectSectionLabel}>Rashi Drishti</div>
+                    <div className={styles.aspectSectionLabel}>{t('chart.rashiDrishti')}</div>
                     <div className={styles.aspectChips}>
                       {getRashiDrishti(selectedAspectSign).map(a => (
-                        <span key={a} className={styles.aspectChip}>{RASHI_SHORT[a]}</span>
+                        <span key={a} className={styles.aspectChip}>{rashiShort(a)}</span>
                       ))}
                     </div>
                   </div>
@@ -1191,13 +1241,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
                 {(vizMode === 'argala' || vizMode === 'both') && (
                   <div>
-                    <div className={styles.aspectSectionLabel}>Argala Intervention</div>
+                    <div className={styles.aspectSectionLabel}>{t('chart.argalaIntervention')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       {argalaInterventions.map(a => (
                         <div key={a.id} className={styles.argalaRow}>
                           <div className={styles.argalaRowHeader}>
-                            <span className={styles.argalaHouse}>{a.id} House · {RASHI_SHORT[a.aSign]}</span>
-                            <span className={styles.argalaTheme}>{a.label}</span>
+                            <span className={styles.argalaHouse}>{t('chart.houseLine', { house: a.id, sign: rashiShort(a.aSign) })}</span>
+                            <span className={styles.argalaTheme}>{t(`argalaTheme.${a.id}`)}</span>
                           </div>
                           {a.occupants.length > 0 ? (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
@@ -1207,14 +1257,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                   <span style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Q{occ.quarter}</span>
                                   {occ.isBlocked && (
                                     <span style={{ fontSize: '0.55rem', color: 'var(--combust)', fontWeight: 800 }}>
-                                      blocked by {occ.blockerIds.join(', ')}
+                                      {t('chart.blockedBy', { ids: occ.blockerIds.join(', ') })}
                                     </span>
                                   )}
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', fontStyle: 'italic' }}>No planetary influence</span>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', fontStyle: 'italic' }}>{t('chart.noInfluence')}</span>
                           )}
                         </div>
                       ))}
@@ -1240,7 +1290,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         >
           {isMobile && (
             <h2 className={styles.mobileTitle}>
-              {tabs.find(t => t.id === activeTab)?.label ?? 'Jaimini'}
+              {tabs.find(tab => tab.id === activeTab)?.label ?? t('tabs.fallback')}
             </h2>
           )}
           {!isMobile && (
@@ -1266,14 +1316,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             >
               {activeTab === 'essence' && (
                 <div className={styles.tabStack}>
-                  <SectionCard title="Planetary & Special Lagnas">
+                  <SectionCard title={t('essence.title')}>
                     <table className={styles.dataTable} style={{ minWidth: isMobile ? 420 : undefined }}>
                       <thead>
                         <tr>
-                          <th>Body</th>
-                          {!isTinyMobile && <th>Deg &apos; &quot;</th>}
-                          <th>{isTinyMobile ? 'Nak' : 'Nakshatra'}</th>
-                          <th style={{ textAlign: 'right' }}>{isTinyMobile ? 'R·D9' : 'Rashi·D9'}</th>
+                          <th>{t('essence.body')}</th>
+                          {!isTinyMobile && <th>{t('essence.deg')}</th>}
+                          <th>{isTinyMobile ? t('essence.nak') : t('essence.nakshatra')}</th>
+                          <th style={{ textAlign: 'right' }}>{isTinyMobile ? t('essence.rashiD9Short') : t('essence.rashiD9')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1403,7 +1453,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               <td style={{ padding: '0.4rem 0.5rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '1px' }}>
-                                    <span style={{ fontWeight: 900, color: g.isRetro ? 'var(--dig-retro)' : 'inherit' }}>{g.id}</span>
+                                    <span style={{ fontWeight: 900, color: g.isRetro ? 'var(--dig-retro)' : 'inherit' }}>{
+                                      g.id === 'Lg' ? t('essence.lagna')
+                                      : g.id === 'Pranapada Lagna' ? t('essence.pranapada')
+                                      : g.id === 'Indu Lagna' ? t('essence.indu')
+                                      : g.id === 'Bhrigu Bindu' ? t('essence.bhrigu')
+                                      : hi && (g.id in GRAHA_HI) ? GRAHA_HI[g.id as GrahaId]
+                                      : g.id
+                                    }</span>
                                     {g.isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>ᴿ</span>}
                                   </div>
                                   {ck && <span style={{ fontSize: '0.55rem', fontWeight: 900, background: 'var(--surface-3)', padding: '1px 3px', borderRadius: '3px', opacity: 0.7 }}>{ck}</span>}
@@ -1417,12 +1474,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               </td>
                               {!isTinyMobile && <td style={{ padding: '0.4rem 0.5rem', fontFamily: 'monospace', fontWeight: 700 }}>{formatDMS(g.degree)}</td>}
                               <td style={{ padding: '0.4rem 0.5rem' }}>
-                                <div style={{ fontWeight: 800 }}>{g.nakshatraName} <span style={{ opacity: 0.5, fontWeight: 400 }}>({g.pada})</span></div>
-                                <div style={{ fontSize: '0.55rem', fontWeight: 900, color: taraColor, letterSpacing: '0.05em' }}>{tara}</div>
+                                <div style={{ fontWeight: 800 }}>{nakName(g.nakshatraName, g.nakshatraIndex)} <span style={{ opacity: 0.5, fontWeight: 400 }}>({g.pada})</span></div>
+                                <div style={{ fontSize: '0.55rem', fontWeight: 900, color: taraColor, letterSpacing: '0.05em' }}>{hi ? termHi(tara) : tara}</div>
                               </td>
                               <td style={{ padding: '0.4rem 0.5rem', textAlign: 'right', fontWeight: 800 }}>
-                                <span style={{ color: 'var(--text-gold)' }}>{RASHI_SHORT[g.rashi]}</span>
-                                <span style={{ opacity: 0.4, fontWeight: 400, marginLeft: '4px' }}>({RASHI_SHORT[d9Rashi]})</span>
+                                <span style={{ color: 'var(--text-gold)' }}>{rashiShort(g.rashi)}</span>
+                                <span style={{ opacity: 0.4, fontWeight: 400, marginLeft: '4px' }}>({rashiShort(d9Rashi)})</span>
                               </td>
                             </tr>
                           );
@@ -1441,7 +1498,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         <div
                           key={role.key}
                           className={isAk ? styles.karakaCardAk : styles.karakaCard}
-                          title={role.name}
+                          title={t(`karaka.${role.key}`)}
                         >
                           <span className={styles.karakaRole}>{role.short}</span>
                           <span className={styles.karakaPlanet} style={{ color: grahaChartFill(planetId) }}>
@@ -1451,7 +1508,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             )}
                           </span>
                           <span className={styles.karakaSign}>
-                            {planet ? RASHI_SHORT[planet.rashi] : '—'}
+                            {planet ? rashiShort(planet.rashi) : '—'}
                           </span>
                         </div>
                       );
@@ -1468,13 +1525,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         )}
                       </div>
                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                        ({RASHI_SHORT[karakamshaRashi]})
+                        ({rashiShort(karakamshaRashi)})
                       </span>
                     </div>
                     <div className={styles.statusDivider} />
                     <div className={styles.statusItem}>
                       <span className={styles.statusKey} style={{ color: 'var(--teal)' }}>AL</span>
-                      <span className={styles.statusVal}>{RASHI_SHORT[d1EffectiveArudhas.AL]}</span>
+                      <span className={styles.statusVal}>{rashiShort(d1EffectiveArudhas.AL)}</span>
                     </div>
                   </div>
 
@@ -1493,7 +1550,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {activeTab === 'yogas' && (
                 <div className={styles.tabStack}>
                   {jaiminiYogas.length > 0 ? (
-                    <SectionCard title="Principal Rajayogas">
+                    <SectionCard title={t('yogas.title')}>
                       <table className={styles.dataTable}>
                         <tbody>
                           {jaiminiYogas.map((yoga) => (
@@ -1502,36 +1559,36 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                 <div style={{ fontWeight: 900, color: 'var(--text-gold)' }}>{yoga.name}</div>
                                 <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{yoga.desc}</div>
                               </td>
-                              <td style={{ textAlign: 'right', fontWeight: 900, color: 'var(--gold)', fontSize: '0.68rem', verticalAlign: 'top' }}>{yoga.strength}</td>
+                              <td style={{ textAlign: 'right', fontWeight: 900, color: 'var(--gold)', fontSize: '0.68rem', verticalAlign: 'top' }}>{t(`yogas.strength.${yoga.strength}`)}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </SectionCard>
                   ) : (
-                    <SectionCard title="Principal Rajayogas">
+                    <SectionCard title={t('yogas.title')}>
                       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        No principal Jaimini rajayoga is formed in this chart.
+                        {t('yogas.empty')}
                       </p>
                     </SectionCard>
                   )}
-                  <SectionCard title="Fixed Significators (Sthira Karakas)" scrollY>
+                  <SectionCard title={t('yogas.fixedTitle')} scrollY>
                     <table className={styles.dataTable}>
                       <thead>
                         <tr>
-                          <th>House</th>
-                          <th style={{ textAlign: 'right' }}>Significator</th>
+                          <th>{t('yogas.house')}</th>
+                          <th style={{ textAlign: 'right' }}>{t('yogas.significator')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {Object.entries(FIXED_HOUSE_SIGNIFICATORS).map(([house, data]) => (
                           <tr key={house}>
                             <td style={{ fontWeight: 800 }}>
-                              {house}{house === '1' ? 'st' : house === '2' ? 'nd' : house === '3' ? 'rd' : 'th'} House
+                              {t('yogas.nthHouse', { n: hi ? house : `${house}${house === '1' ? 'st' : house === '2' ? 'nd' : house === '3' ? 'rd' : 'th'}` })}
                             </td>
                             <td style={{ textAlign: 'right' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{data.label}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t(`fixed.${data.planet}`)}</span>
                                 <span
                                   className={styles.planetBadge}
                                   style={{ color: grahaChartFill(data.planet), borderColor: `${grahaChartFill(data.planet)}33` }}
@@ -1575,9 +1632,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {activeTab === 'arudhas' && (
                 <div className={styles.tabStack}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+                    <ArudhaToggle label={t('chart.arudha')} value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
                     <ArudhaToggle
-                      label="BPHS exceptions"
+                      label={t('chart.bphsExceptions')}
                       value={arudhaBphsMode}
                       onChange={setArudhaBphsMode}
                       disabled={!showArudhaOverlay}
@@ -1585,9 +1642,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                       {showArudhaOverlay
                         ? (arudhaBphsMode
-                          ? `BPHS corrected · D1 AL ${RASHI_SHORT[d1EffectiveArudhas.AL]} · D9 AL ${RASHI_SHORT[d9EffectiveArudhas.AL]}`
-                          : `Raw pada · D1 AL ${RASHI_SHORT[d1EffectiveArudhas.AL]} · D9 AL ${RASHI_SHORT[d9EffectiveArudhas.AL]}`)
-                        : 'Arudha labels hidden on charts'}
+                          ? t('arudhaPanel.corrected', { d1: rashiShort(d1EffectiveArudhas.AL), d9: rashiShort(d9EffectiveArudhas.AL) })
+                          : t('arudhaPanel.raw', { d1: rashiShort(d1EffectiveArudhas.AL), d9: rashiShort(d9EffectiveArudhas.AL) }))
+                        : t('arudhaPanel.hidden')}
                     </span>
                   </div>
 
@@ -1596,7 +1653,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     return (
                       <div key={varga} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <h3 className={styles.sectionTitle}>
-                          {varga === 'D1' ? 'D1 · Rashi' : 'D9 · Navamsha'} Arudha Matrix
+                          {t('arudhaPanel.matrix', { varga: varga === 'D1' ? t('chart.d1Rashi') : t('chart.d9Navamsha') })}
                         </h3>
                         <div className={styles.arudhaGrid}>
                           {Object.entries(ARUDHA_LABELS).map(([key, info]) => {
@@ -1609,10 +1666,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                 </div>
                                 <div className={styles.arudhaKey}>{key}</div>
                                 <div className={styles.arudhaRashi}>
-                                  {rashi ? RASHI_SHORT[rashi as Rashi] : '—'}
+                                  {rashi ? rashiShort(rashi as Rashi) : '—'}
                                 </div>
                                 {!isTinyMobile && (
-                                  <div className={styles.arudhaLabel}>{info.label}</div>
+                                  <div className={styles.arudhaLabel}>{t(`arudhaCards.${key}.label`)}</div>
                                 )}
                               </div>
                             );
@@ -1636,11 +1693,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)'
                     }}>
                       <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {RASHI_NAMES[selectedAspectSign || currentAsc]} Intervention Matrix
+                        {t('argala.matrix', { sign: rashiName(selectedAspectSign || currentAsc) })}
                       </div>
                       <div style={{ display: 'flex', gap: '0.3rem' }}>
                         {[
-                          { id: 'Lg', label: 'Lagna', sign: currentAsc },
+                          { id: 'Lg', label: t('argala.lagna'), sign: currentAsc },
                           { id: 'AL', label: 'AL', sign: d1EffectiveArudhas.AL },
                           { id: 'AK', label: 'AK', sign: currentGrahas.find(g => g.id === karakas.AK)?.rashi }
                         ].map(ref => (
@@ -1664,21 +1721,21 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <thead style={{ background: 'var(--surface-3)', textAlign: 'left' }}>
                           <tr>
-                            <th style={{ padding: '0.75rem' }}>HOUSE</th>
-                            <th style={{ padding: '0.75rem' }}>ARGALA</th>
-                            {!isTinyMobile && <th style={{ padding: '0.75rem' }}>OBSTRUCTION</th>}
-                            <th style={{ padding: '0.75rem' }}>STATUS</th>
+                            <th style={{ padding: '0.75rem' }}>{t('argala.house')}</th>
+                            <th style={{ padding: '0.75rem' }}>{t('argala.argala')}</th>
+                            {!isTinyMobile && <th style={{ padding: '0.75rem' }}>{t('argala.obstruction')}</th>}
+                            <th style={{ padding: '0.75rem' }}>{t('argala.status')}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {getArgalaIntervention(selectedAspectSign || currentAsc).map(s => (
                             <tr key={s.id} style={{ borderTop: '1px solid var(--border-soft)' }}>
                               <td style={{ padding: '0.75rem' }}>
-                                <div style={{ fontWeight: 800 }}>{s.id} House</div>
-                                <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>{s.label}</div>
+                                <div style={{ fontWeight: 800 }}>{t('argala.houseN', { n: s.id })}</div>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>{t(`argalaTheme.${s.id}`)}</div>
                               </td>
                               <td style={{ padding: '0.75rem' }}>
-                                <div style={{ color: 'var(--teal)', fontWeight: 800 }}>{RASHI_SHORT[s.aSign]}</div>
+                                  <div style={{ color: 'var(--teal)', fontWeight: 800 }}>{rashiShort(s.aSign)}</div>
                                 <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
                                   {s.occupants.map(o => (
                                     <span key={o.id} style={{ fontSize: '0.65rem', color: o.isBlocked ? 'var(--text-muted)' : 'var(--text-primary)' }}>
@@ -1689,12 +1746,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               </td>
                               {!isTinyMobile && (
                                 <td style={{ padding: '0.75rem' }}>
-                                  <div style={{ color: 'var(--combust)', fontWeight: 800 }}>{RASHI_SHORT[s.vSign]}</div>
+                                  <div style={{ color: 'var(--combust)', fontWeight: 800 }}>{rashiShort(s.vSign)}</div>
                                   <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
                                     {s.occupants.flatMap(o => o.blockerIds).filter((v, i, a) => a.indexOf(v) === i).map(bid => (
                                       <span key={bid} style={{ fontSize: '0.65rem' }}>{bid}</span>
                                     ))}
-                                    {s.occupants.every(o => !o.isBlocked) && <span style={{ fontSize: '0.65rem', opacity: 0.4 }}>None</span>}
+                                    {s.occupants.every(o => !o.isBlocked) && <span style={{ fontSize: '0.65rem', opacity: 0.4 }}>{t('argala.none')}</span>}
                                   </div>
                                 </td>
                               )}
@@ -1704,7 +1761,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                   background: s.isArgalaActive ? 'var(--teal-soft)' : 'var(--surface-3)',
                                   color: s.isArgalaActive ? 'var(--teal)' : 'var(--text-muted)'
                                 }}>
-                                  {s.isArgalaActive ? 'SUCCESS' : s.occupants.length > 0 ? 'BLOCKED' : 'EMPTY'}
+                                  {s.isArgalaActive ? t('argala.success') : s.occupants.length > 0 ? t('argala.blocked') : t('argala.empty')}
                                 </span>
                               </td>
                             </tr>
@@ -1723,23 +1780,23 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             return (
                               <tr style={{ background: isReverseArgala ? 'rgba(45,212,191,0.05)' : 'transparent', borderTop: '2px solid var(--border-soft)' }}>
                                 <td style={{ padding: '0.75rem 1rem' }}>
-                                  <div style={{ fontWeight: 900, color: isReverseArgala ? 'var(--teal)' : 'inherit' }}>3rd</div>
-                                  <div style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Courage/Siblings</div>
+                                  <div style={{ fontWeight: 900, color: isReverseArgala ? 'var(--teal)' : 'inherit' }}>{t('argala.third')}</div>
+                                  <div style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', fontWeight: 700 }}>{t('argala.courage')}</div>
                                 </td>
                                 <td style={{ padding: '0.75rem 1rem' }}>
-                                  <div style={{ fontWeight: 800, color: isReverseArgala ? 'var(--teal)' : 'inherit' }}>{RASHI_SHORT[thirdSign]}</div>
+                                  <div style={{ fontWeight: 800, color: isReverseArgala ? 'var(--teal)' : 'inherit' }}>{rashiShort(thirdSign)}</div>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                                     {occupants.map(o => (
                                       <span key={o.id} style={{ fontSize: '0.65rem', fontWeight: 900, color: malefics.includes(o.id) ? 'var(--teal)' : 'inherit' }}>{o.id}</span>
                                     ))}
                                   </div>
                                 </td>
-                                <td style={{ padding: '0.75rem 1rem', fontSize: '0.6rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Unobstructable</td>
+                                <td style={{ padding: '0.75rem 1rem', fontSize: '0.6rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>{t('argala.unobstructable')}</td>
                                 <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
                                   {isReverseArgala ? (
-                                    <span style={{ color: 'var(--teal)', fontWeight: 900, fontSize: '0.6rem', background: 'var(--teal-faint)', padding: '2px 6px', borderRadius: '4px' }}>REVERSE ARGALA</span>
+                                    <span style={{ color: 'var(--teal)', fontWeight: 900, fontSize: '0.6rem', background: 'var(--teal-faint)', padding: '2px 6px', borderRadius: '4px' }}>{t('argala.reverse')}</span>
                                   ) : (
-                                    <span style={{ opacity: 0.2 }}>No Malefic Rule</span>
+                                    <span style={{ opacity: 0.2 }}>{t('argala.noMalefic')}</span>
                                   )}
                                 </td>
                               </tr>
@@ -1757,7 +1814,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   
                   {/* Header Title for the section */}
                   <div style={{ textAlign: 'center', padding: '1rem', borderBottom: '1px solid var(--border-soft)', marginBottom: '0.5rem' }}>
-                    <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Planetary Strength (Graha Bala) in Jaimini</h2>
+                    <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t('info.title')}</h2>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
@@ -1765,18 +1822,18 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Planet's Dignity Strength */}
                     <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.75rem', background: 'rgba(255,215,0,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>
-                        Planet&apos;s Dignity → Strength Units
+                        {t('info.dignityTitle')}
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
                           {[
-                            { label: 'Exalted (Uchcha)', val: 60 },
-                            { label: 'Moolatrikona', val: 45 },
-                            { label: 'Own Sign (Swakshetra)', val: 30 },
-                            { label: 'Friendly Sign', val: 22.5 },
-                            { label: 'Neutral Sign', val: 15 },
-                            { label: 'Enemy Sign', val: 7.5 },
-                            { label: 'Debilitated', val: 3.75 }
+                            { label: t('info.exalted'), val: 60 },
+                            { label: t('info.moolatrikona'), val: 45 },
+                            { label: t('info.own'), val: 30 },
+                            { label: t('info.friendly'), val: 22.5 },
+                            { label: t('info.neutral'), val: 15 },
+                            { label: t('info.enemy'), val: 7.5 },
+                            { label: t('info.debilitated'), val: 3.75 }
                           ].map((item, idx) => (
                             <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                               <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
@@ -1790,18 +1847,18 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Chara Karaka Strength */}
                     <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.75rem', background: 'rgba(45,212,191,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase' }}>
-                        Chara Karaka Strength
+                        {t('info.karakaTitle')}
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
                           {[
-                            { label: 'Atma Karaka', val: 60 },
-                            { label: 'Amatya Karaka', val: 45 },
-                            { label: 'Bhratru Karaka', val: 30 },
-                            { label: 'Matru Karaka', val: 22.5 },
-                            { label: 'Putra Karaka', val: 15 },
-                            { label: 'Gnati Karaka', val: 7.5 },
-                            { label: 'Dara Karaka', val: 3.75 }
+                            { label: t('info.atma'), val: 60 },
+                            { label: t('info.amatya'), val: 45 },
+                            { label: t('info.bhratru'), val: 30 },
+                            { label: t('info.matru'), val: 22.5 },
+                            { label: t('info.putra'), val: 15 },
+                            { label: t('info.gnati'), val: 7.5 },
+                            { label: t('info.dara'), val: 3.75 }
                           ].map((item, idx) => (
                             <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                               <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
@@ -1815,14 +1872,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Sign & House Strength Combined */}
                     <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.75rem', background: 'rgba(129,140,248,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: '#818cf8', textTransform: 'uppercase' }}>
-                        Sign / Rashi Strength
+                        {t('info.signTitle')}
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
                           {[
-                            { label: 'Dual (Dvisbhava)', val: '60', desc: 'Highest – adaptability + intelligence' },
-                            { label: 'Fixed (Sthira)', val: '30', desc: 'Stability' },
-                            { label: 'Movable (Chara)', val: '15', desc: 'Dynamic but unstable' }
+                            { label: t('info.dual'), val: '60', desc: t('info.dualDesc') },
+                            { label: t('info.fixed'), val: '30', desc: t('info.fixedDesc') },
+                            { label: t('info.movable'), val: '15', desc: t('info.movableDesc') }
                           ].map((item, idx) => (
                             <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                               <td style={{ padding: '0.6rem 0.75rem' }}>
@@ -1836,14 +1893,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </table>
                       
                       <div style={{ padding: '0.6rem 0.75rem', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border-soft)', background: 'rgba(129,140,248,0.02)' }}>
-                        House Strength (Sthana Bala)
+                        {t('info.houseTitle')}
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
                           {[
-                            { label: 'Kendra (1, 4, 7, 10)', val: 60 },
-                            { label: 'Panapara (2, 5, 8, 11)', val: 30 },
-                            { label: 'Apoklima (3, 6, 9, 12)', val: 15 }
+                            { label: t('info.kendra'), val: 60 },
+                            { label: t('info.panapara'), val: 30 },
+                            { label: t('info.apoklima'), val: 15 }
                           ].map((item, idx) => (
                             <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                               <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
@@ -1857,15 +1914,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Occupancy & Aspect Strength Combined */}
                     <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.75rem', background: 'rgba(239,68,68,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--combust)', textTransform: 'uppercase' }}>
-                        Number of Planets → Sthana Bala
+                        {t('info.countTitle')}
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
                           {[
-                            { label: '1 planet', val: '60 units' },
-                            { label: '2 planets', val: '75 units' },
-                            { label: '3 planets', val: '90 units' },
-                            { label: 'More planets', val: 'Even Higher' }
+                            { label: t('info.onePlanet'), val: t('info.units60') },
+                            { label: t('info.twoPlanets'), val: t('info.units75') },
+                            { label: t('info.threePlanets'), val: t('info.units90') },
+                            { label: t('info.morePlanets'), val: t('info.evenHigher') }
                           ].map((item, idx) => (
                             <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                               <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
@@ -1876,13 +1933,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </table>
 
                       <div style={{ padding: '0.6rem 0.75rem', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border-soft)', background: 'rgba(239,68,68,0.02)' }}>
-                        Aspect Strength
+                        {t('info.aspectTitle')}
                       </div>
                       <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {[
-                          { label: 'Jupiter aspects a sign', val: '+60 units' },
-                          { label: 'Mercury aspects a sign', val: '+60 units' },
-                          { label: 'Sign Lord aspects', val: '+60 units' }
+                          { label: t('info.jupiterAspect'), val: t('info.plus60') },
+                          { label: t('info.mercuryAspect'), val: t('info.plus60') },
+                          { label: t('info.lordAspect'), val: t('info.plus60') }
                         ].map((item, idx) => (
                           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
                             <span style={{ fontWeight: 600 }}>{item.label}</span>
@@ -1893,9 +1950,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           marginTop: '0.4rem', padding: '0.5rem', borderRadius: '6px', background: 'rgba(239,68,68,0.1)', 
                           border: '1px dashed var(--combust)', textAlign: 'center' 
                         }}>
-                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--combust)', textTransform: 'uppercase' }}>Maximum Synergy</div>
-                          <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--text-primary)' }}>180 units (All three together)</div>
-                          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--combust)', marginTop: '2px' }}>VERY POWERFUL</div>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--combust)', textTransform: 'uppercase' }}>{t('info.maxSynergy')}</div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--text-primary)' }}>{t('info.units180')}</div>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--combust)', marginTop: '2px' }}>{t('info.veryPowerful')}</div>
                         </div>
                       </div>
                     </div>
@@ -1909,16 +1966,16 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', top: 0, right: 0, padding: '1rem', opacity: 0.05, fontSize: '3rem' }}>⚡</div>
                       <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Odd Sign (Vishama Rashi)
+                        {t('info.oddTitle')}
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
-                          If an <strong style={{ color: 'var(--gold)' }}>odd sign&apos;s lord</strong> is connected with a malefic, it gains <strong style={{ color: 'var(--gold)' }}>Extra Strength</strong>.
+                          {t('info.oddBody')}
                         </div>
                         <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(201,168,76,0.05)', borderLeft: '3px solid var(--gold)' }}>
-                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', marginBottom: '0.2rem', textTransform: 'uppercase' }}>Reason</div>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', marginBottom: '0.2rem', textTransform: 'uppercase' }}>{t('info.reason')}</div>
                           <div style={{ fontSize: '0.7rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
-                            Odd sign activates energy; malefic triggers action → Creates <strong style={{ color: 'var(--text-primary)' }}>strength through struggle</strong>.
+                            {t('info.oddReason')}
                           </div>
                         </div>
                       </div>
@@ -1928,31 +1985,31 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', top: 0, right: 0, padding: '1rem', opacity: 0.05, fontSize: '3rem' }}>✂️</div>
                       <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Kartari (Scissors Yoga)
+                        {t('info.kartariTitle')}
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
-                          Planet is <strong style={{ color: 'var(--teal)' }}>hemmed in</strong> between planets in 2nd and 12th from it.
+                          {t('info.kartariBody')}
                         </div>
                         
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--teal-faint)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--teal-soft)' }}>
-                          <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>Odd Sign + Kartari</span>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--teal)' }}>+60 Bonus Points</span>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>{t('info.oddKartari')}</span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--teal)' }}>{t('info.bonus60')}</span>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                           <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid var(--border-soft)' }}>
-                            <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--teal)', marginBottom: '0.2rem' }}>POSITIVE</div>
-                            <div style={{ fontSize: '0.65rem' }}>Growth under pressure</div>
+                            <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--teal)', marginBottom: '0.2rem' }}>{t('info.positive')}</div>
+                            <div style={{ fontSize: '0.65rem' }}>{t('info.positiveBody')}</div>
                           </div>
                           <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid var(--border-soft)' }}>
-                            <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--combust)', marginBottom: '0.2rem' }}>NEGATIVE</div>
-                            <div style={{ fontSize: '0.65rem' }}>Struggle and stress</div>
+                            <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--combust)', marginBottom: '0.2rem' }}>{t('info.negative')}</div>
+                            <div style={{ fontSize: '0.65rem' }}>{t('info.negativeBody')}</div>
                           </div>
                         </div>
                         
                         <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic' }}>
-                          Kartari shows what kind of <strong style={{ color: 'var(--text-primary)' }}>pressure</strong> you face.
+                          {t('info.kartariFoot')}
                         </div>
                       </div>
                     </div>
@@ -1968,52 +2025,52 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   <div className={styles.trinityGrid}>
                     {[
                       { 
-                        title: 'Brahma', 
-                        subtitle: 'Creator', 
+                        title: t('intel.brahma'), 
+                        subtitle: t('intel.creator'), 
                         data: jaiminiTrinity?.brahma, 
                         Icon: Sparkles, 
                         color: 'var(--gold)',
-                        desc: 'Events trigger'
+                        desc: t('intel.events')
                       },
                       { 
-                        title: 'Maheshwara', 
-                        subtitle: 'Liberator', 
+                        title: t('intel.maheshwara'), 
+                        subtitle: t('intel.liberator'), 
                         data: jaiminiTrinity?.maheshwara, 
                         Icon: Flame, 
                         color: '#818cf8',
-                        desc: 'Karmic completion'
+                        desc: t('intel.karmic')
                       },
                       { 
-                        title: 'Rudra', 
-                        subtitle: 'Destroyer', 
+                        title: t('intel.rudra'), 
+                        subtitle: t('intel.destroyer'), 
                         data: jaiminiTrinity?.rudra, 
                         Icon: Eye, 
                         color: 'var(--combust)',
-                        desc: 'Crisis / endings'
+                        desc: t('intel.crisis')
                       }
-                    ].map((t) => {
-                      const planetId = t.data?.id as GrahaId | null | undefined
-                      const planetName = planetId ? GRAHA_NAMES[planetId] : null
+                    ].map((pillar) => {
+                      const planetId = pillar.data?.id as GrahaId | null | undefined
+                      const planetName = planetId ? grahaName(planetId) : null
                       return (
-                      <div key={t.title} className={styles.trinityCard} style={{ borderTop: `3px solid ${t.color}` }}>
+                      <div key={pillar.title} className={styles.trinityCard} style={{ borderTop: `3px solid ${pillar.color}` }}>
                         <div className={styles.trinityBody}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-                            <div className={styles.trinityIcon} style={{ color: t.color }}>
-                              <t.Icon size={16} strokeWidth={2.25} />
+                            <div className={styles.trinityIcon} style={{ color: pillar.color }}>
+                              <pillar.Icon size={16} strokeWidth={2.25} />
                             </div>
                             <div className={styles.trinityMeta}>
-                              <div className={styles.trinitySubtitle} style={{ color: t.color }}>{t.subtitle}</div>
-                              <div className={styles.trinityTitle}>{t.title}</div>
-                              <div className={styles.trinityDesc}>{t.desc}</div>
+                              <div className={styles.trinitySubtitle} style={{ color: pillar.color }}>{pillar.subtitle}</div>
+                              <div className={styles.trinityTitle}>{pillar.title}</div>
+                              <div className={styles.trinityDesc}>{pillar.desc}</div>
                             </div>
                           </div>
-                          {t.data?.reason && (
-                            <p className={styles.trinityReason}>{t.data.reason}</p>
+                          {pillar.data?.reason && (
+                            <p className={styles.trinityReason}>{pillar.data.reason}</p>
                           )}
                         </div>
                         <div className={styles.trinityId}>
-                          <span className={styles.trinityIdLabel}>Planet</span>
-                          <span className={styles.trinityIdVal} style={{ color: t.color }}>
+                          <span className={styles.trinityIdLabel}>{t('intel.planet')}</span>
+                          <span className={styles.trinityIdVal} style={{ color: pillar.color }}>
                             {planetId || '?'}
                           </span>
                           {planetName && (
@@ -2031,13 +2088,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Special Lagnas Card */}
                     <div className="card-glass" style={{ padding: isTinyMobile ? '0.5rem' : '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
                       <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        Special Lagnas
+                        {t('intel.specialLagnas')}
                       </h3>
                       <div style={{ display: 'grid', gridTemplateColumns: isTinyMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
                         {([
-                          { key: 'HL', label: 'HORA (HL)', color: 'var(--teal)', lon: lagnas.horaLagna },
-                          { key: 'GL', label: 'GHATIKA (GL)', color: 'var(--gold)', lon: lagnas.ghatiLagna },
-                          { key: 'VL', label: 'VARNADA (VL)', color: '#818cf8', lon: lagnas.varnadaLagna },
+                          { key: 'HL', label: t('intel.hora'), color: 'var(--teal)', lon: lagnas.horaLagna },
+                          { key: 'GL', label: t('intel.ghatika'), color: 'var(--gold)', lon: lagnas.ghatiLagna },
+                          { key: 'VL', label: t('intel.varnada'), color: '#818cf8', lon: lagnas.varnadaLagna },
                         ] as const).map((sl) => {
                           const ok = Number.isFinite(sl.lon)
                           const rashi = ok ? ((Math.floor(sl.lon / 30) % 12) + 1) as Rashi : null
@@ -2046,8 +2103,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             <div key={sl.key} style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
                               <div style={{ fontSize: '0.55rem', fontWeight: 800, color: sl.color, marginBottom: '0.2rem' }}>{sl.label}</div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <span style={{ fontSize: '1rem', fontWeight: 900 }}>{rashi ? RASHI_SHORT[rashi] : '—'}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{deg != null ? `${deg}°` : 'n/a'}</span>
+                                <span style={{ fontSize: '1rem', fontWeight: 900 }}>{rashi ? rashiShort(rashi) : '—'}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{deg != null ? `${deg}°` : t('intel.na')}</span>
                               </div>
                             </div>
                           )
@@ -2058,30 +2115,30 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Gateway Signs Card */}
                     <div className="card-glass" style={{ padding: isTinyMobile ? '0.5rem' : '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
                       <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        Gateways
+                        {t('intel.gateways')}
                       </h3>
                       {gateways ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(52, 211, 153, 0.04)', border: '1px solid rgba(52, 211, 153, 0.15)' }}>
-                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.1rem' }}>DWARA</div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.dwara]}</div>
-                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[gateways.dwara]}</div>
+                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.1rem' }}>{t('intel.dwara')}</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{rashiShort(gateways.dwara)}</div>
+                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{rashiName(gateways.dwara)}</div>
                             </div>
                             <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.04)', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
-                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--combust)', marginBottom: '0.1rem' }}>BAHYA</div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.bahya]}</div>
-                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[gateways.bahya]}</div>
+                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--combust)', marginBottom: '0.1rem' }}>{t('intel.bahya')}</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{rashiShort(gateways.bahya)}</div>
+                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{rashiName(gateways.bahya)}</div>
                             </div>
                           </div>
                           {currentDashaNode && (
                             <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>
-                              Active {dashaTitle.replace(' Timeline', '')}: {currentDashaNode.label || currentDashaNode.lord}
+                              {t('intel.activePeriod', { name: dashaShort, label: currentDashaNode.label || currentDashaNode.lord })}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>No active dasha</div>
+                        <div style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>{t('intel.noDasha')}</div>
                       )}
                     </div>
                   </div>
@@ -2090,21 +2147,21 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   <div className="card-glass" style={{ padding: isTinyMobile ? '0.5rem' : '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                       <h3 style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        Strength Breakdown (Bala)
+                        {t('intel.balaTitle')}
                       </h3>
-                      <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)' }}>Values in Jaimini Units</div>
+                      <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)' }}>{t('intel.units')}</div>
                     </div>
 
                     <div className="scrollbar-hide" style={{ overflowX: 'auto', margin: isTinyMobile ? '0 -0.5rem' : '0', padding: isTinyMobile ? '0 0.5rem' : '0' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.75rem' }}>
                         <thead style={{ background: 'var(--surface-3)', textAlign: 'left' }}>
                           <tr>
-                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', borderRadius: '8px 0 0 8px' }}>PLANET</th>
-                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>DIGNITY</th>
-                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KARAKA</th>
-                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KARTARI</th>
-                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KENDRA</th>
-                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>TOTAL</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', borderRadius: '8px 0 0 8px' }}>{t('intel.planetCol')}</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>{t('intel.dignityCol')}</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>{t('intel.karakaCol')}</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>{t('intel.kartariCol')}</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>{t('intel.kendraCol')}</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>{t('intel.totalCol')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2116,26 +2173,26 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ fontWeight: 900, color: 'var(--text-primary)' }}>{g.id}</span>
-                                    {!isTinyMobile && <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{GRAHA_NAMES[g.id as GrahaId]}</span>}
+                                    {!isTinyMobile && <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{grahaName(g.id as GrahaId)}</span>}
                                   </div>
                                 </td>
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800, color: 'var(--gold)' }}>{bala.placementBala}</div>
-                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.placementDetails} in {RASHI_SHORT[g.rashi]}</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{t('intel.inSign', { detail: dignityLine(String(bala.placementDetails ?? '')), sign: rashiShort(g.rashi) })}</div>
                                 </td>
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800, color: 'var(--teal)' }}>{bala.karakaBala}</div>
-                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.karakaRole}</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.karakaRole === 'None' ? t('intel.none') : bala.karakaRole}</div>
                                 </td>
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800, color: bala.kartariBala > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
                                     {bala.kartariBala > 0 ? `+${bala.kartariBala}` : '0'}
                                   </div>
-                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.kartariBala > 0 ? 'Active' : 'No Hems'}</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.kartariBala > 0 ? t('intel.active') : t('intel.noHems')}</div>
                                 </td>
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800 }}>+{bala.kendraBala ?? 0}</div>
-                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>From AK</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{t('intel.fromAk')}</div>
                                 </td>
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem', textAlign: 'right' }}>
                                   <div style={{ 
@@ -2160,19 +2217,19 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Rashi Bala */}
                     <div className="card-glass" style={{ padding: isTinyMobile ? '0.75rem' : '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
                       <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        Sign Strength (Rashi Bala)
+                        {t('intel.rashiBala')}
                       </h3>
                       <div className="scrollbar-hide" style={{ overflowX: 'auto', margin: isTinyMobile ? '0 -0.75rem' : '0', padding: isTinyMobile ? '0 0.75rem' : '0' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.7rem' }}>
                           <thead style={{ background: 'var(--surface-2)', textAlign: 'left' }}>
                             <tr>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>RASHI</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>TYPE</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>KARAKAS</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>ASPECTS</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Odd sign whose lord is joined or aspected by a difficult planet">4TH</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Total strength of the sign's lord">LORD</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem', textAlign: 'right' }}>TOTAL</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>{t('intel.rashiCol')}</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>{t('intel.typeCol')}</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>{t('intel.karakasCol')}</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>{t('intel.aspectsCol')}</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title={t('intel.fourthTitle')}>{t('intel.fourthCol')}</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title={t('intel.lordTitle')}>{t('intel.lordCol')}</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem', textAlign: 'right' }}>{t('intel.totalCol')}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2181,7 +2238,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               if (!bala) return null;
                               return (
                                 <tr key={r} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', fontWeight: 900 }}>{RASHI_SHORT[r as Rashi]}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', fontWeight: 900 }}>{rashiShort(r as Rashi)}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', opacity: 0.8 }}>{bala.typeBala}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--teal)', fontWeight: 700 }}>+{bala.karakaBala}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--gold)', fontWeight: 700 }}>+{bala.aspectBala}</td>
@@ -2199,13 +2256,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* House Strength */}
                     <div className="card-glass" style={{ padding: isTinyMobile ? '0.75rem' : '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
                       <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        House Class (Sthana)
+                        {t('intel.houseClass')}
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {[
-                          { label: 'Kendra', houses: '1, 4, 7, 10', val: 60, color: 'var(--gold)' },
-                          { label: 'Panaphara', houses: '2, 5, 8, 11', val: 30, color: 'var(--teal)' },
-                          { label: 'Apoklima', houses: '3, 6, 9, 12', val: 15, color: 'var(--text-muted)' }
+                          { label: t('intel.kendra'), houses: '1, 4, 7, 10', val: 60, color: 'var(--gold)' },
+                          { label: t('intel.panaphara'), houses: '2, 5, 8, 11', val: 30, color: 'var(--teal)' },
+                          { label: t('intel.apoklima'), houses: '3, 6, 9, 12', val: 15, color: 'var(--text-muted)' }
                         ].map((h, idx) => (
                           <div key={idx} style={{ 
                             padding: isTinyMobile ? '0.75rem' : '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', 
@@ -2213,7 +2270,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           }}>
                             <div>
                               <div style={{ fontSize: isTinyMobile ? '0.75rem' : '0.8rem', fontWeight: 900, color: h.color }}>{h.label}</div>
-                              <div style={{ fontSize: isTinyMobile ? '0.55rem' : '0.6rem', opacity: 0.6 }}>Houses: {h.houses}</div>
+                              <div style={{ fontSize: isTinyMobile ? '0.55rem' : '0.6rem', opacity: 0.6 }}>{t('intel.houses', { list: h.houses })}</div>
                             </div>
                             <div style={{ fontSize: isTinyMobile ? '1rem' : '1.25rem', fontWeight: 900, color: h.color }}>{h.val}</div>
                           </div>
@@ -2224,9 +2281,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         marginTop: '1.5rem', padding: '1rem', borderRadius: '12px', 
                         background: 'rgba(201,168,76,0.05)', border: '1px dashed var(--gold-soft)'
                       }}>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Quick Tip</div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>{t('intel.tipTitle')}</div>
                         <div style={{ fontSize: '0.7rem', lineHeight: 1.6, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                          Planets in Kendra (1,4,7,10) have the maximum power to manifest physical events in Jaimini.
+                          {t('intel.tip')}
                         </div>
                       </div>
                     </div>
@@ -2238,7 +2295,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
               {activeTab === 'marriage' && (
                 <div className={styles.tabStack}>
-                  <JaiminiMarriageSection chart={chart} />
+                  <JaiminiMarriageSection chart={chart} lang={lang} />
                 </div>
               )}
 
@@ -2276,14 +2333,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         value={charaDashaMode}
                         onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe' | 'mandook' | 'sthir' | 'navamsha' | 'brahma')}
                         className={styles.dashaSelect}
-                        aria-label="Jaimini dasha calculation method"
+                        aria-label={t('dasha.aria')}
                       >
-                        <option value="chara">Chara Dasha (K.N. Rao)</option>
-                        <option value="chara_fe">Chara Dasha (Rangacharya FE)</option>
-                        <option value="mandook">{method === 'practical' ? 'Mandook Dasha (Practical)' : 'Mandook Dasha (K.N. Rao)'}</option>
-                        <option value="sthir">{method === 'practical' ? 'Sthir Dasha (Lagna or 7th)' : 'Sthir Dasha (from Brahma)'}</option>
-                        <option value="navamsha">Navamsha Dasha (S.C. Mishra)</option>
-                        <option value="brahma">Brahma Dasha</option>
+                        <option value="chara">{t('dasha.chara')}</option>
+                        <option value="chara_fe">{t('dasha.charaFe')}</option>
+                        <option value="mandook">{method === 'practical' ? t('dasha.mandookPractical') : t('dasha.mandookRao')}</option>
+                        <option value="sthir">{method === 'practical' ? t('dasha.sthirPractical') : t('dasha.sthirBrahma')}</option>
+                        <option value="navamsha">{t('dasha.navamsha')}</option>
+                        <option value="brahma">{t('dasha.brahma')}</option>
                       </select>
                     </div>
                     <div className={styles.dashaBody}>
@@ -2320,7 +2377,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
       {isMobile && (
         <MobileBottomNavShell
-          ariaLabel="Jaimini sections"
+          ariaLabel={t('chart.mobileNav')}
           compact
           tabs={mobileTabs.map(({ id, icon, label }) => ({
             id,

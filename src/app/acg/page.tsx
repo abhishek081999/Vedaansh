@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import React, { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -15,6 +16,9 @@ const AstroCartographyAnalysis = dynamic(() => import('@/components/ui/AstroCart
 type MobileView = 'map' | ACGAnalysisTab
 
 export default function ACGPage() {
+  const t = useTranslations('acg.page')
+  const tStats = useTranslations('acg.stats')
+  const tMobile = useTranslations('acg.mobileTabs')
   const { chart } = useChart()
   const [selectedPlanets, setSelectedPlanets] = useState<Set<any>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
   const [activeParans, setActiveParans] = useState<any[]>([])
@@ -41,10 +45,10 @@ export default function ACGPage() {
   }, [])
 
   const mobileTabs = [
-    { id: 'map' as const, icon: Map, label: 'Map' },
-    { id: 'cities' as const, icon: Globe, label: 'Cities' },
-    { id: 'parans' as const, icon: Sparkles, label: 'Cross' },
-    { id: 'guide' as const, icon: BookOpen, label: 'Guide' },
+    { id: 'map' as const, icon: Map, label: tMobile('map') },
+    { id: 'cities' as const, icon: Globe, label: tMobile('cities') },
+    { id: 'parans' as const, icon: Sparkles, label: tMobile('cross') },
+    { id: 'guide' as const, icon: BookOpen, label: tMobile('guide') },
   ]
 
   const analysisTab: ACGAnalysisTab =
@@ -62,12 +66,12 @@ export default function ACGPage() {
             zIndex: -1, opacity: 0.5
           }} />
           <div style={{ fontSize: isMobile ? '3.5rem' : '4.5rem', marginBottom: '1.5rem', filter: 'drop-shadow(0 0 20px var(--gold-glow))' }}>🌍</div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.8rem' : '2.2rem', color: 'var(--text-gold)', marginBottom: '1rem', fontWeight: 700 }}>Birth Data Required</h2>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.8rem' : '2.2rem', color: 'var(--text-gold)', marginBottom: '1rem', fontWeight: 700 }}>{t('emptyTitle')}</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', lineHeight: 1.6, fontSize: '1rem' }}>
-            Astrocartography uses your precise birth moment to map planetary power lines across the globe. Enter your details to begin your relocation journey.
+            {t('emptyBody')}
           </p>
           <Link href="/?new=true" className="btn btn-primary" style={{ padding: '0.85rem 2.5rem', textDecoration: 'none', fontSize: '1rem' }}>
-            Enter Birth Details
+            {t('emptyCta')}
           </Link>
         </div>
       </div>
@@ -100,9 +104,9 @@ export default function ACGPage() {
 
       <header style={{ marginBottom: isMobile ? '0.5rem' : '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <span className="badge-accent" style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem' }}>Phase 8 — Advanced Core</span>
+          <span className="badge-accent" style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem' }}>{t('badge')}</span>
           <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, var(--border-bright), transparent)' }} />
-          <span className="label-caps" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>Precision Mapping</span>
+          <span className="label-caps" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>{t('precision')}</span>
         </div>
         
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
@@ -118,18 +122,18 @@ export default function ACGPage() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              Global Horizon Mapping
+              {t('heading')}
             </h1>
             <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', maxWidth: '700px', fontSize: isMobile ? '0.95rem' : '1.15rem', lineHeight: 1.5 }}>
-              Decrypt the celestial blueprint across terrestrial space. Discover locations where your planetary potential reaches its zenith.
+              {t('subtitle')}
             </p>
           </div>
           
           {!isMobile && (
             <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem 1.25rem', borderLeft: '2px solid var(--gold-faint)', background: 'var(--surface-1)', borderRadius: '12px' }}>
-                <StatItem label="Active Layers" value={selectedPlanets.size} />
-                <StatItem label="Planet Lines" value={selectedPlanets.size * 4} />
-                <StatItem label="Crossings" value={activeParans.length} />
+                <StatItem label={tStats('activeLayers')} value={selectedPlanets.size} />
+                <StatItem label={tStats('planetLines')} value={selectedPlanets.size * 4} />
+                <StatItem label={tStats('crossings')} value={activeParans.length} />
             </div>
           )}
         </div>
@@ -189,9 +193,9 @@ export default function ACGPage() {
             <div className="card-gold" style={{ padding: '1.1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>💡</span>
               <div>
-                <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 700, fontSize: '0.82rem' }}>Relocation Intelligence</p>
+                <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 700, fontSize: '0.82rem' }}>{t('tipTitle')}</p>
                 <p style={{ margin: '0.3rem 0 0', color: 'var(--text-on-gold)', opacity: 0.82, fontSize: '0.73rem', lineHeight: 1.45 }}>
-                  Click anywhere on the map to instantly see your relocated Ascendant, nearest planetary line, and life-area interpretation for that location.
+                  {t('tipBody')}
                 </p>
               </div>
             </div>
@@ -201,7 +205,7 @@ export default function ACGPage() {
 
       {isMobile && (
         <MobileBottomNavShell
-          ariaLabel="Astrocartography sections"
+          ariaLabel={t('navAria')}
           tabs={mobileTabs.map(({ id, icon, label }) => ({
             id,
             icon,

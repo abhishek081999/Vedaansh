@@ -1,0 +1,183 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "feature": "Astrocartography"
+  },
+  "page": {
+    "badge": "Phase 8 — Advanced Core",
+    "precision": "Precision Mapping",
+    "heading": "Global Horizon Mapping",
+    "subtitle": "Decrypt the celestial blueprint across terrestrial space. Discover locations where your planetary potential reaches its zenith.",
+    "emptyTitle": "Birth Data Required",
+    "emptyBody": "Astrocartography uses your precise birth moment to map planetary power lines across the globe. Enter your details to begin your relocation journey.",
+    "emptyCta": "Enter Birth Details",
+    "navAria": "Astrocartography sections",
+    "tipTitle": "Relocation Intelligence",
+    "tipBody": "Click anywhere on the map to instantly see your relocated Ascendant, nearest planetary line, and life-area interpretation for that location."
+  },
+  "stats": {
+    "activeLayers": "Active Layers",
+    "planetLines": "Planet Lines",
+    "crossings": "Crossings"
+  },
+  "mobileTabs": {
+    "map": "Map",
+    "cities": "Cities",
+    "cross": "Cross",
+    "guide": "Guide"
+  },
+  "analysisTabs": {
+    "cities": "Top Cities",
+    "parans": "Crossings",
+    "guide": "Guide"
+  },
+  "themes": {
+    "all": "All",
+    "wealth": "Abundance",
+    "love": "Love",
+    "career": "Career",
+    "spirit": "Spirit"
+  },
+  "planetThemes": {
+    "Su": "Power & Visibility",
+    "Mo": "Emotions & Home",
+    "Ma": "Energy & Drive",
+    "Me": "Mind & Communication",
+    "Ju": "Growth & Wisdom",
+    "Ve": "Love & Beauty",
+    "Sa": "Discipline & Legacy",
+    "Ra": "Transformation"
+  },
+  "coords": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "north": "N",
+    "south": "S",
+    "east": "E",
+    "west": "W"
+  },
+  "map": {
+    "searchPlaceholder": "Search destinations…",
+    "natal": "Natal",
+    "transit": "Transit",
+    "overlay": "Overlay",
+    "vivid": "◉ Vivid",
+    "subtle": "○ Subtle",
+    "lineOpacityTitle": "Toggle line opacity",
+    "layersTitle": "Planetary Layers",
+    "activeCount": "{n} of {total} active",
+    "midheaven": "Midheaven",
+    "nadir": "Nadir",
+    "ascendant": "Ascendant",
+    "descendant": "Descendant",
+    "flyToBirth": "⊕ Fly to Birth Location",
+    "rising": "{rashi} Rising",
+    "nearest": "{planet} {line} · {dist}° away",
+    "loading": "Calculating Planetary Vectors…",
+    "birth": "Birth",
+    "selected": "Selected",
+    "tooltipMc": "{glyph} {planet} MC — Midheaven · Career & Fame",
+    "tooltipIc": "{glyph} {planet} IC — Nadir · Home & Roots",
+    "tooltipAs": "{glyph} {planet} AS — Ascendant · Identity",
+    "tooltipDs": "{glyph} {planet} DS — Descendant · Relationships",
+    "transitMc": "⟳ {planet} MC (Transit)",
+    "transitAs": "⟳ {planet} AS (Transit)",
+    "legendMc": "MC · Career",
+    "legendIc": "IC · Home",
+    "legendAs": "AS · Identity",
+    "legendDs": "DS · Relations"
+  },
+  "cities": {
+    "intro": "Cities scored by proximity to your natal planetary lines and paran latitudes.",
+    "empty": "Activate planetary layers to discover your top resonance cities.",
+    "offset": "· {deg}° offset",
+    "names": {
+      "delhi": "Delhi",
+      "mumbai": "Mumbai",
+      "bengaluru": "Bengaluru",
+      "chennai": "Chennai",
+      "kolkata": "Kolkata",
+      "singapore": "Singapore",
+      "tokyo": "Tokyo",
+      "sydney": "Sydney",
+      "melbourne": "Melbourne",
+      "hongKong": "Hong Kong",
+      "bangkok": "Bangkok",
+      "kualaLumpur": "Kuala Lumpur",
+      "dubai": "Dubai",
+      "riyadh": "Riyadh",
+      "istanbul": "Istanbul",
+      "johannesburg": "Johannesburg",
+      "cairo": "Cairo",
+      "london": "London",
+      "paris": "Paris",
+      "berlin": "Berlin",
+      "zurich": "Zurich",
+      "rome": "Rome",
+      "madrid": "Madrid",
+      "amsterdam": "Amsterdam",
+      "newYork": "New York",
+      "losAngeles": "Los Angeles",
+      "sanFrancisco": "San Francisco",
+      "chicago": "Chicago",
+      "toronto": "Toronto",
+      "vancouver": "Vancouver",
+      "saoPaulo": "Sao Paulo",
+      "buenosAires": "Buenos Aires",
+      "mexicoCity": "Mexico City"
+    }
+  },
+  "parans": {
+    "intro": "Parans are latitudinal bands where two planetary lines cross — zones of intensified combined energy.",
+    "empty": "No power crossings found within the selected planetary layers.",
+    "fallback": "{p1} and {p2} energies intersect — a zone of powerful planetary synthesis.",
+    "pairs": {
+      "Su-Mo": "Vitality meets emotion — a place of integrated personal power and authentic self-expression.",
+      "Su-Ju": "Power meets wisdom — exceptional for career growth, recognition, and spiritual expansion.",
+      "Su-Ve": "Confidence meets beauty — highly creative, socially magnetic, ideal for arts and leadership.",
+      "Su-Ma": "Drive meets visibility — intense ambition and physical vitality. Best for competitive goals.",
+      "Su-Sa": "Discipline under the spotlight — hard-earned success and lasting achievement.",
+      "Mo-Ve": "Emotions meet harmony — deeply nurturing, romantic, and artistically fertile.",
+      "Mo-Ju": "Feelings meet abundance — emotional security and spiritual nourishment.",
+      "Mo-Ma": "Emotion meets action — dynamic but intense; best channelled into creative work.",
+      "Ju-Ve": "Abundance meets harmony — one of the most auspicious crossings for love and prosperity.",
+      "Ju-Me": "Wisdom meets communication — outstanding for teaching, publishing, and strategic business.",
+      "Ma-Ju": "Drive meets expansion — powerful for athletics, entrepreneurship, and competitive success.",
+      "Ve-Me": "Charm meets intellect — gifted in diplomacy, writing, and aesthetic communication.",
+      "Sa-Ju": "Structure meets growth — serious long-term ambitions with practical wisdom.",
+      "Sa-Me": "Precision meets thought — analytical depth; excellent for research and engineering.",
+      "Ra-Ju": "Transformation meets opportunity — unconventional paths to great success."
+    }
+  },
+  "guide": {
+    "filter": "Filter by life area",
+    "all": "All Lines",
+    "career": "MC · Career",
+    "love": "DS · Love",
+    "home": "IC · Home",
+    "identity": "AS · Identity",
+    "empty": "Activate planetary layers on the map to unlock relocation insights.",
+    "lines": "{planet} Lines",
+    "allAngles": "All Angles",
+    "angleFocus": "{angle} · {label}",
+    "pending": "Interpretation pending.",
+    "angles": {
+      "AS": {
+        "label": "Identity",
+        "desc": "How you appear and feel about yourself here."
+      },
+      "MC": {
+        "label": "Career",
+        "desc": "Professional visibility and public reputation."
+      },
+      "DS": {
+        "label": "Relationships",
+        "desc": "Partner energies and relational dynamics."
+      },
+      "IC": {
+        "label": "Home",
+        "desc": "Domestic environment and ancestral roots."
+      }
+    }
+  }
+}

@@ -7,14 +7,15 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   getNameNumber,
   numberHarmony,
   suggestNameTotals,
   type NumerologyCoreReport,
 } from '@/lib/engine/numerology/calc'
-import { CHALDEAN_VALUES, NUMBER_PROFILES, compoundReadAs } from '@/lib/engine/numerology/data'
-import { HarmonyPill, NumberOrb, QUALITY_COLOR, SectionCard, gridColumns } from './shared'
+import { CHALDEAN_VALUES, compoundReadAs, getNumberProfile } from '@/lib/engine/numerology/data'
+import { HarmonyPill, NumberOrb, QUALITY_COLOR, SectionCard, gridColumns, useNumerologyLang } from './shared'
 import { BabyNameTool } from './BabyNameTool'
 import { DevanagariNameCard, NameDepthCard, SpellingCompareCard } from './NameDepthCards'
 
@@ -24,18 +25,20 @@ const CHALDEAN_ROWS = [1, 2, 3, 4, 5, 6, 7, 8].map(v => ({
 }))
 
 export function NumerologyNameSection({ report, rawName }: { report: NumerologyCoreReport; rawName: string }) {
+  const t = useTranslations('numerology.name')
+  const lang = useNumerologyLang()
   const { name, moolank, bhagyank, date } = report
   const parentDob = `${String(date.year).padStart(4, '0')}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-  const pythagorean = useMemo(() => (rawName ? getNameNumber(rawName, 'pythagorean') : null), [rawName])
+  const pythagorean = useMemo(() => (rawName ? getNameNumber(rawName, 'pythagorean', lang) : null), [rawName, lang])
   const targets = useMemo(
-    () => (name ? suggestNameTotals(name.compound, moolank.value, bhagyank.value).slice(0, 8) : []),
-    [name, moolank.value, bhagyank.value],
+    () => (name ? suggestNameTotals(name.compound, moolank.value, bhagyank.value, 9, lang).slice(0, 8) : []),
+    [name, moolank.value, bhagyank.value, lang],
   )
 
   if (!name) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <SectionCard title="Name Numerology" subtitle="Enter your name above (as commonly used / signed) to calculate the Namank.">
+        <SectionCard title={t('emptyTitle')} subtitle={t('emptySub')}>
           <ChaldeanTable />
         </SectionCard>
         <SpellingCompareCard currentName="" moolank={moolank.value} bhagyank={bhagyank.value} />
@@ -52,7 +55,7 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyC
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <SectionCard title="Letter Breakdown (Chaldean)" subtitle="Vedic / Indian numerology uses Chaldean values — no letter carries 9, the sacred number.">
+      <SectionCard title={t('lettersTitle')} subtitle={t('lettersSub')}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.9rem' }}>
           {name.words.map((w, wi) => {
             const offset = name.words.slice(0, wi).reduce((s, x) => s + x.word.length, 0)
@@ -76,20 +79,20 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyC
             )
           })}
         </div>
-        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>Highlighted cells are vowels (soul urge).</p>
+        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('vowels')}</p>
       </SectionCard>
 
       <div style={gridColumns(220)}>
-        <NumberCard label="Namank (total)" value={name.value} detail={`Compound ${name.compound} · ${NUMBER_PROFILES[name.value].planet}`} />
-        {name.soul && <NumberCard label="Soul urge (vowels)" value={name.soul.value} detail={`Inner desire · ${NUMBER_PROFILES[name.soul.value].keyword}`} />}
-        {name.personality && <NumberCard label="Personality (consonants)" value={name.personality.value} detail={`Outer image · ${NUMBER_PROFILES[name.personality.value].keyword}`} />}
-        {pythagorean && <NumberCard label="Pythagorean (reference)" value={pythagorean.value} detail={`Compound ${pythagorean.compound} · Western system`} muted />}
+        <NumberCard label={t('namank')} value={name.value} detail={t('compoundDetail', { compound: name.compound, planet: getNumberProfile(name.value, lang).planet })} />
+        {name.soul && <NumberCard label={t('soul')} value={name.soul.value} detail={t('soulDetail', { keyword: getNumberProfile(name.soul.value, lang).keyword })} />}
+        {name.personality && <NumberCard label={t('personality')} value={name.personality.value} detail={t('personalityDetail', { keyword: getNumberProfile(name.personality.value, lang).keyword })} />}
+        {pythagorean && <NumberCard label={t('pythagorean')} value={pythagorean.value} detail={t('pythDetail', { compound: pythagorean.compound })} muted />}
       </div>
 
       {name.compoundMeaning && (
         <SectionCard
-          title={`Compound ${name.compound} — ${name.compoundMeaning.title}`}
-          subtitle={readAs !== name.compound ? `Cheiro's table ends at 52, so ${name.compound} is read as ${readAs} (same root ${name.value}).` : undefined}
+          title={t('compoundTitle', { n: name.compound, title: name.compoundMeaning.title })}
+          subtitle={readAs !== name.compound ? t('readAs', { compound: name.compound, readAs, root: name.value }) : undefined}
           accent={QUALITY_COLOR[name.compoundMeaning.quality]}
         >
           <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{name.compoundMeaning.meaning}</p>
@@ -99,37 +102,37 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyC
       <NameDepthCard name={rawName} />
 
       <SectionCard
-        title="Name Correction"
-        subtitle="A name total whose root is friendly to both Moolank and Bhagyank, and whose compound is not a warning number, is considered lucky."
+        title={t('correctTitle')}
+        subtitle={t('correctSub')}
         accent={isAligned ? 'var(--teal)' : 'var(--gold)'}
       >
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Current name vs Moolank {moolank.value}</span>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('vsMoolank', { n: moolank.value })}</span>
           <HarmonyPill harmony={numberHarmony(name.value, moolank.value)} />
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>vs Bhagyank {bhagyank.value}</span>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('vsBhagyank', { n: bhagyank.value })}</span>
           <HarmonyPill harmony={numberHarmony(name.value, bhagyank.value)} />
         </div>
         {targets.length > 0 ? (
           <>
             <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Nearest favourable totals — adjust spelling (e.g. doubling a letter or adding a vowel) by the shown amount:
+              {t('nearest')}
             </p>
             <div style={gridColumns(150)}>
-              {targets.map(t => (
-                <div key={t.total} style={{ padding: '0.55rem 0.7rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
+              {targets.map(row => (
+                <div key={row.total} style={{ padding: '0.55rem 0.7rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
                   <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-gold)' }}>
-                    {t.total} <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>→ {t.root}</span>
+                    {row.total} <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>→ {row.root}</span>
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: t.delta === 0 ? 'var(--teal)' : 'var(--text-muted)' }}>
-                    {t.delta === 0 ? 'Current total' : `${t.delta > 0 ? '+' : ''}${t.delta} from current`}
+                  <div style={{ fontSize: '0.7rem', color: row.delta === 0 ? 'var(--teal)' : 'var(--text-muted)' }}>
+                    {row.delta === 0 ? t('currentTotal') : t('delta', { delta: `${row.delta > 0 ? '+' : ''}${row.delta}` })}
                   </div>
-                  {t.compound && <div style={{ fontSize: '0.68rem', color: QUALITY_COLOR[t.compound.quality] }}>{t.compound.title}</div>}
+                  {row.compound && <div style={{ fontSize: '0.68rem', color: QUALITY_COLOR[row.compound.quality] }}>{row.compound.title}</div>}
                 </div>
               ))}
             </div>
           </>
         ) : (
-          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>No nearby totals support both core numbers strongly; prioritise Moolank harmony.</p>
+          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>{t('noTargets')}</p>
         )}
       </SectionCard>
 
@@ -137,7 +140,7 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyC
 
       <DevanagariNameCard moolank={moolank.value} bhagyank={bhagyank.value} />
 
-      <SectionCard title="Chaldean Letter Values">
+      <SectionCard title={t('valuesTitle')}>
         <ChaldeanTable />
       </SectionCard>
 

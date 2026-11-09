@@ -5,6 +5,19 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { Gender } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
+import { MONTH_HI } from '@/lib/engine/locale/numerologyData.hi'
+import {
+  AREA_BY_MOOLANK_HI,
+  AREA_LABEL_HI,
+  CHALLENGE_LABEL_HI,
+  CHALLENGE_LESSON_HI,
+  MATURITY_HI,
+  PRED_BRIDGE_HI,
+  YEAR_AREA_HI,
+  YOGA_HI,
+} from '@/lib/engine/locale/numerologyPredictions.hi'
 import {
   numberHarmony,
   reduceToCore,
@@ -13,8 +26,7 @@ import {
   type ParsedDate,
 } from './core'
 import {
-  NUMBER_PROFILES,
-  PERSONAL_YEAR_THEMES,
+  personalYearTheme,
   type CoreNumber,
 } from './data'
 import {
@@ -249,23 +261,29 @@ function colourArea(
   moolank: CoreNumber,
   bhagyank: CoreNumber,
   area: LifeAreaId,
+  lang: EngineLang,
 ): LifeAreaPrediction {
   const h = numberHarmony(moolank, bhagyank)
   let tone = toneFromHarmony(h)
   let detail = base.detail
+  const label = lang === 'hi' ? AREA_LABEL_HI[area] : AREA_LABEL[area]
   if (h === 'challenging') {
-    detail += ` With Moolank ${moolank} and Bhagyank ${bhagyank} as natural enemies, expect inner desire and outer destiny to pull differently in ${AREA_LABEL[area].toLowerCase()} — bridge them with a friendly name number and remedies.`
+    detail += lang === 'hi'
+      ? fill(PRED_BRIDGE_HI.enemy, { m: moolank, b: bhagyank, area: label })
+      : ` With Moolank ${moolank} and Bhagyank ${bhagyank} as natural enemies, expect inner desire and outer destiny to pull differently in ${label.toLowerCase()} — bridge them with a friendly name number and remedies.`
     if (area === 'marriage' || area === 'career' || area === 'wealth') tone = 'caution'
   } else if (h === 'excellent' || h === 'good') {
-    detail += ` Moolank ${moolank} and Bhagyank ${bhagyank} support each other, so this area tends to unfold with less friction.`
+    detail += lang === 'hi'
+      ? fill(PRED_BRIDGE_HI.friend, { m: moolank, b: bhagyank })
+      : ` Moolank ${moolank} and Bhagyank ${bhagyank} support each other, so this area tends to unfold with less friction.`
     if (tone === 'mixed') tone = 'favourable'
   }
-  return { id: area, label: AREA_LABEL[area], tone, summary: base.summary, detail, timing: base.timing }
+  return { id: area, label, tone, summary: base.summary, detail, timing: base.timing }
 }
 
-export function getLifeAreaPredictions(moolank: CoreNumber, bhagyank: CoreNumber): LifeAreaPrediction[] {
-  const table = AREA_BY_MOOLANK[moolank]
-  return (Object.keys(AREA_LABEL) as LifeAreaId[]).map(id => colourArea(table[id], moolank, bhagyank, id))
+export function getLifeAreaPredictions(moolank: CoreNumber, bhagyank: CoreNumber, lang: EngineLang = 'en'): LifeAreaPrediction[] {
+  const table = lang === 'hi' ? AREA_BY_MOOLANK_HI[moolank] : AREA_BY_MOOLANK[moolank]
+  return (Object.keys(AREA_LABEL) as LifeAreaId[]).map(id => colourArea(table[id], moolank, bhagyank, id, lang))
 }
 
 // ── Maturity = Moolank + Bhagyank ─────────────────────────────
@@ -282,13 +300,13 @@ const MATURITY_MEANING: Record<CoreNumber, string> = {
   9: 'Mature years awaken humanitarian service and courageous completion.',
 }
 
-export function getMaturityNumber(moolank: CoreNumber, bhagyank: CoreNumber): MaturityResult {
+export function getMaturityNumber(moolank: CoreNumber, bhagyank: CoreNumber, lang: EngineLang = 'en'): MaturityResult {
   const compound = moolank + bhagyank
   const value = reduceToCore(compound) as CoreNumber
   return {
     value,
     compound,
-    meaning: MATURITY_MEANING[value],
+    meaning: lang === 'hi' ? MATURITY_HI[value] : MATURITY_MEANING[value],
     activatesAroundAge: 35,
   }
 }
@@ -307,16 +325,21 @@ const CHALLENGE_LESSON: Record<CoreNumber, string> = {
   9: 'Learn to finish cycles with compassion; master anger.',
 }
 
-export function getChallengeNumbers(date: ParsedDate): ChallengeResult[] {
+export function getChallengeNumbers(date: ParsedDate, lang: EngineLang = 'en'): ChallengeResult[] {
   const dayRoot = reduceToCore(date.day) as CoreNumber
   const monthRoot = reduceToCore(date.month) as CoreNumber
   const yearRoot = reduceToCore(date.year) as CoreNumber
   const first = reduceToCore(Math.abs(monthRoot - dayRoot)) as CoreNumber | 0
   const second = reduceToCore(Math.abs(dayRoot - yearRoot)) as CoreNumber | 0
   const main = reduceToCore(Math.abs((first || 9) - (second || 9))) as CoreNumber | 0
-  const mk = (id: string, label: string, v: CoreNumber | 0): ChallengeResult | null => {
+  const mk = (id: keyof typeof CHALLENGE_LABEL_HI, label: string, v: CoreNumber | 0): ChallengeResult | null => {
     if (!v) return null
-    return { id, label, value: v, lesson: CHALLENGE_LESSON[v] }
+    return {
+      id,
+      label: lang === 'hi' ? CHALLENGE_LABEL_HI[id] : label,
+      value: v,
+      lesson: lang === 'hi' ? CHALLENGE_LESSON_HI[v] : CHALLENGE_LESSON[v],
+    }
   }
   return [
     mk('first', 'First challenge (Month − Day)', first),
@@ -332,6 +355,7 @@ export function getNumerologyYogas(
   bhagyank: CoreNumber,
   namank: CoreNumber | null,
   gridCounts: Record<CoreNumber, number>,
+  lang: EngineLang = 'en',
 ): NumerologyYoga[] {
   const has = (n: CoreNumber) => (gridCounts[n] ?? 0) > 0
   const set = new Set<CoreNumber>([moolank, bhagyank, ...(namank ? [namank] : [])])
@@ -410,7 +434,11 @@ export function getNumerologyYogas(
       meaning: 'Your name number softens a difficult Moolank–Bhagyank pair — keep this spelling.',
     },
   ]
-  return yogas
+  if (lang !== 'hi') return yogas
+  return yogas.map(y => {
+    const hi = YOGA_HI[y.id]
+    return hi ? { ...y, name: hi.name, meaning: hi.meaning } : y
+  })
 }
 
 // ── Annual forecast by life area ──────────────────────────────
@@ -481,13 +509,17 @@ const YEAR_AREA: Record<CoreNumber, Partial<Record<LifeAreaId, string>>> = {
   },
 }
 
-function annualOverview(py: CoreNumber, moolank: CoreNumber): string {
-  const theme = PERSONAL_YEAR_THEMES[py]
+function annualOverview(py: CoreNumber, moolank: CoreNumber, lang: EngineLang): string {
+  const theme = personalYearTheme(py, lang)
   const h = numberHarmony(py, moolank)
   const bridge = h === 'challenging'
-    ? ` Personal year ${py} challenges your Moolank ${moolank} — move slowly and lean on remedies.`
+    ? (lang === 'hi'
+      ? fill(PRED_BRIDGE_HI.challenge, { py, m: moolank })
+      : ` Personal year ${py} challenges your Moolank ${moolank} — move slowly and lean on remedies.`)
     : h === 'excellent' || h === 'good'
-      ? ` Personal year ${py} supports your Moolank ${moolank} — seize aligned opportunities.`
+      ? (lang === 'hi'
+        ? fill(PRED_BRIDGE_HI.support, { py, m: moolank })
+        : ` Personal year ${py} supports your Moolank ${moolank} — seize aligned opportunities.`)
       : ''
   return `${theme.theme}. ${theme.guidance}${bridge}`
 }
@@ -496,13 +528,14 @@ export function getAnnualForecast(
   personalYear: CoreNumber,
   moolank: CoreNumber,
   months: MonthlyForecast[],
+  lang: EngineLang = 'en',
 ): PredictionBundle['annual'] {
-  const areaTexts = YEAR_AREA[personalYear]
+  const areaTexts = lang === 'hi' ? YEAR_AREA_HI[personalYear] : YEAR_AREA[personalYear]
   const areas: AnnualAreaForecast[] = (Object.keys(AREA_LABEL) as LifeAreaId[])
     .filter(id => areaTexts[id])
     .map(id => ({
       area: id,
-      label: AREA_LABEL[id],
+      label: lang === 'hi' ? AREA_LABEL_HI[id] : AREA_LABEL[id],
       outlook: toneFromHarmony(numberHarmony(personalYear, moolank)),
       text: areaTexts[id]!,
     }))
@@ -510,8 +543,8 @@ export function getAnnualForecast(
   const criticalMonths = months.filter(m => m.harmony === 'challenging').map(m => m.month)
   return {
     personalYear,
-    theme: PERSONAL_YEAR_THEMES[personalYear].theme,
-    overview: annualOverview(personalYear, moolank),
+    theme: personalYearTheme(personalYear, lang).theme,
+    overview: annualOverview(personalYear, moolank, lang),
     areas,
     criticalMonths,
     favourableMonths,
@@ -521,17 +554,19 @@ export function getAnnualForecast(
 export function getMonthlyForecast(
   personalYear: CoreNumber,
   moolank: CoreNumber,
+  lang: EngineLang = 'en',
 ): MonthlyForecast[] {
   return Array.from({ length: 12 }, (_, i) => {
     const month = i + 1
     const personalMonth = reduceToCore(personalYear + month) as CoreNumber
+    const theme = personalYearTheme(personalMonth, lang)
     return {
       month,
-      monthName: MONTH_NAMES[i]!,
+      monthName: lang === 'hi' ? MONTH_HI[i]! : MONTH_NAMES[i]!,
       personalMonth,
-      theme: PERSONAL_YEAR_THEMES[personalMonth].theme,
+      theme: theme.theme,
       harmony: numberHarmony(personalMonth, moolank),
-      guidance: PERSONAL_YEAR_THEMES[personalMonth].guidance,
+      guidance: theme.guidance,
     }
   })
 }
@@ -545,19 +580,21 @@ export function buildPredictionBundle(input: {
   cycles: CyclesForPrediction
   today: ParsedDate
   gender?: Gender
+  lang?: EngineLang
 }): PredictionBundle {
+  const lang = input.lang ?? 'en'
   const ageNow = getAge(input.date, input.today)
-  const monthly = getMonthlyForecast(input.cycles.personalYear, input.moolank)
+  const monthly = getMonthlyForecast(input.cycles.personalYear, input.moolank, lang)
   return {
-    maturity: getMaturityNumber(input.moolank, input.bhagyank),
-    challenges: getChallengeNumbers(input.date),
-    pinnacles: getPinnacles(input.date, ageNow),
-    lifePhases: getLifePhases(input.moolank, input.bhagyank, ageNow),
-    lifeAreas: getLifeAreaPredictions(input.moolank, input.bhagyank),
-    yogas: getNumerologyYogas(input.moolank, input.bhagyank, input.namank, input.gridCounts),
-    annual: getAnnualForecast(input.cycles.personalYear, input.moolank, monthly),
+    maturity: getMaturityNumber(input.moolank, input.bhagyank, lang),
+    challenges: getChallengeNumbers(input.date, lang),
+    pinnacles: getPinnacles(input.date, ageNow, lang),
+    lifePhases: getLifePhases(input.moolank, input.bhagyank, ageNow, lang),
+    lifeAreas: getLifeAreaPredictions(input.moolank, input.bhagyank, lang),
+    yogas: getNumerologyYogas(input.moolank, input.bhagyank, input.namank, input.gridCounts, lang),
+    annual: getAnnualForecast(input.cycles.personalYear, input.moolank, monthly, lang),
     monthly,
-    powerDays: getPowerDays(input.moolank, input.bhagyank),
+    powerDays: getPowerDays(input.moolank, input.bhagyank, lang),
     ageNow,
   }
 }

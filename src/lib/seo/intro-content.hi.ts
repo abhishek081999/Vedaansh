@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, NAKSHATRA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, ROADMAP_SEO } from './intro-content'
+import { ACG_SEO, COMPARE_SEO, HOME_FAQ, HOME_SEO, JAIMINI_SEO, MUHURTA_SEO, NADI_SEO, NAKSHATRA_SEO, NUMEROLOGY_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, PRASHNA_SEO, ROADMAP_SEO, SBC_SEO, VASTU_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -233,4 +233,178 @@ export const NAKSHATRA_SEO_HI: SeoIntroProps = {
 
 export function nakshatraIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? NAKSHATRA_SEO_HI : NAKSHATRA_SEO
+}
+
+export const NUMEROLOGY_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'वैदिक अंक ज्योतिष — Vedaansh',
+  h1: 'वैदिक अंक ज्योतिष — फल, उपाय और अंक कैलकुलेटर',
+  paragraphs: [
+    'ग्रह स्वामियों के साथ अपना मूलांक, भाग्यांक और कैल्डियन नामांक निकालें, फिर अंक ज्योतिष से जीवन-क्षेत्र फल, परिपक्वता अंक, शिखर, चुनौतियाँ, अंक योग और पूरा व्यक्तिगत उपाय पैकेज पढ़ें।',
+    'वैदिक और लो शु ग्रिड, कुआ दिशाएँ, व्यक्तिगत वर्ष और मासिक पूर्वानुमान, दैनिक अंक मुहूर्त, शिशु नाम, व्यवसाय मिलान, दशा↔अंक समय, विवाह खिड़कियाँ, ब्रांड/प्लेट अंक, नक्षत्र-अक्षर सेतु, यंत्र, वास्तु×कुआ, और पीडीएफ निर्यात (Gold) देखें।',
+  ],
+  h2: 'वैदिक अंक ज्योतिष की सुविधाएँ',
+  bullets: [
+    { label: 'फल और दशा', desc: 'जीवन क्षेत्र, शिखर, योग, और कुंडली से जुड़ा महादशा अंक समय' },
+    { label: 'उपाय और यंत्र', desc: 'प्राथमिकता वाले मंत्र, रत्न, रंग, साप्ताहिक योजना और यंत्र पैक' },
+    { label: 'उन्नत उपकरण', desc: 'शिशु नाम, व्यवसाय मिलान, विवाह समय, ब्रांड/प्लेट, माह कैलेंडर, वास्तु×कुआ' },
+    { label: 'मूल, ग्रिड और चक्र', desc: 'मूलांक, भाग्यांक, नामांक, लो शु, मित्रता पद्धति, व्यक्तिगत दिन और पीडीएफ रिपोर्ट' },
+  ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'कुंडली की मूल बातें'),
+    { href: '/guides', label: 'सभी ज्योतिष मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function numerologyIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? NUMEROLOGY_SEO_HI : NUMEROLOGY_SEO
+}
+
+export const VASTU_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'जन्म कुंडली से वास्तु शास्त्र — Vedaansh',
+  h1: 'वैदिक वास्तु — कुंडली से ग्रह दिशाएँ और दिग्बल',
+  paragraphs: [
+    'अपनी जन्म कुंडली को वास्तु दिशाओं से जोड़ें: ग्रहों का दिग्बल, दिशात्मक बल, कक्षों की सिफारिश और वास्तु दोष — ग्रह स्थिति और भाव स्वामियों से निकाले गए।',
+    'व्यक्तिगत ज्योतिष-वास्तु मार्गदर्शन ज्योतिष कुंडली के तर्क को घर और कार्यस्थल की व्यावहारिक स्थान-योजना से जोड़ता है।',
+  ],
+  h2: 'वास्तु विश्लेषण',
+  bullets: [
+    { label: 'दिग्बल मानचित्र', desc: 'प्रत्येक ग्रह का दिशात्मक बल' },
+    { label: 'कक्ष मार्गदर्शन', desc: 'निद्रा, रसोई, अध्ययन और पूजा के अनुकूल क्षेत्र' },
+    { label: 'दोष संकेत', desc: 'कुंडली कारकों से जुड़े दिशात्मक असंतुलन' },
+    { label: 'उपाय', desc: 'प्रत्येक दिशा के शास्त्रीय सुधार-सुझाव' },
+  ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'वैदिक जन्म कुंडली'),
+    guideLink('shadbala-explained', 'षड्बल'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function vastuIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? VASTU_SEO_HI : VASTU_SEO
+}
+
+export const NADI_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'नाड़ी ज्योतिष — Vedaansh',
+  h1: 'नाड़ी ज्योतिष — भाव, योग, करियर और समय',
+  paragraphs: [
+    'आपकी वैदिक जन्म कुंडली पर नाड़ी कार्यक्षेत्र। अभी सक्रिय पंक्ति आगे रहती है। राशि चक्र पठन के साथ रहता है, और हर टैब एक हिस्सा खोलता है: भाव, योग, विवाह, करियर, धन, आने वाले वर्ष, गोचर और उपाय।',
+    'पठन Vedaansh की बाकी गणनाओं वाली ही स्विस एफ़ेमेरिस कुंडली से होता है, भृगु भाव, वर्ग कुंडलियों और चल रही विंशोत्तरी दशा के साथ।',
+  ],
+  h2: 'इस खंड में क्या दिखता है',
+  bullets: [
+    { label: 'सक्रिय पठन', desc: 'करियर, चल रहा वर्ष, दशा और अगला जुड़ा वर्ष' },
+    { label: 'भाव', desc: 'बारह भाव — राशि, स्वामी, बैठे ग्रह और भृगु भाव' },
+    { label: 'जीवन पठन', desc: 'योग, विवाह, करियर, धन, संपत्ति और वाहन' },
+    { label: 'समय और आकाश', desc: 'अंश वर्ष, आने वाली दशाएँ, लाइव गोचर और इस कुंडली का रत्न' },
+  ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'कुंडली क्या है?'),
+    { href: '/jaimini', label: 'जैमिनी ज्योतिष' },
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function nadiIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? NADI_SEO_HI : NADI_SEO
+}
+
+export const PRASHNA_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'प्रश्न होरेरी ज्योतिष — Vedaansh',
+  h1: 'प्रश्न ज्योतिष — कृष्णीय केरल होरेरी कुंडली',
+  paragraphs: [
+    'हाँ/नहीं, समय, खोई वस्तु, स्वास्थ्य, यात्रा और संबंध के प्रश्नों के लिए तुरंत प्रश्न (होरेरी) कुंडली बनाएँ। Vedaansh श्री कृष्ण आचार्य की कृष्णीय विधि लगाता है — आरूढ़-उदय, शीर्षोदय और शास्त्रीय केरल होरेरी युक्ति के साथ।',
+    'प्रश्न के क्षण पर कुंडली स्थिर करें और स्पष्ट निर्णय, अंकपत्र और नियम-उद्धरण पाएँ।',
+  ],
+  h2: 'प्रश्न श्रेणियाँ',
+  bullets: [
+    { label: 'हाँ / नहीं', desc: 'सिद्धि प्रश्न का निर्णय और विश्वास अंक' },
+    { label: 'खोई वस्तु', desc: 'नष्ट प्रश्न — दिशा और प्राप्ति का समय' },
+    { label: 'कब और कौन', desc: 'घटना का समय और कारक विश्लेषण' },
+    { label: 'स्वास्थ्य और यात्रा', desc: 'श्रेणी के अनुसार कृष्णीय अध्याय' },
+  ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'कुंडली क्या है?'),
+    guideLink('lahiri-ayanamsha-explained', 'लाहिरी अयनांश'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function prashnaIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? PRASHNA_SEO_HI : PRASHNA_SEO
+}
+
+export const SBC_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'सर्वतोभद्र चक्र — Vedaansh',
+  h1: 'सर्वतोभद्र चक्र — 9×9 वैदिक गोचर वेध ग्रिड',
+  paragraphs: [
+    'शास्त्रीय सर्वतोभद्र चक्र (SBC): गोचर वेध, जीवन-क्षेत्र की गति, मुहूर्त और भविष्य के समय के लिए 9×9 नक्षत्र ग्रिड।',
+    'देखें कि गोचर ग्रह आपके जन्म नक्षत्र, नाम नक्षत्र और मुख्य जीवन क्षेत्रों पर वेध कैसे डालते हैं — पंक्ति-स्तंभ की चमक और श्रेणी के फल के साथ।',
+  ],
+  h2: 'SBC की सुविधाएँ',
+  bullets: [
+    { label: 'गोचर वेध', desc: 'परिधि ग्रिड पर लाइव ग्रह वेध' },
+    { label: 'जीवन क्षेत्र', desc: 'धन, स्वास्थ्य, यात्रा और संबंध की गति' },
+    { label: 'मुहूर्त टैब', desc: 'आज के गोचर वेध से शुभ समय' },
+    { label: 'प्रश्न उपयोग', desc: 'ग्रिड के संबंधों से श्रेणी के फल' },
+  ],
+  relatedLinks: [
+    guideLink('vimshottari-dasha-explained', 'विंशोत्तरी दशा'),
+    guideLink('what-is-panchang-tithi-nakshatra', 'पंचांग'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function sbcIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? SBC_SEO_HI : SBC_SEO
+}
+
+export const JAIMINI_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'जैमिनी ज्योतिष — Vedaansh',
+  h1: 'जैमिनी ज्योतिष — चर कारक, चर दशा और आरूढ़ पद',
+  paragraphs: [
+    'आपकी वैदिक कुंडली पर अलग जैमिनी कार्यक्षेत्र: आत्मकारक, चर दशा वृक्ष, जैमिनी दृष्टि, आरूढ़ लग्न, कारकांश और अर्गला — इंटरैक्टिव D1 और D9 दृश्यों के साथ।',
+    'उन विद्यार्थियों और अभ्यासियों के लिए जो उसी स्विस एफ़ेमेरिस कुंडली पर पराशरी ज्योतिष के साथ जैमिनी पद्धति पढ़ते हैं।',
+  ],
+  h2: 'जैमिनी उपकरण',
+  bullets: [
+    { label: 'चर कारक', desc: 'आत्मकारक से दारकारक तक, आत्मा की रचना का सार' },
+    { label: 'चर दशा', desc: 'राशि-आधारित दशा, सीधी और उलटी क्रम सहित' },
+    { label: 'आरूढ़ पद', desc: 'आरूढ़ लग्न और भाव-पद कुंडली पर' },
+    { label: 'जैमिनी योग', desc: 'अर्गला, द्वार और बल की तालिकाएँ' },
+  ],
+  relatedLinks: [
+    guideLink('jaimini-atmakaraka-explained', 'आत्मकारक की व्याख्या'),
+    guideLink('what-is-navamsha-d9-chart', 'नवांश (D9)'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function jaiminiIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? JAIMINI_SEO_HI : JAIMINI_SEO
+}
+
+export const ACG_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'वैदिक एस्ट्रोकार्टोग्राफी — Vedaansh',
+  h1: 'वैदिक एस्ट्रोकार्टोग्राफी — ग्रह रेखाएँ और स्थानांतरण बल',
+  paragraphs: [
+    'वैदिक एस्ट्रोकार्टोग्राफी (ACG) से विश्व भर में शक्ति-स्थान खोजें: ग्रह कोणीय रेखाएँ, परिवर्तना क्षेत्र, और जन्म कुंडली से निकली स्थानांतरण-कुंडली की शक्ति।',
+    'Vedaansh स्विस एफ़ेमेरिस के सायन देशांतर को भूगोल पर मानचित्रित करता है, ताकि आप कर्म, संबंध और आध्यात्मिक वृद्धि के लिए नगरों की तुलना ज्योतिष के स्थान-तर्क से कर सकें।',
+  ],
+  h2: 'ACG उपकरण',
+  bullets: [
+    { label: 'ग्रह रेखाएँ', desc: 'प्रत्येक ग्रह की लग्न, मध्याह्न, अस्त और पाताल रेखाएँ' },
+    { label: 'परिवर्तना क्षेत्र', desc: 'ग्रहों के बीच परस्पर स्वागत के गलियारे' },
+    { label: 'स्थानांतरण बल', desc: 'कोई नगर भाव और दिग्बल के कारकों को कैसे बदलता है' },
+    { label: 'मानचित्र अन्वेषण', desc: 'संभावित स्थानों की तुलना एक संवादात्मक मानचित्र पर' },
+  ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'जन्म कुंडली की मूल बातें'),
+    guideLink('lahiri-ayanamsha-explained', 'लाहिरी अयनांश'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function acgIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? ACG_SEO_HI : ACG_SEO
 }

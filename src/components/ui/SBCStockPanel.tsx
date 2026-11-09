@@ -6,7 +6,21 @@
  */
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { SBCAnalysisExtended } from '@/lib/engine/sarvatobhadra'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
+import type { GrahaId } from '@/types/astrology'
+import {
+  HORA_GUIDE_HI,
+  JUPITER_SIGN_HI,
+  NAK_TRADING_HI,
+  PLANET_SECTORS_HI,
+  PORTFOLIO_HI,
+  SIGNAL_LEVEL_HI,
+  STRATEGIES_HI,
+  WEEKDAY_PLAN_HI,
+} from '@/components/ui/sbc/stockHi'
 
 // ── Types ──────────────────────────────────────────────────────
 interface TithiInfo {
@@ -40,14 +54,14 @@ const PLANET_COLOR: Record<string, string> = {
 
 type StockTabId = 'signal' | 'sectors' | 'daily' | 'nakshatras' | 'hora' | 'strategies' | 'portfolio'
 
-const STOCK_TABS: { id: StockTabId; icon: string; label: string }[] = [
-  { id: 'signal',     icon: '📡', label: 'Live Signal'  },
-  { id: 'sectors',    icon: '🏭', label: 'Sectors'      },
-  { id: 'daily',      icon: '📅', label: 'Daily Plan'   },
-  { id: 'nakshatras', icon: '⭐', label: 'Nakshatra'    },
-  { id: 'hora',       icon: '⏰', label: 'Hora'         },
-  { id: 'strategies', icon: '📈', label: 'Strategies'   },
-  { id: 'portfolio',  icon: '💼', label: 'Portfolio'    },
+const STOCK_TABS: { id: StockTabId; icon: string }[] = [
+  { id: 'signal',     icon: '📡' },
+  { id: 'sectors',    icon: '🏭' },
+  { id: 'daily',      icon: '📅' },
+  { id: 'nakshatras', icon: '⭐' },
+  { id: 'hora',       icon: '⏰' },
+  { id: 'strategies', icon: '📈' },
+  { id: 'portfolio',  icon: '💼' },
 ]
 
 interface PlanetSector {
@@ -270,11 +284,48 @@ const PORTFOLIO_PLANS = [
   },
 ]
 
+const JUPITER_SIGNS: [string, string][] = [
+  ['Aries','Defense/Sports'],['Taurus','Banking/Finance'],['Gemini','IT/Telecom'],['Cancer','FMCG/Real Estate'],
+  ['Leo','Govt/PSU'],['Virgo','Healthcare'],['Libra','Luxury/Auto'],['Scorpio','Research/Mining'],
+  ['Sagittarius','Education/Travel'],['Capricorn','Infrastructure'],['Aquarius','Technology/AI'],['Pisces','Pharma/Spiritual'],
+]
+
+// ── Display tables in the page language ──────────────────────
+// `actionEn` / `riskEn` keep the English word the colour logic reads.
+
+function buildStockTables(hi: boolean) {
+  const nak = NAK_TRADING.map((row, i) => {
+    const h = hi ? NAK_TRADING_HI[i] : undefined
+    return { ...row, actionEn: row.action, ...(h ? { nak: NAKSHATRA_HI[i] ?? row.nak, effect: h[0], action: h[1], stocks: h[2] } : {}) }
+  })
+  const hora = HORA_GUIDE.map((row, i) => {
+    const h = hi ? HORA_GUIDE_HI[i] : undefined
+    return { ...row, actionEn: row.action, ...(h ? { planet: h[0], effect: h[1], action: h[2] } : {}) }
+  })
+  const week = WEEKDAY_PLAN.map((row, i) => {
+    const h = hi ? WEEKDAY_PLAN_HI[i] : undefined
+    return { ...row, planetEn: row.planet, ...(h ? { day: h[0], planet: h[1], tendency: h[2], stocks: h[3] ?? row.stocks } : {}) }
+  })
+  const strategies = STRATEGIES.map((row) => ({ ...row, riskEn: row.risk, ...(hi ? STRATEGIES_HI[row.id] : {}) }))
+  const portfolio = PORTFOLIO_PLANS.map((row) => {
+    const h = hi ? PORTFOLIO_HI[row.planet] : undefined
+    return h
+      ? { ...row, planet: h.planet, condition: h.condition, allocation: row.allocation.map((a, i) => ({ ...a, label: h.labels[i] ?? a.label })) }
+      : row
+  })
+  const sectors = PLANET_SECTORS.map((row) => ({ ...row, nameEn: row.name, ...(hi ? PLANET_SECTORS_HI[row.id] : {}) }))
+  return { NAK_TRADING: nak, HORA_GUIDE: hora, WEEKDAY_PLAN: week, STRATEGIES: strategies, PORTFOLIO_PLANS: portfolio, PLANET_SECTORS: sectors, JUPITER_SIGNS: hi ? JUPITER_SIGN_HI : JUPITER_SIGNS }
+}
+
+const STOCK_EN = buildStockTables(false)
+const STOCK_HI = buildStockTables(true)
+
 // ── Helpers ───────────────────────────────────────────────────
 
+/** Index into WEEKDAY_PLAN, which starts on Monday. */
 function getDayOfWeek(dateStr: string): number {
-  // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-  return new Date(dateStr + 'T12:00:00').getDay()
+  const js = new Date(dateStr + 'T12:00:00').getDay() // 0=Sun … 6=Sat
+  return (js + 6) % 7
 }
 
 function getNakLord(lonSidereal: number): string {
@@ -290,56 +341,62 @@ function computeSignal(
   tithi:      TithiInfo | null | undefined,
   transitDate: string,
   transitRaw: TransitGraha[],
+  hi = false,
 ) {
+  const T = hi ? STOCK_HI : STOCK_EN
+  const s = (en: string, h: string) => (hi ? h : en)
+  const gn = (id: string) => (hi ? GRAHA_HI[id as GrahaId] ?? id : id)
   let score = 0
   const reasons: { text: string; bull: boolean }[] = []
 
   // 1. Paksha
   if (tithi?.paksha === 'shukla') {
-    score += 2; reasons.push({ text: `${tithi.name} (Shukla Paksha) — waxing moon, bullish sentiment`, bull: true })
+    score += 2; reasons.push({ text: s(`${tithi.name} (Shukla Paksha) — waxing moon, bullish sentiment`, `${tithi.name} (शुक्ल पक्ष) — बढ़ता चंद्र, तेज़ी की भावना`), bull: true })
   } else if (tithi?.paksha === 'krishna') {
-    score -= 1; reasons.push({ text: `${tithi.name} (Krishna Paksha) — waning moon, cautious`, bull: false })
+    score -= 1; reasons.push({ text: s(`${tithi.name} (Krishna Paksha) — waning moon, cautious`, `${tithi.name} (कृष्ण पक्ष) — घटता चंद्र, सावधानी`), bull: false })
   }
 
   // 2. Weekday planet
   const dow = getDayOfWeek(transitDate)
-  const dayMeta = WEEKDAY_PLAN[dow]
-  if (['Jupiter','Venus','Mercury'].includes(dayMeta.planet)) {
-    score += 2; reasons.push({ text: `${dayMeta.day} ruled by ${dayMeta.planet} — bullish weekday`, bull: true })
-  } else if (['Saturn','Mars'].includes(dayMeta.planet)) {
-    score -= 1; reasons.push({ text: `${dayMeta.day} ruled by ${dayMeta.planet} — cautious weekday`, bull: false })
+  const dayMeta = T.WEEKDAY_PLAN[dow]!
+  if (['Jupiter','Venus','Mercury'].includes(dayMeta.planetEn)) {
+    score += 2; reasons.push({ text: s(`${dayMeta.day} ruled by ${dayMeta.planet} — bullish weekday`, `${dayMeta.day} का स्वामी ${dayMeta.planet} — तेज़ी का दिन`), bull: true })
+  } else if (['Saturn','Mars'].includes(dayMeta.planetEn)) {
+    score -= 1; reasons.push({ text: s(`${dayMeta.day} ruled by ${dayMeta.planet} — cautious weekday`, `${dayMeta.day} का स्वामी ${dayMeta.planet} — सावधानी का दिन`), bull: false })
   } else {
-    reasons.push({ text: `${dayMeta.day} ruled by ${dayMeta.planet} — neutral`, bull: true })
+    reasons.push({ text: s(`${dayMeta.day} ruled by ${dayMeta.planet} — neutral`, `${dayMeta.day} का स्वामी ${dayMeta.planet} — तटस्थ`), bull: true })
   }
 
   // 3. Moon nakshatra lord
   const mo = transitRaw.find(g => g.id === 'Mo')
   if (mo) {
     const lord = getNakLord(mo.lonSidereal)
-    const nakRow = NAK_TRADING[Math.floor((mo.lonSidereal % 360) / (360/27))]
+    const nakRow = T.NAK_TRADING[Math.floor((mo.lonSidereal % 360) / (360/27))]
+    const nk = nakRow?.nak ?? '—'
     if (['Ju','Ve','Me'].includes(lord)) {
-      score += 2; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — helpful planet nakshatra`, bull: true })
+      score += 2; reasons.push({ text: s(`Moon in ${nk} (${lord} lord) — helpful planet nakshatra`, `चंद्र ${nk} में (स्वामी ${gn(lord)}) — शुभ ग्रह का नक्षत्र`), bull: true })
     } else if (['Sa','Ra','Ke'].includes(lord)) {
-      score -= 2; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — difficult planet nakshatra`, bull: false })
+      score -= 2; reasons.push({ text: s(`Moon in ${nk} (${lord} lord) — difficult planet nakshatra`, `चंद्र ${nk} में (स्वामी ${gn(lord)}) — कठिन ग्रह का नक्षत्र`), bull: false })
     } else {
-      score += 1; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — neutral nakshatra`, bull: true })
+      score += 1; reasons.push({ text: s(`Moon in ${nk} (${lord} lord) — neutral nakshatra`, `चंद्र ${nk} में (स्वामी ${gn(lord)}) — तटस्थ नक्षत्र`), bull: true })
     }
   }
 
   // 4. Financial pulse
   if (pulse) {
-    if (pulse.score > 15) { score += 2; reasons.push({ text: `SBC Vedha pulse strongly bullish (+${pulse.score})`, bull: true }) }
-    else if (pulse.score > 5)  { score += 1; reasons.push({ text: `SBC Vedha pulse moderately bullish (+${pulse.score})`, bull: true }) }
-    else if (pulse.score < -15) { score -= 2; reasons.push({ text: `SBC Vedha pulse strongly bearish (${pulse.score})`, bull: false }) }
-    else if (pulse.score < -5)  { score -= 1; reasons.push({ text: `SBC Vedha pulse moderately bearish (${pulse.score})`, bull: false }) }
-    else { reasons.push({ text: `SBC Vedha pulse neutral (${pulse.score})`, bull: true }) }
+    if (pulse.score > 15) { score += 2; reasons.push({ text: s(`SBC Vedha pulse strongly bullish (+${pulse.score})`, `सर्वतोभद्र वेध नब्ज़ में ज़ोरदार तेज़ी (+${pulse.score})`), bull: true }) }
+    else if (pulse.score > 5)  { score += 1; reasons.push({ text: s(`SBC Vedha pulse moderately bullish (+${pulse.score})`, `सर्वतोभद्र वेध नब्ज़ में मध्यम तेज़ी (+${pulse.score})`), bull: true }) }
+    else if (pulse.score < -15) { score -= 2; reasons.push({ text: s(`SBC Vedha pulse strongly bearish (${pulse.score})`, `सर्वतोभद्र वेध नब्ज़ में ज़ोरदार मंदी (${pulse.score})`), bull: false }) }
+    else if (pulse.score < -5)  { score -= 1; reasons.push({ text: s(`SBC Vedha pulse moderately bearish (${pulse.score})`, `सर्वतोभद्र वेध नब्ज़ में मध्यम मंदी (${pulse.score})`), bull: false }) }
+    else { reasons.push({ text: s(`SBC Vedha pulse neutral (${pulse.score})`, `सर्वतोभद्र वेध नब्ज़ तटस्थ (${pulse.score})`), bull: true }) }
   }
 
   // 5. Retrograde planets
   const retros = transitRaw.filter(g => g.isRetro && ['Ju','Ve'].includes(g.id))
   if (retros.length) {
     score -= 1
-    reasons.push({ text: `${retros.map(g => ({ Ju:'Jupiter', Ve:'Venus' }[g.id])).join(', ')} retrograde — bullish planets weakened`, bull: false })
+    const names = retros.map(g => (hi ? GRAHA_HI[g.id as GrahaId] : ({ Ju:'Jupiter', Ve:'Venus' } as Record<string, string>)[g.id])).join(', ')
+    reasons.push({ text: s(`${names} retrograde — bullish planets weakened`, `${names} वक्री — तेज़ी देने वाले ग्रह कमज़ोर`), bull: false })
   }
 
   const level = score >= 6 ? 'STRONG BUY' : score >= 3 ? 'BUY' : score >= 0 ? 'NEUTRAL' : score >= -2 ? 'SELL' : 'STRONG SELL'
@@ -384,6 +441,13 @@ function AllocationBar({ items }: { items: { label: string; pct: number; color: 
 // ── Main Component ────────────────────────────────────────────
 
 export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis }: Props) {
+  const t = useTranslations('sbc.stock')
+  const u = useTranslations('sbc.stock.ui')
+  const { lang } = useLang()
+  const hi = lang === 'hi'
+  const { NAK_TRADING, HORA_GUIDE, WEEKDAY_PLAN, STRATEGIES, PORTFOLIO_PLANS, PLANET_SECTORS, JUPITER_SIGNS } = hi ? STOCK_HI : STOCK_EN
+  const lines = (key: string) => u.raw(key) as string[]
+  const gname = (id: string) => (hi ? GRAHA_HI[id as GrahaId] ?? id : id)
   const [activeTab, setActiveTab] = useState<StockTabId>('signal')
   const [isMobile,  setIsMobile]  = useState(false)
 
@@ -391,8 +455,8 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
   typeof window !== 'undefined' && !isMobile && window.innerWidth < 768 && setIsMobile(true)
 
   const signal = useMemo(
-    () => computeSignal(pulse, tithi, transitDate, transitRaw),
-    [pulse, tithi, transitDate, transitRaw],
+    () => computeSignal(pulse, tithi, transitDate, transitRaw, hi),
+    [pulse, tithi, transitDate, transitRaw, hi],
   )
 
   const dow        = getDayOfWeek(transitDate)
@@ -408,7 +472,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
     if (pulse.score < -10) return PORTFOLIO_PLANS[1] // Saturn
     if (pulse.trend === 'expansion') return PORTFOLIO_PLANS[3] // Venus
     return PORTFOLIO_PLANS[2] // Rahu/volatile
-  }, [pulse])
+  }, [pulse, PORTFOLIO_PLANS])
 
   return (
     <section style={{ marginTop: '1.5rem' }}>
@@ -428,10 +492,10 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
           }}>📈</div>
           <div>
             <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 'clamp(1rem,2.5vw,1.25rem)', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Sarvatobhadra × Stock Market Intelligence
+              {t('title')}
             </h2>
             <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Vedic planetary timing for trading · Sector rotation · Daily signals
+              {t('lede')}
             </p>
           </div>
         </div>
@@ -443,8 +507,8 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         }}>
           <SignalDots level={signal.level} color={signal.color} />
           <div>
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s Signal</div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 900, color: signal.color }}>{signal.level}</div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('signal')}</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 900, color: signal.color }}>{hi ? SIGNAL_LEVEL_HI[signal.level] ?? signal.level : signal.level}</div>
           </div>
         </div>
       </div>
@@ -472,7 +536,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             }}
           >
             <span>{tab.icon}</span>
-            <span>{tab.label}</span>
+            <span>{t(`tabs.${tab.id}`)}</span>
           </button>
         ))}
       </div>
@@ -515,52 +579,37 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                 }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                <span>Bear −10</span><span>Neutral 0</span><span>Bull +10</span>
+                <span>{u('bearScale')}</span><span>{u('neutralScale')}</span><span>{u('bullScale')}</span>
               </div>
 
               {/* Action guide */}
               <div style={{ background: 'var(--surface-2)', borderRadius: 10, padding: '0.875rem' }}>
                 <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Recommended Action
+                  {u('recommended')}
                 </div>
                 {signal.level === 'STRONG BUY' && (
                   <div style={{ fontSize: '0.8rem', color: '#4db66a', lineHeight: 1.6 }}>
-                    ✓ BUY with full position size<br/>
-                    ✓ Focus: {todayPlan.tendency}<br/>
-                    ✓ Stocks: {todayPlan.stocks}<br/>
-                    ✓ Can hold overnight positions
+                    {lines('sb').map((l, i) => <span key={i}>{l.replace('{focus}', todayPlan.tendency).replace('{stocks}', todayPlan.stocks)}<br/></span>)}
                   </div>
                 )}
                 {signal.level === 'BUY' && (
                   <div style={{ fontSize: '0.8rem', color: '#a3c65a', lineHeight: 1.6 }}>
-                    ✓ BUY with 50–75% position size<br/>
-                    ✓ Focus: {todayPlan.tendency}<br/>
-                    ✓ Stocks: {todayPlan.stocks}<br/>
-                    ⚠ Use stop-loss for safety
+                    {lines('b').map((l, i) => <span key={i}>{l.replace('{focus}', todayPlan.tendency).replace('{stocks}', todayPlan.stocks)}<br/></span>)}
                   </div>
                 )}
                 {signal.level === 'NEUTRAL' && (
                   <div style={{ fontSize: '0.8rem', color: '#c9a84c', lineHeight: 1.6 }}>
-                    ↔ Range-bound day expected<br/>
-                    ↔ Small positions, quick exits<br/>
-                    ↔ Buy low, sell high in range<br/>
-                    ↔ No overnight positions
+                    {lines('n').map((l, i) => <span key={i}>{l}<br/></span>)}
                   </div>
                 )}
                 {signal.level === 'SELL' && (
                   <div style={{ fontSize: '0.8rem', color: '#FF8C00', lineHeight: 1.6 }}>
-                    ✗ SELL 50–75% of positions<br/>
-                    ✗ Avoid weak stocks<br/>
-                    ✗ Keep stop-loss tight<br/>
-                    ✗ Increase cash to 40–50%
+                    {lines('s').map((l, i) => <span key={i}>{l}<br/></span>)}
                   </div>
                 )}
                 {signal.level === 'STRONG SELL' && (
                   <div style={{ fontSize: '0.8rem', color: '#e84040', lineHeight: 1.6 }}>
-                    ✗ EXIT all positions<br/>
-                    ✗ Go fully to cash or SHORT<br/>
-                    ✗ Do not buy any stocks<br/>
-                    ✗ Very high risk period
+                    {lines('ss').map((l, i) => <span key={i}>{l}<br/></span>)}
                   </div>
                 )}
               </div>
@@ -568,7 +617,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Signal breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Signal Breakdown (5 Factors)</div>
+              <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{u('breakdown')}</div>
               {signal.reasons.map((r, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
@@ -583,10 +632,10 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
               {/* Today snapshot */}
               <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '0.875rem', marginTop: '0.25rem' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Today&apos;s Snapshot</div>
+                <div style={{ fontWeight: 700, fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{u('snapshot')}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                   <div style={{ padding: '3px 10px', borderRadius: 20, background: `${todayPlan.color}15`, border: `1px solid ${todayPlan.color}35`, fontSize: '0.68rem', fontWeight: 700, color: todayPlan.color }}>
-                    {todayPlan.icon} {todayPlan.day} · {todayPlan.planet} Day
+                    {todayPlan.icon} {u('planetDay', { day: todayPlan.day, planet: todayPlan.planet })}
                   </div>
                   {tithi && (
                     <div style={{ padding: '3px 10px', borderRadius: 20, background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', fontSize: '0.68rem', color: 'var(--text-gold)' }}>
@@ -612,13 +661,13 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         {/* ════ SECTORS ════ */}
         {activeTab === 'sectors' && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Planet → Market Sector → Stocks</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>When a planet is positive in SBC vedha, buy its sector. When afflicted, avoid it.</div>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{u('sectorsTitle')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>{u('sectorsSub')}</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               {PLANET_SECTORS.map(ps => {
-                const isPos = pulse?.bullish?.some(b => b.toLowerCase().includes(ps.name.toLowerCase()))
-                const isNeg = pulse?.bearish?.some(b => b.toLowerCase().includes(ps.name.toLowerCase()))
+                const isPos = pulse?.bullish?.some(b => b.toLowerCase().includes(ps.name.toLowerCase()) || b.toLowerCase().includes(ps.nameEn.toLowerCase()))
+                const isNeg = pulse?.bearish?.some(b => b.toLowerCase().includes(ps.name.toLowerCase()) || b.toLowerCase().includes(ps.nameEn.toLowerCase()))
                 return (
                   <div key={ps.id} style={{
                     background: 'var(--surface-2)', borderRadius: 14,
@@ -631,11 +680,11 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                         <div style={{ fontWeight: 700, fontSize: '0.85rem', color: ps.color }}>{ps.name}</div>
                         <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{ps.sectors}</div>
                       </div>
-                      {isPos && <span style={{ fontSize: '0.6rem', padding: '2px 7px', borderRadius: 10, background: 'rgba(77,182,106,0.15)', color: '#4db66a', fontWeight: 800 }}>POSITIVE</span>}
-                      {isNeg && <span style={{ fontSize: '0.6rem', padding: '2px 7px', borderRadius: 10, background: 'rgba(232,64,64,0.15)', color: '#e84040', fontWeight: 800 }}>AFFLICTED</span>}
+                      {isPos && <span style={{ fontSize: '0.6rem', padding: '2px 7px', borderRadius: 10, background: 'rgba(77,182,106,0.15)', color: '#4db66a', fontWeight: 800 }}>{u('positive')}</span>}
+                      {isNeg && <span style={{ fontSize: '0.6rem', padding: '2px 7px', borderRadius: 10, background: 'rgba(232,64,64,0.15)', color: '#e84040', fontWeight: 800 }}>{u('afflicted')}</span>}
                     </div>
                     <div style={{ padding: '0.65rem 0.875rem' }}>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>Key Stocks</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>{u('keyStocks')}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                         {ps.stocks.split(', ').map(s => (
                           <span key={s} style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 10, background: `${ps.color}10`, color: ps.color, border: `1px solid ${ps.color}28`, fontWeight: 600 }}>{s}</span>
@@ -649,11 +698,11 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Connection explained */}
             <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 12 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.5rem' }}>📊 How to Use This Table</div>
+              <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.5rem' }}>{u('howTable')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                <div><strong style={{ color: 'var(--teal)' }}>Positive Vedha</strong><br/>Check the &quot;Financial Pulse&quot; tab. Planets with bullish vedha → BUY their sectors with full confidence.</div>
-                <div><strong style={{ color: 'var(--rose)' }}>Malefic Vedha</strong><br/>Planets listed as bearish → AVOID or SHORT their sectors. Exit any existing positions in those stocks.</div>
-                <div><strong style={{ color: 'var(--text-gold)' }}>Weekly Rotation</strong><br/>Every Sunday: identify top 2 positive planets → overweight their sectors. Underweight afflicted planet sectors.</div>
+                <div><strong style={{ color: 'var(--teal)' }}>{u('posVedha')}</strong><br/>{u('posVedhaText')}</div>
+                <div><strong style={{ color: 'var(--rose)' }}>{u('malVedha')}</strong><br/>{u('malVedhaText')}</div>
+                <div><strong style={{ color: 'var(--text-gold)' }}>{u('weekly')}</strong><br/>{u('weeklyText')}</div>
               </div>
             </div>
           </div>
@@ -665,17 +714,17 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Step-by-step morning ritual */}
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.875rem' }}>⏰ Morning Ritual (8–9:15 AM)</div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.875rem' }}>{u('ritual')}</div>
               {[
-                { time: '8:00 AM', step: 'Check Weekday Planet', detail: `Today (${todayPlan.day}) is ruled by ${todayPlan.planet} → ${todayPlan.tendency}` },
-                { time: '8:15 AM', step: 'Check Moon\'s Nakshatra', detail: moonNak ? `Moon in ${moonNak.nak} (${moonNak.lord} lord) — ${moonNak.effect}` : 'Load transit data to see Moon nakshatra' },
-                { time: '8:30 AM', step: 'Check Tithi (Paksha)', detail: tithi ? `${tithi.name} · ${tithi.paksha === 'shukla' ? '☽ Shukla Paksha (Bullish)' : '🌑 Krishna Paksha (Bearish)'}` : 'Tithi data loading…' },
-                { time: '8:45 AM', step: 'Check SBC Vedha Pulse', detail: pulse ? `Score: ${pulse.score > 0 ? '+' : ''}${pulse.score} · ${pulse.trend} trend` : 'Check Financial Pulse tab' },
-                { time: '9:00 AM', step: 'Final Decision', detail: `${signal.level} — ${signal.score >= 3 ? 'Proceed with ' + (signal.score >= 6 ? 'full' : '50–75%') + ' position' : signal.score < 0 ? 'Reduce / avoid new positions' : 'Small positions only'}` },
+                { time: '8:00 AM', step: u('st1'), detail: u('st1d', { day: todayPlan.day, planet: todayPlan.planet, tendency: todayPlan.tendency }) },
+                { time: '8:15 AM', step: u('st2'), detail: moonNak ? u('st2d', { nak: moonNak.nak, lord: gname(moonNak.lord), effect: moonNak.effect }) : u('st2none') },
+                { time: '8:30 AM', step: u('st3'), detail: tithi ? `${tithi.name} · ${tithi.paksha === 'shukla' ? u('shuklaBull') : u('krishnaBear')}` : u('tithiLoading') },
+                { time: '8:45 AM', step: u('st4'), detail: pulse ? u('st4d', { score: `${pulse.score > 0 ? '+' : ''}${pulse.score}`, trend: hi ? ({ expansion: 'विस्तार', contraction: 'संकुचन' } as Record<string, string>)[pulse.trend] ?? pulse.trend : pulse.trend }) : u('st4none') },
+                { time: '9:00 AM', step: u('st5'), detail: `${hi ? SIGNAL_LEVEL_HI[signal.level] ?? signal.level : signal.level} — ${signal.score >= 3 ? (signal.score >= 6 ? u('full') : u('partial')) : signal.score < 0 ? u('reduce') : u('small')}` },
               ].map((step, i) => (
                 <div key={i} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', alignItems: 'flex-start' }}>
                   <div style={{ width: 70, flexShrink: 0 }}>
-                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-gold)', whiteSpace: 'nowrap' }}>STEP {i+1}</div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-gold)', whiteSpace: 'nowrap' }}>{u('step', { n: i + 1 })}</div>
                     <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{step.time}</div>
                   </div>
                   <div style={{ flex: 1, padding: '0.55rem 0.75rem', background: 'var(--surface-2)', borderRadius: 10, borderLeft: '3px solid var(--gold)' }}>
@@ -688,7 +737,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Weekday trading table */}
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.875rem' }}>📅 Weekly Trading Calendar</div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.875rem' }}>{u('calendar')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {WEEKDAY_PLAN.map((day, i) => {
                   const isToday = i === dow
@@ -708,7 +757,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                         <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{day.tendency}</div>
                         <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{day.stocks}</div>
                       </div>
-                      {isToday && <span style={{ fontSize: '0.58rem', background: day.color, color: '#000', borderRadius: 4, padding: '1px 6px', fontWeight: 800, flexShrink: 0 }}>TODAY</span>}
+                      {isToday && <span style={{ fontSize: '0.58rem', background: day.color, color: '#000', borderRadius: 4, padding: '1px 6px', fontWeight: 800, flexShrink: 0 }}>{u('today')}</span>}
                     </div>
                   )
                 })}
@@ -720,15 +769,15 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         {/* ════ NAKSHATRA GUIDE ════ */}
         {activeTab === 'nakshatras' && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>27 Nakshatra Trading Guide</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Track Moon&apos;s daily nakshatra — buy that lord&apos;s sector stocks</div>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{u('nakTitle')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{u('nakSub')}</div>
 
             {/* Current moon highlight */}
             {moonNak && (
               <div style={{ padding: '0.875rem 1rem', background: `${moonNak.color}10`, border: `2px solid ${moonNak.color}40`, borderRadius: 12, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <div style={{ fontSize: '1.5rem' }}>🌙</div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: moonNak.color }}>{moonNak.nak} · {moonNak.lord} Lord</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: moonNak.color }}>{u('lordOf', { nak: moonNak.nak, lord: gname(moonNak.lord) })}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{moonNak.effect}</div>
                 </div>
                 <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
@@ -743,7 +792,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
                 <thead>
                   <tr style={{ background: 'rgba(201,168,76,0.08)' }}>
-                    {['#', 'Nakshatra', 'Lord', 'Market Effect', 'Trading Action', 'Focus Stocks'].map(h => (
+                    {lines('th').map(h => (
                       <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>{h}</th>
                     ))}
                   </tr>
@@ -758,7 +807,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                         </td>
                         <td style={{ padding: '0.4rem 0.6rem', whiteSpace: 'nowrap' }}>
                           <div style={{ fontWeight: isActive ? 800 : 600, color: n.color, fontSize: '0.73rem' }}>{n.nak}</div>
-                          {isActive && <div style={{ fontSize: '0.54rem', color: 'var(--text-gold)', fontWeight: 700 }}>← MOON NOW</div>}
+                          {isActive && <div style={{ fontSize: '0.54rem', color: 'var(--text-gold)', fontWeight: 700 }}>{u('moonNow')}</div>}
                         </td>
                         <td style={{ padding: '0.4rem 0.6rem' }}>
                           <div style={{ width: 24, height: 24, borderRadius: '50%', background: `${PLANET_COLOR[n.lord]}25`, border: `1.5px solid ${PLANET_COLOR[n.lord]}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 800, color: PLANET_COLOR[n.lord] }}>{n.lord}</div>
@@ -767,8 +816,8 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                         <td style={{ padding: '0.4rem 0.6rem' }}>
                           <span style={{
                             fontSize: '0.64rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10,
-                            background: n.action.includes('BUY') ? 'rgba(77,182,106,0.12)' : n.action.includes('EXIT') || n.action.includes('REDUCE') ? 'rgba(232,64,64,0.12)' : 'rgba(201,168,76,0.1)',
-                            color: n.action.includes('BUY') ? '#4db66a' : n.action.includes('EXIT') || n.action.includes('REDUCE') ? '#e84040' : '#c9a84c',
+                            background: n.actionEn.includes('BUY') ? 'rgba(77,182,106,0.12)' : n.actionEn.includes('EXIT') || n.actionEn.includes('REDUCE') ? 'rgba(232,64,64,0.12)' : 'rgba(201,168,76,0.1)',
+                            color: n.actionEn.includes('BUY') ? '#4db66a' : n.actionEn.includes('EXIT') || n.actionEn.includes('REDUCE') ? '#e84040' : '#c9a84c',
                           }}>{n.action}</span>
                         </td>
                         <td style={{ padding: '0.4rem 0.6rem', color: 'var(--text-muted)', fontSize: '0.64rem', maxWidth: 140 }}>{n.stocks}</td>
@@ -784,34 +833,27 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         {/* ════ HORA SYSTEM ════ */}
         {activeTab === 'hora' && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>⏰ Intraday Hora Trading System</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>Each market hour is ruled by a different planet. Trade its sector during that hora.</div>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{u('horaTitle')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>{u('horaSub')}</div>
 
             {/* Market hours mapping */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
               <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '1rem' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Market Hours</div>
-                {[
-                  { time: '9:15 – 10:15 AM', hora: '1st Hora' },
-                  { time: '10:15 – 11:15 AM', hora: '2nd Hora' },
-                  { time: '11:15 – 12:15 PM', hora: '3rd Hora' },
-                  { time: '12:15 – 1:15 PM',  hora: '4th Hora' },
-                  { time: '1:15 – 2:15 PM',   hora: '5th Hora' },
-                  { time: '2:15 – 3:15 PM',   hora: '6th Hora' },
-                  { time: '3:15 – 3:30 PM',   hora: 'Closing Hora' },
-                ].map(h => (
+                <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{u('marketHours')}</div>
+                {['9:15 – 10:15 AM', '10:15 – 11:15 AM', '11:15 – 12:15 PM', '12:15 – 1:15 PM', '1:15 – 2:15 PM', '2:15 – 3:15 PM', '3:15 – 3:30 PM']
+                  .map((time, i) => ({ time, hora: lines('horas')[i] ?? '' })).map(h => (
                   <div key={h.time} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', borderBottom: '1px solid var(--surface-3)', fontSize: '0.7rem' }}>
                     <span style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{h.time}</span>
                     <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{h.hora}</span>
                   </div>
                 ))}
                 <div style={{ marginTop: '0.75rem', fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.5, fontStyle: 'italic' }}>
-                  First hora planet = weekday planet ({todayPlan.planet} today). Each subsequent hora cycles through the 7 classical planets.
+                  {u('horaNote', { planet: todayPlan.planet })}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hora Signal Guide</div>
+                <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{u('horaGuide')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                   {HORA_GUIDE.map(h => (
                     <div key={h.planet} style={{
@@ -821,13 +863,13 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                     }}>
                       <span style={{ fontSize: '1rem', flexShrink: 0 }}>{h.symbol}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.72rem', color: h.color }}>{h.planet} Hora</div>
+                        <div style={{ fontWeight: 700, fontSize: '0.72rem', color: h.color }}>{u('horaOf', { planet: h.planet })}</div>
                         <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{h.effect}</div>
                       </div>
                       <span style={{
                         fontSize: '0.58rem', fontWeight: 700, padding: '2px 7px', borderRadius: 8, flexShrink: 0,
-                        background: h.action.includes('BUY') ? 'rgba(77,182,106,0.15)' : h.action.includes('EXIT') || h.action.includes('AVOID') ? 'rgba(232,64,64,0.15)' : 'rgba(201,168,76,0.12)',
-                        color: h.action.includes('BUY') ? '#4db66a' : h.action.includes('EXIT') || h.action.includes('AVOID') ? '#e84040' : '#c9a84c',
+                        background: h.actionEn.includes('BUY') ? 'rgba(77,182,106,0.15)' : h.actionEn.includes('EXIT') || h.actionEn.includes('AVOID') ? 'rgba(232,64,64,0.15)' : 'rgba(201,168,76,0.12)',
+                        color: h.actionEn.includes('BUY') ? '#4db66a' : h.actionEn.includes('EXIT') || h.actionEn.includes('AVOID') ? '#e84040' : '#c9a84c',
                         maxWidth: 110, textAlign: 'center', lineHeight: 1.3,
                       }}>{h.action}</span>
                     </div>
@@ -838,7 +880,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Combination tip */}
             <div style={{ padding: '0.875rem', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.18)', borderRadius: 12, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              <strong style={{ color: '#a78bfa' }}>Pro Tip:</strong> Combine Hora + Daily Signal. If daily signal is BUY and Jupiter Hora arrives → Maximum position. If daily signal is SELL and Rahu Hora arrives → Extra cautious, do not trade at all.
+              <strong style={{ color: '#a78bfa' }}>{u('proTip')}</strong> {u('proTipText')}
             </div>
           </div>
         )}
@@ -846,8 +888,8 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         {/* ════ STRATEGIES ════ */}
         {activeTab === 'strategies' && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>5 Core Astro-Trading Strategies</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>Each strategy based on a different SBC principle — use the one that fits your style</div>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{u('stratTitle')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>{u('stratSub')}</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
               {STRATEGIES.map(s => (
@@ -864,10 +906,10 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                       </div>
                       <span style={{
                         fontSize: '0.58rem', fontWeight: 800, padding: '2px 8px', borderRadius: 10,
-                        background: s.risk === 'Low' ? 'rgba(77,182,106,0.15)' : s.risk === 'Medium' ? 'rgba(201,168,76,0.15)' : 'rgba(232,64,64,0.15)',
-                        color: s.risk === 'Low' ? '#4db66a' : s.risk === 'Medium' ? '#c9a84c' : '#e84040',
-                        border: `1px solid ${s.risk === 'Low' ? '#4db66a' : s.risk === 'Medium' ? '#c9a84c' : '#e84040'}30`,
-                      }}>Risk: {s.risk}</span>
+                        background: s.riskEn === 'Low' ? 'rgba(77,182,106,0.15)' : s.riskEn === 'Medium' ? 'rgba(201,168,76,0.15)' : 'rgba(232,64,64,0.15)',
+                        color: s.riskEn === 'Low' ? '#4db66a' : s.riskEn === 'Medium' ? '#c9a84c' : '#e84040',
+                        border: `1px solid ${s.riskEn === 'Low' ? '#4db66a' : s.riskEn === 'Medium' ? '#c9a84c' : '#e84040'}30`,
+                      }}>{u('risk', { r: s.risk })}</span>
                     </div>
                   </div>
                   <div style={{ padding: '0.875rem 1rem' }}>
@@ -880,7 +922,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                       ))}
                     </div>
                     <div style={{ padding: '0.5rem 0.7rem', background: `${s.color}08`, borderRadius: 8, fontSize: '0.65rem', color: s.color, lineHeight: 1.45 }}>
-                      <strong>Example:</strong> {s.example}
+                      <strong>{u('example')}</strong> {s.example}
                     </div>
                   </div>
                 </div>
@@ -892,25 +934,20 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                     <span style={{ fontSize: '1.5rem' }}>🔗</span>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#a78bfa' }}>Combine with Technical</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Astro + Technical = Maximum confidence</div>
+                      <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#a78bfa' }}>{u('combine')}</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{u('combineSub')}</div>
                     </div>
                   </div>
                 </div>
                 <div style={{ padding: '0.875rem 1rem' }}>
-                  {[
-                    { scenario: 'Both Agree: BUY', detail: 'SBC bullish + Technical breakout → MAXIMUM position', color: '#4db66a' },
-                    { scenario: 'Chakra BUY, Tech SELL', detail: 'Wait for clarity. Small size only. Let one confirm other.', color: '#c9a84c' },
-                    { scenario: 'Chakra SELL, Tech BUY', detail: 'Trust Chakra for timing. Tight stop loss if you enter.', color: '#FF8C00' },
-                    { scenario: 'Both Agree: SELL', detail: 'Maximum SHORT or full cash. Aggressive exit of longs.', color: '#e84040' },
-                  ].map(sc => (
+                  {(u.raw('scen') as [string, string][]).map(([scenario, detail], i) => ({ scenario, detail, color: ['#4db66a', '#c9a84c', '#FF8C00', '#e84040'][i]! })).map(sc => (
                     <div key={sc.scenario} style={{ padding: '0.4rem 0.6rem', borderRadius: 8, marginBottom: '0.4rem', background: `${sc.color}08`, border: `1px solid ${sc.color}20` }}>
                       <div style={{ fontWeight: 700, fontSize: '0.7rem', color: sc.color, marginBottom: '0.15rem' }}>{sc.scenario}</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{sc.detail}</div>
                     </div>
                   ))}
                   <div style={{ marginTop: '0.5rem', fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                    Technical tools: Support/Resistance · 50/200 DMA · RSI · Volume · Candlestick patterns · Trend lines
+                    {u('techTools')}
                   </div>
                 </div>
               </div>
@@ -921,8 +958,8 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         {/* ════ PORTFOLIO ════ */}
         {activeTab === 'portfolio' && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Portfolio Allocation by Planetary Period</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>Adjust allocation based on current SBC planetary strength</div>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{u('portTitle')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>{u('portSub')}</div>
 
             {/* Recommended (based on pulse) */}
             <div style={{ padding: '0.875rem 1rem', background: `${dominantPortfolio.color}0a`, border: `2px solid ${dominantPortfolio.color}35`, borderRadius: 14, marginBottom: '1.25rem' }}>
@@ -931,14 +968,14 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                   {dominantPortfolio.symbol}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.9rem', color: dominantPortfolio.color }}>{dominantPortfolio.planet} Period — Recommended Now</div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Based on SBC pulse: {dominantPortfolio.condition}</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.9rem', color: dominantPortfolio.color }}>{u('recNow', { planet: dominantPortfolio.planet })}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{u('basedOn', { c: dominantPortfolio.condition })}</div>
                 </div>
                 <span style={{
                   marginLeft: 'auto', fontSize: '0.62rem', fontWeight: 800, padding: '2px 10px', borderRadius: 10,
                   background: dominantPortfolio.type === 'bull' ? 'rgba(77,182,106,0.15)' : dominantPortfolio.type === 'bear' ? 'rgba(232,64,64,0.15)' : 'rgba(201,168,76,0.12)',
                   color: dominantPortfolio.type === 'bull' ? '#4db66a' : dominantPortfolio.type === 'bear' ? '#e84040' : '#c9a84c',
-                }}>{dominantPortfolio.type === 'bull' ? '📈 Bull' : dominantPortfolio.type === 'bear' ? '📉 Bear' : '↔️ Volatile'}</span>
+                }}>{dominantPortfolio.type === 'bull' ? u('bull') : dominantPortfolio.type === 'bear' ? u('bear') : u('volatile')}</span>
               </div>
               <AllocationBar items={dominantPortfolio.allocation} />
             </div>
@@ -950,7 +987,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
                     <span style={{ fontSize: '0.9rem' }}>{plan.symbol}</span>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.78rem', color: plan.color }}>{plan.planet} Period</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.78rem', color: plan.color }}>{u('period', { planet: plan.planet })}</div>
                       <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{plan.condition}</div>
                     </div>
                   </div>
@@ -961,13 +998,9 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Jupiter sign guide */}
             <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(218,165,32,0.06)', border: '1px solid rgba(218,165,32,0.2)', borderRadius: 12 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.65rem' }}>♃ Jupiter Sign = Bull Sector (Annual Guide)</div>
+              <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.65rem' }}>{u('jupSign')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem' }}>
-                {[
-                  ['Aries','Defense/Sports'],['Taurus','Banking/Finance'],['Gemini','IT/Telecom'],['Cancer','FMCG/Real Estate'],
-                  ['Leo','Govt/PSU'],['Virgo','Healthcare'],['Libra','Luxury/Auto'],['Scorpio','Research/Mining'],
-                  ['Sagittarius','Education/Travel'],['Capricorn','Infrastructure'],['Aquarius','Technology/AI'],['Pisces','Pharma/Spiritual'],
-                ].map(([sign, sector]) => (
+                {JUPITER_SIGNS.map(([sign, sector]) => (
                   <div key={sign} style={{ padding: '0.35rem 0.55rem', background: 'rgba(218,165,32,0.08)', borderRadius: 8, fontSize: '0.62rem' }}>
                     <div style={{ fontWeight: 700, color: 'var(--text-gold)' }}>{sign}</div>
                     <div style={{ color: 'var(--text-muted)' }}>{sector}</div>
@@ -978,7 +1011,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
             {/* Disclaimer */}
             <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(232,64,64,0.05)', border: '1px solid rgba(232,64,64,0.15)', borderRadius: 10, fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              ⚠ <strong style={{ color: 'var(--text-secondary)' }}>Important:</strong> Sarvatobhadra is a timing tool — always combine with fundamental & technical analysis. Use strict stop-losses. Never invest more than you can afford to lose. This is a probability guide, not a guarantee.
+              ⚠ <strong style={{ color: 'var(--text-secondary)' }}>{u('importantLabel')}</strong> {u('important')}
             </div>
           </div>
         )}

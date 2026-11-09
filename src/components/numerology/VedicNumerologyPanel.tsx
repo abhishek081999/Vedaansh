@@ -5,8 +5,11 @@
 //  Pre-fills name / DOB / gender from the active chart when present.
 // ─────────────────────────────────────────────────────────────
 
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { EngineLang } from '@/lib/engine/lang'
+import { useNumerologyLang } from './shared'
 import { Bookmark, FileDown, Hash } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput, Gender, UserPlan } from '@/types/astrology'
@@ -39,19 +42,23 @@ import { NumerologyTodayStrip } from './NumerologyTodayStrip'
 import { ClientNumerologyBar } from './ClientNumerologyBar'
 
 const TABS = [
-  { id: 'overview', label: 'Core Numbers', gate: null },
-  { id: 'predictions', label: 'Predictions', gate: 'gold' as const },
-  { id: 'remedies', label: 'Remedies', gate: 'gold' as const },
-  { id: 'tools', label: 'Advanced Tools', gate: 'gold' as const },
-  { id: 'grid', label: 'Grid & Kua', gate: null },
-  { id: 'name', label: 'Name', gate: null },
-  { id: 'cycles', label: 'Cycles & Lucky Dates', gate: null },
-  { id: 'compat', label: 'Compatibility & Checker', gate: null },
+  { id: 'overview', gate: null },
+  { id: 'predictions', gate: 'gold' as const },
+  { id: 'remedies', gate: 'gold' as const },
+  { id: 'tools', gate: 'gold' as const },
+  { id: 'grid', gate: null },
+  { id: 'name', gate: null },
+  { id: 'cycles', gate: null },
+  { id: 'compat', gate: null },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
 
 export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
+  const t = useTranslations('numerology.panel')
+  const tc = useTranslations('numerology.core')
+  const lang = useNumerologyLang()
+  const router = useRouter()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const canExport = planMeetsUiGate(userPlan, 'gold')
@@ -100,7 +107,7 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
 
   const saveReading = async () => {
     if (!session?.user) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent('/numerology')}`
+      router.push(`/login?callbackUrl=${encodeURIComponent('/numerology')}`)
       return
     }
     setSaveState({ status: 'saving' })
@@ -111,54 +118,54 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
         body: JSON.stringify({ personName: name.trim(), birthDate, gender, friendshipMode }),
       })
       const json = await res.json().catch(() => ({})) as { success?: boolean; error?: string }
-      if (!res.ok || !json.success) throw new Error(json.error ?? 'Could not save this reading')
+      if (!res.ok || !json.success) throw new Error(json.error ?? t('saveFail'))
       lastSavedKey.current = savedKey
       setSaveState({ status: 'saved' })
     } catch (err) {
       lastSavedKey.current = savedKey
-      setSaveState({ status: 'error', message: err instanceof Error ? err.message : 'Could not save this reading' })
+      setSaveState({ status: 'error', message: err instanceof Error ? err.message : t('saveFail') })
     }
   }
 
   const report = useMemo(
-    () => (birthDate ? buildNumerologyCore({ birthDate, name: name.trim() || undefined, gender }) : null),
-    [birthDate, name, gender],
+    () => (birthDate ? buildNumerologyCore({ birthDate, name: name.trim() || undefined, gender, lang }) : null),
+    [birthDate, name, gender, lang],
   )
 
-  const activeTab = TABS.find(t => t.id === tab)
+  const activeTab = TABS.find(item => item.id === tab)
   const premium = useNumerologyPremium(
-    report ? { birthDate, name: name.trim(), gender } : null,
+    report ? { birthDate, name: name.trim(), gender, lang } : null,
     canExport && !!activeTab?.gate,
   )
   const fullReport: NumerologyReport | null = report && premium.data ? { ...report, ...premium.data } : null
 
   const usingChart = !!chart && birthDate === chart.meta.birthDate
   const calendarLocation = chart
-    ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, label: chart.meta.birthPlace || 'chart birthplace' }
+    ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, label: chart.meta.birthPlace || t('chartPlace') }
     : null
   const chartLinks = useMemo(() => {
     if (!report || !chart || !usingChart) return null
     const entries: { label: string; number: CoreNumber }[] = [
-      { label: 'Moolank', number: report.moolank.value },
-      { label: 'Bhagyank', number: report.bhagyank.value },
+      { label: tc('moolank'), number: report.moolank.value },
+      { label: tc('bhagyank'), number: report.bhagyank.value },
     ]
-    if (report.name) entries.push({ label: 'Namank', number: report.name.value })
+    if (report.name) entries.push({ label: tc('namank'), number: report.name.value })
     return linkNumbersToChart(entries, chart.grahas, chart.lagnas.ascRashi)
-  }, [report, chart, usingChart])
+  }, [report, chart, usingChart, tc])
 
   const openPdf = async () => {
     if (!report || !canExport) return
     // Open synchronously so popup blockers allow it, then fill once Gold data arrives.
     const w = window.open('', '_blank')
     if (!w) return
-    w.document.write('<p style="font-family:sans-serif">Preparing report…</p>')
+    w.document.write(`<p style="font-family:sans-serif">${t('preparing')}</p>`)
     const data = premium.data ?? await premium.load()
     if (!data) {
-      w.document.body.textContent = premium.error ?? 'Could not load the Gold report.'
+      w.document.body.textContent = premium.error ?? t('pdfFail')
       return
     }
     const html = generateNumerologyHTML({ ...report, ...data }, {
-      title: name.trim() || chart?.meta.name || 'Numerology Report',
+      title: name.trim() || chart?.meta.name || t('reportTitle'),
       branding: 'Vedaansh',
     })
     w.document.open()
@@ -168,7 +175,7 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
 
   return (
     <PanelShell
-      title="Vedic Numerology"
+      title={t('title')}
       headerActions={
         report ? (
           <div style={{ display: 'flex', gap: '0.35rem' }}>
@@ -177,14 +184,14 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
               size="sm"
               onClick={() => { void saveReading() }}
               disabled={saveState.status === 'saving' || saveState.status === 'saved'}
-              title={session?.user ? 'Save to My Charts → Numerology' : 'Sign in to save'}
+              title={session?.user ? t('saveTitleIn') : t('saveTitleOut')}
             >
               <Bookmark size={14} aria-hidden style={{ marginRight: 4 }} />
-              {saveState.status === 'saving' ? 'Saving…' : saveState.status === 'saved' ? 'Saved' : 'Save'}
+              {saveState.status === 'saving' ? t('saving') : saveState.status === 'saved' ? t('saved') : t('save')}
             </Button>
-            <Button variant="ghost" size="sm" onClick={openPdf} disabled={!canExport} title={canExport ? 'Open printable report' : 'Gold plan required'}>
+            <Button variant="ghost" size="sm" onClick={openPdf} disabled={!canExport} title={canExport ? t('pdfTitle') : t('pdfLocked')}>
               <FileDown size={14} aria-hidden style={{ marginRight: 4 }} />
-              PDF
+              {t('pdf')}
             </Button>
           </div>
         ) : null
@@ -192,26 +199,26 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
       toolbar={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: '0.75rem', alignItems: 'end' }}>
-            <Field label="Full name" value={name} maxLength={120} placeholder="Name as commonly used" onChange={e => setName(e.target.value)} autoComplete="name" />
-            <Field label="Date of birth" type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} required />
+            <Field label={t('name')} value={name} maxLength={120} placeholder={t('namePh')} onChange={e => setName(e.target.value)} autoComplete="name" />
+            <Field label={t('dob')} type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} required />
             <div>
-              <Label htmlFor="numerology-gender" caps>Gender (for Kua)</Label>
+              <Label htmlFor="numerology-gender" caps>{t('gender')}</Label>
               <select id="numerology-gender" className="input" value={gender} onChange={e => setGender(e.target.value as Gender)}>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Prefer not to say</option>
+                <option value="male">{t('male')}</option>
+                <option value="female">{t('female')}</option>
+                <option value="other">{t('other')}</option>
               </select>
             </div>
             <div>
-              <Label htmlFor="numerology-friendship" caps>Friendship table</Label>
+              <Label htmlFor="numerology-friendship" caps>{t('friendship')}</Label>
               <select
                 id="numerology-friendship"
                 className="input"
                 value={friendshipMode}
                 onChange={e => setFriendshipMode(e.target.value as FriendshipMode)}
               >
-                <option value="bphs">BPHS (graha / default)</option>
-                <option value="indian">Indian Anka (popular)</option>
+                <option value="bphs">{t('bphs')}</option>
+                <option value="indian">{t('indian')}</option>
               </select>
             </div>
           </div>
@@ -227,70 +234,70 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
       {!birthDate ? (
         <EmptyState
           icon={<Hash size={36} strokeWidth={1.5} style={{ color: 'var(--text-gold)', opacity: 0.75 }} />}
-          title="Enter your date of birth"
-          description="Moolank, Bhagyank, predictions, remedies, grids and advanced Anka tools all start from your birth date."
+          title={t('emptyTitle')}
+          description={t('emptyBody')}
         />
       ) : !report ? (
-        <Alert variant="error">Please enter a valid date of birth.</Alert>
+        <Alert variant="error">{t('badDate')}</Alert>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {saveState.status === 'saved' && (
             <Alert variant="success">
-              Reading saved. Find it under <Link href="/my/charts?library=numerology" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>My Charts → Numerology</Link>.
+              {t('savedLead')} <Link href="/my/charts?library=numerology" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{t('savedLink')}</Link>.
             </Alert>
           )}
           {saveState.status === 'error' && (
             <Alert variant="error">
               {saveState.message}
-              {saveState.message?.includes('Upgrade') && <> <Link href="/pricing?highlight=gold" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>See plans</Link></>}
+              {saveState.message?.includes('Upgrade') && <> <Link href="/pricing?highlight=gold" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{t('seePlans')}</Link></>}
             </Alert>
           )}
           {loadedReading && (
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-              Opened saved reading <strong style={{ color: 'var(--text-gold)' }}>{loadedReading}</strong>.
+              {t('opened', { label: loadedReading })}
             </p>
           )}
           {usingChart && (
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-              Using birth details from <strong style={{ color: 'var(--text-gold)' }}>{chart?.meta.name || 'your active chart'}</strong>. Edit the fields above to analyse anyone else.
+              {t('using', { name: chart?.meta.name || t('activeChart') })}
             </p>
           )}
 
           <NumerologyTodayStrip report={report} />
 
-          <div className="tab-bar" role="tablist" aria-label="Numerology sections">
-            {TABS.map(t => (
+          <div className="tab-bar" role="tablist" aria-label={t('aria')}>
+            {TABS.map(item => (
               <button
-                key={t.id}
+                key={item.id}
                 type="button"
                 role="tab"
-                aria-selected={tab === t.id}
-                className={`tab-btn${tab === t.id ? ' active' : ''}`}
-                onClick={() => setTab(t.id)}
+                aria-selected={tab === item.id}
+                className={`tab-btn${tab === item.id ? ' active' : ''}`}
+                onClick={() => setTab(item.id)}
               >
-                {t.label}
-                {t.gate ? ' ★' : ''}
+                {t(`tabs.${item.id}`)}
+                {item.gate ? ' ★' : ''}
               </button>
             ))}
           </div>
 
           {tab === 'overview' && <NumerologyCoreSection report={report} chartLinks={chartLinks} />}
           {tab === 'predictions' && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Numerology predictions">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gatePredictions')}>
               <PremiumBody state={premium} entitled={canExport}>
                 {fullReport && <NumerologyPredictionsSection report={fullReport} chart={usingChart ? chart : null} />}
               </PremiumBody>
             </PlanGate>
           )}
           {tab === 'remedies' && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Numerology remedies">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateRemedies')}>
               <PremiumBody state={premium} entitled={canExport}>
                 {fullReport && <NumerologyRemediesSection report={fullReport} />}
               </PremiumBody>
             </PlanGate>
           )}
           {tab === 'tools' && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Advanced numerology tools">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateTools')}>
               <PremiumBody state={premium} entitled={canExport}>
                 {fullReport && <NumerologyToolsSection report={fullReport} chart={usingChart ? chart : null} friendshipMode={friendshipMode} />}
               </PremiumBody>
@@ -330,9 +337,10 @@ function localIsoToday(): string {
 
 /** Fetches the Gold layer for the current inputs; auto-loads while `autoLoad` is true. */
 function useNumerologyPremium(
-  input: { birthDate: string; name: string; gender: Gender } | null,
+  input: { birthDate: string; name: string; gender: Gender; lang: EngineLang } | null,
   autoLoad: boolean,
 ): PremiumState {
+  const t = useTranslations('numerology.panel')
   const key = input ? JSON.stringify(input) : ''
   const [cache, setCache] = useState<{ key: string; data: NumerologyPremium } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -355,14 +363,15 @@ function useNumerologyPremium(
             name: input.name || undefined,
             gender: input.gender,
             today: localIsoToday(),
+            lang: input.lang,
           }),
         })
         const json = await res.json() as { success: boolean; data?: NumerologyPremium; error?: string }
-        if (!res.ok || !json.success || !json.data) throw new Error(json.error ?? 'Could not load Gold numerology')
+        if (!res.ok || !json.success || !json.data) throw new Error(json.error ?? t('goldFail'))
         setCache({ key, data: json.data })
         return json.data
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not load Gold numerology')
+        setError(err instanceof Error ? err.message : t('goldFail'))
         return null
       } finally {
         if (inflight.current?.key === key) inflight.current = null
@@ -372,7 +381,7 @@ function useNumerologyPremium(
     inflight.current = { key, promise }
     return promise
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` captures `input`
-  }, [key, cache])
+  }, [key, cache, t])
 
   // Debounce so typing a name does not fire a request per keystroke.
   useEffect(() => {
@@ -386,18 +395,18 @@ function useNumerologyPremium(
 }
 
 function PremiumBody({ state, entitled, children }: { state: PremiumState; entitled: boolean; children: React.ReactNode }) {
+  const t = useTranslations('numerology.panel')
   if (state.data) return <>{children}</>
-  // Placeholder behind the PlanGate overlay — Gold content is only ever fetched for entitled users.
   if (!entitled) {
-    return <p style={{ margin: 0, minHeight: 160, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Personalised predictions, remedies and tools are built for Gold members.</p>
+    return <p style={{ margin: 0, minHeight: 160, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('goldTeaser')}</p>
   }
   if (state.error) {
     return (
       <Alert variant="error">
         {state.error}{' '}
-        <Button variant="ghost" size="sm" onClick={() => { void state.load() }}>Retry</Button>
+        <Button variant="ghost" size="sm" onClick={() => { void state.load() }}>{t('retry')}</Button>
       </Alert>
     )
   }
-  return <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Loading your Gold analysis…</p>
+  return <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('loadingGold')}</p>
 }

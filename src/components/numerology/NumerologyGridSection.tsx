@@ -6,34 +6,33 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { NumerologyCoreReport, GridSource } from '@/lib/engine/numerology/calc'
-import { NUMBER_PROFILES, type CoreNumber } from '@/lib/engine/numerology/data'
+import { getNumberProfile, type CoreNumber } from '@/lib/engine/numerology/data'
 import { getPythagoreanArrows, type ArrowHit } from '@/lib/engine/numerology/arrows'
-import { KeyValue, SectionCard, gridColumns } from './shared'
-
-const SOURCE_LABEL: Record<GridSource, string> = {
-  dob: 'birth date digit',
-  moolank: 'Moolank',
-  bhagyank: 'Bhagyank',
-  kua: 'Kua',
-}
+import type { EngineLang } from '@/lib/engine/lang'
+import { KeyValue, SectionCard, gridColumns, useNumerologyLang } from './shared'
 
 const PLANE_COLOR = { complete: 'var(--teal)', partial: 'var(--gold)', empty: 'var(--rose)' } as const
 
 export function NumerologyGridSection({ report }: { report: NumerologyCoreReport }) {
+  const t = useTranslations('numerology.grid')
+  const tp = useTranslations('numerology.plane')
+  const tg = useTranslations('numerology.group')
+  const lang = useNumerologyLang()
   const [layout, setLayout] = useState<'vedic' | 'loshu'>('vedic')
   const { grid, kua } = report
   const cells = layout === 'vedic' ? grid.layout.vedic : grid.layout.loshu
-  const arrows = useMemo(() => getPythagoreanArrows(report.date), [report.date])
+  const arrows = useMemo(() => getPythagoreanArrows(report.date, lang), [report.date, lang])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={gridColumns(300)}>
         <SectionCard
-          title={layout === 'vedic' ? 'Vedic Grid' : 'Lo Shu Grid'}
-          subtitle={`Built from your birth date digits, Moolank, Bhagyank${kua ? ' and Kua' : ''}. Zeros are ignored.`}
+          title={layout === 'vedic' ? t('vedic') : t('loshu')}
+          subtitle={kua ? t('builtKua') : t('built')}
         >
-          <div className="tab-bar" role="tablist" aria-label="Grid layout">
+          <div className="tab-bar" role="tablist" aria-label={t('layoutAria')}>
             {(['vedic', 'loshu'] as const).map(l => (
               <button
                 key={l}
@@ -43,26 +42,24 @@ export function NumerologyGridSection({ report }: { report: NumerologyCoreReport
                 className={`tab-btn${layout === l ? ' active' : ''}`}
                 onClick={() => setLayout(l)}
               >
-                {l === 'vedic' ? 'Vedic Square' : 'Lo Shu'}
+                {l === 'vedic' ? t('vedicTab') : t('loshuTab')}
               </button>
             ))}
           </div>
 
           <div
             role="grid"
-            aria-label="Numerology grid"
+            aria-label={t('gridAria')}
             style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, maxWidth: 320, width: '100%', margin: '0 auto' }}
           >
-            {cells.flat().map(n => <GridCell key={n} n={n} count={grid.counts[n]} sources={grid.sources[n]} />)}
+            {cells.flat().map(n => <GridCell key={n} n={n} count={grid.counts[n]} sources={grid.sources[n]} lang={lang} />)}
           </div>
           <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            {layout === 'vedic'
-              ? 'Vedic square: Jupiter · Sun · Mars across the top, Ketu at the centre.'
-              : 'Lo Shu magic square: every row, column and diagonal sums to 15.'}
+            {layout === 'vedic' ? t('vedicNote') : t('loshuNote')}
           </p>
         </SectionCard>
 
-        <SectionCard title="Planes & Yogas" subtitle="Complete lines (all three numbers present) form a yoga; empty lines indicate an area to develop.">
+        <SectionCard title={t('planesTitle')} subtitle={t('planesSub')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {grid.planes.map(p => (
               <div key={p.id} style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
@@ -72,7 +69,7 @@ export function NumerologyGridSection({ report }: { report: NumerologyCoreReport
                   textTransform: 'uppercase', letterSpacing: '0.05em', minWidth: 78, textAlign: 'center',
                   whiteSpace: 'nowrap', flexShrink: 0,
                 }}>
-                  {p.status}
+                  {tp(p.status)}
                 </span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -91,21 +88,21 @@ export function NumerologyGridSection({ report }: { report: NumerologyCoreReport
       </div>
 
       <div style={gridColumns(300)}>
-        <SectionCard title="Missing Numbers" subtitle="Absent energies and their classical remedies." accent="var(--rose)">
+        <SectionCard title={t('missingTitle')} subtitle={t('missingSub')} accent="var(--rose)">
           {grid.missing.length === 0 ? (
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--teal)' }}>All nine numbers are present — a rare, well-rounded grid.</p>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--teal)' }}>{t('allPresent')}</p>
           ) : grid.missing.map(m => (
             <div key={m.number} style={{ display: 'flex', gap: '0.6rem' }}>
               <CellBadge n={m.number} />
               <div style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
                 <div style={{ color: 'var(--text-secondary)' }}>{m.effect}</div>
-                <div style={{ color: 'var(--text-muted)' }}><strong style={{ color: 'var(--text-gold)' }}>Remedy:</strong> {m.remedy}</div>
+                <div style={{ color: 'var(--text-muted)' }}><strong style={{ color: 'var(--text-gold)' }}>{t('remedy')}</strong> {m.remedy}</div>
               </div>
             </div>
           ))}
         </SectionCard>
 
-        <SectionCard title="Present & Repeated Numbers" subtitle="Repetition intensifies a number — beneficial up to a point, then excessive.">
+        <SectionCard title={t('repeatTitle')} subtitle={t('repeatSub')}>
           {grid.repeated.map(r => (
             <div key={r.number} style={{ display: 'flex', gap: '0.6rem' }}>
               <CellBadge n={r.number} />
@@ -117,20 +114,17 @@ export function NumerologyGridSection({ report }: { report: NumerologyCoreReport
         </SectionCard>
       </div>
 
-      <SectionCard
-        title="Pythagorean Arrows"
-        subtitle="Birth-date digits only, on the 3-6-9 / 2-5-8 / 1-4-7 chart. A full line is an arrow of strength; an empty line is an arrow of weakness."
-      >
+      <SectionCard title={t('arrowsTitle')} subtitle={t('arrowsSub')}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'flex-start' }}>
           <div
             role="grid"
-            aria-label="Pythagorean birth chart"
+            aria-label={t('pythAria')}
             style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 44px)', gap: 4, flexShrink: 0 }}
           >
             {arrows.layout.flat().map(n => {
               const c = arrows.counts[n]
               return (
-                <div key={n} role="gridcell" aria-label={c ? `${n} × ${c}` : `${n} missing`} style={{
+                <div key={n} role="gridcell" aria-label={c ? t('cellTimes', { n, count: c }) : t('cellMissing', { n })} style={{
                   height: 44, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: c ? 'var(--gold-faint)' : 'var(--surface-2)',
                   border: `1px solid ${c ? 'var(--border-bright)' : 'var(--border-soft)'}`,
@@ -146,36 +140,39 @@ export function NumerologyGridSection({ report }: { report: NumerologyCoreReport
             {arrows.strengths.map(a => <ArrowRow key={a.name} arrow={a} tone="strength" />)}
             {arrows.weaknesses.map(a => <ArrowRow key={a.name} arrow={a} tone="weakness" />)}
             {arrows.strengths.length + arrows.weaknesses.length === 0 && (
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>No complete or empty lines — a balanced chart without strong arrows.</p>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t('noArrows')}</p>
             )}
           </div>
         </div>
       </SectionCard>
 
       {kua ? (
-        <SectionCard title={`Kua Number ${kua.value} — ${kua.group} Group`} subtitle={`Directional number from solar year ${kua.solarYear} and gender. Face these directions while working, sleeping and meeting.`}>
+        <SectionCard title={t('kuaTitle', { value: kua.value, group: tg(kua.group) })} subtitle={t('kuaSub', { year: kua.solarYear })}>
           <div style={gridColumns(150)}>
-            <KeyValue label="Success & wealth" value={kua.directions.success} />
-            <KeyValue label="Health" value={kua.directions.health} />
-            <KeyValue label="Love & relationships" value={kua.directions.love} />
-            <KeyValue label="Personal growth" value={kua.directions.growth} />
+            <KeyValue label={t('success')} value={kua.directions.success} />
+            <KeyValue label={t('health')} value={kua.directions.health} />
+            <KeyValue label={t('love')} value={kua.directions.love} />
+            <KeyValue label={t('growth')} value={kua.directions.growth} />
           </div>
         </SectionCard>
       ) : (
         <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-          Select male or female above to include the Kua number and its favourable directions.
+          {t('kuaHint')}
         </p>
       )}
     </div>
   )
 }
 
-function GridCell({ n, count, sources }: { n: CoreNumber; count: number; sources: GridSource[] }) {
+function GridCell({ n, count, sources, lang }: { n: CoreNumber; count: number; sources: GridSource[]; lang: EngineLang }) {
+  const t = useTranslations('numerology.grid')
+  const ts = useTranslations('numerology.source')
   const present = count > 0
-  const extra = sources.filter(s => s !== 'dob').map(s => SOURCE_LABEL[s])
+  const planet = getNumberProfile(n, lang).planet
+  const extra = sources.filter(s => s !== 'dob').map(s => ts(s))
   const title = present
-    ? `${n} × ${count} (${NUMBER_PROFILES[n].planet})${extra.length ? ` — includes ${extra.join(', ')}` : ''}`
-    : `${n} missing (${NUMBER_PROFILES[n].planet})`
+    ? t('cellPresent', { n, count, planet, extra: extra.length ? t('includes', { list: extra.join(', ') }) : '' })
+    : t('cellAbsent', { n, planet })
   return (
     <div
       role="gridcell"
@@ -195,13 +192,14 @@ function GridCell({ n, count, sources }: { n: CoreNumber; count: number; sources
         {present ? String(n).repeat(count) : n}
       </span>
       <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        {NUMBER_PROFILES[n].planet}
+        {planet}
       </span>
     </div>
   )
 }
 
 function ArrowRow({ arrow, tone }: { arrow: ArrowHit; tone: 'strength' | 'weakness' }) {
+  const t = useTranslations('numerology.arrow')
   const color = tone === 'strength' ? 'var(--teal)' : 'var(--rose)'
   return (
     <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
@@ -210,7 +208,7 @@ function ArrowRow({ arrow, tone }: { arrow: ArrowHit; tone: 'strength' | 'weakne
         border: `1px solid ${color}`, color, textTransform: 'uppercase', letterSpacing: '0.05em',
         minWidth: 72, textAlign: 'center', whiteSpace: 'nowrap', flexShrink: 0,
       }}>
-        {tone}
+        {t(tone)}
       </span>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>

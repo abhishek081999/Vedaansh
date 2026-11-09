@@ -6,6 +6,17 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { NUMBER_PROFILE_HI } from '@/lib/engine/locale/numerologyProfiles.hi'
+import {
+  COMPOUND_HI,
+  KARMIC_DEBT_HI,
+  MISSING_HI,
+  PERSONAL_YEAR_HI,
+  PLANE_HI,
+  REPEAT_HI,
+  directionHi,
+} from '@/lib/engine/locale/numerologyData.hi'
 
 export type CoreNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
@@ -293,11 +304,64 @@ export function compoundReadAs(n: number): number {
   return v
 }
 
-export function getCompoundMeaning(n: number): CompoundMeaning | null {
+export function getCompoundMeaning(n: number, lang: EngineLang = 'en'): CompoundMeaning | null {
   const key = compoundReadAs(n)
-  if (COMPOUND_BASE[key]) return COMPOUND_BASE[key]!
-  const alias = COMPOUND_ALIASES[key]
-  return alias ? COMPOUND_BASE[alias] ?? null : null
+  const direct = COMPOUND_BASE[key]
+  const alias = direct ? undefined : COMPOUND_ALIASES[key]
+  const en = direct ?? (alias ? COMPOUND_BASE[alias] ?? null : null)
+  if (!en || lang !== 'hi') return en
+  const hiKey = direct ? key : alias
+  const hi = hiKey != null ? COMPOUND_HI[hiKey] : undefined
+  return hi ? { ...en, title: hi.title, meaning: hi.meaning } : en
+}
+
+/** Display profile. English returns the canonical record; Hindi overlays text only. */
+export function getNumberProfile(n: CoreNumber, lang: EngineLang = 'en'): NumberProfile {
+  if (lang !== 'hi') return NUMBER_PROFILES[n]
+  const hi = NUMBER_PROFILE_HI[n]
+  return { ...NUMBER_PROFILES[n], ...hi, number: n, graha: NUMBER_PROFILES[n].graha }
+}
+
+export function karmicDebtText(n: number, lang: EngineLang = 'en'): string | undefined {
+  if (lang === 'hi') return KARMIC_DEBT_HI[n] ?? KARMIC_DEBT[n]
+  return KARMIC_DEBT[n]
+}
+
+export function missingNumberEffect(n: CoreNumber, lang: EngineLang = 'en'): { effect: string; remedy: string } {
+  return lang === 'hi' ? MISSING_HI[n] : MISSING_NUMBER_EFFECTS[n]
+}
+
+export function repeatNumberEffect(n: CoreNumber, count: number, lang: EngineLang = 'en'): string {
+  const idx = Math.min(Math.max(count, 1), 3) - 1
+  const row = lang === 'hi' ? REPEAT_HI[n] : REPEAT_NUMBER_EFFECTS[n]
+  return row[idx]!
+}
+
+export function personalYearTheme(n: CoreNumber, lang: EngineLang = 'en'): { theme: string; guidance: string } {
+  return lang === 'hi' ? PERSONAL_YEAR_HI[n] : PERSONAL_YEAR_THEMES[n]
+}
+
+export function loshuPlanes(lang: EngineLang = 'en'): GridPlaneDef[] {
+  if (lang !== 'hi') return LOSHU_PLANES
+  return LOSHU_PLANES.map(p => {
+    const hi = PLANE_HI[p.id]
+    return hi ? { ...p, name: hi.name, complete: hi.complete, empty: hi.empty } : p
+  })
+}
+
+export function kuaDirectionSet(
+  n: number,
+  lang: EngineLang = 'en',
+): { group: 'East' | 'West'; success: string; health: string; love: string; growth: string } | undefined {
+  const en = KUA_DIRECTIONS[n]
+  if (!en || lang !== 'hi') return en
+  return {
+    group: en.group,
+    success: directionHi(en.success),
+    health: directionHi(en.health),
+    love: directionHi(en.love),
+    growth: directionHi(en.growth),
+  }
 }
 
 /** Karmic debt compounds (13, 14, 16, 19) — lessons carried from past actions. */

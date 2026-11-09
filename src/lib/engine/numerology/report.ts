@@ -5,6 +5,7 @@
 //  prediction / remedy knowledge base stays out of the client bundle.
 // ─────────────────────────────────────────────────────────────
 
+import type { EngineLang } from '@/lib/engine/lang'
 import {
   buildNumerologyCore,
   type NumerologyCoreReport,
@@ -15,7 +16,7 @@ import {
 import { buildPredictionBundle } from './predictions'
 import { buildRemedyPackage } from './remedies'
 
-export function buildNumerologyPremium(core: NumerologyCoreReport): NumerologyPremium {
+export function buildNumerologyPremium(core: NumerologyCoreReport, lang: EngineLang = 'en'): NumerologyPremium {
   const predictions = buildPredictionBundle({
     date: core.date,
     moolank: core.moolank.value,
@@ -25,6 +26,7 @@ export function buildNumerologyPremium(core: NumerologyCoreReport): NumerologyPr
     cycles: core.cycles,
     today: core.today,
     gender: core.gender ?? undefined,
+    lang,
   })
 
   const remedies = buildRemedyPackage({
@@ -36,6 +38,7 @@ export function buildNumerologyPremium(core: NumerologyCoreReport): NumerologyPr
     karmicDebts: core.karmicDebts,
     coreHarmony: core.coreHarmony,
     nameHarmony: core.nameHarmony,
+    lang,
   })
 
   return { predictions, remedies }
@@ -43,5 +46,5 @@ export function buildNumerologyPremium(core: NumerologyCoreReport): NumerologyPr
 
 export function buildNumerologyReport(input: NumerologyInput): NumerologyReport | null {
   const core = buildNumerologyCore(input)
-  return core ? { ...core, ...buildNumerologyPremium(core) } : null
+  return core ? { ...core, ...buildNumerologyPremium(core, input.lang) } : null
 }

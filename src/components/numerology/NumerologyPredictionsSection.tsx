@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
 import type { NumerologyReport } from '@/lib/engine/numerology/calc'
 import { HarmonyPill, KeyValue, NumberOrb, SectionCard, gridColumns } from './shared'
@@ -33,50 +34,54 @@ export function NumerologyPredictionsSection({
   report: NumerologyReport
   chart?: ChartOutput | null
 }) {
+  const t = useTranslations('numerology.predictions')
+  const tone = useTranslations('numerology.tone')
+  const months = useTranslations('numerology.months')
   const { predictions: p } = report
   const [sub, setSub] = useState<SubTab>('life')
   const presentYogas = p.yogas.filter(y => y.present)
   const activePinnacle = p.pinnacles.find(x => x.active)
   const activePhase = p.lifePhases.find(x => x.active)
+  const monthName = (m: number) => months(String(m) as '1')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={gridColumns(160)}>
-        <MiniStat label="Age now" value={String(p.ageNow)} />
-        <MiniStat label="Maturity no." value={String(p.maturity.value)} hint={`activates ~${p.maturity.activatesAroundAge}`} />
-        <MiniStat label="Active pinnacle" value={activePinnacle ? String(activePinnacle.value) : '—'} hint={activePinnacle?.theme} />
-        <MiniStat label="Life phase" value={activePhase ? activePhase.rulingLabel.split(' ')[0]! : '—'} hint={activePhase?.label} />
+        <MiniStat label={t('age')} value={String(p.ageNow)} />
+        <MiniStat label={t('maturityNo')} value={String(p.maturity.value)} hint={t('activates', { age: p.maturity.activatesAroundAge })} />
+        <MiniStat label={t('activePinnacle')} value={activePinnacle ? String(activePinnacle.value) : '—'} hint={activePinnacle?.theme} />
+        <MiniStat label={t('lifePhase')} value={activePhase ? activePhase.rulingLabel.split(' ')[0]! : '—'} hint={activePhase?.label} />
       </div>
 
-      <div className="tab-bar" role="tablist" aria-label="Prediction views">
+      <div className="tab-bar" role="tablist" aria-label={t('aria')}>
         {([
-          { id: 'life' as const, label: 'Life Areas' },
-          { id: 'year' as const, label: 'This Year & Months' },
-          { id: 'structure' as const, label: 'Pinnacles, Yogas & Challenges' },
-          { id: 'dasha' as const, label: 'Dasha Timing' },
-        ]).map(t => (
-          <button key={t.id} type="button" role="tab" aria-selected={sub === t.id} className={`tab-btn${sub === t.id ? ' active' : ''}`} onClick={() => setSub(t.id)}>
-            {t.label}
+          { id: 'life' as const, label: t('life') },
+          { id: 'year' as const, label: t('year') },
+          { id: 'structure' as const, label: t('structure') },
+          { id: 'dasha' as const, label: t('dasha') },
+        ]).map(tab => (
+          <button key={tab.id} type="button" role="tab" aria-selected={sub === tab.id} className={`tab-btn${sub === tab.id ? ' active' : ''}`} onClick={() => setSub(tab.id)}>
+            {tab.label}
           </button>
         ))}
       </div>
 
       {sub === 'life' && (
         <>
-          <SectionCard title="Maturity Number" subtitle={`Moolank ${report.moolank.value} + Bhagyank ${report.bhagyank.value} = ${p.maturity.compound} → ${p.maturity.value}. The personality that emerges after ~35.`}>
+          <SectionCard title={t('maturityTitle')} subtitle={t('maturitySub', { m: report.moolank.value, b: report.bhagyank.value, compound: p.maturity.compound, value: p.maturity.value })}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
               <NumberOrb value={p.maturity.value} size={56} />
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{p.maturity.meaning}</p>
             </div>
           </SectionCard>
 
-          <SectionCard title="Life Area Predictions" subtitle="Based primarily on Moolank, coloured by harmony with Bhagyank.">
+          <SectionCard title={t('areasTitle')} subtitle={t('areasSub')}>
             <div style={gridColumns(280)}>
               {p.lifeAreas.map(a => (
                 <div key={a.id} style={{ padding: '0.85rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderLeft: `3px solid ${TONE_COLOR[a.tone]}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'center', marginBottom: '0.35rem' }}>
                     <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>{a.label}</strong>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: TONE_COLOR[a.tone] }}>{a.tone}</span>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: TONE_COLOR[a.tone] }}>{tone(a.tone)}</span>
                   </div>
                   <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-gold)', marginBottom: '0.25rem' }}>{a.summary}</div>
                   <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{a.detail}</p>
@@ -87,9 +92,9 @@ export function NumerologyPredictionsSection({
           </SectionCard>
 
           {activePhase && (
-            <SectionCard title="Current Life Phase" accent="var(--gold)">
+            <SectionCard title={t('phaseTitle')} accent="var(--gold)">
               <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                <strong style={{ color: 'var(--text-gold)' }}>{activePhase.label}</strong> — ruled by {activePhase.rulingLabel}. {activePhase.description}
+                <strong style={{ color: 'var(--text-gold)' }}>{activePhase.label}</strong> — {t('ruled', { label: activePhase.rulingLabel })} {activePhase.description}
               </p>
             </SectionCard>
           )}
@@ -98,19 +103,19 @@ export function NumerologyPredictionsSection({
 
       {sub === 'year' && (
         <>
-          <SectionCard title={`Personal Year ${p.annual.personalYear} — ${p.annual.theme}`} accent="var(--gold)" subtitle={`Birthday-to-birthday cycle starting ${report.cycles.cycleYear}`}>
+          <SectionCard title={t('yearTitle', { n: p.annual.personalYear, theme: p.annual.theme })} accent="var(--gold)" subtitle={t('yearSub', { year: report.cycles.cycleYear })}>
             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{p.annual.overview}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.76rem' }}>
               {p.annual.favourableMonths.length > 0 && (
-                <span style={{ color: 'var(--teal)' }}>Favourable months: {p.annual.favourableMonths.map(m => MONTH[m - 1]).join(', ')}</span>
+                <span style={{ color: 'var(--teal)' }}>{t('favourable', { months: p.annual.favourableMonths.map(monthName).join(', ') })}</span>
               )}
               {p.annual.criticalMonths.length > 0 && (
-                <span style={{ color: 'var(--rose)' }}>Caution months: {p.annual.criticalMonths.map(m => MONTH[m - 1]).join(', ')}</span>
+                <span style={{ color: 'var(--rose)' }}>{t('caution', { months: p.annual.criticalMonths.map(monthName).join(', ') })}</span>
               )}
             </div>
           </SectionCard>
 
-          <SectionCard title="Area Outlook This Year">
+          <SectionCard title={t('outlookTitle')}>
             <div style={gridColumns(240)}>
               {p.annual.areas.map(a => (
                 <div key={a.area} style={{ padding: '0.7rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', borderLeft: `3px solid ${TONE_COLOR[a.outlook]}` }}>
@@ -121,12 +126,12 @@ export function NumerologyPredictionsSection({
             </div>
           </SectionCard>
 
-          <SectionCard title="12-Month Forecast" subtitle="Personal month = personal year + calendar month, reduced. Harmony is vs your Moolank.">
+          <SectionCard title={t('monthTitle')} subtitle={t('monthSub')}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', minWidth: 480 }}>
                 <thead>
                   <tr style={{ color: 'var(--text-muted)', textAlign: 'left' }}>
-                    {['Month', 'Pers. month', 'Theme', 'Harmony', 'Guidance'].map(h => (
+                    {[t('month'), t('persMonth'), t('theme'), t('harmony'), t('guidance')].map(h => (
                       <th key={h} style={{ padding: '0.4rem 0.5rem', fontSize: '0.64rem', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid var(--border-soft)' }}>{h}</th>
                     ))}
                   </tr>
@@ -150,7 +155,7 @@ export function NumerologyPredictionsSection({
 
       {sub === 'structure' && (
         <>
-          <SectionCard title="Life Pinnacles" subtitle="Four chapters of life. First pinnacle length = 36 − Bhagyank.">
+          <SectionCard title={t('pinnaclesTitle')} subtitle={t('pinnaclesSub')}>
             <div style={gridColumns(220)}>
               {p.pinnacles.map(pin => (
                 <div key={pin.index} style={{
@@ -161,9 +166,9 @@ export function NumerologyPredictionsSection({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
                     <NumberOrb value={pin.value} size={40} muted={!pin.active} />
                     <div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)' }}>Pinnacle {pin.index}{pin.active ? ' · now' : ''}</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)' }}>{t('pinnacle', { index: pin.index, now: pin.active ? t('now') : '' })}</div>
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                        Ages {pin.fromAge}{pin.toAge != null ? `–${pin.toAge}` : '+'}
+                        {t('ages', { from: pin.fromAge, to: pin.toAge != null ? `–${pin.toAge}` : '+' })}
                       </div>
                     </div>
                   </div>
@@ -174,7 +179,7 @@ export function NumerologyPredictionsSection({
             </div>
           </SectionCard>
 
-          <SectionCard title="Life Challenges" subtitle="Lessons derived from differences between day, month and year roots.">
+          <SectionCard title={t('challengesTitle')} subtitle={t('challengesSub')}>
             {p.challenges.map(c => (
               <div key={c.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
                 <NumberOrb value={c.value} size={36} />
@@ -186,9 +191,9 @@ export function NumerologyPredictionsSection({
             ))}
           </SectionCard>
 
-          <SectionCard title="Number Yogas" subtitle="Classical Anka combinations from core numbers and the grid.">
+          <SectionCard title={t('yogasTitle')} subtitle={t('yogasSub')}>
             {presentYogas.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>No major yogas present right now — build them via name correction and missing-number remedies.</p>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('noYogas')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {presentYogas.map(y => (
@@ -200,7 +205,7 @@ export function NumerologyPredictionsSection({
               </div>
             )}
             <details style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-              <summary style={{ cursor: 'pointer', color: 'var(--text-gold)' }}>Show all yoga checks ({p.yogas.length})</summary>
+              <summary style={{ cursor: 'pointer', color: 'var(--text-gold)' }}>{t('showAll', { n: p.yogas.length })}</summary>
               <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', lineHeight: 1.55 }}>
                 {p.yogas.map(y => (
                   <li key={y.id} style={{ color: y.present ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
@@ -211,7 +216,7 @@ export function NumerologyPredictionsSection({
             </details>
           </SectionCard>
 
-          <SectionCard title="Life Phases">
+          <SectionCard title={t('phasesTitle')}>
             <div style={gridColumns(240)}>
               {p.lifePhases.map(ph => (
                 <div key={ph.id} style={{
@@ -219,7 +224,10 @@ export function NumerologyPredictionsSection({
                   background: ph.active ? 'var(--gold-faint)' : 'var(--surface-2)',
                   border: `1px solid ${ph.active ? 'var(--border-bright)' : 'var(--border-soft)'}`,
                 }}>
-                  <KeyValue label={ph.active ? `${ph.label} · current` : ph.label} value={`${ph.rulingLabel} · ages ${ph.ageFrom}${ph.ageTo != null ? `–${ph.ageTo}` : '+'}`} />
+                  <KeyValue
+                    label={ph.active ? t('phaseCurrent', { label: ph.label }) : ph.label}
+                    value={t('phaseValue', { ruling: ph.rulingLabel, from: ph.ageFrom, to: ph.ageTo != null ? `–${ph.ageTo}` : '+' })}
+                  />
                   <p style={{ margin: '0.35rem 0 0', fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{ph.description}</p>
                 </div>
               ))}
@@ -232,8 +240,6 @@ export function NumerologyPredictionsSection({
     </div>
   )
 }
-
-const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function MiniStat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (

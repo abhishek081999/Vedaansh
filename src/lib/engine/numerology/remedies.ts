@@ -5,15 +5,19 @@
 //  challenging personal year and Moolank–Bhagyank tension
 // ─────────────────────────────────────────────────────────────
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
+import { REMEDY_HI } from '@/lib/engine/locale/numerologyRemedies.hi'
 import {
   getNumberFriendship,
   numberHarmony,
   type Harmony,
 } from './core'
 import {
-  MISSING_NUMBER_EFFECTS,
   NUMBER_PROFILES,
-  PERSONAL_YEAR_THEMES,
+  getNumberProfile,
+  missingNumberEffect,
+  personalYearTheme,
   type CoreNumber,
 } from './data'
 export interface RemedyKarmicDebt {
@@ -67,8 +71,12 @@ export function buildRemedyPackage(input: {
   karmicDebts: RemedyKarmicDebt[]
   coreHarmony: Harmony
   nameHarmony: { moolank: Harmony; bhagyank: Harmony } | null
+  lang?: EngineLang
 }): RemedyPackage {
   const { moolank, bhagyank, namank, personalYear, missingNumbers, karmicDebts, coreHarmony } = input
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const profile = (n: CoreNumber) => getNumberProfile(n, lang)
   const items: RemedyItem[] = []
   const focus: CoreNumber[] = []
 
@@ -85,13 +93,17 @@ export function buildRemedyPackage(input: {
   const friends = getNumberFriendship(moolank)
   if (friends.enemies.includes(bhagyank) || coreHarmony === 'challenging') {
     pushFocus(moolank)
+    const mProf = profile(moolank)
+    const bProf = profile(bhagyank)
     items.push({
       id: 'core-tension',
       priority: 'urgent',
       category: 'lifestyle',
-      title: `Bridge Moolank ${moolank} and Bhagyank ${bhagyank}`,
-      detail: `These rulers are natural enemies. Strengthen ${NUMBER_PROFILES[moolank].planet} remedies on ${NUMBER_PROFILES[moolank].fastingDay}s and ${NUMBER_PROFILES[bhagyank].planet} remedies on ${NUMBER_PROFILES[bhagyank].fastingDay}s — never wear both primary gemstones together without a trial.`,
-      source: 'Moolank–Bhagyank harmony',
+      title: hi ? fill(REMEDY_HI.coreTitle, { m: moolank, b: bhagyank }) : `Bridge Moolank ${moolank} and Bhagyank ${bhagyank}`,
+      detail: hi
+        ? fill(REMEDY_HI.coreDetail, { day1: mProf.fastingDay, planet1: mProf.planet, day2: bProf.fastingDay, planet2: bProf.planet })
+        : `These rulers are natural enemies. Strengthen ${mProf.planet} remedies on ${mProf.fastingDay}s and ${bProf.planet} remedies on ${bProf.fastingDay}s — never wear both primary gemstones together without a trial.`,
+      source: hi ? REMEDY_HI.coreSource : 'Moolank–Bhagyank harmony',
     })
   }
 
@@ -101,35 +113,43 @@ export function buildRemedyPackage(input: {
       id: 'year-caution',
       priority: 'urgent',
       category: 'lifestyle',
-      title: `Personal year ${personalYear} challenges your Moolank`,
-      detail: `${PERSONAL_YEAR_THEMES[personalYear].guidance} Move slowly this year; favour ${NUMBER_PROFILES[moolank].luckyColors[0]} clothing on important days and avoid launching on dates that reduce to enemy numbers ${friends.enemies.join(', ') || '—'}.`,
+      title: hi ? fill(REMEDY_HI.yearTitle, { py: personalYear }) : `Personal year ${personalYear} challenges your Moolank`,
+      detail: hi
+        ? fill(REMEDY_HI.yearDetail, {
+          guidance: personalYearTheme(personalYear, lang).guidance,
+          color: profile(moolank).luckyColors[0] ?? '',
+          enemies: friends.enemies.join(', ') || '—',
+        })
+        : `${personalYearTheme(personalYear, lang).guidance} Move slowly this year; favour ${profile(moolank).luckyColors[0]} clothing on important days and avoid launching on dates that reduce to enemy numbers ${friends.enemies.join(', ') || '—'}.`,
       forNumber: personalYear,
-      source: 'Personal year',
+      source: hi ? REMEDY_HI.yearSource : 'Personal year',
     })
   }
 
   // Missing grid numbers
   for (const n of missingNumbers) {
     pushFocus(n)
-    const miss = MISSING_NUMBER_EFFECTS[n]
-    const p = NUMBER_PROFILES[n]
+    const miss = missingNumberEffect(n, lang)
+    const p = profile(n)
     items.push({
       id: `missing-${n}`,
       priority: missingNumbers.length <= 3 ? 'important' : 'supportive',
       category: 'lifestyle',
-      title: `Activate missing number ${n} (${p.planet})`,
+      title: hi ? fill(REMEDY_HI.missingTitle, { n, planet: p.planet }) : `Activate missing number ${n} (${p.planet})`,
       detail: `${miss.effect} ${miss.remedy}`,
       forNumber: n,
-      source: 'Lo Shu / Vedic grid',
+      source: hi ? REMEDY_HI.missingSource : 'Lo Shu / Vedic grid',
     })
     items.push({
       id: `missing-mantra-${n}`,
       priority: 'supportive',
       category: 'mantra',
-      title: `Beej mantra for ${n}`,
-      detail: `Chant 11 or 108 times on ${p.fastingDay}: ${p.beejMantra}`,
+      title: hi ? fill(REMEDY_HI.mantraTitle, { n }) : `Beej mantra for ${n}`,
+      detail: hi
+        ? fill(REMEDY_HI.mantraDetail, { day: p.fastingDay, mantra: p.beejMantra })
+        : `Chant 11 or 108 times on ${p.fastingDay}: ${p.beejMantra}`,
       forNumber: n,
-      source: 'Missing number',
+      source: hi ? REMEDY_HI.mantraSource : 'Missing number',
     })
   }
 
@@ -139,9 +159,9 @@ export function buildRemedyPackage(input: {
       id: `karmic-${k.number}-${k.source}`,
       priority: 'important',
       category: 'lifestyle',
-      title: `Karmic debt ${k.number} (${k.source})`,
+      title: hi ? fill(REMEDY_HI.karmicTitle, { n: k.number, source: k.source }) : `Karmic debt ${k.number} (${k.source})`,
       detail: k.lesson,
-      source: 'Compound karmic debt',
+      source: hi ? REMEDY_HI.karmicSource : 'Compound karmic debt',
     })
   }
 
@@ -153,40 +173,49 @@ export function buildRemedyPackage(input: {
         id: 'name-fix',
         priority: 'important',
         category: 'name',
-        title: `Name number ${namank} needs correction`,
-        detail: `Current Namank conflicts with ${input.nameHarmony.moolank === 'challenging' ? 'Moolank' : ''}${input.nameHarmony.moolank === 'challenging' && input.nameHarmony.bhagyank === 'challenging' ? ' and ' : ''}${input.nameHarmony.bhagyank === 'challenging' ? 'Bhagyank' : ''}. Use the Name tab to pick a favourable total, then adjust spelling (add/double a vowel or consonant) and use it consistently on documents.`,
+        title: hi ? fill(REMEDY_HI.nameTitle, { n: namank }) : `Name number ${namank} needs correction`,
+        detail: hi
+          ? fill(REMEDY_HI.nameDetail, {
+            which: input.nameHarmony.moolank === 'challenging' && input.nameHarmony.bhagyank === 'challenging'
+              ? REMEDY_HI.nameWhichBoth
+              : input.nameHarmony.moolank === 'challenging' ? REMEDY_HI.nameWhichM : REMEDY_HI.nameWhichB,
+          })
+          : `Current Namank conflicts with ${input.nameHarmony.moolank === 'challenging' ? 'Moolank' : ''}${input.nameHarmony.moolank === 'challenging' && input.nameHarmony.bhagyank === 'challenging' ? ' and ' : ''}${input.nameHarmony.bhagyank === 'challenging' ? 'Bhagyank' : ''}. Use the Name tab to pick a favourable total, then adjust spelling (add/double a vowel or consonant) and use it consistently on documents.`,
         forNumber: namank,
-        source: 'Namank harmony',
+        source: hi ? REMEDY_HI.nameSource : 'Namank harmony',
       })
     }
   }
 
   // Core profile remedies for focus numbers
   for (const n of focus.slice(0, 4)) {
-    const p = NUMBER_PROFILES[n]
+    const p = profile(n)
+    const enRemedies = NUMBER_PROFILES[n].remedies
+    const donateIdx = enRemedies.findIndex(r => /donat/i.test(r))
     items.push({
       id: `worship-${n}`,
       priority: n === moolank || n === personalYear ? 'important' : 'supportive',
       category: 'worship',
-      title: `Worship ${p.deity} for number ${n}`,
-      detail: p.remedies[0] ?? `Observe ${p.fastingDay} practices for ${p.planet}.`,
+      title: hi ? fill(REMEDY_HI.worshipTitle, { deity: p.deity, n }) : `Worship ${p.deity} for number ${n}`,
+      detail: p.remedies[0] ?? (hi ? fill(REMEDY_HI.worshipFallback, { day: p.fastingDay, planet: p.planet }) : `Observe ${p.fastingDay} practices for ${p.planet}.`),
       forNumber: n,
-      source: `Number ${n} profile`,
+      source: hi ? fill(REMEDY_HI.worshipSource, { n }) : `Number ${n} profile`,
     })
     items.push({
       id: `donation-${n}`,
       priority: 'supportive',
       category: 'donation',
-      title: `Dana on ${p.fastingDay} for ${n}`,
-      detail: p.remedies.find(r => /donat/i.test(r)) ?? `Donate items linked to ${p.planet} on ${p.fastingDay}.`,
+      title: hi ? fill(REMEDY_HI.danaTitle, { day: p.fastingDay, n }) : `Dana on ${p.fastingDay} for ${n}`,
+      detail: (donateIdx >= 0 ? p.remedies[donateIdx] : undefined)
+        ?? (hi ? fill(REMEDY_HI.danaFallback, { day: p.fastingDay, planet: p.planet }) : `Donate items linked to ${p.planet} on ${p.fastingDay}.`),
       forNumber: n,
-      source: `Number ${n} profile`,
+      source: hi ? fill(REMEDY_HI.worshipSource, { n }) : `Number ${n} profile`,
     })
   }
 
   // Daily color / metal from Moolank + personal year blend
-  const mProfile = NUMBER_PROFILES[moolank]
-  const yProfile = NUMBER_PROFILES[personalYear]
+  const mProfile = profile(moolank)
+  const yProfile = profile(personalYear)
   const wearToday = {
     colors: unique([...mProfile.luckyColors.slice(0, 2), yProfile.luckyColors[0]!]),
     avoid: unique([...mProfile.avoidColors, ...yProfile.avoidColors]),
@@ -196,9 +225,11 @@ export function buildRemedyPackage(input: {
     id: 'colors-today',
     priority: 'supportive',
     category: 'color',
-    title: 'Wear supportive colours',
-    detail: `Favour ${wearToday.colors.join(', ')}. Avoid ${wearToday.avoid.join(', ')}. Metal: ${wearToday.metal}.`,
-    source: 'Moolank + personal year',
+    title: hi ? REMEDY_HI.colorTitle : 'Wear supportive colours',
+    detail: hi
+      ? fill(REMEDY_HI.colorDetail, { colors: wearToday.colors.join(', '), avoid: wearToday.avoid.join(', '), metal: wearToday.metal })
+      : `Favour ${wearToday.colors.join(', ')}. Avoid ${wearToday.avoid.join(', ')}. Metal: ${wearToday.metal}.`,
+    source: hi ? REMEDY_HI.colorSource : 'Moolank + personal year',
   })
 
   // Direction from Moolank
@@ -206,52 +237,65 @@ export function buildRemedyPackage(input: {
     id: 'direction',
     priority: 'supportive',
     category: 'direction',
-    title: `Face ${mProfile.direction} when working`,
-    detail: `Number ${moolank} (${mProfile.planet}) is strengthened when your desk, puja or important conversations face ${mProfile.direction}.`,
+    title: hi ? fill(REMEDY_HI.directionTitle, { dir: mProfile.direction }) : `Face ${mProfile.direction} when working`,
+    detail: hi
+      ? fill(REMEDY_HI.directionDetail, { n: moolank, planet: mProfile.planet, dir: mProfile.direction })
+      : `Number ${moolank} (${mProfile.planet}) is strengthened when your desk, puja or important conversations face ${mProfile.direction}.`,
     forNumber: moolank,
-    source: 'Moolank direction',
+    source: hi ? REMEDY_HI.directionSource : 'Moolank direction',
   })
 
   // Weekly plan from focus numbers' fasting days
   const dayMap: Record<string, string[]> = {}
   for (const n of focus) {
-    const p = NUMBER_PROFILES[n]
+    const p = profile(n)
     const day = p.fastingDay
     if (!dayMap[day]) dayMap[day] = []
-    dayMap[day]!.push(`${p.planet} (${n}): ${p.remedies[0]}`)
+    const action = p.remedies[0] ?? ''
+    dayMap[day]!.push(hi ? fill(REMEDY_HI.weeklyAction, { planet: p.planet, n, remedy: action }) : `${p.planet} (${n}): ${action}`)
   }
   const weeklyPlan = Object.entries(dayMap).map(([day, actions]) => ({ day, actions: unique(actions) }))
 
   const gemstoneAdvice = focus.slice(0, 3).map(n => {
-    const p = NUMBER_PROFILES[n]
+    const p = profile(n)
     return {
       primary: p.gemstone,
       substitute: p.substituteGem,
       caution: n === 8
-        ? 'Blue Sapphire must be trial-tested — never wear permanently without a 3-day trial in silver on the middle finger.'
+        ? (hi ? REMEDY_HI.gem8 : 'Blue Sapphire must be trial-tested — never wear permanently without a 3-day trial in silver on the middle finger.')
         : n === 4 || n === 7
-          ? 'Hessonite / Cat\'s Eye should be worn only after checking natal Rahu/Ketu strength with an astrologer.'
-          : `Prefer substitute (${p.substituteGem}) if budget or purity of primary stone is uncertain.`,
+          ? (hi ? REMEDY_HI.gem47 : 'Hessonite / Cat\'s Eye should be worn only after checking natal Rahu/Ketu strength with an astrologer.')
+          : (hi ? fill(REMEDY_HI.gemOther, { sub: p.substituteGem }) : `Prefer substitute (${p.substituteGem}) if budget or purity of primary stone is uncertain.`),
     }
   })
 
   const mantraQueue = focus.slice(0, 4).map(n => {
-    const p = NUMBER_PROFILES[n]
+    const p = profile(n)
     return {
       number: n,
       mantra: p.beejMantra,
       deity: p.deity,
-      count: n === moolank || n === personalYear ? '108× daily' : '11× on fasting day',
+      count: n === moolank || n === personalYear
+        ? (hi ? REMEDY_HI.countDaily : '108× daily')
+        : (hi ? REMEDY_HI.countFast : '11× on fasting day'),
     }
   })
 
   const presentYogasNote = coreHarmony === 'challenging'
-    ? 'Priority one is calming Moolank–Bhagyank tension.'
+    ? (hi ? REMEDY_HI.priorityTension : 'Priority one is calming Moolank–Bhagyank tension.')
     : missingNumbers.length > 0
-      ? `Priority one is activating ${missingNumbers.length} missing grid number(s).`
-      : 'Maintain existing strengths with light weekly upkeep.'
+      ? (hi ? fill(REMEDY_HI.priorityMissing, { n: missingNumbers.length }) : `Priority one is activating ${missingNumbers.length} missing grid number(s).`)
+      : (hi ? REMEDY_HI.priorityKeep : 'Maintain existing strengths with light weekly upkeep.')
 
-  const summary = `Focus on numbers ${focus.join(', ')}. ${presentYogasNote} This week: wear ${wearToday.colors[0]}, face ${mProfile.direction}, and keep ${mProfile.fastingDay} as your main remedy day.`
+  const summary = hi
+    ? fill(REMEDY_HI.summary, {
+      focus: focus.join(', '),
+      note: presentYogasNote,
+      color: wearToday.colors[0] ?? '',
+      dir: mProfile.direction,
+      day: mProfile.fastingDay,
+    })
+    : `Focus on numbers ${focus.join(', ')}. ${presentYogasNote} This week: wear ${wearToday.colors[0]}, face ${mProfile.direction}, and keep ${mProfile.fastingDay} as your main remedy day.`
 
   // Sort: urgent → important → supportive
   const order: Record<RemedyPriority, number> = { urgent: 0, important: 1, supportive: 2 }

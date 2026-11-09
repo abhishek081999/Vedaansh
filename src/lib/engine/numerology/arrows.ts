@@ -5,6 +5,8 @@
 //  Layout: 3 6 9 / 2 5 8 / 1 4 7.
 // ─────────────────────────────────────────────────────────────
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { ARROW_HI } from '@/lib/engine/locale/numerologyExtras.hi'
 import type { ParsedDate } from './core'
 import { CORE_NUMBERS, type CoreNumber } from './data'
 
@@ -76,7 +78,7 @@ export interface PythagoreanArrows {
   weaknesses: ArrowHit[]
 }
 
-export function getPythagoreanArrows(date: ParsedDate): PythagoreanArrows {
+export function getPythagoreanArrows(date: ParsedDate, lang: EngineLang = 'en'): PythagoreanArrows {
   const counts = Object.fromEntries(CORE_NUMBERS.map(n => [n, 0])) as Record<CoreNumber, number>
   for (const ch of `${date.day}${date.month}${date.year}`) {
     const d = Number(ch)
@@ -86,8 +88,9 @@ export function getPythagoreanArrows(date: ParsedDate): PythagoreanArrows {
   const weaknesses: ArrowHit[] = []
   for (const a of ARROWS) {
     const present = a.numbers.filter(n => counts[n] > 0).length
-    if (present === 3) strengths.push({ numbers: a.numbers, ...a.strength })
-    else if (present === 0) weaknesses.push({ numbers: a.numbers, ...a.weakness })
+    const hi = lang === 'hi' ? ARROW_HI[a.numbers.join('-')] : undefined
+    if (present === 3) strengths.push({ numbers: a.numbers, ...(hi?.strength ?? a.strength) })
+    else if (present === 0) weaknesses.push({ numbers: a.numbers, ...(hi?.weakness ?? a.weakness) })
   }
   return { counts, layout: PYTHAGORAS_LAYOUT, strengths, weaknesses }
 }

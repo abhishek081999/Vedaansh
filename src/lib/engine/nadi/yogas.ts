@@ -7,7 +7,7 @@
 //  places it on the native. Teaching associations, not a diagnosis.
 // ─────────────────────────────────────────────────────────────
 
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_NAMES } from '@/types/astrology'
 import type { Rashi } from '@/types/astrology'
 import { getDignity } from '@/lib/engine/dignity'
 import {
@@ -17,6 +17,16 @@ import {
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
 import { NADI_CONJUNCTION_ORB } from '@/lib/engine/nadi/grahas'
+import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
+import {
+  NADI_YOGA_BEARER_HI,
+  NADI_YOGA_CLOSE_HI,
+  NADI_YOGA_EXTRA_HI,
+  NADI_YOGA_HI,
+  NADI_YOGA_PERIOD_HI,
+} from '@/lib/engine/locale/nadiYogas.hi'
+import { nG, nJoin, nLang, nOrd, nPlanetWords, nR, nSay } from '@/lib/engine/nadi/text'
 
 export interface NadiYogaPlacement {
   id: ClassicalGrahaId
@@ -315,6 +325,7 @@ export interface NadiYogaChartInput {
   grahas: readonly NadiYogaPlacement[]
   /** Mahadasha, then antardasha. Only these two time a khaarab yoga. */
   dashaLords?: readonly ClassicalGrahaId[]
+  lang?: EngineLang
 }
 
 export type NadiConjunctionGrade = 'closest' | 'close' | 'wide'
@@ -334,10 +345,10 @@ export function nadiConjunctionGrade(
   return 'wide'
 }
 
-export function nadiClosenessClause(grade: NadiConjunctionGrade | null): string {
-  if (grade === 'closest') return 'The planets sit within 2°, the closest form.'
-  if (grade === 'close') return 'The planets sit within 7°, the close form.'
-  if (grade === 'wide') return 'The planets sit within 15°, the wide form.'
+export function nadiClosenessClause(grade: NadiConjunctionGrade | null, lang: EngineLang = 'en'): string {
+  if (grade === 'closest') return nSay(lang, 'The planets sit within 2°, the closest form.', NADI_YOGA_CLOSE_HI.closest)
+  if (grade === 'close') return nSay(lang, 'The planets sit within 7°, the close form.', NADI_YOGA_CLOSE_HI.close)
+  if (grade === 'wide') return nSay(lang, 'The planets sit within 15°, the wide form.', NADI_YOGA_CLOSE_HI.wide)
   return ''
 }
 
@@ -346,6 +357,7 @@ export function khaarabPeriodLine(
   planets: readonly ClassicalGrahaId[],
   lords: readonly ClassicalGrahaId[],
   open: boolean,
+  lang: EngineLang = 'en',
 ): string | null {
   const named: ClassicalGrahaId[] = []
   for (const id of lords.slice(0, 2)) {
@@ -353,10 +365,10 @@ export function khaarabPeriodLine(
     named.push(id)
   }
   if (named.length === 0) return null
-  const names = joinNames(named.map((id) => GRAHA_NAMES[id]))
+  const names = nJoin(named.map((id) => nG(id, lang)), lang)
   return open
-    ? `The period of ${names} is open, so this combination is timed now.`
-    : `The period of ${names} times the khaarab combination.`
+    ? nSay(lang, `The period of ${nJoin(named.map((id) => GRAHA_NAMES[id]), 'en')} is open, so this combination is timed now.`, fill(NADI_YOGA_PERIOD_HI.open, { names }))
+    : nSay(lang, `The period of ${nJoin(named.map((id) => GRAHA_NAMES[id]), 'en')} times the khaarab combination.`, fill(NADI_YOGA_PERIOD_HI.times, { names }))
 }
 
 /** Planets that share a sign. When every degree is known, the span must be within 15°. */
@@ -381,6 +393,7 @@ export function nadiConjunct(
 }
 
 export function findKhaarabYogas(input: NadiYogaChartInput): NadiKhaarabYoga[] {
+  const lang = nLang(input.lang)
   const signs = [...new Set(input.grahas.map((g) => g.rashi))]
   const hits: NadiKhaarabYoga[] = []
   for (const sign of signs) {
@@ -391,40 +404,41 @@ export function findKhaarabYogas(input: NadiYogaChartInput): NadiKhaarabYoga[] {
       if (dropped.has(yoga.id)) continue
       const bearer = yoga.kind === 'supportive' ? 'open' : yogaBearer(input)
       const house = wholeSignHouseFromLagna(input.ascRashi, sign)
-      let effect = yoga.effect
+      const hi = NADI_YOGA_HI[yoga.id]
+      let effect = nSay(lang, yoga.effect, hi?.effect ?? yoga.effect)
       if (yoga.id === 'ma-ra' && house === 8) {
-        effect += ' In the 8th, a major accident and a short life are the forms checked.'
+        effect += nSay(lang, ' In the 8th, a major accident and a short life are the forms checked.', NADI_YOGA_EXTRA_HI.maRa8)
       }
       if (yoga.id === 'ma-sa' && house === 8) {
-        effect += ' In the 8th, a violent end and major legal trouble are the forms checked.'
+        effect += nSay(lang, ' In the 8th, a violent end and major legal trouble are the forms checked.', NADI_YOGA_EXTRA_HI.maSa8)
       }
-      const closeness = nadiClosenessClause(nadiConjunctionGrade(inSign, yoga.planets))
+      const closeness = nadiClosenessClause(nadiConjunctionGrade(inSign, yoga.planets), lang)
       if (closeness) effect += ` ${closeness}`
-      const timing = khaarabPeriodLine(yoga.planets, input.dashaLords ?? [], true)
+      const timing = khaarabPeriodLine(yoga.planets, input.dashaLords ?? [], true, lang)
       if (timing) effect += ` ${timing}`
       hits.push({
         id: `${input.chart}-${yoga.id}`,
-        name: yoga.name,
+        name: nPlanetWords(yoga.name, lang),
         kind: yoga.kind,
         chart: input.chart,
         house,
-        signName: RASHI_NAMES[sign],
+        signName: nR(sign, lang),
         planets: yoga.planets,
         effect,
-        career: yoga.career,
+        career: yoga.career == null ? null : nSay(lang, yoga.career, hi?.career ?? yoga.career),
         bearer,
-        bearerNote: bearerNote(bearer, yoga.kind),
+        bearerNote: bearerNote(bearer, yoga.kind, lang),
       })
     }
   }
   return hits
 }
 
-function bearerNote(bearer: NadiYogaBearer, kind: NadiKhaarabYoga['kind']): string {
-  if (kind === 'supportive') return 'This pair is the exception that is read as supportive.'
-  if (bearer === 'native') return 'The lagna or its lord is weak or afflicted, so this is read on the native.'
-  if (bearer === 'family') return 'The lagna and its lord are strong, so this is read on parents, siblings, or children.'
-  return 'The lagna has not settled who carries it. It is read on the person or on parents, siblings, or children.'
+function bearerNote(bearer: NadiYogaBearer, kind: NadiKhaarabYoga['kind'], lang: EngineLang): string {
+  if (kind === 'supportive') return nSay(lang, 'This pair is the exception that is read as supportive.', NADI_YOGA_BEARER_HI.supportive)
+  if (bearer === 'native') return nSay(lang, 'The lagna or its lord is weak or afflicted, so this is read on the native.', NADI_YOGA_BEARER_HI.native)
+  if (bearer === 'family') return nSay(lang, 'The lagna and its lord are strong, so this is read on parents, siblings, or children.', NADI_YOGA_BEARER_HI.family)
+  return nSay(lang, 'The lagna has not settled who carries it. It is read on the person or on parents, siblings, or children.', NADI_YOGA_BEARER_HI.open)
 }
 
 function yogaBearer(input: NadiYogaChartInput): NadiYogaBearer {
@@ -453,22 +467,13 @@ function placedDignity(g: NadiYogaPlacement): string {
   return getDignity(g.id, g.rashi, g.degree ?? 15)
 }
 
-export function khaarabSummary(yoga: NadiKhaarabYoga): string {
-  const where = `${yoga.chart === 'D9' ? 'Navamsha' : 'Birth chart'}, ${yoga.signName}, ${ordinalHouse(yoga.house)}`
-  const career = yoga.career ? ` Working form: ${yoga.career}` : ''
+export function khaarabSummary(yoga: NadiKhaarabYoga, lang: EngineLang = 'en'): string {
+  const chart = yoga.chart === 'D9'
+    ? nSay(lang, 'Navamsha', 'नवांश')
+    : nSay(lang, 'Birth chart', 'जन्म कुंडली')
+  const where = `${chart}, ${yoga.signName}, ${nOrd(yoga.house, lang)}`
+  const career = yoga.career
+    ? nSay(lang, ` Working form: ${yoga.career}`, ` कार्य रूप: ${yoga.career}`)
+    : ''
   return `${yoga.name} (${where}). ${yoga.effect} ${yoga.bearerNote}${career}`
-}
-
-function joinNames(names: string[]): string {
-  if (names.length <= 1) return names[0] ?? ''
-  if (names.length === 2) return `${names[0]} and ${names[1]}`
-  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
-}
-
-function ordinalHouse(n: number): string {
-  const mod = n % 10
-  if (mod === 1 && n !== 11) return `${n}st`
-  if (mod === 2 && n !== 12) return `${n}nd`
-  if (mod === 3 && n !== 13) return `${n}rd`
-  return `${n}th`
 }

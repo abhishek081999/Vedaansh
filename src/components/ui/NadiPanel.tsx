@@ -5,12 +5,15 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   BookOpen, Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles, Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { ChartOutput, DashaNode, DashaSystem, Rashi, UserPlan } from '@/types/astrology'
+import type { ChartOutput, DashaNode, DashaSystem, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import { VARGA_UI_LIST } from '@/lib/engine/vargas'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { kalachakraCaption } from '@/lib/engine/dasha/kalachakra'
@@ -27,31 +30,30 @@ import styles from './NadiPanel.module.css'
 
 type NadiView = 'chart' | NadiReadingView
 
-const VIEWS: { id: NadiView; label: string; hint: string; icon: LucideIcon }[] = [
-  { id: 'chart', label: 'Chart', hint: 'Planetary positions, then each planet read from its house, the houses it rules, and its sign.', icon: Grid3x3 },
-  { id: 'houses', label: 'Houses', hint: 'The Bhrigu Bhava, each house’s sign and planets, the exchanges, and the classical reading of that house.', icon: Home },
-  { id: 'life', label: 'Life', hint: 'Study, the family counted from each relative, and settlement away from the birthplace.', icon: Users },
-  { id: 'yogas', label: 'Yogas', hint: 'The combinations that are present, and dusthana (difficult houses: 6, 8, 12) dignity.', icon: Sparkles },
-  { id: 'marriage', label: 'Marriage', hint: 'Marriage combinations, then the three marriage rules and Navamsha.', icon: Heart },
-  { id: 'career', label: 'Career', hint: 'The career this chart gives, then Dashamsha, Shashtiamsa, and the neighborhood.', icon: Briefcase },
-  { id: 'wealth', label: 'Wealth', hint: 'The wealth years, then property from Chaturthamsha and vehicles from Shodashamsha.', icon: Coins },
-  { id: 'future', label: 'Future', hint: 'The coming years, the activations that land on them, and the periods still ahead.', icon: CalendarRange },
-  { id: 'timing', label: 'Timing', hint: 'The running year, the degree years, and the period now open.', icon: Hourglass },
-  { id: 'patel', label: 'Points', hint: 'The 22nd drekkana, the 64th Navamsha, and the Bhrigu Bindu.', icon: BookOpen },
-  { id: 'transits', label: 'Transits', hint: 'The live sky, the windows open now, and the natal signs Jupiter and Saturn wake together.', icon: Orbit },
-  { id: 'remedies', label: 'Remedies', hint: 'The stone, color, and remedy this chart allows.', icon: Gem },
+const VIEWS: { id: NadiView; icon: LucideIcon }[] = [
+  { id: 'chart', icon: Grid3x3 },
+  { id: 'houses', icon: Home },
+  { id: 'life', icon: Users },
+  { id: 'yogas', icon: Sparkles },
+  { id: 'marriage', icon: Heart },
+  { id: 'career', icon: Briefcase },
+  { id: 'wealth', icon: Coins },
+  { id: 'future', icon: CalendarRange },
+  { id: 'timing', icon: Hourglass },
+  { id: 'patel', icon: BookOpen },
+  { id: 'transits', icon: Orbit },
+  { id: 'remedies', icon: Gem },
 ]
 
-const DASHA_OPTIONS: { id: DashaSystem; label: string }[] = [
-  { id: 'vimshottari', label: 'Vimshottari' },
-  { id: 'yogini', label: 'Yogini' },
-  { id: 'ashtottari', label: 'Ashtottari' },
-  { id: 'kalachakra', label: 'Kalachakra' },
-  { id: 'chara', label: 'Chara (K.N. Rao)' },
-  { id: 'chara_fe', label: 'Chara (Rangacharya FE)' },
-  { id: 'mandook', label: 'Mandook' },
-  { id: 'sthir', label: 'Sthir' },
+const DASHA_OPTIONS: DashaSystem[] = [
+  'vimshottari', 'yogini', 'ashtottari', 'kalachakra', 'chara', 'chara_fe', 'mandook', 'sthir',
 ]
+
+const SIGN_HI: Record<string, string> = {
+  Ar: 'मेष', Ta: 'वृषभ', Ge: 'मिथुन', Cn: 'कर्क',
+  Le: 'सिंह', Vi: 'कन्या', Li: 'तुला', Sc: 'वृश्चिक',
+  Sg: 'धनु', Cp: 'मकर', Aq: 'कुंभ', Pi: 'मीन',
+}
 
 const SIGN_LABEL: Record<string, string> = {
   Ar: 'Aries', Ta: 'Taurus', Ge: 'Gemini', Cn: 'Cancer',
@@ -67,6 +69,14 @@ function tierRank(tier: 'free' | 'gold' | 'platinum'): number {
   return tier === 'platinum' ? 2 : tier === 'gold' ? 1 : 0
 }
 
+function lordLabel(lord: string, hi: boolean): string {
+  if (lord in GRAHA_NAMES) {
+    const id = lord as GrahaId
+    return hi ? GRAHA_HI[id] : GRAHA_NAMES[id]
+  }
+  return (hi ? SIGN_HI[lord] : undefined) ?? SIGN_LABEL[lord] ?? lord
+}
+
 function NadiCharts({
   chart,
   userPlan,
@@ -80,6 +90,8 @@ function NadiCharts({
   view: NadiView
   reading: NadiChartReading
 }) {
+  const t = useTranslations('nadi.panel')
+  const { hi } = useLang()
   const divisionals = VARGA_UI_LIST.filter((v) => v.name !== 'D1')
   const [vargaName, setVargaName] = useState('D9')
   const focus = view === 'marriage' || view === 'patel' ? 'D9' : view === 'career' ? 'D10' : null
@@ -98,7 +110,7 @@ function NadiCharts({
   const option = (v: (typeof divisionals)[number]) => {
     const unlocked = planRank(userPlan) >= tierRank(v.tier)
     const ready = v.name in (chart.vargas ?? {})
-    const suffix = !unlocked ? ' (Platinum)' : !ready ? ' (recalculate)' : ''
+    const suffix = !unlocked ? t('platinum') : !ready ? t('recalcSuffix') : ''
     return (
       <option key={v.name} value={v.name} disabled={!unlocked || !ready}>
         {v.name} · {v.full}{suffix}
@@ -108,10 +120,10 @@ function NadiCharts({
 
   return (
     <div className={styles.charts}>
-      <section className={styles.chartCard} aria-label="Birth chart">
+      <section className={styles.chartCard} aria-label={t('birthChart')}>
         <div className={styles.chartHead}>
-          <span className={styles.chartLabel}>D1 · Lagna chart</span>
-          <span className={styles.lagnaTag}>{RASHI_SHORT[d1Asc]} lagna</span>
+          <span className={styles.chartLabel}>{t('d1')}</span>
+          <span className={styles.lagnaTag}>{t('lagna', { sign: hi ? RASHI_HI[d1Asc] : RASHI_SHORT[d1Asc] })}</span>
         </div>
         <ChakraSelector
           ascRashi={d1Asc}
@@ -127,19 +139,19 @@ function NadiCharts({
           highlightHouses={marks.d1}
         />
       </section>
-      <section className={styles.chartCard} aria-label="Divisional chart">
+      <section className={styles.chartCard} aria-label={t('divisional')}>
         <div className={styles.chartHead}>
           <select
             className={styles.vargaSelect}
-            aria-label="Open a divisional chart"
+            aria-label={t('openDivisional')}
             value={selected?.name ?? 'D9'}
             onChange={(e) => setVargaName(e.target.value)}
           >
-            <optgroup label="Divisional charts">{core.map(option)}</optgroup>
-            {extended.length > 0 && <optgroup label="Extended charts">{extended.map(option)}</optgroup>}
+            <optgroup label={t('divisionalCharts')}>{core.map(option)}</optgroup>
+            {extended.length > 0 && <optgroup label={t('extendedCharts')}>{extended.map(option)}</optgroup>}
           </select>
           <span className={styles.lagnaTag}>
-            {selectedGrahas.length ? `${RASHI_SHORT[selectedAsc]} lagna` : 'Not on this chart'}
+            {selectedGrahas.length ? t('lagna', { sign: hi ? RASHI_HI[selectedAsc] : RASHI_SHORT[selectedAsc] }) : t('notOnChart')}
           </span>
         </div>
         {selected && selectedGrahas.length > 0 ? (
@@ -154,16 +166,11 @@ function NadiCharts({
             highlightHouses={marks.varga}
           />
         ) : (
-          <p className={styles.emptyNote}>Recalculate the chart so this divisional chart is included.</p>
+          <p className={styles.emptyNote}>{t('recalculate')}</p>
         )}
       </section>
     </div>
   )
-}
-
-function lordLabel(lord: string): string {
-  if (lord in GRAHA_NAMES) return GRAHA_NAMES[lord as keyof typeof GRAHA_NAMES]
-  return SIGN_LABEL[lord] ?? lord
 }
 
 function NadiTabs({
@@ -173,6 +180,7 @@ function NadiTabs({
   view: NadiView
   onView: (id: NadiView) => void
 }) {
+  const t = useTranslations('nadi')
   const refs = useRef<Record<string, HTMLButtonElement | null>>({})
   const listRef = useRef<HTMLDivElement | null>(null)
   const [fade, setFade] = useState({ left: false, right: false })
@@ -224,7 +232,7 @@ function NadiTabs({
         onScroll={measure}
         className={`${styles.tabs} ${fade.left ? styles.fadeLeft : ''} ${fade.right ? styles.fadeRight : ''}`}
         role="tablist"
-        aria-label="Nadi readings"
+        aria-label={t('panel.readings')}
       >
         {VIEWS.map((item, i) => {
           const Icon = item.icon
@@ -239,7 +247,7 @@ function NadiTabs({
               aria-selected={active}
               aria-controls="nadi-panel"
               tabIndex={active ? 0 : -1}
-              title={item.hint}
+              title={t(`hints.${item.id}`)}
               className={`${styles.tab} ${active ? styles.tabActive : ''}`}
               onClick={() => onView(item.id)}
               onKeyDown={(e) => {
@@ -250,7 +258,7 @@ function NadiTabs({
               }}
             >
               <Icon size={14} aria-hidden />
-              {item.label}
+              {t(`views.${item.id}`)}
             </button>
           )
         })}
@@ -265,6 +273,9 @@ interface Props {
 }
 
 export function NadiPanel({ chart, userPlan = 'free' }: Props) {
+  const t = useTranslations('nadi.panel')
+  const td = useTranslations('nadi.dashaOptions')
+  const { hi, lang } = useLang()
   const rootRef = useRef<HTMLDivElement>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [view, setView] = useState<NadiView>('chart')
@@ -283,14 +294,15 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
     return () => ro.disconnect()
   }, [])
 
-  const reading = useMemo(() => readNadiChart(chart), [chart])
+  const reading = useMemo(() => readNadiChart(chart, lang), [chart, lang])
   const period = useMemo(() => {
     const path = getDashaPathAt(chart.dashas?.vimshottari ?? [])
-    return path.length > 0 ? path.map((node) => lordLabel(node.lord)).join(' · ') : null
-  }, [chart])
+    return path.length > 0 ? path.map((node) => lordLabel(node.lord, hi)).join(' · ') : null
+  }, [chart, hi])
   const nodes = useMemo(() => chart.dashas[dashaSystem] ?? [], [chart, dashaSystem])
   const running = useMemo(() => getDashaPathAt(nodes), [nodes])
   const current = VIEWS.find((item) => item.id === view) ?? VIEWS[0]
+  const th = useTranslations('nadi.hints')
 
   const openView = (next: NadiView) => {
     setView(next)
@@ -304,14 +316,14 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
       <NadiActiveBrief reading={reading} period={period} onOpen={openView} />
       <ChartContextBar chart={chart} />
       <NadiTabs view={view} onView={openView} />
-      <p className={styles.tabHint}>{current?.hint}</p>
+      <p className={styles.tabHint}>{current ? th(current.id) : ''}</p>
 
       <div className={view === 'chart' ? styles.workspaceChart : styles.workspace}>
       <div className={styles.content} id="nadi-panel" role="tabpanel" aria-labelledby={`nadi-tab-${view}`} key={view}>
         {view === 'chart' && (
           <>
-          <section className="panel" aria-label="Planetary positions">
-            <div className="panel-header"><span>Planetary positions</span></div>
+          <section className="panel" aria-label={t('positions')}>
+            <div className="panel-header"><span>{t('positions')}</span></div>
             <div className={styles.tableBody}>
               <GrahaTable
                 grahas={chart.grahas}
@@ -323,11 +335,11 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
               />
             </div>
           </section>
-          <section className="panel" aria-label="House, planet, and sign">
-            <div className="panel-header"><span>House, planet, and sign</span></div>
+          <section className="panel" aria-label={t('housePlanetSign')}>
+            <div className="panel-header"><span>{t('housePlanetSign')}</span></div>
             <div className={styles.placementBoard}>
               <p className={styles.placementNote}>{reading.placementNote}</p>
-              <FindingGrid items={placementFindings(reading)} />
+              <FindingGrid items={placementFindings(reading, hi)} />
             </div>
           </section>
           </>
@@ -336,24 +348,22 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
         {view !== 'chart' ? <NadiHousesSection chart={chart} view={view} reading={reading} /> : null}
 
         {view === 'timing' && (
-          <section className="panel" aria-label="Dasha">
-            <div className="panel-header"><span>Dasha</span></div>
+          <section className="panel" aria-label={t('dasha')}>
+            <div className="panel-header"><span>{t('dasha')}</span></div>
             <div className={styles.dashaToolbar}>
               <p className={styles.running}>
-                {running.length > 0 ? (
-                  <>Running now: <strong>{running.map((n) => lordLabel(n.lord)).join(' · ')}</strong></>
-                ) : (
-                  'No period is running in this system for the current date.'
-                )}
+                {running.length > 0
+                  ? t('runningNow', { period: running.map((n) => lordLabel(n.lord, hi)).join(' · ') })
+                  : t('noPeriod')}
               </p>
               <select
                 className={styles.dashaSelect}
                 value={dashaSystem}
-                aria-label="Dasha system"
+                aria-label={t('dashaSystem')}
                 onChange={(e) => setDashaSystem(e.target.value as DashaSystem)}
               >
-                {DASHA_OPTIONS.map((opt) => (
-                  <option key={opt.id} value={opt.id}>{opt.label}</option>
+                {DASHA_OPTIONS.map((id) => (
+                  <option key={id} value={id}>{td(id)}</option>
                 ))}
               </select>
             </div>
@@ -369,13 +379,13 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
                   maxDepth={dashaSystem === 'vimshottari' ? (userPlan === 'free' ? 4 : 6) : 3}
                 />
               ) : (
-                <p className={styles.emptyNote}>This dasha is not on the loaded chart.</p>
+                <p className={styles.emptyNote}>{t('dashaMissing')}</p>
               )}
             </div>
           </section>
         )}
       </div>
-      <aside className={styles.chartRail} aria-label="Charts for this reading">
+      <aside className={styles.chartRail} aria-label={t('chartsRail')}>
         <NadiCharts chart={chart} userPlan={userPlan} compact={isMobile} view={view} reading={reading} />
       </aside>
       </div>

@@ -5,7 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { DashaNode, GrahaData, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { RASHI_SHORT } from '@/types/astrology'
+import { jG, jOrd, jR, jLang, jStar, say, type EngineLang } from '@/lib/engine/locale/jaiminiLang'
 import { getDashaPathAt } from '../dasha/current'
 import { getRashiDrishti } from './aspects'
 import type { JaiminiMethod } from './method'
@@ -52,6 +53,21 @@ export const BOARD_AREA_NAMES: Record<BoardArea, string> = {
   loss: 'Expense and foreign places',
 }
 
+const BOARD_AREA_NAMES_HI: Record<BoardArea, string> = {
+  self: 'स्व और शरीर',
+  wealth: 'धन और परिवार',
+  courage: 'प्रयास और भाई-बहन',
+  home: 'घर और माता',
+  children: 'संतान और रचना',
+  conflict: 'ऋण, प्रतिद्वंद्वी और स्वास्थ्य',
+  marriage: 'विवाह और साथी',
+  crisis: 'अचानक परिवर्तन',
+  fortune: 'भाग्य और लंबी यात्रा',
+  career: 'करियर',
+  gains: 'आय और दायरा',
+  loss: 'व्यय और विदेश',
+}
+
 const AREA_BY_HOUSE: BoardArea[] = [
   'self', 'self', 'wealth', 'courage', 'home', 'children', 'conflict',
   'marriage', 'crisis', 'fortune', 'career', 'gains', 'loss',
@@ -89,17 +105,26 @@ interface BoardInput {
   lagna: Rashi
   roleOf: Partial<Record<GrahaId, string | null>>
   method: JaiminiMethod
+  lang?: EngineLang
 }
 
 function distance(from: Rashi, to: Rashi): number {
   return ((to - from + 12) % 12) + 1
 }
 
-function ordinal(n: number): string {
-  if (n === 1) return '1st'
-  if (n === 2) return '2nd'
-  if (n === 3) return '3rd'
-  return `${n}th`
+const ROLE_HI: Record<string, string> = {
+  AK: 'आत्मकारक', AmK: 'अमात्यकारक', BK: 'भ्रातृकारक', MK: 'मातृकारक',
+  PK: 'पंचम कारक', GK: 'ज्ञातिकारक', DK: 'दारकारक',
+}
+
+/** Karaka code for display. Hindi spells out the karaka name. */
+function roleText(role: string | null | undefined, lang: EngineLang): string {
+  if (!role) return ''
+  return lang === 'hi' ? (ROLE_HI[role] ?? role) : role
+}
+
+function houseText(n: number, lang: EngineLang): string {
+  return lang === 'hi' ? `${jOrd(n, lang)} भाव` : `${jOrd(n, lang)} house`
 }
 
 function rashiOfShort(short: string): Rashi | null {
@@ -125,11 +150,16 @@ function signPeriod(node: DashaNode, sign: Rashi, input: BoardInput): { detail: 
       if (area) areas.push(area)
     }
   }
+  const lang = jLang(input.lang)
+  const held = occupants.map(g => roleText(input.roleOf[g.id], lang)).join(', ')
   const karakaText = occupants.length
-    ? ` · holds ${occupants.map(g => input.roleOf[g.id]).join(', ')}`
+    ? say(lang, ` · holds ${held}`, ` · इसमें ${held}`)
     : ''
+  const lordText = `${jG(lord, lang)}${lordRole ? ` (${roleText(lordRole, lang)})` : ''}`
   return {
-    detail: `${ordinal(house)} house · lord ${GRAHA_NAMES[lord]}${lordRole ? ` (${lordRole})` : ''}${karakaText}`,
+    detail: say(lang,
+      `${houseText(house, lang)} · lord ${lordText}${karakaText}`,
+      `${houseText(house, lang)} · स्वामी ${lordText}${karakaText}`),
     areas,
   }
 }
@@ -142,18 +172,21 @@ function grahaPeriod(id: GrahaId, input: BoardInput): { detail: string; areas: B
   const owned = OWNED_SIGNS[id] ?? []
   for (const sign of owned) areas.push(AREA_BY_HOUSE[distance(input.lagna, sign)])
   if (input.method === 'practical' && role && AREA_BY_ROLE[role]) areas.push(AREA_BY_ROLE[role] as BoardArea)
-  const house = graha ? `${ordinal(distance(input.lagna, graha.rashi))} house` : 'not placed'
+  const lang = jLang(input.lang)
+  const house = graha ? houseText(distance(input.lagna, graha.rashi), lang) : say(lang, 'not placed', 'स्थित नहीं')
+  const ruled = owned.map(s => jOrd(distance(input.lagna, s), lang)).join(', ')
   const lordships = owned.length
-    ? ` · rules ${owned.map(s => ordinal(distance(input.lagna, s))).join(', ')}`
+    ? say(lang, ` · rules ${ruled}`, ` · ${ruled} भाव का स्वामी`)
     : ''
   return {
-    detail: `${house}${role ? ` · ${role}` : ''}${lordships}`,
+    detail: `${house}${role ? ` · ${roleText(role, lang)}` : ''}${lordships}`,
     areas,
   }
 }
 
 export function buildDashaBoard(systems: BoardSystem[], input: BoardInput, asOf: Date = new Date()): DashaBoard {
   const now = asOf.getTime()
+  const lang = jLang(input.lang)
   const rows: BoardRow[] = []
   for (const system of systems) {
     if (!system.nodes?.length) continue
@@ -168,8 +201,8 @@ export function buildDashaBoard(systems: BoardSystem[], input: BoardInput, asOf:
         : grahaPeriod(node.lord as GrahaId, input)
       if (index < 2) info.areas.forEach(a => areaSet.add(a))
       const name = system.kind === 'sign'
-        ? (RASHI_NAMES[rashiOfShort(node.lord) ?? 1] ?? node.lord)
-        : (node.label || GRAHA_NAMES[node.lord as GrahaId] || node.lord)
+        ? (jR(rashiOfShort(node.lord) ?? 1, lang) ?? node.lord)
+        : (node.label ? jStar(node.label, lang) : jG(node.lord as GrahaId, lang) || node.lord)
       return { label: name, detail: info.detail, start: new Date(node.start), end: new Date(node.end) }
     })
     rows.push({ id: system.id, name: system.name, periods, areas: [...areaSet] })
@@ -183,7 +216,7 @@ export function buildDashaBoard(systems: BoardSystem[], input: BoardInput, asOf:
   }
   const agreements = [...byArea.entries()]
     .filter(([, names]) => names.length >= 2)
-    .map(([area, names]) => ({ area, name: BOARD_AREA_NAMES[area], systems: names, strong: names.length >= 3 }))
+    .map(([area, names]) => ({ area, name: lang === 'hi' ? BOARD_AREA_NAMES_HI[area] : BOARD_AREA_NAMES[area], systems: names, strong: names.length >= 3 }))
     .sort((a, b) => b.systems.length - a.systems.length)
 
   return { asOf, rows, agreements }
@@ -278,7 +311,9 @@ export function matchLifeEvent(
   if (!Number.isFinite(at)) return null
   const targets = eventTargets(event.type, input, anchors)
   const targetSet = new Set(targets)
-  const names = targets.map(t => RASHI_NAMES[t]).join(', ')
+  const lang = jLang(input.lang)
+  const R = (r: Rashi) => jR(r, lang)
+  const names = targets.map(R).join(', ')
 
   const results: EventSystemMatch[] = []
   for (const system of systems) {
@@ -289,18 +324,18 @@ export function matchLifeEvent(
     const reasons: string[] = []
     path.forEach((node, index) => {
       const weight = index === 0 ? 3 : 2
-      const levelName = index === 0 ? 'Mahadasha' : 'Antardasha'
+      const levelName = index === 0 ? say(lang, 'Mahadasha', 'महादशा') : say(lang, 'Antardasha', 'अंतर्दशा')
       if (system.kind === 'sign') {
         const sign = rashiOfShort(node.lord)
         if (!sign) return
         if (targetSet.has(sign)) {
           score += weight
-          reasons.push(`${levelName} ${RASHI_NAMES[sign]} is a target sign.`)
+          reasons.push(say(lang, `${levelName} ${R(sign)} is a target sign.`, `${levelName} ${R(sign)} लक्ष्य राशि है।`))
         } else if (input.method === 'practical') {
           const seen = getRashiDrishti(sign).filter(s => targetSet.has(s))
           if (seen.length) {
             score += 1
-            reasons.push(`${levelName} ${RASHI_NAMES[sign]} aspects ${seen.map(s => RASHI_NAMES[s]).join(', ')}.`)
+            reasons.push(say(lang, `${levelName} ${R(sign)} aspects ${seen.map(R).join(', ')}.`, `${levelName} ${R(sign)} की ${seen.map(R).join(', ')} पर दृष्टि है।`))
           }
         }
       } else {
@@ -309,12 +344,12 @@ export function matchLifeEvent(
         const owned = OWNED_SIGNS[id] ?? []
         if (placedSign && targetSet.has(placedSign)) {
           score += weight
-          reasons.push(`${levelName} ${GRAHA_NAMES[id]} occupies ${RASHI_NAMES[placedSign]}.`)
+          reasons.push(say(lang, `${levelName} ${jG(id, lang)} occupies ${R(placedSign)}.`, `${levelName} ${jG(id, lang)} ${R(placedSign)} में बैठा है।`))
         } else {
           const ruled = owned.filter(s => targetSet.has(s))
           if (ruled.length) {
             score += weight
-            reasons.push(`${levelName} ${GRAHA_NAMES[id]} rules ${ruled.map(s => RASHI_NAMES[s]).join(', ')}.`)
+            reasons.push(say(lang, `${levelName} ${jG(id, lang)} rules ${ruled.map(R).join(', ')}.`, `${levelName} ${jG(id, lang)} ${ruled.map(R).join(', ')} का स्वामी है।`))
           }
         }
       }
@@ -324,9 +359,9 @@ export function matchLifeEvent(
       name: system.name,
       score: Math.min(100, Math.round((score / 5) * 100)),
       periods: path.map(n => (system.kind === 'sign'
-        ? RASHI_NAMES[rashiOfShort(n.lord) ?? 1]
-        : (GRAHA_NAMES[n.lord as GrahaId] ?? n.lord))).join(' / '),
-      reasons: reasons.length ? reasons : [`No link to the target signs (${names}).`],
+        ? R(rashiOfShort(n.lord) ?? 1)
+        : (jG(n.lord as GrahaId, lang) ?? n.lord))).join(' / '),
+      reasons: reasons.length ? reasons : [say(lang, `No link to the target signs (${names}).`, `लक्ष्य राशियों (${names}) से कोई संबंध नहीं।`)],
     })
   }
   return { event, systems: results, baseline: Math.round((targets.length / 12) * 100) }

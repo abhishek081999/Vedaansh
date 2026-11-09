@@ -16,6 +16,10 @@
 import type { GrahaId } from '@/types/astrology'
 import type { VedhaResult, SBCGrahaInput } from './sarvatobhadra'
 import { nakFromLon } from './sarvatobhadra'
+import type { EngineLang } from './lang'
+import { fill } from './lang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { SBC_CATEGORY_HI, SBC_REASON_HI, SBC_USE_CASE_HI } from './locale/sbcUseCases.hi'
 
 // ─────────────────────────────────────────────────────────────
 //  Types
@@ -310,6 +314,16 @@ export const USE_CASES: SBCUseCase[] = [
 //  (under malefic vedha) or blessed (under benefic vedha).
 // ─────────────────────────────────────────────────────────────
 
+/** Use case with its label and note in `lang`. Ids and planet lists stay the same. */
+export function localizeUseCase<T extends SBCUseCase>(uc: T, lang: EngineLang = 'en'): T {
+  const hi = lang === 'hi' ? SBC_USE_CASE_HI[uc.id] : undefined
+  return hi ? { ...uc, label: hi[0], note: uc.note ? hi[1] : uc.note } : uc
+}
+
+export function localizeCategory(cat: UseCaseCategory, lang: EngineLang = 'en'): UseCaseCategory {
+  return lang === 'hi' ? { ...cat, label: SBC_CATEGORY_HI[cat.id] ?? cat.label } : cat
+}
+
 const PLANET_NAMES: Record<string, string> = {
   Su:'Sun', Mo:'Moon', Ma:'Mars', Me:'Mercury', Ju:'Jupiter',
   Ve:'Venus', Sa:'Saturn', Ra:'Rahu', Ke:'Ketu',
@@ -374,7 +388,10 @@ export function computePlanetStatuses(
 export function assessSingleUseCase(
   uc:       SBCUseCase,
   statuses: Map<GrahaId, PlanetStatus>,
+  lang:     EngineLang = 'en',
 ): UseCaseResult {
+  const L = lang
+  const gh = (id: GrahaId) => GRAHA_HI[id] ?? PLANET_NAMES[id]
   let score           = 50   // baseline
   const reasons:      string[] = []
   let positiveCount   = 0
@@ -388,15 +405,15 @@ export function assessSingleUseCase(
     if (st.blessed) {
       score += 30
       positiveCount++
-      reasons.push(`✓ ${PLANET_NAMES[pid]} is blessed by helpful planet vedha`)
+      reasons.push(L === 'hi' ? fill(SBC_REASON_HI.blessed, { graha: gh(pid) }) : `✓ ${PLANET_NAMES[pid]} is blessed by helpful planet vedha`)
     } else if (st.free) {
       score += 15
       positiveCount++
-      reasons.push(`✓ ${PLANET_NAMES[pid]} is free from difficult planet vedha`)
+      reasons.push(L === 'hi' ? fill(SBC_REASON_HI.free, { graha: gh(pid) }) : `✓ ${PLANET_NAMES[pid]} is free from difficult planet vedha`)
     } else {
       score -= 30
       afflictedCount++
-      reasons.push(`✗ ${PLANET_NAMES[pid]} is under pressure by difficult planet vedha`)
+      reasons.push(L === 'hi' ? fill(SBC_REASON_HI.afflicted, { graha: gh(pid) }) : `✗ ${PLANET_NAMES[pid]} is under pressure by difficult planet vedha`)
     }
   })
 
@@ -407,7 +424,7 @@ export function assessSingleUseCase(
     if (!st.afflicted) {
       // Malefic planet is active and strong
       score -= 20
-      reasons.push(`⚠ ${PLANET_NAMES[pid]} is active and casting difficult planet vedha`)
+      reasons.push(L === 'hi' ? fill(SBC_REASON_HI.active, { graha: gh(pid) }) : `⚠ ${PLANET_NAMES[pid]} is active and casting difficult planet vedha`)
     }
   })
 
@@ -419,7 +436,7 @@ export function assessSingleUseCase(
     clamped >= 38 ? 'neutral' :
     clamped >= 20 ? 'caution' : 'avoid'
 
-  return { ...uc, verdict, score: clamped, positiveCount, afflictedCount, reasons }
+  return { ...localizeUseCase(uc, L), verdict, score: clamped, positiveCount, afflictedCount, reasons }
 }
 
 /**
@@ -429,10 +446,11 @@ export function assessSingleUseCase(
 export function assessCategory(
   catId:    string,
   statuses: Map<GrahaId, PlanetStatus>,
+  lang:     EngineLang = 'en',
 ): UseCaseResult[] {
   return USE_CASES
     .filter(uc => uc.cat === catId)
-    .map(uc => assessSingleUseCase(uc, statuses))
+    .map(uc => assessSingleUseCase(uc, statuses, lang))
     .sort((a, b) => b.score - a.score)
 }
 
@@ -452,9 +470,11 @@ export interface CategorySummary {
 
 export function getCategorySummaries(
   statuses: Map<GrahaId, PlanetStatus>,
+  lang:     EngineLang = 'en',
 ): CategorySummary[] {
-  return USE_CASE_CATEGORIES.map(cat => {
-    const results = assessCategory(cat.id, statuses)
+  return USE_CASE_CATEGORIES.map(raw => {
+    const cat = localizeCategory(raw, lang)
+    const results = assessCategory(cat.id, statuses, lang)
     if (!results.length) return { cat, total: 0, excellent: 0, good: 0, avoid: 0, topScore: 0, score: 0 }
 
     const excellent  = results.filter(r => r.verdict === 'excellent').length

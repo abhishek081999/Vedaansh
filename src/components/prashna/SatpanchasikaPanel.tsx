@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Activity, AlertTriangle, BookOpen, ChevronDown, ChevronRight, Clock, Compass, Copy, Info, ListChecks, Orbit, Scale,
   type LucideIcon,
@@ -197,6 +198,8 @@ function PlanetTable({ reading }: { reading: SatpanchasikaReading }) {
 }
 
 export function SatpanchasikaPanel({ reading: r, questionText, stability, askedOn }: { reading: SatpanchasikaReading; questionText: string; stability?: StabilityResult | null; askedOn?: string }) {
+  const tr = useTranslations('prashna.sat')
+  const tv = useTranslations('prashna.verdict')
   const [copied, setCopied] = useState(false)
   const v = VERDICT_STYLE[r.verdict]
   const showClarity = r.verdict !== 'indication_only' && r.verdict !== 'insufficient'
@@ -213,18 +216,18 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: 0 }}>
       {/* Verdict */}
       <div style={{ borderRadius: 12, border: '1px solid var(--border)', borderTop: `4px solid ${v.color}`, background: 'var(--surface-1)', padding: '1rem 1.1rem' }}>
-        <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Ṣaṭpañcāśikā · {r.questionLabel}</div>
+        <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{tr('kicker', { topic: r.questionLabel })}</div>
         <h2 style={{ fontSize: '1.3rem', margin: '0.3rem 0', color: v.color, fontFamily: 'var(--font-display)', lineHeight: 1.25 }}>{r.headline}</h2>
         {questionText && <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic', margin: '0 0 0.4rem' }}>&quot;{questionText}&quot;</p>}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem 1rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-          <span style={{ fontWeight: 700, color: v.color }}>{v.label}</span>
-          {showClarity && <span>Signal clarity {r.clarity}%</span>}
+          <span style={{ fontWeight: 700, color: v.color }}>{tv(r.verdict)}</span>
+          {showClarity && <span>{tr('clarity', { n: r.clarity })}</span>}
           {r.verdict !== 'indication_only' && (
-            <span>Weights: for {r.weights.favourable.toFixed(1)} · against {r.weights.unfavourable.toFixed(1)} · mixed {r.weights.mixed.toFixed(1)} · no change {r.weights.noChange.toFixed(1)}</span>
+            <span>{tr('weights', { for: r.weights.favourable.toFixed(1), against: r.weights.unfavourable.toFixed(1), mixed: r.weights.mixed.toFixed(1), still: r.weights.noChange.toFixed(1) })}</span>
           )}
         </div>
         <p style={{ margin: '0.4rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          The verdict weighs strength over the number of rules (1.4). Strength comes from {r.strengthSource === 'shadbala' ? 'each planet\'s ṣaḍbala' : 'dignity, because ṣaḍbala was unavailable'}. Clarity shows how one-sided the signals are; it is not a probability.
+          {tr('strength', { source: r.strengthSource === 'shadbala' ? tr('shadbala') : tr('dignity') })}
         </p>
       </div>
 
@@ -237,21 +240,21 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       </div>
 
       {/* Rules that fired */}
-      <Section title={`Rules that fired (${r.fired.length})`} Icon={Scale}>
+      <Section title={tr('fired', { n: r.fired.length })} Icon={Scale}>
         {r.fired.length === 0 ? (
-          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>No weighed rule matched for this question at this moment. Any details it has are in the sections below.</p>
+          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>{tr('noneFired')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             {r.fired.map(rule => <RuleRow key={rule.ruleId} rule={rule} />)}
           </div>
         )}
         <p style={{ margin: '0.5rem 0 0', fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-          Heaviest first. {r.notFiredCount} other {r.notFiredCount === 1 ? 'rule' : 'rules'} for this question were checked and did not match. Open a rule for its śloka.
+          {tr('firedFoot', { n: r.notFiredCount, rules: r.notFiredCount === 1 ? tr('rule') : tr('rules') })}
         </p>
       </Section>
 
       {/* Timing */}
-      <Section title="Timing" Icon={Clock} accent="var(--amber)">
+      <Section title={tr('timing')} Icon={Clock} accent="var(--amber)">
         {r.timingNote ? (
           <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.timingNote}</p>
         ) : (
@@ -283,7 +286,7 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
 
       {/* Lost item */}
       {r.lostItem && (
-        <Section title="Lost item details" Icon={Compass} accent="var(--teal)">
+        <Section title={tr('lost')} Icon={Compass} accent="var(--teal)">
           <DetailRow label="What it is" value={r.lostItem.object.kind} working={r.lostItem.object.working + (r.lostItem.objectBy16 ? ` Also ${r.lostItem.objectBy16}` : '')} />
           <DetailRow label="Who has it" value={r.lostItem.whoHolds.value} working={r.lostItem.whoHolds.working} />
           <DetailRow label="Where" value={r.lostItem.where.place} working={r.lostItem.where.working} />
@@ -299,7 +302,7 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       <PlanetTable reading={r} />
 
       {/* Subject */}
-      <Section key={r.question} title="Whom and what it concerns" Icon={Info} defaultOpen={['whom', 'object_class', 'person_age'].includes(r.question)}>
+      <Section key={r.question} title={tr('concernsTitle')} Icon={Info} defaultOpen={['whom', 'object_class', 'person_age'].includes(r.question)}>
         <DetailRow label="Concerns" value={r.subject.concerns} working={r.subject.concernsWorking} />
         <DetailRow label="Class of the query" value={r.subject.classBy17} working={r.subject.classBy16 ? `From the rising navāṃśa (1.7). Also ${r.subject.classBy16}` : 'From the rising navāṃśa (1.7).'} />
         {r.subject.navamsaRelation && <p style={{ margin: '0.45rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{r.subject.navamsaRelation}</p>}
@@ -318,7 +321,7 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       </Section>
 
       {/* Method */}
-      <Section title="The 8-step method" Icon={ListChecks} defaultOpen={false}>
+      <Section title={tr('method')} Icon={ListChecks} defaultOpen={false}>
         <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {r.steps.map(s => (
             <li key={s.step} style={{ display: 'flex', gap: '0.5rem' }}>
@@ -333,7 +336,7 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       </Section>
 
       {/* Decisions */}
-      <Section title="How the text was interpreted" Icon={BookOpen} accent="var(--text-muted)" defaultOpen={false}>
+      <Section title={tr('interpreted')} Icon={BookOpen} accent="var(--text-muted)" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {SATPANCHASIKA_INTERPRETIVE_NOTES.map(n => (
             <div key={n.note} style={{ fontSize: '0.72rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
@@ -344,7 +347,7 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       </Section>
 
       <button type="button" className="btn btn-ghost btn-sm" onClick={copy} style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-        <Copy size={13} aria-hidden /> {copied ? 'Copied' : 'Copy reading'}
+        <Copy size={13} aria-hidden /> {copied ? tr('copied') : tr('copy')}
       </button>
     </div>
   )

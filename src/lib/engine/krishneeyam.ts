@@ -40,6 +40,9 @@
  */
 
 import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import { RASHI_HI } from '@/i18n/jyotish'
+import type { EngineLang } from '@/lib/engine/lang'
+import { AROODHA_DESC_HI, KRISHNA_HEADLINE_HI, MUKHA_HI, ODAYA_HI } from '@/lib/engine/locale/krishneeyam.hi'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -142,6 +145,10 @@ export interface KrishneeyamResult {
     dosha: string
     disease: string
     curability: string
+    /** True when the ascendant is movable (recovery expected). Read this, not the text. */
+    curable: boolean
+    /** True when the drekkana check calls for extra care. */
+    extraCare: boolean
     dayOfStart: string
     bodySystem: string           // Ch13: body system/organ affected
     deathSymptoms: string        // Ch13: Sarpa/Kolamukha/Grudhramukha drekkana check
@@ -174,6 +181,7 @@ export interface KrishneeyamResult {
   // Food
   food?: {
     quality: string
+    good: boolean
     type: string
     taste: string
   }
@@ -215,6 +223,8 @@ export interface KrishneeyamResult {
   lawsuit?: {
     queristStrength: string
     opponentStrength: string
+    queristLevel: 'Strong' | 'Moderate' | 'Weak'
+    opponentLevel: 'Strong' | 'Moderate' | 'Weak'
     outcome: string
     timing: string
     keyPlanet: string
@@ -1019,10 +1029,14 @@ export function getSignType(rashi: number): 'movable' | 'fixed' | 'common' {
 }
 
 /** Seershodaya / Prishtodaya / Ubhayodaya [Ch1, St17] */
-export function getOdayaType(rashi: number): { type: 'seershodaya' | 'prishtodaya' | 'ubhayodaya'; label: string; verdict: 'good' | 'bad' | 'mixed' } {
-  if (SEERSHODAYA_SIGNS.has(rashi)) return { type: 'seershodaya', label: 'Seershodaya (Front-rising)', verdict: 'good' }
-  if (PRISHTODAYA_SIGNS.has(rashi)) return { type: 'prishtodaya', label: 'Prishtodaya (Back-rising)', verdict: 'bad' }
-  return { type: 'ubhayodaya', label: 'Ubhayodaya (Both-rising — Pisces)', verdict: 'mixed' }
+export function getOdayaType(rashi: number, lang: EngineLang = 'en'): { type: 'seershodaya' | 'prishtodaya' | 'ubhayodaya'; label: string; verdict: 'good' | 'bad' | 'mixed' } {
+  const row = SEERSHODAYA_SIGNS.has(rashi)
+    ? { type: 'seershodaya' as const, label: 'Seershodaya (Front-rising)', verdict: 'good' as const }
+    : PRISHTODAYA_SIGNS.has(rashi)
+      ? { type: 'prishtodaya' as const, label: 'Prishtodaya (Back-rising)', verdict: 'bad' as const }
+      : { type: 'ubhayodaya' as const, label: 'Ubhayodaya (Both-rising — Pisces)', verdict: 'mixed' as const }
+  if (lang !== 'hi') return row
+  return { ...row, label: ODAYA_HI[row.type] }
 }
 
 /**
@@ -1031,7 +1045,7 @@ export function getOdayaType(rashi: number): { type: 'seershodaya' | 'prishtoday
  * Oordhwamukha = Previous sign of Sun & quadrants → good (facing up)
  * Thiryangmukha = Next sign of Sun & quadrants → neutral/sideways
  */
-export function getMukhaType(lagnaRashi: number, sunRashi: number): { type: 'oordhwamukha' | 'adhomukha' | 'thiryangmukha'; label: string; verdict: 'good' | 'bad' | 'neutral' } {
+export function getMukhaType(lagnaRashi: number, sunRashi: number, lang: EngineLang = 'en'): { type: 'oordhwamukha' | 'adhomukha' | 'thiryangmukha'; label: string; verdict: 'good' | 'bad' | 'neutral' } {
   function getQuadrantSet(base: number): Set<number> {
     const s = new Set<number>()
     for (let i = 0; i < 4; i++) s.add(((base - 1 + i * 3) % 12) + 1)
@@ -1040,18 +1054,24 @@ export function getMukhaType(lagnaRashi: number, sunRashi: number): { type: 'oor
   const prevSun = ((sunRashi - 2 + 12) % 12) + 1
   const nextSun = (sunRashi % 12) + 1
 
-  if (getQuadrantSet(sunRashi).has(lagnaRashi))
-    return { type: 'adhomukha', label: "Adhomukha (Sun's sign \u2014 facing down)", verdict: 'bad' }
-  if (getQuadrantSet(prevSun).has(lagnaRashi))
-    return { type: 'oordhwamukha', label: 'Oordhwamukha (Sign left by Sun \u2014 facing up)', verdict: 'good' }
-  if (getQuadrantSet(nextSun).has(lagnaRashi))
-    return { type: 'thiryangmukha', label: 'Thiryangmukha (Sign Sun will enter \u2014 sideways)', verdict: 'neutral' }
-  return { type: 'thiryangmukha', label: 'Thiryangmukha', verdict: 'neutral' }
+  const row = getQuadrantSet(sunRashi).has(lagnaRashi)
+    ? { type: 'adhomukha' as const, label: "Adhomukha (Sun's sign \u2014 facing down)", verdict: 'bad' as const }
+    : getQuadrantSet(prevSun).has(lagnaRashi)
+      ? { type: 'oordhwamukha' as const, label: 'Oordhwamukha (Sign left by Sun \u2014 facing up)', verdict: 'good' as const }
+      : getQuadrantSet(nextSun).has(lagnaRashi)
+        ? { type: 'thiryangmukha' as const, label: 'Thiryangmukha (Sign Sun will enter \u2014 sideways)', verdict: 'neutral' as const }
+        : { type: 'thiryangmukha' as const, label: 'Thiryangmukha', verdict: 'neutral' as const }
+  if (lang !== 'hi') return row
+  const label = row.label === 'Thiryangmukha' ? MUKHA_HI.thiryangmukhaShort : MUKHA_HI[row.type]
+  return { ...row, label }
 }
 
 /** Aroodha-Udaya relationship [Ch11, St21] */
-export function getAroodhaUdayaRelation(aroodha: number, udaya: number): { relationship: string; result: 'good' | 'bad'; description: string } {
-  if (aroodha === udaya) return { relationship: '1-1 (Same sign)', result: 'good', description: 'Aroodha and Udaya are same sign → Very favorable' }
+export function getAroodhaUdayaRelation(aroodha: number, udaya: number, lang: EngineLang = 'en'): { relationship: string; result: 'good' | 'bad'; description: string } {
+  if (aroodha === udaya) {
+    const description = 'Aroodha and Udaya are same sign → Very favorable'
+    return { relationship: '1-1 (Same sign)', result: 'good', description: lang === 'hi' ? AROODHA_DESC_HI[description] : description }
+  }
   const diff = ((udaya - aroodha + 12) % 12) + 1
   const pairs: Record<number, { rel: string; result: 'good' | 'bad'; desc: string }> = {
     1:  { rel: '1-1',   result: 'good', desc: 'Same sign → Excellent' },
@@ -1068,7 +1088,7 @@ export function getAroodhaUdayaRelation(aroodha: number, udaya: number): { relat
     12: { rel: '2-12',  result: 'bad',  desc: 'Udaya is 12th from Aroodha → Unfavorable (loss)' },
   }
   const p = pairs[diff]
-  return { relationship: p.rel, result: p.result, description: p.desc }
+  return { relationship: p.rel, result: p.result, description: lang === 'hi' ? (AROODHA_DESC_HI[p.desc] ?? p.desc) : p.desc }
 }
 
 /** Veedhi Rasi based on Sun's position [Ch11, St32] */
@@ -1615,7 +1635,7 @@ function analyzeAnabhaYoga(grahas: GrahaData[], moonRashi: number, lagnaRashi: n
 
 // ─── Main Engine ──────────────────────────────────────────────────────────────
 
-export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResult {
+export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang = 'en'): KrishneeyamResult {
   const {
     lagnaRashi, lagnaDegreeFull, lagnaSignDegree,
     sunRashi, sunDegreeFull, moonRashi, moonDegreeFull,
@@ -1633,8 +1653,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     type: houseRefType,
     rashi: houseLagna as Rashi,
     label: houseRefType === 'arudha'
-      ? `Arudha Lagna — ${RASHI_NAMES[houseLagna]}`
-      : `Udaya Lagna — ${RASHI_NAMES[lagnaRashi]}`,
+      ? (lang === 'hi' ? `आरूढ़ लग्न — ${RASHI_HI[houseLagna]}` : `Arudha Lagna — ${RASHI_NAMES[houseLagna]}`)
+      : (lang === 'hi' ? `उदय लग्न — ${RASHI_HI[lagnaRashi]}` : `Udaya Lagna — ${RASHI_NAMES[lagnaRashi]}`),
   }
   const planetHousesFromReference = grahas
     .filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
@@ -1656,7 +1676,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   const planetsInUdayaAsc = grahas.filter(g => g.rashi === lagnaRashi && !['Ur','Ne','Pl'].includes(g.id))
 
   // ── 1. Ascendant Type Analysis [Ch1, St17-18] ─────────────────────────────
-  const odayaInfo = getOdayaType(coreRashi)
+  const odayaInfo = getOdayaType(coreRashi, lang)
   total++
   if (odayaInfo.verdict === 'good') positive++
   else if (odayaInfo.verdict === 'bad') negative++
@@ -1688,7 +1708,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   rules.push(`[Ch1:17-18] ${coreRefName} ${RASHI_NAMES[coreRashi]} is ${odayaInfo.label} → ${odayaInfo.verdict.toUpperCase()}`)
 
   // ── 2. Mukha Type [Ch3, St15-16] ─────────────────────────────────────────
-  const mukhaInfo = getMukhaType(coreRashi, sunRashi)
+  const mukhaInfo = getMukhaType(coreRashi, sunRashi, lang)
   total++
   if (mukhaInfo.verdict === 'good') positive++
   else if (mukhaInfo.verdict === 'bad') negative++
@@ -1696,7 +1716,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   rules.push(`[Ch3:15-16] ${coreRefName} ${mukhaInfo.label} → ${mukhaInfo.verdict.toUpperCase()}`)
 
   // ── 3. Aroodha–Reference relationship [Ch11, St21] ─────────────────────────
-  const aroodhaRel = getAroodhaUdayaRelation(aroodha, coreRashi)
+  const aroodhaRel = getAroodhaUdayaRelation(aroodha, coreRashi, lang)
   const aroodhaRelDescription = houseRefType === 'arudha'
     ? aroodhaRel.description.replace(/\bUdaya\b/g, 'Arudha Lagna')
     : aroodhaRel.description
@@ -2013,7 +2033,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     else details.push('[Ch26:7] 3rd Drekkana → Article has reached BACK of thief\'s house (deeply hidden)')
 
     // Height from Mukha type [Ch3, St16]
-    const mukha = getMukhaType(lagnaRashi, sunRashi)
+    const mukha = getMukhaType(lagnaRashi, sunRashi, lang)
     if (mukha.type === 'oordhwamukha') details.push('[Ch3:16] Oordhwamukha → Article is in a HIGHER PLACE (upper shelf, hanging)')
     else if (mukha.type === 'adhomukha') details.push('[Ch3:16] Adhomukha → Article is UNDERGROUND or in a pit/buried')
     else details.push('[Ch3:16] Thiryangmukha → Article is at GROUND LEVEL or on the side')
@@ -2160,7 +2180,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     // Ch13: Death symptoms — Drekkana analysis
     const deathSymptoms = analyzeDeathSymptoms(grahas, lagnaRashi, lagnaSignDegree, moonRashi)
 
-    health = { dosha: diseaseDosha, disease: diseaseStr, curability, dayOfStart, bodySystem, deathSymptoms, placeOfDeath, causeOfDeath, rebirthNature }
+    health = { dosha: diseaseDosha, disease: diseaseStr, curability, curable: ascType === 'movable', extraCare: deathSymptoms.includes('Extra care'), dayOfStart, bodySystem, deathSymptoms, placeOfDeath, causeOfDeath, rebirthNature }
     rules.push(`[Ch13:4] Moon in house ${moonHouse} → Disease started ${moonHouse} day(s) before query`)
     rules.push(`[Ch13:5] ${ascType} sign ascendant → ${curability}`)
     rules.push(`[Ch13:6] Dosha: ${diseaseDosha}`)
@@ -2381,7 +2401,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     const planetInAscForFood = planetsInUdayaAsc[0]
     const taste = planetInAscForFood ? PLANET_TASTES_1[planetInAscForFood.id] : PLANET_TASTES_2[ascLordId]
 
-    food = { quality: foodQuality, type: foodType, taste: `${taste} (planet signification)` }
+    food = { quality: foodQuality, good: isBenefic(ascLordId), type: foodType, taste: `${taste} (planet signification)` }
     rules.push(`[Ch16:3] ${isBenefic(ascLordId) ? 'Benefic' : 'Malefic'} ascendant lord → ${foodQuality}`)
     details.push(`[Ch16:1-2] Taste: ${taste}`)
     if (planetsInUdayaAsc.length > 0) {
@@ -2473,6 +2493,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     lawsuit = {
       queristStrength: queristStrong >= 2 ? 'Strong' : queristStrong === 1 ? 'Moderate' : 'Weak',
       opponentStrength: opponentStrong >= 2 ? 'Strong' : opponentStrong === 1 ? 'Moderate' : 'Weak',
+      queristLevel: queristStrong >= 2 ? 'Strong' : queristStrong === 1 ? 'Moderate' : 'Weak',
+      opponentLevel: opponentStrong >= 2 ? 'Strong' : opponentStrong === 1 ? 'Moderate' : 'Weak',
       outcome, timing: legalTiming, keyPlanet,
     }
     scorecard.push({ label: 'Querist in Lawsuit', result: queristStrong > opponentStrong ? 'good' : 'bad', detail: outcome, weight: 2 })
@@ -2546,7 +2568,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   }
 
   return {
-    verdict, headline, confidence,
+    verdict, headline: lang === 'hi' ? (KRISHNA_HEADLINE_HI[headline] ?? headline) : headline, confidence,
     ascendantType: `${odayaInfo.label} · ${RASHI_NAMES[coreRashi]}`,
     ascendantTypeResult: odayaInfo.verdict,
     signType: `${mukhaInfo.label} · ${RASHI_NAMES[coreRashi]}`,

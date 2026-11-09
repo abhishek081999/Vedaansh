@@ -15,7 +15,9 @@
  */
 
 import { Link } from '@/i18n/navigation'
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
@@ -50,6 +52,8 @@ import {
   type MuhurtaEvent,
 } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
+import { SBC_REMEDY_HI } from '@/lib/engine/locale/sbcUseCases.hi'
 import type { GrahaId } from '@/types/astrology'
 import {
   USE_CASES,
@@ -58,6 +62,7 @@ import {
   assessSingleUseCase,
   assessCategory,
   getCategorySummaries,
+  localizeUseCase,
   type SBCUseCase,
   type UseCaseResult,
   type UseCaseVerdict,
@@ -74,8 +79,8 @@ function todayIST(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
 }
 
-function fmtDate(d: string): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
+function fmtDate(d: string, hi = false): string {
+  const parts = new Intl.DateTimeFormat(hi ? 'hi-IN' : 'en-GB', {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -95,6 +100,7 @@ const PLANET_NAME: Record<string, string> = {
 // ─── Sub-components ───────────────────────────────────────────
 
 function PulseMeter({ pulse }: { pulse: SBCAnalysis['financialPulse'] }) {
+  const t = useTranslations('sbc.ui')
   const color =
     pulse.score > 8  ? 'var(--teal)' :
     pulse.score < -8 ? 'var(--rose)' : 'var(--gold)'
@@ -114,13 +120,13 @@ function PulseMeter({ pulse }: { pulse: SBCAnalysis['financialPulse'] }) {
         <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.2)', zIndex: 5 }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 600 }}>
-        <span>BEARISH</span>
+        <span>{t('bearish')}</span>
         <span style={{ fontWeight: 900, color, fontSize: '1rem', fontFamily: 'var(--font-mono)' }}>{pulse.score > 0 ? '+' : ''}{pulse.score}</span>
-        <span>BULLISH</span>
+        <span>{t('bullish')}</span>
       </div>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.8rem', borderRadius: 20, background: `${color}12`, border: `1px solid ${color}33`, marginBottom: '1rem', boxShadow: 'var(--shadow-card)' }}>
         <span style={{ fontSize: '0.9rem' }}>{pulse.trend === 'expansion' ? '📈' : pulse.trend === 'contraction' ? '📉' : '↔️'}</span>
-        <span style={{ fontSize: '0.75rem', fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{pulse.trend}</span>
+        <span style={{ fontSize: '0.75rem', fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.has(`trend.${pulse.trend}`) ? t(`trend.${pulse.trend}`) : pulse.trend}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         {pulse.bullish.map((f, i) => (
@@ -149,6 +155,7 @@ function ScoreBar({ score, max = 100 }: { score: number; max?: number }) {
 }
 
 function MuhurtaCard({ event }: { event: MuhurtaEvent }) {
+  const t = useTranslations('sbc.ui')
   const verdictColor = {
     excellent: 'var(--teal)', good: '#8ee07b', neutral: 'var(--gold)', avoid: 'var(--rose)',
   }[event.verdict ?? 'neutral']
@@ -163,7 +170,7 @@ function MuhurtaCard({ event }: { event: MuhurtaEvent }) {
           <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>{event.label}</span>
         </div>
         <span style={{ fontSize: '0.62rem', fontWeight: 900, color: verdictColor, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '3px 9px', background: `${verdictColor}15`, borderRadius: 20, border: `1px solid ${verdictColor}33` }}>
-          {event.verdict ?? 'neutral'}
+          {t(`verdict.${event.verdict ?? 'neutral'}`)}
         </span>
       </div>
       {event.note && (
@@ -194,6 +201,7 @@ const VERDICT_META: Record<UseCaseVerdict, { label: string; color: string; bg: s
 }
 
 function VerdictBadge({ verdict }: { verdict: UseCaseVerdict }) {
+  const t = useTranslations('sbc.ui')
   const m = VERDICT_META[verdict]
   return (
     <span style={{
@@ -202,7 +210,7 @@ function VerdictBadge({ verdict }: { verdict: UseCaseVerdict }) {
       color: m.color, background: m.bg,
       border: `1px solid ${m.color}40`,
       textTransform: 'uppercase',
-    }}>{m.label}</span>
+    }}>{t(`verdict.${verdict}`)}</span>
   )
 }
 
@@ -234,6 +242,17 @@ function ScoreRing({ score }: { score: number }) {
 // ─── Main Page ────────────────────────────────────────────────
 
 export default function SBCPage() {
+  const t = useTranslations('sbc')
+  const tu = useTranslations('sbc.ui')
+  const { lang } = useLang()
+  const hi = lang === 'hi'
+  const pname = (id: string) => (hi ? GRAHA_HI[id as GrahaId] ?? PLANET_NAME[id] : PLANET_NAME[id]) ?? id
+  const nakName = (idx: number) => (hi ? NAKSHATRA_HI[idx] : NAKSHATRA_NAMES[idx]?.split(' ')[0]) ?? ''
+  const remedyOf = <T extends { planet: string }>(rem: T): T => {
+    const h = hi ? SBC_REMEDY_HI[rem.planet] : undefined
+    return h ? { ...rem, ...h } : rem
+  }
+  const howTags = { b: (chunks: ReactNode) => <b>{chunks}</b> }
   const { chart }  = useChart()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
@@ -328,13 +347,14 @@ export default function SBCPage() {
       grid,
       birthNakIdx,
       nameNakIdx,
+      lang,
     )
-  }, [natalGrahas, transitRaw, showTransits, grid, birthNakIdx, nameNakIdx])
+  }, [natalGrahas, transitRaw, showTransits, grid, birthNakIdx, nameNakIdx, lang])
 
   const tithi = useMemo(() => {
     if (sunLon === null || moonLon === null) return null
-    return getTithiInfo(sunLon, moonLon)
-  }, [sunLon, moonLon])
+    return getTithiInfo(sunLon, moonLon, lang)
+  }, [sunLon, moonLon, lang])
 
   const cellVedhas = useMemo(() => {
     if (!selectedCell || !analysis) return []
@@ -366,8 +386,8 @@ export default function SBCPage() {
   }, [transitRaw, analysis])
 
   const categorySummaries = useMemo(
-    () => getCategorySummaries(planetStatuses),
-    [planetStatuses],
+    () => getCategorySummaries(planetStatuses, lang),
+    [planetStatuses, lang],
   )
 
   const advisorResults = useMemo(() => {
@@ -375,32 +395,35 @@ export default function SBCPage() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       return USE_CASES
-        .filter(uc => uc.label.toLowerCase().includes(q) || uc.cat.includes(q))
-        .map(uc => assessSingleUseCase(uc, planetStatuses))
+        .filter(uc => {
+          const shown = localizeUseCase(uc, lang).label.toLowerCase()
+          return shown.includes(q) || uc.label.toLowerCase().includes(q) || uc.cat.includes(q)
+        })
+        .map(uc => assessSingleUseCase(uc, planetStatuses, lang))
         .sort((a, b) => b.score - a.score)
     }
-    return assessCategory(advisorCat, planetStatuses)
-  }, [advisorCat, planetStatuses, searchQuery])
+    return assessCategory(advisorCat, planetStatuses, lang)
+  }, [advisorCat, planetStatuses, searchQuery, lang])
 
   const RIGHT_TABS: Array<[RightTab, string, string]> = [
-    ['pulse',       '💰', 'Pulse'],
-    ['life',        '🌐', 'Life'],
-    ['muhurta',     '🪔', 'Muhurta'],
-    ['activations', '⚡', 'Vedha'],
-    ['body',        '🫀', 'Body'],
-    ['remedies',    '💊', 'Remedies'],
+    ['pulse',       '💰', t('page.tabs.pulse')],
+    ['life',        '🌐', t('page.tabs.life')],
+    ['muhurta',     '🪔', t('page.tabs.muhurta')],
+    ['activations', '⚡', t('page.tabs.activations')],
+    ['body',        '🫀', t('page.tabs.body')],
+    ['remedies',    '💊', t('page.tabs.remedies')],
   ]
 
   const mobileTabs = [
-    { id: 'grid' as const, icon: Grid3X3, label: 'Grid' },
-    { id: 'pulse' as const, icon: TrendingUp, label: 'Pulse' },
-    { id: 'life' as const, icon: Globe, label: 'Life' },
-    { id: 'muhurta' as const, icon: Flame, label: 'Muhurta' },
-    { id: 'activations' as const, icon: Zap, label: 'Vedha' },
-    { id: 'body' as const, icon: Heart, label: 'Body' },
-    { id: 'remedies' as const, icon: Pill, label: 'Fix' },
-    { id: 'advisor' as const, icon: Sparkles, label: 'Guide' },
-    { id: 'market' as const, icon: LineChart, label: 'More' },
+    { id: 'grid' as const, icon: Grid3X3, label: t('page.tabs.grid') },
+    { id: 'pulse' as const, icon: TrendingUp, label: t('page.tabs.pulse') },
+    { id: 'life' as const, icon: Globe, label: t('page.tabs.life') },
+    { id: 'muhurta' as const, icon: Flame, label: t('page.tabs.muhurta') },
+    { id: 'activations' as const, icon: Zap, label: t('page.tabs.activations') },
+    { id: 'body' as const, icon: Heart, label: t('page.tabs.body') },
+    { id: 'remedies' as const, icon: Pill, label: t('page.tabs.fix') },
+    { id: 'advisor' as const, icon: Sparkles, label: t('page.tabs.guide') },
+    { id: 'market' as const, icon: LineChart, label: t('page.tabs.more') },
   ]
 
   const showLeftPanel = showFull && (!isMobile || mobileView === 'grid')
@@ -433,13 +456,13 @@ export default function SBCPage() {
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-gold)', fontSize: '0.9rem' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)' }}>|</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.875rem', fontWeight: 700, color: 'var(--accent)' }}>Sarvatobhadra Chakra</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.875rem', fontWeight: 700, color: 'var(--accent)' }}>{t('page.brand')}</span>
           {analysis?.birthNakAffected && (
-            <span style={{ fontSize: '0.62rem', padding: '2px 8px', borderRadius: 20, background: 'rgba(232,64,64,0.15)', border: '1px solid rgba(232,64,64,0.35)', color: '#e84040', fontWeight: 700 }}>⚠ Birth Star Afflicted</span>
+            <span style={{ fontSize: '0.62rem', padding: '2px 8px', borderRadius: 20, background: 'rgba(232,64,64,0.15)', border: '1px solid rgba(232,64,64,0.35)', color: '#e84040', fontWeight: 700 }}>⚠ {t('page.birthAfflicted')}</span>
           )}
         </div>
         <nav style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
-          {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Muhurta</Link>}
+          {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>{t('page.muhurta')}</Link>}
           <ThemeToggle />
         </nav>
       </header>
@@ -454,10 +477,10 @@ export default function SBCPage() {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '0.75rem' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.4rem' : 'clamp(1.2rem,2.8vw,1.65rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              Sarvatobhadra Chakra
+              {t('page.title')}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontStyle: 'italic', margin: '3px 0 0' }}>
-              Classical 9×9 Vedic grid — Transit Vedha · Life Areas · Muhurta Intelligence
+              {t('page.subtitle')}
             </p>
           </div>
 
@@ -467,7 +490,7 @@ export default function SBCPage() {
               <div style={{ padding: '0.35rem 0.875rem', borderRadius: 20, background: `${tithiColor}15`, border: `1px solid ${tithiColor}35`, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ fontSize: '0.68rem', fontWeight: 900, color: tithiColor }}>{tithi.name}</span>
                 <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>·</span>
-                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{tithi.paksha === 'shukla' ? '☽ Shukla' : '🌑 Krishna'} Paksha</span>
+                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{tithi.paksha === 'shukla' ? t('page.shukla') : t('page.krishna')} {t('page.paksha')}</span>
                 <span style={{ fontSize: '0.6rem', padding: '1px 6px', borderRadius: 10, background: `${tithiColor}20`, color: tithiColor, fontWeight: 700 }}>{tithi.quality}</span>
               </div>
             )}
@@ -488,10 +511,10 @@ export default function SBCPage() {
           }}>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-              Free preview: birth star + chakra grid. Vedha analysis, life areas, muhurta, remedies, and Life Advisor require Gold.
+              {t('page.freePreview')}
             </div>
             <Link href="/pricing" style={{ textDecoration: 'none' }}>
-              <Button variant="primary" size="sm">View plans</Button>
+              <Button variant="primary" size="sm">{t('page.viewPlans')}</Button>
             </Link>
           </div>
         )}
@@ -502,17 +525,17 @@ export default function SBCPage() {
           {showFreeBirthCard && (
             <div style={{ width: isMobile ? '100%' : 255, flexShrink: 0 }}>
               <div className="card" style={{ padding: '1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.65rem' }}>Birth Star</div>
+                <div className="label-caps" style={{ marginBottom: '0.65rem' }}>{tu('birthStar')}</div>
                 {birthNakIdx !== undefined ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 10, background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.25)' }}>
                     <span style={{ fontSize: '1rem' }}>⭐</span>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold)' }}>{NAKSHATRA_NAMES[birthNakIdx]}</div>
-                      <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Moon&apos;s Janma Nakshatra</div>
+                      <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold)' }}>{hi ? NAKSHATRA_HI[birthNakIdx] : NAKSHATRA_NAMES[birthNakIdx]}</div>
+                      <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{tu('janma')}</div>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Load a chart to see birth star</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{tu('loadBirthStar')}</div>
                 )}
               </div>
             </div>
@@ -524,7 +547,7 @@ export default function SBCPage() {
 
             {/* Transit date */}
             <div className="card" style={{ padding: '1rem' }}>
-              <div className="label-caps" style={{ marginBottom: '0.65rem' }}>📅 Transit Date</div>
+              <div className="label-caps" style={{ marginBottom: '0.65rem' }}>{tu('transitDate')}</div>
               <input
                 type="date" className="input"
                 value={transitDate} max={todayIST()}
@@ -532,57 +555,57 @@ export default function SBCPage() {
                 style={{ marginBottom: '0.4rem' }}
               />
               <div style={{ display: 'flex', gap: '0.4rem' }}>
-                <button onClick={() => setTransitDate(todayIST())} className="btn btn-ghost" style={{ flex: 1, fontSize: '0.72rem' }}>↺ Today</button>
+                <button onClick={() => setTransitDate(todayIST())} className="btn btn-ghost" style={{ flex: 1, fontSize: '0.72rem' }}>{tu('today')}</button>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                   <input type="checkbox" checked={showTransits} onChange={e => setShowTransits(e.target.checked)} />
-                  Transits
+                  {tu('transits')}
                 </label>
               </div>
             </div>
 
             {/* Birth nakshatra + Name input */}
             <div className="card" style={{ padding: '1rem' }}>
-              <div className="label-caps" style={{ marginBottom: '0.65rem' }}>⭐ Birth & Name Star</div>
+              <div className="label-caps" style={{ marginBottom: '0.65rem' }}>{tu('birthNameStar')}</div>
 
               {birthNakIdx !== undefined ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 10, background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.25)', marginBottom: '0.65rem' }}>
                   <span style={{ fontSize: '1rem' }}>⭐</span>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold)' }}>{NAKSHATRA_NAMES[birthNakIdx]}</div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Moon&apos;s Janma Nakshatra</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold)' }}>{hi ? NAKSHATRA_HI[birthNakIdx] : NAKSHATRA_NAMES[birthNakIdx]}</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{tu('janma')}</div>
                   </div>
                   {analysis?.birthNakAffected && <span style={{ marginLeft: 'auto', fontSize: '0.8rem' }}>⚠️</span>}
                 </div>
               ) : (
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.65rem', fontStyle: 'italic' }}>Load a chart to see birth star</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.65rem', fontStyle: 'italic' }}>{tu('loadBirthStar')}</div>
               )}
 
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>Name / Query (first syllable)</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>{tu('nameQuery')}</div>
               <input
                 type="text"
                 value={queryName}
                 onChange={e => setQueryName(e.target.value)}
-                placeholder="e.g. Priya, Ravi, Anand…"
+                placeholder={tu('namePlaceholder')}
                 className="input"
                 style={{ fontSize: '0.82rem', marginBottom: '0.4rem' }}
               />
               {queryName && nameNakIdx !== undefined && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.65rem', borderRadius: 8, background: 'rgba(135,206,250,0.08)', border: '1px solid rgba(135,206,250,0.25)', fontSize: '0.75rem' }}>
                   <span>🔤</span>
-                  <span style={{ fontWeight: 700, color: 'rgba(135,206,250,0.9)' }}>{NAKSHATRA_NAMES[nameNakIdx]}</span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.62rem' }}>Name Star</span>
+                  <span style={{ fontWeight: 700, color: 'rgba(135,206,250,0.9)' }}>{hi ? NAKSHATRA_HI[nameNakIdx] : NAKSHATRA_NAMES[nameNakIdx]}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.62rem' }}>{tu('nameStar')}</span>
                   {analysis?.nameNakAffected && <span style={{ marginLeft: 'auto' }}>⚠️</span>}
                 </div>
               )}
               {queryName && nameNakIdx === undefined && (
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Syllable not matched — try 2–3 letters</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{tu('noSyllable')}</div>
               )}
             </div>
 
             {/* Natal positions */}
             {chart ? (
               <div className="card" style={{ padding: '1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>● Natal — {chart.meta.name}</div>
+                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>{tu('natal', { name: chart.meta.name })}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   {chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)).map(g => {
                     const nak = nakFromLon(g.lonSidereal)
@@ -596,8 +619,8 @@ export default function SBCPage() {
                         <div style={{ width: 13, height: 13, borderRadius: '50%', background: PLANET_COLOR[g.id] ?? '#888', border: '1.5px solid rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', color: '#fff', fontWeight: 700 }}>
                           {PLANET_SYMBOL[g.id]}
                         </div>
-                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{g.name}</span>
-                        <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.64rem' }}>{NAKSHATRA_NAMES[nak]?.split(' ')[0]}</span>
+                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{hi ? pname(g.id) : g.name}</span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.64rem' }}>{nakName(nak)}</span>
                         {isAff && <span style={{ color: '#e84040', fontSize: '0.65rem' }}>⚠</span>}
                       </div>
                     )
@@ -606,7 +629,7 @@ export default function SBCPage() {
               </div>
             ) : (
               <div className="card" style={{ padding: '1rem', textAlign: 'center', border: '1px dashed var(--border)' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Load a chart to see natal positions</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tu('loadNatal')}</div>
               </div>
             )}
 
@@ -616,18 +639,18 @@ export default function SBCPage() {
                 onClick={() => setShowControls(s => !s)}
                 style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}
               >
-                <span>⚙ Grid Appearance</span>
+                <span>{tu('gridAppearance')}</span>
                 <span>{showControls ? '▲' : '▼'}</span>
               </button>
 
               {showControls && (
                 <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   <div>
-                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Size: {gridSize}px</div>
+                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{tu('size', { n: gridSize })}</div>
                     <input type="range" min="360" max="980" value={gridSize} onChange={e => setGridSize(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--gold)' }} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Text scale: {fontScale.toFixed(1)}×</div>
+                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{tu('textScale', { n: fontScale.toFixed(1) })}</div>
                     <input type="range" min="0.5" max="2.0" step="0.1" value={fontScale} onChange={e => setFontScale(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--gold)' }} />
                   </div>
                   <div style={{ display: 'flex', gap: '0.3rem' }}>
@@ -642,14 +665,14 @@ export default function SBCPage() {
             {/* Cell type legend */}
             {!isMobile && (
               <div className="card" style={{ padding: '0.875rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Cell Types</div>
+                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>{tu('cellTypes')}</div>
                 {[
-                  { bg: 'rgba(55,42,130,0.80)',  label: 'Nakshatra (27 Stars)' },
-                  { bg: 'rgba(110,78,20,0.80)',  label: 'Rashi (12 Signs)' },
-                  { bg: 'rgba(60,30,110,0.80)',  label: 'Vara (Weekday Lord)' },
-                  { bg: 'rgba(18,70,88,0.80)',   label: 'Sanskrit Vowel' },
-                  { bg: 'rgba(28,28,45,0.80)',   label: 'Consonant' },
-                  { bg: 'rgba(120,88,15,0.80)',  label: 'Center (The Native)' },
+                  { bg: 'rgba(55,42,130,0.80)',  label: tu('cellNak') },
+                  { bg: 'rgba(110,78,20,0.80)',  label: tu('cellRashi') },
+                  { bg: 'rgba(60,30,110,0.80)',  label: tu('cellVara') },
+                  { bg: 'rgba(18,70,88,0.80)',   label: tu('cellVowel') },
+                  { bg: 'rgba(28,28,45,0.80)',   label: tu('cellConsonant') },
+                  { bg: 'rgba(120,88,15,0.80)',  label: tu('cellCenter') },
                 ].map(({ bg, label }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.28rem' }}>
                     <div style={{ width: 11, height: 11, borderRadius: 2, background: bg, border: '1px solid rgba(255,255,255,0.1)' }} />
@@ -666,7 +689,7 @@ export default function SBCPage() {
 
             {loading && (
               <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span> Loading transits…
+                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span> {tu('loadingTransits')}
                 <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
               </div>
             )}
@@ -696,7 +719,7 @@ export default function SBCPage() {
                       {selectedCell.label} {selectedCell.sublabel ? `(${selectedCell.sublabel})` : ''}
                     </h3>
                     <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: 3, letterSpacing: '0.05em' }}>
-                      {selectedCell.type} {selectedCell.bodyPart ? `· Body: ${selectedCell.bodyPart}` : ''}
+                      {hi && tu.has(`cell.${selectedCell.type}`) ? tu(`cell.${selectedCell.type}`) : selectedCell.type} {selectedCell.bodyPart ? `· ${tu('body', { part: selectedCell.bodyPart })}` : ''}
                     </div>
                   </div>
                   <button onClick={() => setSelectedCell(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-muted)' }}>✕</button>
@@ -706,19 +729,19 @@ export default function SBCPage() {
                 {(() => {
                   const k = `${selectedCell.row},${selectedCell.col}`
                   const n = natalOnGrid.filter(p => `${p.row},${p.col}` === k)
-                  const t = transitOnGrid.filter(p => `${p.row},${p.col}` === k)
-                  return (n.length || t.length) ? (
+                  const tr = transitOnGrid.filter(p => `${p.row},${p.col}` === k)
+                  return (n.length || tr.length) ? (
                     <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
                       {n.map(p => (
                         <span key={`n-${p.planet}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.2rem 0.6rem', background: 'rgba(255,215,0,0.1)', border: '1px solid var(--gold)', borderRadius: 20 }}>
                           <span style={{ color: PLANET_COLOR[p.planet as GrahaId] }}>{PLANET_SYMBOL[p.planet as GrahaId]}</span>
-                          <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>Natal {PLANET_NAME[p.planet]}</span>
+                          <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{tu('natalPlanet', { name: pname(p.planet) })}</span>
                         </span>
                       ))}
-                      {t.map(p => (
+                      {tr.map(p => (
                         <span key={`t-${p.planet}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', padding: '0.2rem 0.6rem', background: 'rgba(139,124,246,0.1)', border: '1px dashed var(--accent)', borderRadius: 20 }}>
                           <span style={{ color: PLANET_COLOR[p.planet as GrahaId] }}>{PLANET_SYMBOL[p.planet as GrahaId]}</span>
-                          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Transit {PLANET_NAME[p.planet]}</span>
+                          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{tu('transitPlanet', { name: pname(p.planet) })}</span>
                         </span>
                       ))}
                     </div>
@@ -728,13 +751,13 @@ export default function SBCPage() {
                 {/* Vedha influx */}
                 {cellVedhas.length > 0 && (
                   <div>
-                    <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: '0.4rem' }}>Vedha Influx on This Cell</div>
+                    <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: '0.4rem' }}>{tu('influx')}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.4rem' }}>
                       {cellVedhas.map((v, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', background: 'var(--surface-3)', borderRadius: 8, border: `1px solid ${v.isMalefic ? 'rgba(232,64,64,0.18)' : 'rgba(77,182,106,0.18)'}` }}>
                           <div style={{ width: 8, height: 8, borderRadius: '50%', background: PLANET_COLOR[v.planet as GrahaId] ?? '#888' }} />
-                          <span style={{ fontWeight: 700, color: v.isMalefic ? 'var(--rose)' : 'var(--teal)', fontSize: '0.73rem' }}>{PLANET_NAME[v.planet]}</span>
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>{v.isMalefic ? 'Malefic Vedha' : 'Benefic Vedha'}</span>
+                          <span style={{ fontWeight: 700, color: v.isMalefic ? 'var(--rose)' : 'var(--teal)', fontSize: '0.73rem' }}>{pname(v.planet)}</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>{v.isMalefic ? tu('malefic') : tu('benefic')}</span>
                         </div>
                       ))}
                     </div>
@@ -746,7 +769,7 @@ export default function SBCPage() {
             {/* Transit position table */}
             {showGridDetails && transitRaw.length > 0 && (
               <div className="card" style={{ width: '100%', padding: '1.1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Transit Planets — {fmtDate(transitDate)}</div>
+                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>{tu('transitTable', { date: fmtDate(transitDate, hi) })}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
                   {(transitRaw as any[]).map((g: any) => {
                     const nak   = nakFromLon(g.lonSidereal)
@@ -758,8 +781,8 @@ export default function SBCPage() {
                         style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.72rem', padding: '0.5rem 0.6rem', background: 'var(--surface-2)', border: `1px solid ${isAff ? 'rgba(232,64,64,0.25)' : 'var(--border-soft)'}`, borderRadius: 8, cursor: 'pointer' }}
                       >
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: PLANET_COLOR[g.id as GrahaId], flexShrink: 0 }} />
-                        <span style={{ color: 'var(--text-gold)', fontWeight: 800 }}>{g.id}</span>
-                        <span style={{ color: 'var(--text-muted)', flex: 1 }}>{NAKSHATRA_NAMES[nak]?.split(' ')[0]}</span>
+                        <span style={{ color: 'var(--text-gold)', fontWeight: 800 }}>{hi ? pname(g.id) : g.id}</span>
+                        <span style={{ color: 'var(--text-muted)', flex: 1 }}>{nakName(nak)}</span>
                         {g.isRetro && <span style={{ fontSize: '0.58rem', color: 'var(--accent)', fontWeight: 700 }}>℞</span>}
                         {isAff && <span style={{ fontSize: '0.6rem', color: '#e84040' }}>⚠</span>}
                       </div>
@@ -771,9 +794,9 @@ export default function SBCPage() {
 
             {isMobile && showGridDetails && (
               <div className="card" style={{ width: '100%', padding: '0.875rem', background: 'rgba(139,124,246,0.04)', border: '1px solid rgba(139,124,246,0.12)' }}>
-                <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--accent)', fontSize: '0.58rem' }}>How to Read</div>
+                <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--accent)', fontSize: '0.58rem' }}>{tu('howToRead')}</div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                  Tap cells to reveal <b>Vedha lines</b>. <b>⭐ Gold border</b> = your birth star. <b>✦ symbol</b> = diagonal-aspect planet. Pink highlight = malefic pressure.
+                  {tu.rich('howMobile', howTags)}
                 </div>
               </div>
             )}
@@ -809,15 +832,15 @@ export default function SBCPage() {
             {/* Tab: Financial Pulse */}
             {activeRightTab === 'pulse' && (
               <div className="card" style={{ padding: '1.1rem', border: pulse ? `1px solid ${pulseColor}38` : '1px solid var(--border)' }}>
-                <div className="label-caps" style={{ marginBottom: '0.875rem' }}>💰 Financial Pulse</div>
-                {pulse ? <PulseMeter pulse={pulse} /> : <div style={{ opacity: 0.5, fontSize: '0.8rem' }}>Calculation pending…</div>}
+                <div className="label-caps" style={{ marginBottom: '0.875rem' }}>{tu('pulse')}</div>
+                {pulse ? <PulseMeter pulse={pulse} /> : <div style={{ opacity: 0.5, fontSize: '0.8rem' }}>{tu('pending')}</div>}
               </div>
             )}
 
             {/* Tab: Life Areas */}
             {activeRightTab === 'life' && (
               <div className="card" style={{ padding: '1.1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.75rem' }}>🌐 Life Area Analysis</div>
+                <div className="label-caps" style={{ marginBottom: '0.75rem' }}>{tu('lifeAreas')}</div>
 
                 {/* Life area tabs */}
                 <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginBottom: '0.75rem' }}>
@@ -829,7 +852,7 @@ export default function SBCPage() {
                         onClick={() => setLifeTab(la.area)}
                         style={{ padding: '4px 8px', borderRadius: 8, fontSize: '0.62rem', fontWeight: 700, border: `1px solid ${lifeTab === la.area ? color : 'var(--border)'}`, background: lifeTab === la.area ? `${color}15` : 'transparent', color: lifeTab === la.area ? color : 'var(--text-muted)', cursor: 'pointer', display: 'flex', gap: 4, alignItems: 'center' }}
                       >
-                        <span>{la.icon}</span><span>{la.area.charAt(0).toUpperCase() + la.area.slice(1)}</span>
+                        <span>{la.icon}</span><span>{hi ? la.label : la.area.charAt(0).toUpperCase() + la.area.slice(1)}</span>
                       </button>
                     )
                   })}
@@ -852,7 +875,7 @@ export default function SBCPage() {
                         <div key={i} style={{ fontSize: '0.67rem', color: 'var(--rose)', display: 'flex', gap: '0.3rem', lineHeight: 1.35 }}><span style={{ flexShrink: 0 }}>✗</span><span>{n}</span></div>
                       ))}
                       {!activeLifeArea.positive.length && !activeLifeArea.negative.length && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No significant planetary influences on {activeLifeArea.label} currently.</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{tu('noInfluence', { area: activeLifeArea.label })}</div>
                       )}
                     </div>
                   </div>
@@ -863,13 +886,13 @@ export default function SBCPage() {
             {/* Tab: Muhurta */}
             {activeRightTab === 'muhurta' && (
               <div className="card" style={{ padding: '1.1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.875rem' }}>🪔 Muhurta Guide — {fmtDate(transitDate).split(',').slice(0, 1)}</div>
+                <div className="label-caps" style={{ marginBottom: '0.875rem' }}>{tu('muhurtaGuide', { date: fmtDate(transitDate, hi).split(',')[0] ?? '' })}</div>
                 {tithi && (
                   <div style={{ marginBottom: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 10, background: `${tithiColor}10`, border: `1px solid ${tithiColor}30`, fontSize: '0.72rem' }}>
                     <span style={{ fontWeight: 700, color: tithiColor }}>{tithi.name} ({tithi.type})</span>
                     <span style={{ color: 'var(--text-muted)' }}> — </span>
                     <span style={{ color: tithiColor, fontWeight: 600 }}>
-                      {tithi.quality === 'best' ? '⭐ Most Auspicious' : tithi.quality === 'good' ? '✓ Favorable' : tithi.quality === 'bad' ? '✗ Avoid major events' : tithi.quality === 'special' ? '🌑 Amavasya — Ancestor rites' : 'Mixed'}
+                      {tu(`tithiQuality.${['best', 'good', 'bad', 'special'].includes(tithi.quality) ? tithi.quality : 'mixed'}`)}
                     </span>
                   </div>
                 )}
@@ -882,28 +905,28 @@ export default function SBCPage() {
             {/* Tab: Vedha Activations */}
             {activeRightTab === 'activations' && (
               <div className="card" style={{ padding: '1.1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.75rem' }}>⚡ Natal Activations via Vedha</div>
+                <div className="label-caps" style={{ marginBottom: '0.75rem' }}>{tu('activations')}</div>
                 {analysis?.activations?.length ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                     {analysis.activations.slice(0, 10).map((a, i) => (
                       <div key={i} style={{ fontSize: '0.68rem', borderLeft: `2px solid ${a.type === 'shubha' ? 'var(--teal)' : 'var(--rose)'}`, paddingLeft: '0.55rem' }}>
                         <div style={{ fontWeight: 800, color: a.type === 'shubha' ? 'var(--teal)' : 'var(--rose)', marginBottom: 1 }}>
-                          {a.transitPlanet} → {a.natalPlanet} ({a.nakshatraName.split(' ')[0]})
+                          {lang === 'hi' ? `${GRAHA_HI[a.transitPlanet] ?? a.transitPlanet} → ${GRAHA_HI[a.natalPlanet] ?? a.natalPlanet} (${NAKSHATRA_HI[a.nakshatra] ?? a.nakshatraName})` : <>{a.transitPlanet} → {a.natalPlanet} ({a.nakshatraName.split(' ')[0]})</>}
                         </div>
                         <div style={{ color: 'var(--text-muted)', lineHeight: 1.35 }}>{a.meaning.slice(0, 120)}</div>
                       </div>
                     ))}
                   </div>
-                ) : <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>No active natal activations</div>}
+                ) : <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>{tu('noActivations')}</div>}
               </div>
             )}
 
             {/* Tab: Body Alerts */}
             {activeRightTab === 'body' && (
               <div className="card" style={{ padding: '1.1rem' }}>
-                <div className="label-caps" style={{ color: 'var(--rose)', marginBottom: '0.75rem' }}>🫀 Body-Part Afflictions</div>
+                <div className="label-caps" style={{ color: 'var(--rose)', marginBottom: '0.75rem' }}>{tu('bodyAfflictions')}</div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.65rem', lineHeight: 1.4 }}>
-                  Malefic planets cast vedha on body-part cells (Sanskrit letter squares). Take preventive care for these areas.
+                  {tu('bodyIntro')}
                 </div>
                 {(analysis?.bodyPartsAlerted?.length ?? 0) > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -911,12 +934,12 @@ export default function SBCPage() {
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.7rem', padding: '0.3rem 0.5rem', background: 'var(--surface-2)', borderRadius: 7, border: '1px solid rgba(232,64,64,0.12)' }}>
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: PLANET_COLOR[b.by], flexShrink: 0 }} />
                         <span style={{ color: 'var(--text-secondary)', flex: 1 }}>{b.part}</span>
-                        <span style={{ color: '#e84040', fontSize: '0.62rem', fontWeight: 700 }}>{PLANET_NAME[b.by]}</span>
+                        <span style={{ color: '#e84040', fontSize: '0.62rem', fontWeight: 700 }}>{pname(b.by)}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ fontSize: '0.8rem', opacity: 0.5, textAlign: 'center', padding: '1rem' }}>No significant body-part afflictions</div>
+                  <div style={{ fontSize: '0.8rem', opacity: 0.5, textAlign: 'center', padding: '1rem' }}>{tu('noBody')}</div>
                 )}
               </div>
             )}
@@ -924,11 +947,11 @@ export default function SBCPage() {
             {/* Tab: Remedies */}
             {activeRightTab === 'remedies' && (
               <div className="card" style={{ padding: '1.1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.75rem' }}>💊 Vedic Remedies</div>
+                <div className="label-caps" style={{ marginBottom: '0.75rem' }}>{tu('remedies')}</div>
 
                 {birthRemedies.length > 0 && (
                   <div style={{ padding: '0.5rem 0.75rem', background: 'rgba(232,64,64,0.06)', border: '1px solid rgba(232,64,64,0.2)', borderRadius: 10, marginBottom: '0.75rem', fontSize: '0.68rem', color: 'var(--rose)' }}>
-                    ⚠ Your birth star is afflicted. Priority remedies below.
+                    {tu('birthAfflicted')}
                   </div>
                 )}
 
@@ -936,7 +959,7 @@ export default function SBCPage() {
                   {(birthRemedies.length > 0
                     ? birthRemedies
                     : analysis?.vedhas.filter(v => v.isMalefic).slice(0, 4).map(v => PLANET_REMEDIES.find(r => r.planet === v.planet)).filter(Boolean)
-                  )?.map((rem: any, i: number) => rem && (
+                  )?.map((raw: any, i: number) => raw && remedyOf(raw)).map((rem: any, i: number) => rem && (
                     <div key={i} style={{ padding: '0.75rem', background: 'var(--surface-2)', borderRadius: 12, border: `1px solid ${rem.color}20` }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: rem.color }} />
@@ -954,7 +977,7 @@ export default function SBCPage() {
                   {!birthRemedies.length && !analysis?.vedhas.some(v => v.isMalefic) && (
                     <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>✨</div>
-                      No malefic vedha detected — day is relatively clear.
+                      {tu('noMalefic')}
                     </div>
                   )}
                 </div>
@@ -964,9 +987,9 @@ export default function SBCPage() {
             {/* Reading guide — desktop right panel */}
             {!isMobile && (
             <div className="card" style={{ padding: '0.875rem', background: 'rgba(139,124,246,0.04)', border: '1px solid rgba(139,124,246,0.12)' }}>
-              <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--accent)', fontSize: '0.58rem' }}>How to Read</div>
+              <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--accent)', fontSize: '0.58rem' }}>{tu('howToRead')}</div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Hover cells to reveal <b>Vedha lines</b>. <b>⭐ Gold border</b> = your birth star. <b>✦ symbol</b> on a cell = diagonal-aspect planet present. Pink highlight = malefic pressure on natal position.
+                {tu.rich('howDesktop', howTags)}
               </div>
             </div>
             )}
@@ -995,14 +1018,14 @@ export default function SBCPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <span style={{ fontSize: '1.3rem' }}>🔮</span>
                 <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  Life Advisor
+                  {tu('advisor')}
                 </h2>
                 <span style={{ fontSize: '0.62rem', padding: '2px 8px', borderRadius: 20, background: 'var(--gold-faint)', color: 'var(--text-gold)', fontWeight: 700 }}>
-                  200+ Use Cases
+                  {tu('useCases')}
                 </span>
               </div>
               <p style={{ margin: '3px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Muhurta assessment · Prashna Q&A · Category predictions — all driven by today&apos;s transit vedha
+                {tu('advisorSub')}
               </p>
             </div>
 
@@ -1012,7 +1035,7 @@ export default function SBCPage() {
               <input
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setAdvisorCat('') }}
-                placeholder="Search use case…"
+                placeholder={tu('search')}
                 className="input"
                 style={{ paddingLeft: '2rem', fontSize: '0.8rem', width: '100%' }}
               />
@@ -1073,13 +1096,13 @@ export default function SBCPage() {
                 <span style={{ fontSize: '1.4rem' }}>{cs.cat.icon}</span>
                 <span style={{ fontWeight: 800, fontSize: '0.9rem', color }}>{cs.cat.label}</span>
                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                  <span><b style={{ color: '#4db66a' }}>{cs.excellent}</b> Excellent</span>
-                  <span><b style={{ color: '#a3c65a' }}>{cs.good}</b> Good</span>
-                  <span><b style={{ color: '#e84040' }}>{cs.avoid}</b> Avoid</span>
-                  <span style={{ color: 'var(--text-muted)' }}>of {cs.total} use cases</span>
+                  <span><b style={{ color: '#4db66a' }}>{cs.excellent}</b> {tu('countExcellent')}</span>
+                  <span><b style={{ color: '#a3c65a' }}>{cs.good}</b> {tu('countGood')}</span>
+                  <span><b style={{ color: '#e84040' }}>{cs.avoid}</b> {tu('countAvoid')}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{tu('ofTotal', { n: cs.total })}</span>
                 </div>
                 <div style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Avg score: <b style={{ color }}>{cs.score}</b>/100
+                  {tu('avgScore')} <b style={{ color }}>{cs.score}</b>/100
                 </div>
               </div>
             )
@@ -1089,7 +1112,7 @@ export default function SBCPage() {
           {!planetStatuses.size && (
             <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
-              Transit data loading… Life Advisor activates once planetary positions are fetched.
+              {tu('advisorLoading')}
             </div>
           )}
 
@@ -1131,12 +1154,12 @@ export default function SBCPage() {
                     <div style={{ display: 'flex', gap: 6, marginTop: '0.55rem' }}>
                       {r.positiveCount > 0 && (
                         <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 10, background: 'rgba(77,182,106,0.14)', color: '#4db66a', fontWeight: 700 }}>
-                          ✓ {r.positiveCount} supportive
+                          {tu('supportive', { n: r.positiveCount })}
                         </span>
                       )}
                       {r.afflictedCount > 0 && (
                         <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 10, background: 'rgba(232,64,64,0.14)', color: '#e84040', fontWeight: 700 }}>
-                          ✗ {r.afflictedCount} afflicted
+                          {tu('afflicted', { n: r.afflictedCount })}
                         </span>
                       )}
                     </div>
@@ -1155,7 +1178,7 @@ export default function SBCPage() {
                         background: 'var(--surface-2)', border: `1px solid ${vm.color}20`,
                       }}>
                         <div style={{ fontWeight: 700, fontSize: '0.7rem', color: vm.color, marginBottom: '0.5rem', letterSpacing: '0.04em' }}>
-                          PLANETARY ANALYSIS
+                          {tu('planetaryAnalysis')}
                         </div>
                         {r.reasons.map((reason, i) => (
                           <div key={i} style={{
@@ -1172,7 +1195,7 @@ export default function SBCPage() {
                           borderTop: '1px solid var(--border-soft)',
                           fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.45,
                         }}>
-                          <b style={{ color: 'var(--text-secondary)' }}>Classical rule:</b> {r.note}
+                          <b style={{ color: 'var(--text-secondary)' }}>{tu('classicalRule')}</b> {r.note}
                         </div>
                       </div>
                     )}
@@ -1185,13 +1208,13 @@ export default function SBCPage() {
           {/* Search results info */}
           {searchQuery && advisorResults.length > 0 && (
             <div style={{ marginTop: '1rem', fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-              Showing {advisorResults.length} results for &quot;<b style={{ color: 'var(--text-primary)' }}>{searchQuery}</b>&quot;
+              {tu('results', { n: advisorResults.length })} &quot;<b style={{ color: 'var(--text-primary)' }}>{searchQuery}</b>&quot;
             </div>
           )}
           {searchQuery && advisorResults.length === 0 && (
             <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>🔍</div>
-              No use cases found for &quot;{searchQuery}&quot;
+              {tu('noResults', { q: searchQuery })}
             </div>
           )}
 
@@ -1201,14 +1224,14 @@ export default function SBCPage() {
             paddingTop: '1rem', borderTop: '1px solid var(--border-soft)',
             fontSize: '0.65rem', color: 'var(--text-muted)', alignItems: 'center',
           }}>
-            <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Verdict key:</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{tu('verdictKey')}</span>
             {(Object.entries(VERDICT_META) as [UseCaseVerdict, typeof VERDICT_META[UseCaseVerdict]][]).map(([k, v]) => (
               <span key={k} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: v.color, display: 'inline-block' }} />
-                <span style={{ color: v.color, fontWeight: 700 }}>{v.label}</span>
+                <span style={{ color: v.color, fontWeight: 700 }}>{tu(`verdict.${k}`)}</span>
               </span>
             ))}
-            <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>Based on transit vedha for {fmtDate(transitDate)}</span>
+            <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>{tu('basedOn', { date: fmtDate(transitDate, hi) })}</span>
           </div>
         </div>
       </section>
@@ -1257,7 +1280,7 @@ export default function SBCPage() {
 
       {canUseSbc && isMobile && (
         <MobileBottomNavShell
-          ariaLabel="Sarvatobhadra sections"
+          ariaLabel={tu('mobileNav')}
           compact
           tabs={mobileTabs.map(({ id, icon, label }) => ({
             id,
@@ -1270,7 +1293,7 @@ export default function SBCPage() {
       )}
 
       <footer style={{ padding: '1.25rem', textAlign: 'center', opacity: 0.45, fontSize: '0.72rem', borderTop: '1px solid var(--border-soft)' }}>
-        Sarvatobhadra Chakra · Classical Vedic Analysis · <span style={{ color: 'var(--text-gold)' }}>Vedaansh Platform</span>
+        {tu('footer')} <span style={{ color: 'var(--text-gold)' }}>Vedaansh Platform</span>
       </footer>
     </div>
   )
