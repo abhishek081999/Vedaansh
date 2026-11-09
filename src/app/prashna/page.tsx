@@ -8,6 +8,8 @@
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { dignityText } from '@/lib/engine/divisionalLang'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
@@ -215,6 +217,19 @@ interface HistoryEntry {
 export default function PrashnaPage() {
   const t = useTranslations('prashna')
   const { lang } = useLang()
+  const u = useTranslations('prashna.ui')
+  const hi = lang === 'hi'
+  /** Sign name in the page language. */
+  const rn = (r: number) => (hi ? RASHI_HI[r as Rashi] : RASHI_NAMES[r]) ?? String(r)
+  /** Planet given as an id or an English name, shown in the page language. */
+  const planetHi = useCallback((v: string) => {
+    if (!hi) return v
+    const byName: Record<string, string> = { Sun: 'Su', Moon: 'Mo', Mars: 'Ma', Mercury: 'Me', Jupiter: 'Ju', Venus: 'Ve', Saturn: 'Sa', Rahu: 'Ra', Ketu: 'Ke' }
+    const id = (byName[v] ?? v) as keyof typeof GRAHA_HI
+    return GRAHA_HI[id] ?? v
+  }, [hi])
+  const boldTag = { b: (chunks: React.ReactNode) => <strong>{chunks}</strong> }
+  const goldTag = { b: (chunks: React.ReactNode) => <strong style={{ color: 'var(--gold)' }}>{chunks}</strong> }
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const canUsePaidModes = planMeetsUiGate(userPlan, 'gold')
@@ -309,7 +324,7 @@ export default function PrashnaPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: 'Prashna Chart',
+          name: t('page.chartName'),
           birthDate,
           birthTime,
           birthPlace: location.name,
@@ -322,7 +337,7 @@ export default function PrashnaPage() {
       if (json.success) {
         setChart(json.data)
       } else {
-        setError(json.error ?? 'Chart calculation failed')
+        setError(json.error ?? t('page.calcFailed'))
         setFrozen(false)
         setFrozenAt(null)
         setElapsed(0)
@@ -330,13 +345,13 @@ export default function PrashnaPage() {
       }
     } catch (err) {
       console.error('Prashna error:', err)
-      setError('Network error — please try again')
+      setError(t('page.network'))
       setFrozen(false)
       setFrozenAt(null)
       setElapsed(0)
       savedHistoryIdRef.current = null
     } finally { setLoading(false) }
-  }, [location, kpNumber])
+  }, [location, kpNumber, t])
 
   const handleAction = () => {
     if (frozen) {
@@ -353,7 +368,7 @@ export default function PrashnaPage() {
         ? { birthDate: customTime.slice(0, 10), birthTime: `${customTime.slice(11, 16)}:00` }
         : undefined
       if (useCustomTime && !past) {
-        setError('Choose the date and time of the question first.')
+        setError(t('page.needTime'))
         return
       }
       setFrozen(true)
@@ -415,9 +430,9 @@ export default function PrashnaPage() {
       }
     } catch (err) {
       console.error('Satpanchasika error:', err)
-      return { reading: null, error: 'This chart could not be read. Please capture the moment again.' }
+      return { reading: null, error: t('page.unreadable') }
     }
-  }, [chart, mode, satQuestion, contestRole, satHouse, isRainySeason])
+  }, [chart, mode, satQuestion, contestRole, satHouse, isRainySeason, t])
   const satpanchasikaReading = satResult.reading
 
   const vedicResult = useMemo((): { reading: VedicPrashnaReading | null; error: string | null } => {
@@ -426,9 +441,9 @@ export default function PrashnaPage() {
       return { reading: runVedicPrashna(chart, vedicTopic, lang), error: null }
     } catch (err) {
       console.error('Vedic prashna error:', err)
-      return { reading: null, error: 'This chart could not be read. Please capture the moment again.' }
+      return { reading: null, error: t('page.unreadable') }
     }
-  }, [chart, mode, modeLocked, vedicTopic, lang])
+  }, [chart, mode, modeLocked, vedicTopic, lang, t])
   const vedicReading = vedicResult.reading
 
   const stability = useMemo((): StabilityResult | null => {
@@ -462,13 +477,13 @@ export default function PrashnaPage() {
     const moonStar = getKPSubLord(moon.totalDegree).nakshatraLord
     const ascStar = getKPSubLord(chart.lagnas.ascDegree).nakshatraLord
     return [
-      { label: 'Day Lord', value: chart.panchang.vara.lord },
-      { label: 'Moon Sign Lord', value: SIGN_LORDS[moon.rashi] },
-      { label: 'Moon Star Lord', value: moonStar },
-      { label: 'Lagna Lord', value: ascLord },
-      { label: 'Lagna Star Lord', value: ascStar },
+      { label: t('page.dayLord'), value: planetHi(String(chart.panchang.vara.lord)) },
+      { label: t('page.moonSignLord'), value: planetHi(String(SIGN_LORDS[moon.rashi])) },
+      { label: t('page.moonStarLord'), value: planetHi(String(moonStar)) },
+      { label: t('page.lagnaLord'), value: planetHi(String(ascLord)) },
+      { label: t('page.lagnaStarLord'), value: planetHi(String(ascStar)) },
     ]
-  }, [chart])
+  }, [chart, t, planetHi])
 
   // Save to history when result is ready
   useEffect(() => {
@@ -552,19 +567,13 @@ export default function PrashnaPage() {
           <Link href="/" style={{ fontSize: '1.4rem', textDecoration: 'none' }}>🔮</Link>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <h1 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, letterSpacing: '0.04em' }}>PRASHNA</h1>
+              <h1 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, letterSpacing: '0.04em' }}>{t('page.title')}</h1>
               <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: 'var(--gold-faint)', color: 'var(--gold)', fontWeight: 700, border: '1px solid var(--gold-dim)' }}>
-                {mode === 'satpanchasika' ? 'SATPANCHASIKA' : mode === 'kp' ? 'KP' : mode === 'vedic' ? 'VEDIC' : 'KRISHNEEYAM'}
+                {t(`page.badge.${mode}`)}
               </span>
             </div>
             <p style={{ margin: 0, fontSize: '0.63rem', color: 'var(--text-muted)' }}>
-              {mode === 'satpanchasika'
-                ? 'Indian Horary Astrology · Prithuyasas, son of Varahamihira (~6th c. AD)'
-                : mode === 'vedic'
-                  ? 'Parashari significators with Tajika links'
-                  : mode === 'kp'
-                    ? 'KP ruling planets'
-                    : 'Kerala Horary Astrology · Sri Krishna Acharya (~11th c. AD)'}
+              {t(`page.subtitle.${mode}`)}
             </p>
           </div>
         </div>
@@ -572,14 +581,14 @@ export default function PrashnaPage() {
           {mounted && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <span style={{ fontSize: '0.85rem', fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: frozen ? 'var(--rose)' : 'var(--teal)' }}>{now.toLocaleTimeString()}</span>
             <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>
-              {frozen ? `🔴 +${formatElapsed(elapsed)} since capture` : '🟢 Live'}
+              {frozen ? u('sinceBadge', { elapsed: formatElapsed(elapsed) }) : u('liveBadge')}
             </span>
           </div>}
-          <button onClick={() => setShowHistory(h => !h)} title="Reading History"
+          <button onClick={() => setShowHistory(h => !h)} title={t('page.historyTitle')}
             style={{ padding: '0.35rem 0.6rem', borderRadius: 7, border: '1px solid var(--border)', background: showHistory ? 'var(--gold-faint)' : 'var(--surface-2)', cursor: 'pointer', fontSize: '0.85rem' }}>
             📋 {history.length}
           </button>
-          {frozen && chart && <button onClick={() => window.print()} title="Print Reading"
+          {frozen && chart && <button onClick={() => window.print()} title={t('page.printTitle')}
             style={{ padding: '0.35rem 0.6rem', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--surface-2)', cursor: 'pointer', fontSize: '0.85rem' }}>
             🖨️
           </button>}
@@ -607,29 +616,29 @@ export default function PrashnaPage() {
                       opacity: locked && mode !== m ? 0.85 : 1,
                     }}>
                     {locked && <Lock size={11} aria-hidden />}
-                    {m === 'krishneeyam' ? '🔮 Kerala' : m === 'satpanchasika' ? '📜 Satpanchasika' : m === 'kp' ? '⭐ KP' : '🕉 Vedic'}
+                    {u(`modeBtn.${m}`)}
                   </button>
                 )
               })}
             </div>
             {mode === 'kp' && !modeLocked && (
-              <input type="number" className="input" placeholder="KP Number (1-249)" value={kpNumber} style={{ width: 160 }}
+              <input type="number" className="input" placeholder={t('page.kpPlaceholder')} value={kpNumber} style={{ width: 160 }}
                 onChange={e => setKpNumber(e.target.value === '' ? '' : Number(e.target.value))} disabled={frozen} />
             )}
             {/* Question */}
-            <input type="text" className="input" placeholder="✍️ Your question (optional)…"
+            <input type="text" className="input" placeholder={`✍️ ${t('page.questionPlaceholder')}`}
               value={questionText} onChange={e => setQuestionText(e.target.value)} disabled={frozen || modeLocked}
               style={{ flex: 1, minWidth: 180, fontSize: '0.82rem' }} />
             {/* Location */}
             <div style={{ flexShrink: 0, opacity: frozen || modeLocked ? 0.55 : 1, pointerEvents: frozen || modeLocked ? 'none' : 'auto' }}>
-              <LocationPicker value={location} onChange={setLocation} label="Location" />
+              <LocationPicker value={location} onChange={setLocation} label={u('locationLabel')} />
             </div>
             {/* Action */}
             <button onClick={handleAction}
               className={`btn ${frozen ? 'btn-secondary' : 'btn-primary'}`}
               disabled={!frozen && modeLocked}
               style={{ height: 40, fontSize: '0.88rem', fontWeight: 700, letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap', opacity: !frozen && modeLocked ? 0.55 : 1 }}>
-              {frozen ? '↺ New Reading' : '⚡ Capture Moment'}
+              {frozen ? u('newReadingBtn') : u('captureBtn')}
             </button>
           </div>
 
@@ -637,29 +646,29 @@ export default function PrashnaPage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                 <input type="checkbox" checked={useCustomTime} disabled={frozen} onChange={e => setUseCustomTime(e.target.checked)} />
-                Cast for a past question
+                {t('page.pastQuestion')}
               </label>
               {useCustomTime && (
-                <input type="datetime-local" className="input" aria-label="Date and time of the question, at the chosen location"
+                <input type="datetime-local" className="input" aria-label={t('page.pastAria')}
                   value={customTime} disabled={frozen} onChange={e => setCustomTime(e.target.value)} style={{ fontSize: '0.78rem', maxWidth: '100%' }} />
               )}
-              {useCustomTime && <span style={{ color: 'var(--text-muted)' }}>Local time at the location. Useful for testing readings against known outcomes.</span>}
+              {useCustomTime && <span style={{ color: 'var(--text-muted)' }}>{t('page.pastHint')}</span>}
             </div>
           )}
 
           {mode === 'vedic' && !modeLocked && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Matter asked about <span style={{ color: 'var(--gold)' }}>· Parashari significators with Tajika links</span>
+                {t('page.matter')} <span style={{ color: 'var(--gold)' }}>· {t('page.matterHint')}</span>
               </div>
-              <div role="radiogroup" aria-label="Matter asked about" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.35rem' }}>
-                {VEDIC_TOPICS.map(t => {
-                  const active = vedicTopic === t.id
+              <div role="radiogroup" aria-label={t('page.matterAria')} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.35rem' }}>
+                {VEDIC_TOPICS.map(topic => {
+                  const active = vedicTopic === topic.id
                   return (
-                    <button key={t.id} type="button" role="radio" aria-checked={active} onClick={() => setVedicTopic(t.id)}
+                    <button key={topic.id} type="button" role="radio" aria-checked={active} onClick={() => setVedicTopic(topic.id)}
                       style={{ textAlign: 'left', padding: '0.4rem 0.55rem', borderRadius: 8, cursor: 'pointer', border: active ? '2px solid var(--gold)' : '1px solid var(--border-soft)', background: active ? 'var(--gold-faint)' : 'var(--surface-2)' }}>
-                      <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: active ? 'var(--text-gold)' : 'var(--text-secondary)', lineHeight: 1.3 }}>{t.label}</span>
-                      <span style={{ display: 'block', fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.3, marginTop: 1 }}>{t.hint}</span>
+                      <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: active ? 'var(--text-gold)' : 'var(--text-secondary)', lineHeight: 1.3 }}>{t(`topics.${topic.id}.label`)}</span>
+                      <span style={{ display: 'block', fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.3, marginTop: 1 }}>{t(`topics.${topic.id}.hint`)}</span>
                     </button>
                   )
                 })}
@@ -683,7 +692,7 @@ export default function PrashnaPage() {
                 {t('page.goldRequired', { mode: t(`page.mode.${mode}`) })}
               </div>
               <Link href="/pricing" style={{ textDecoration: 'none' }}>
-                <Button variant="primary" size="sm">View plans</Button>
+                <Button variant="primary" size="sm">{t('page.viewPlans')}</Button>
               </Link>
             </div>
           )}
@@ -694,15 +703,15 @@ export default function PrashnaPage() {
               {/* House reference: Udaya vs Arudha Lagna */}
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.55rem 0.7rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
                 <div style={{ flex: '1 1 140px' }}>
-                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>House reference (Krishneeyam)</div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('page.houseRefTitle')}</div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                    Udaya = rising lagna · AL = Arudha Lagna (public/maya). Ascendant type stays on Udaya; houses & timing follow your choice.
+                    {u('houseRefHint')}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                   {([
-                    { id: 'udaya' as const, label: 'Udaya Lagna', sub: chart ? RASHI_NAMES[chart.lagnas.ascRashi] : '—' },
-                    { id: 'arudha' as const, label: 'Arudha Lagna', sub: chart && arudhaLagnaRashi ? RASHI_NAMES[arudhaLagnaRashi] : '—' },
+                    { id: 'udaya' as const, label: t('page.udaya'), sub: chart ? rn(chart.lagnas.ascRashi) : '—' },
+                    { id: 'arudha' as const, label: t('page.arudha'), sub: chart && arudhaLagnaRashi ? rn(arudhaLagnaRashi) : '—' },
                   ]).map(ref => (
                     <button key={ref.id} type="button" disabled={frozen} onClick={() => setHouseReference(ref.id)}
                       style={{
@@ -721,7 +730,7 @@ export default function PrashnaPage() {
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
               {/* Category picker */}
               <div style={{ flex: 1, minWidth: 320 }}>
-                <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>Query Category</div>
+                <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>{t('page.queryCategory')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(8, 1fr)', gap: '4px' }}>
                   {(Object.keys(CATEGORY_ICONS) as PrashnaCategory[]).map(cat => (
                     <button key={cat} onClick={() => setCategory(cat)} disabled={frozen}
@@ -745,34 +754,34 @@ export default function PrashnaPage() {
               {/* Aroodha (Sparsha) + Body Touch */}
               <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                 <div style={{ minWidth: 175 }}>
-                  <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Aroodha (Sparsha)</label>
+                  <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>{t('page.aroodhaTitle')}</label>
                   <select className="input" value={aroodhaMode} disabled={frozen}
                     onChange={e => {
                       const m = e.target.value as AroodhaMode
                       setAroodhaMode(m)
                       if (m !== 'manual') setAroodha('')
                     }}>
-                    <option value="auto_lagna">Same as Udaya Lagna</option>
-                    <option value="auto_al">Same as Arudha Lagna (AL)</option>
-                    <option value="manual">Manual — sign touched / faced</option>
+                    <option value="auto_lagna">{t('page.aroodhaSameUdaya')}</option>
+                    <option value="auto_al">{t('page.aroodhaSameAl')}</option>
+                    <option value="manual">{t('page.aroodhaManual')}</option>
                   </select>
                   {aroodhaMode === 'manual' && (
                     <select className="input" value={aroodha} disabled={frozen} style={{ marginTop: 4 }}
                       onChange={e => setAroodha(e.target.value === '' ? '' : Number(e.target.value))}>
-                      <option value="">Select sign…</option>
-                      {RASHI_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                      <option value="">{t('page.selectSign')}</option>
+                      {RASHI_OPTIONS.map(r => <option key={r.value} value={r.value}>{hi ? `${r.value}. ${rn(r.value)}` : r.label}</option>)}
                     </select>
                   )}
                   <p style={{ fontSize: '0.56rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
-                    {aroodhaMode === 'manual' ? 'Ch11: sign body touches while asking' : resolvedAroodhaRashi && chart ? `Using ${RASHI_NAMES[resolvedAroodhaRashi]}` : 'Krishneeyam sparsha sign (not Jaimini AL)'}
+                    {aroodhaMode === 'manual' ? u('aroodhaManualHint') : resolvedAroodhaRashi && chart ? u('aroodhaUsing', { sign: rn(resolvedAroodhaRashi) }) : u('aroodhaHint')}
                   </p>
                 </div>
                 <div style={{ minWidth: 155 }}>
-                  <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Body Touch</label>
+                  <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>{t('page.bodyTouch')}</label>
                   <select className="input" value={bodyTouch} disabled={frozen} onChange={e => setBodyTouch(e.target.value)}>
-                    {BODY_PARTS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+                    {BODY_PARTS.map(b => <option key={b.value} value={b.value}>{hi ? `${t(`body.${b.value || 'none'}`)} ${b.label.match(/[✅⚠️❌]+$/u)?.[0] ?? ''}`.trim() : b.label}</option>)}
                   </select>
-                  <p style={{ fontSize: '0.56rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Part touched while asking</p>
+                  <p style={{ fontSize: '0.56rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>{t('page.bodyHint')}</p>
                 </div>
               </div>
             </div>
@@ -783,7 +792,7 @@ export default function PrashnaPage() {
           {mode === 'satpanchasika' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Question type <span style={{ color: 'var(--gold)' }}>· Ṣaṭpañcāśikā of Pṛthuyaśas (56 ślokas)</span>
+                {u('questionType')} <span style={{ color: 'var(--gold)' }}>· {t('page.satIntro')}</span>
               </div>
               {(() => {
                 const suggested = suggestSatQuestion(questionText)
@@ -792,11 +801,11 @@ export default function PrashnaPage() {
                 return (
                   <button type="button" onClick={() => setSatQuestion(suggested)}
                     style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid var(--gold)', background: 'var(--gold-faint)', color: 'var(--text-gold)', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>
-                    <Lightbulb size={12} aria-hidden /> Your question looks like: {label}. Tap to use it.
+                    <Lightbulb size={12} aria-hidden /> {u('suggest', { label: label ?? '' })}
                   </button>
                 )
               })()}
-              <div role="radiogroup" aria-label="Question type" style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+              <div role="radiogroup" aria-label={u('questionType')} style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {SATPANCHASIKA_QUESTION_GROUPS.map(group => (
                   <div key={group}>
                     <div style={{ fontSize: '0.66rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{group}</div>
@@ -817,18 +826,18 @@ export default function PrashnaPage() {
               </div>
               {satQuestion === 'any_house' && (
                 <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                  House to judge (1.3):
+                  {u('houseToJudge')}
                   <select className="input" value={satHouse} onChange={e => setSatHouse(Number(e.target.value))} style={{ fontSize: '0.78rem', width: 'auto' }}>
-                    {SAT_HOUSES.map((label, i) => <option key={label} value={i + 1}>{i + 1}. {label}</option>)}
+                    {SAT_HOUSES.map((label, i) => <option key={label} value={i + 1}>{i + 1}. {hi ? t(`satHouse.${i + 1}`) : label}</option>)}
                   </select>
                 </label>
               )}
               {satQuestion === 'contest' && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                  <span>Your side:</span>
+                  <span>{t('page.yourSide')}</span>
                   {([
-                    { id: 'defender' as const, label: 'Defending or holding the position' },
-                    { id: 'challenger' as const, label: 'Challenging or bringing the claim' },
+                    { id: 'defender' as const, label: t('page.defender') },
+                    { id: 'challenger' as const, label: t('page.challenger') },
                   ]).map(o => (
                     <button key={o.id} type="button" onClick={() => setContestRole(o.id)} aria-pressed={contestRole === o.id}
                       className={`btn btn-sm ${contestRole === o.id ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.68rem' }}>
@@ -840,7 +849,7 @@ export default function PrashnaPage() {
               {satQuestion === 'rain' && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
                   <input type="checkbox" checked={isRainySeason} onChange={e => setIsRainySeason(e.target.checked)} />
-                  It is the rainy season here (needed to judge śloka 7.3)
+                  {u('rainy')}
                 </label>
               )}
             </div>
@@ -849,7 +858,7 @@ export default function PrashnaPage() {
           {/* Frozen timestamp */}
           {frozen && chart && (
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-              🔴 Frozen at <strong style={{ color: 'var(--rose)' }}>{chart.meta?.birthDate} {chart.meta?.birthTime}</strong>
+              {u('frozenAt')} <strong style={{ color: 'var(--rose)' }}>{chart.meta?.birthDate} {chart.meta?.birthTime}</strong>
               {' · '}{location.name}
             </div>
           )}
@@ -865,18 +874,18 @@ export default function PrashnaPage() {
           <div className="card" style={{ padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '0.9rem' }}>📋 Reading History ({history.length})</h3>
+                <h3 style={{ margin: 0, fontSize: '0.9rem' }}>{u('historyHead', { n: history.length })}</h3>
                 <p style={{ margin: '2px 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  {marked.length ? `Your log: ${hits} came true, ${marked.length - hits} did not, of ${marked.length} marked.` : 'Mark what actually happened to build your own record of hits and misses.'}
+                  {marked.length ? u('historyLog', { hits, misses: marked.length - hits, total: marked.length }) : u('historyHint')}
                 </p>
               </div>
-              <button onClick={() => { if (confirm('Clear all history?')) { setHistory([]); localStorage.removeItem('prashna_history') } }}
+              <button onClick={() => { if (confirm(u('clearConfirm'))) { setHistory([]); localStorage.removeItem('prashna_history') } }}
                 style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: 5, border: '1px solid var(--border)', background: 'var(--surface-3)', cursor: 'pointer', color: 'var(--rose)' }}>
-                Clear All
+                {u('clearAll')}
               </button>
             </div>
             {history.length === 0 ? (
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>No readings saved yet. Capture a moment to begin.</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>{t('page.historyEmpty')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: 320, overflowY: 'auto' }}>
                 {history.map(h => {
@@ -885,15 +894,15 @@ export default function PrashnaPage() {
                     <div key={h.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.45rem 0.65rem', background: 'var(--surface-2)', borderRadius: 7, border: '1px solid var(--border-soft)' }}>
                       <span style={{ fontWeight: 900, color: col, fontSize: '0.85rem', flexShrink: 0, width: 60, textAlign: 'center' }}>{h.verdict}<br/><span style={{ fontSize: '0.6rem', fontWeight: 400 }}>{h.confidence}%</span></span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.question || '(no question)'}</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.question || u('noQuestion')}</div>
                         <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{h.system ?? `${CATEGORY_ICONS[h.category]} ${t(`category.${h.category}`)}`} · {h.location} · {new Date(h.ts).toLocaleString(lang === 'hi' ? 'hi-IN' : undefined)}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button type="button" aria-pressed={h.outcome === 'hit'} aria-label="It came true" title="It came true" onClick={() => setHistoryOutcome(h.id, 'hit')}
+                        <button type="button" aria-pressed={h.outcome === 'hit'} aria-label={u('cameTrue')} title={u('cameTrue')} onClick={() => setHistoryOutcome(h.id, 'hit')}
                           style={{ padding: '0.25rem 0.4rem', borderRadius: 6, cursor: 'pointer', border: `1px solid ${h.outcome === 'hit' ? 'var(--teal)' : 'var(--border-soft)'}`, background: 'var(--surface-1)', color: h.outcome === 'hit' ? 'var(--teal)' : 'var(--text-muted)', display: 'inline-flex' }}>
                           <Check size={13} aria-hidden />
                         </button>
-                        <button type="button" aria-pressed={h.outcome === 'miss'} aria-label="It did not come true" title="It did not come true" onClick={() => setHistoryOutcome(h.id, 'miss')}
+                        <button type="button" aria-pressed={h.outcome === 'miss'} aria-label={u('notTrue')} title={u('notTrue')} onClick={() => setHistoryOutcome(h.id, 'miss')}
                           style={{ padding: '0.25rem 0.4rem', borderRadius: 6, cursor: 'pointer', border: `1px solid ${h.outcome === 'miss' ? 'var(--rose)' : 'var(--border-soft)'}`, background: 'var(--surface-1)', color: h.outcome === 'miss' ? 'var(--rose)' : 'var(--text-muted)', display: 'inline-flex' }}>
                           <X size={13} aria-hidden />
                         </button>
@@ -911,19 +920,16 @@ export default function PrashnaPage() {
           <div style={{ height: '42vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-0)', borderRadius: 14, border: '1px dashed var(--border)', gap: '1.5rem' }}>
             <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'var(--gold-faint)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', animation: 'pulse 3s ease-in-out infinite' }}>🧿</div>
             <div style={{ textAlign: 'center', maxWidth: 500 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', opacity: 0.9, margin: '0 0 0.5rem' }}>Awaiting the Question</h2>
+              <h2 style={{ fontFamily: 'var(--font-display)', opacity: 0.9, margin: '0 0 0.5rem' }}>{t('page.awaiting')}</h2>
               <p style={{ opacity: 0.6, lineHeight: 1.7, fontSize: '0.85rem', margin: 0 }}>
-                Clear your mind and focus on your question.<br />
-                {mode === 'krishneeyam' && 'Pick house reference (Udaya or Arudha Lagna), Aroodha sparsha, body touch, and category. '}
-                {mode === 'satpanchasika' && 'Pick your question type from the Ṣaṭpañcāśikā of Pṛthuyaśas. '}
-                When ready, press <strong>Capture Moment</strong>.
+                {u('clearMind')}<br />
+                {mode === 'krishneeyam' && u('awaitKrish')}
+                {mode === 'satpanchasika' && u('awaitSat')}
+                {u.rich('whenReady', boldTag)}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-              {(mode === 'satpanchasika'
-                ? ['📜 Type', '✍️ Question', '📍 Location', '⚡ Capture']
-                : ['🔭 Lagna ref', '📿 Aroodha', '👤 Touch', '🗂 Category', '⚡ Capture']
-              ).map((step, i) => (
+              {(u.raw(mode === 'satpanchasika' ? 'stepsSat' : 'stepsKrish') as string[]).map((step, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700 }}>{i + 1}</span>
                   {step}
@@ -936,9 +942,9 @@ export default function PrashnaPage() {
         {/* ── Loading ───────────────────────────────────────────────────────────── */}
         {loading && (
           <div style={{ height: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-1)', borderRadius: 14, border: '1px solid var(--gold-faint)', gap: '1rem' }}>
-            <VedaanshLoader size={48} message="Consulting the Heavens" />
+            <VedaanshLoader size={48} message={u('consulting')} />
             <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0, textAlign: 'center' }}>
-              Casting Prashna Kundali · {mode === 'satpanchasika' ? 'Applying the 56 ślokas of Ṣaṭpañcāśikā…' : 'Applying 524 Krishneeyam verses…'}
+              {u('casting', { what: mode === 'satpanchasika' ? u('castSat') : u('castKrish') })}
             </p>
           </div>
         )}
@@ -954,15 +960,15 @@ export default function PrashnaPage() {
               <div className="card" style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>Prashna Kundali</div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{questionText || 'Horary Chart'} · {location.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{t('page.kundali')}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{questionText || u('horaryChart')} · {location.name}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                     {(['D1', 'D9'] as const).map(v => (
                       <button key={v} onClick={() => setVarga(v)} className={`btn btn-sm ${varga === v ? 'btn-primary' : 'btn-ghost'}`}>{v}</button>
                     ))}
                     {(['north', 'south'] as ChartStyle[]).map(s => (
-                      <button key={s} onClick={() => setStyle(s)} className={`btn btn-sm ${style === s ? 'btn-secondary' : 'btn-ghost'}`} style={{ fontSize: '0.65rem' }}>{s}</button>
+                      <button key={s} onClick={() => setStyle(s)} className={`btn btn-sm ${style === s ? 'btn-secondary' : 'btn-ghost'}`} style={{ fontSize: '0.65rem' }}>{s === 'north' ? u('styleNorth') : u('styleSouth')}</button>
                     ))}
                   </div>
                 </div>
@@ -981,14 +987,14 @@ export default function PrashnaPage() {
                 {/* Panchang chips */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', marginTop: '0.75rem' }} className="prashna-panchang-grid">
                   {[
-                    { label: 'Tithi', value: chart.panchang.tithi.name },
-                    { label: 'Nakshatra', value: chart.panchang.nakshatra.name },
-                    { label: 'Yoga', value: chart.panchang.yoga.name },
-                    { label: 'Vara', value: chart.panchang.vara.name },
-                    { label: 'Udaya Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi]} ${Math.floor(chart.lagnas.ascDegree % 30)}°` },
-                    { label: 'Arudha Lagna', value: arudhaLagnaRashi ? RASHI_NAMES[arudhaLagnaRashi] : '—' },
-                    { label: 'Aroodha (Sparsha)', value: resolvedAroodhaRashi ? RASHI_NAMES[resolvedAroodhaRashi] : '—' },
-                    { label: 'Paksha', value: chart.panchang.tithi.paksha === 'shukla' ? '☀️ Shukla' : '🌑 Krishna' },
+                    { label: t('page.tithi'), value: chart.panchang.tithi.name },
+                    { label: t('page.nakshatra'), value: hi ? NAKSHATRA_HI[chart.panchang.nakshatra.index] ?? chart.panchang.nakshatra.name : chart.panchang.nakshatra.name },
+                    { label: t('page.yoga'), value: chart.panchang.yoga.name },
+                    { label: t('page.vara'), value: chart.panchang.vara.name },
+                    { label: t('page.udayaLagna'), value: `${rn(chart.lagnas.ascRashi)} ${Math.floor(chart.lagnas.ascDegree % 30)}°` },
+                    { label: t('page.arudhaLagna'), value: arudhaLagnaRashi ? rn(arudhaLagnaRashi) : '—' },
+                    { label: t('page.aroodhaSparsha'), value: resolvedAroodhaRashi ? rn(resolvedAroodhaRashi) : '—' },
+                    { label: t('page.paksha'), value: chart.panchang.tithi.paksha === 'shukla' ? `☀️ ${t('page.shukla')}` : `🌑 ${t('page.krishna')}` },
                   ].map(c => (
                     <div key={c.label} style={{ background: 'var(--surface-2)', borderRadius: 6, padding: '0.35rem 0.5rem', border: '1px solid var(--border-soft)' }}>
                       <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{c.label}</div>
@@ -1000,12 +1006,12 @@ export default function PrashnaPage() {
 
               {/* Planetary Status */}
               <div className="card" style={{ padding: '1rem' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>🪐 Planetary Status</div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>🪐 {t('page.planets')}</div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border)', opacity: 0.6 }}>
-                        {['Planet', 'Sign', 'Nakshatra', 'Dignity', `H (${houseReference === 'arudha' ? 'AL' : 'Lagna'})`, 'Notes'].map(h => (
+                        {(u.raw('th') as string[]).map(h => h.replace('{ref}', houseReference === 'arudha' ? 'AL' : u('lagna'))).map(h => (
                           <th key={h} style={{ padding: '0.4rem 0.35rem', textAlign: 'left', fontWeight: 600, fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
                         ))}
                       </tr>
@@ -1017,16 +1023,16 @@ export default function PrashnaPage() {
                         const dignityColor = ['exalted', 'moolatrikona', 'own'].includes(g.dignity) ? 'var(--teal)' : ['debilitated', 'great_enemy', 'enemy'].includes(g.dignity) ? 'var(--rose)' : 'var(--text-secondary)'
                         return (
                           <tr key={g.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                            <td style={{ padding: '0.4rem 0.35rem', fontWeight: 700, color: 'var(--gold)' }}>{g.name}</td>
-                            <td style={{ padding: '0.4rem 0.35rem' }}>{RASHI_NAMES[g.rashi]} {Math.floor(g.degree)}°</td>
-                            <td style={{ padding: '0.4rem 0.35rem', color: 'var(--text-muted)' }}>{g.nakshatraName.slice(0, 7)}</td>
+                            <td style={{ padding: '0.4rem 0.35rem', fontWeight: 700, color: 'var(--gold)' }}>{hi ? GRAHA_HI[g.id] ?? g.name : g.name}</td>
+                            <td style={{ padding: '0.4rem 0.35rem' }}>{rn(g.rashi)} {Math.floor(g.degree)}°</td>
+                            <td style={{ padding: '0.4rem 0.35rem', color: 'var(--text-muted)' }}>{hi ? NAKSHATRA_HI[g.nakshatraIndex] ?? g.nakshatraName : g.nakshatraName.slice(0, 7)}</td>
                             <td style={{ padding: '0.4rem 0.35rem' }}>
-                              <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: 3, background: 'var(--surface-3)', color: dignityColor, fontWeight: 600 }}>{g.dignity}</span>
+                              <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: 3, background: 'var(--surface-3)', color: dignityColor, fontWeight: 600 }}>{hi ? dignityText(g.dignity, 'hi') : g.dignity}</span>
                             </td>
                             <td style={{ padding: '0.4rem 0.35rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-muted)' }}>H{h}</td>
                             <td style={{ padding: '0.4rem 0.35rem', fontSize: '0.62rem' }}>
                               {g.isRetro && <span style={{ color: 'var(--rose)', marginRight: 3 }}>℞</span>}
-                              {g.isCombust && <span style={{ color: 'var(--amber)' }}>☀Cmb</span>}
+                              {g.isCombust && <span style={{ color: 'var(--amber)' }}>☀{t('page.combust')}</span>}
                             </td>
                           </tr>
                         )
@@ -1038,10 +1044,10 @@ export default function PrashnaPage() {
 
               {/* Nakshatra Dial */}
               <div className="card" style={{ padding: '0.75rem' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem', textAlign: 'center' }}>🌙 Nakshatra Chakra</div>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem', textAlign: 'center' }}>🌙 {t('page.nakDial')}</div>
                 <NakshatraDial moonNakIdx={chart.panchang.nakshatra.index} moonDeg={chart.grahas.find(g=>g.id==='Mo')?.totalDegree ?? 0} />
                 <div style={{ textAlign: 'center', marginTop: '0.35rem', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  Moon in <strong style={{ color: 'var(--gold)' }}>{chart.panchang.nakshatra.name}</strong> · pada {chart.panchang.nakshatra.pada}
+                  {u.rich('moonIn', { ...goldTag, nak: hi ? NAKSHATRA_HI[chart.panchang.nakshatra.index] ?? chart.panchang.nakshatra.name : chart.panchang.nakshatra.name, pada: chart.panchang.nakshatra.pada })}
                 </div>
               </div>
             </div>
@@ -1061,7 +1067,7 @@ export default function PrashnaPage() {
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '0.6rem', color: verdictColor, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-                              ◆ Krishneeyam Oracle · {CATEGORY_ICONS[category]} {t(`category.${category}`)}
+                              {u('oracle', { cat: `${CATEGORY_ICONS[category]} ${t(`category.${category}`)}` })}
                             </div>
                             <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.6rem', margin: '0 0 0.25rem', color: verdictColor, fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
                               {r.headline}
@@ -1070,7 +1076,7 @@ export default function PrashnaPage() {
                           </div>
                           <div style={{ textAlign: 'center', flexShrink: 0 }}>
                             <div style={{ fontSize: '2.5rem', fontWeight: 900, color: verdictColor, lineHeight: 1, fontFamily: 'var(--font-display)' }}>{r.verdict}</div>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 2 }}>Verdict</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 2 }}>{t('page.verdict')}</div>
                           </div>
                         </div>
 
@@ -1079,7 +1085,7 @@ export default function PrashnaPage() {
                           <div style={{ flex: 1, height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${r.confidence}%`, background: `linear-gradient(90deg, ${verdictColor}80, ${verdictColor})`, borderRadius: 4, transition: 'width 0.6s ease' }} />
                           </div>
-                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: verdictColor, flexShrink: 0 }}>{r.confidence}% confidence</span>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: verdictColor, flexShrink: 0 }}>{t('page.confidence', { n: r.confidence })}</span>
                         </div>
 
                         {/* Rashmi Score */}
@@ -1087,64 +1093,63 @@ export default function PrashnaPage() {
                           <div style={{ flex: 1, height: 5, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${Math.min(100, r.rashmiScore / 25)}%`, background: 'linear-gradient(90deg, var(--amber)60, var(--amber))', borderRadius: 4 }} />
                           </div>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--amber)', flexShrink: 0 }}>⚡ {r.rashmiScore} Rashmi</span>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--amber)', flexShrink: 0 }}>{u('rashmi', { n: r.rashmiScore })}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* House reference banner */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reading</span>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('page.reading')}</span>
                       <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--gold)' }}>{r.houseReference.label}</span>
                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>·</span>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                        Udaya {RASHI_NAMES[chart.lagnas.ascRashi]}
-                        {arudhaLagnaRashi ? ` · AL ${RASHI_NAMES[arudhaLagnaRashi]}` : ''}
-                        {resolvedAroodhaRashi ? ` · Sparsha ${RASHI_NAMES[resolvedAroodhaRashi]}` : ''}
+                        {u('udayaShort', { sign: rn(chart.lagnas.ascRashi) })}
+                        {arudhaLagnaRashi ? u('alShort', { sign: rn(arudhaLagnaRashi) }) : ''}
+                        {resolvedAroodhaRashi ? u('sparshaShort', { sign: rn(resolvedAroodhaRashi) }) : ''}
                       </span>
                     </div>
 
                     {/* ═ CORE INDICATORS GRID ══════════════════════════════ */}
-                    <SectionCard title={`Core Astrological Indicators · ${r.houseReference.type === 'arudha' ? 'Arudha Lagna' : 'Udaya Lagna'}`} icon="🔭" accent="var(--teal)">
+                    <SectionCard title={u('coreTitle', { ref: r.houseReference.type === 'arudha' ? t('page.arudha') : t('page.udaya') })} icon="🔭" accent="var(--teal)">
                       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0 0 0.5rem', lineHeight: 1.45 }}>
-                        Computed from <strong style={{ color: 'var(--gold)' }}>{RASHI_NAMES[r.coreLagnaRashi]}</strong>
-                        {r.houseReference.type === 'arudha' ? ' (AL)' : ' (rising)'} — switches when you change house reference above.
+                        {u.rich('computedFrom', { ...goldTag, sign: rn(r.coreLagnaRashi), suffix: r.houseReference.type === 'arudha' ? u('alSuffix') : u('risingSuffix') })}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                        <Chip label="Ascendant Type" value={r.ascendantType} color={r.ascendantTypeResult === 'good' ? 'var(--teal)' : r.ascendantTypeResult === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
-                        <Chip label="Sign Mukha" value={r.signType} color={r.signTypeResult === 'good' ? 'var(--teal)' : r.signTypeResult === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
+                        <Chip label={u('ascType')} value={r.ascendantType} color={r.ascendantTypeResult === 'good' ? 'var(--teal)' : r.ascendantTypeResult === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
+                        <Chip label={u('signMukha')} value={r.signType} color={r.signTypeResult === 'good' ? 'var(--teal)' : r.signTypeResult === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
                         <Chip label={r.aroodhaRelationLabel} value={r.aroodhaUdayaRelation.split(' — ')[0]} color={r.aroodhaUdayaResult === 'good' ? 'var(--teal)' : 'var(--rose)'} />
-                        <Chip label="Chathra Rasi" value={`${RASHI_NAMES[r.chhatraRashi]} ${r.chhatraIsObstacle ? '⚠ Obstacle' : '✅ Favorable'}`} color={r.chhatraIsObstacle ? 'var(--rose)' : 'var(--teal)'} />
+                        <Chip label={u('chathra')} value={`${rn(r.chhatraRashi)} ${r.chhatraIsObstacle ? u('obstacleTag') : u('favorableTag')}`} color={r.chhatraIsObstacle ? 'var(--rose)' : 'var(--teal)'} />
                       </div>
-                      <IndicatorRow label="Ascendant" value={r.ascendantType} ok={r.ascendantTypeResult === 'good'} />
-                      <IndicatorRow label="Sign Mukha" value={r.signType} ok={r.signTypeResult === 'good'} />
+                      <IndicatorRow label={u('ascendant')} value={r.ascendantType} ok={r.ascendantTypeResult === 'good'} />
+                      <IndicatorRow label={u('signMukha')} value={r.signType} ok={r.signTypeResult === 'good'} />
                       <IndicatorRow label={r.aroodhaRelationLabel} value={r.aroodhaUdayaRelation} ok={r.aroodhaUdayaResult === 'good'} />
-                      <IndicatorRow label="Chathra Rasi" value={`${RASHI_NAMES[r.chhatraRashi]} — ${r.chhatraIsObstacle ? `Obstacle (6/8/12 from ${r.houseReference.type === 'arudha' ? 'AL' : 'Udaya'})` : 'Favorable'}`} ok={!r.chhatraIsObstacle} />
-                      <IndicatorRow label="Udaya Lagna" value={RASHI_NAMES[chart.lagnas.ascRashi]} ok={null} />
+                      <IndicatorRow label={u('chathra')} value={`${rn(r.chhatraRashi)} — ${r.chhatraIsObstacle ? u('obstacleFrom', { ref: r.houseReference.type === 'arudha' ? 'AL' : u('udaya') }) : u('favorable')}`} ok={!r.chhatraIsObstacle} />
+                      <IndicatorRow label={t('page.udayaLagna')} value={rn(chart.lagnas.ascRashi)} ok={null} />
                       {arudhaLagnaRashi && (
-                        <IndicatorRow label="Arudha Lagna (AL)" value={RASHI_NAMES[arudhaLagnaRashi]} ok={null} />
+                        <IndicatorRow label={`${t('page.arudhaLagna')} (AL)`} value={rn(arudhaLagnaRashi)} ok={null} />
                       )}
                       {resolvedAroodhaRashi && (
-                        <IndicatorRow label="Aroodha (Sparsha)" value={RASHI_NAMES[resolvedAroodhaRashi]} ok={null} />
+                        <IndicatorRow label={t('page.aroodhaSparsha')} value={rn(resolvedAroodhaRashi)} ok={null} />
                       )}
                       {r.bodyTouchResult && (
                         <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', color: 'var(--gold)' }}>
-                          ✋ <strong>Mushti Prashna (Body Touch):</strong> {r.bodyTouchResult}
+                          ✋ <strong>{t('page.mushti')}</strong> {r.bodyTouchResult}
                         </div>
                       )}
                       {r.planetInAscendantEffect && (
                         <div style={{ marginTop: '0.4rem', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                          🪐 <strong>Planet in Ascendant:</strong> {r.planetInAscendantEffect}
+                          🪐 <strong>{t('page.planetInAsc')}</strong> {r.planetInAscendantEffect}
                         </div>
                       )}
                     </SectionCard>
 
                     {/* Planet houses from selected reference */}
-                    <SectionCard title={`Planetary Houses (${r.houseReference.type === 'arudha' ? 'from AL' : 'from Udaya'})`} icon="🏠" accent="var(--gold)">
+                    <SectionCard title={u('housesFrom', { ref: r.houseReference.type === 'arudha' ? u('fromAl') : u('fromUdaya') })} icon="🏠" accent="var(--gold)">
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.3rem', fontSize: '0.68rem' }}>
                         {r.planetHousesFromReference.map(ph => (
                           <div key={ph.id} style={{ padding: '0.3rem 0.45rem', background: 'var(--surface-2)', borderRadius: 5, display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{ph.name}</span>
+                            <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{hi ? GRAHA_HI[ph.id as keyof typeof GRAHA_HI] ?? ph.name : ph.name}</span>
                             <span style={{ color: 'var(--text-muted)' }}>H{ph.house}</span>
                           </div>
                         ))}
@@ -1154,30 +1159,30 @@ export default function PrashnaPage() {
                     {/* ═ DREKKANA + ELEMENTS 2-col ══════════════════════════ */}
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
                       {/* Drekkana */}
-                      <SectionCard title="Drekkana Analysis" icon="🔺" accent="var(--teal)">
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Krishneeyam system (differs from Parashara)</div>
-                        <div style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Lord: {r.drekkanaAnalysis.lord.split(' [')[0]}</div>
+                      <SectionCard title={u('drekkana')} icon="🔺" accent="var(--teal)">
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>{t('page.krishneeyamNote')}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{u('lord', { lord: r.drekkanaAnalysis.lord.split(' [')[0] ?? '' })}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.72rem' }}>
-                          <div>Body Part: <strong style={{ color: 'var(--accent)' }}>{r.drekkanaAnalysis.bodyPart}</strong></div>
-                          <div style={{ color: 'var(--text-muted)' }}>Right: {r.drekkanaAnalysis.rightSide}</div>
-                          <div style={{ color: 'var(--text-muted)' }}>Left: {r.drekkanaAnalysis.leftSide}</div>
-                          <div style={{ color: 'var(--text-muted)' }}>7th sign: {r.drekkanaAnalysis.seventhSign}</div>
+                          <div>{t('page.bodyPart')} <strong style={{ color: 'var(--accent)' }}>{r.drekkanaAnalysis.bodyPart}</strong></div>
+                          <div style={{ color: 'var(--text-muted)' }}>{u('right', { v: r.drekkanaAnalysis.rightSide })}</div>
+                          <div style={{ color: 'var(--text-muted)' }}>{u('left', { v: r.drekkanaAnalysis.leftSide })}</div>
+                          <div style={{ color: 'var(--text-muted)' }}>{u('seventh', { v: r.drekkanaAnalysis.seventhSign })}</div>
                         </div>
                       </SectionCard>
 
                       {/* Five Elements + Height + Place */}
-                      <SectionCard title="Element & Location" icon="🌍" accent="var(--amber)">
+                      <SectionCard title={u('element')} icon="🌍" accent="var(--amber)">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.73rem' }}>
                           <div style={{ padding: '0.3rem 0.5rem', background: 'var(--surface-2)', borderRadius: 5 }}>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>FIVE ELEMENT [CH3:17]</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>{t('page.fiveElement')}</span>
                             <div style={{ color: 'var(--accent)', fontWeight: 600 }}>{r.subjectElement}</div>
                           </div>
                           <div style={{ padding: '0.3rem 0.5rem', background: 'var(--surface-2)', borderRadius: 5 }}>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>SIGN HEIGHT [CH1:19]</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>{t('page.signHeight')}</span>
                             <div style={{ color: 'var(--gold)', fontWeight: 600 }}>{r.signHeight}</div>
                           </div>
                           <div style={{ padding: '0.3rem 0.5rem', background: 'var(--surface-2)', borderRadius: 5 }}>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>LOCATION [CH5:3]</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>{t('page.locationCh')}</span>
                             <div style={{ color: 'var(--teal)', fontWeight: 600 }}>{r.signPlace}</div>
                           </div>
                         </div>
@@ -1185,19 +1190,19 @@ export default function PrashnaPage() {
                     </div>
 
                     {/* ═ TIMING ══════════════════════════════════════════════ */}
-                    <SectionCard title="Timing of Fructification" icon="⏰" accent="var(--amber)">
+                    <SectionCard title={u('timingTitle')} icon="⏰" accent="var(--amber)">
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', marginBottom: '0.5rem' }}>
                         <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
-                          <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Earliest</div>
+                          <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('page.earliest')}</div>
                           <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--teal)' }}>{r.timing.rangeMin}</div>
                         </div>
                         <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
-                          <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Significator</div>
+                          <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('page.significator')}</div>
                           <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--gold)' }}>{r.timing.significatorPlanet}</div>
-                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>planet</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{t('page.planet')}</div>
                         </div>
                         <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
-                          <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Latest</div>
+                          <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('page.latest')}</div>
                           <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--rose)' }}>{r.timing.rangeMax}</div>
                         </div>
                       </div>
@@ -1205,40 +1210,40 @@ export default function PrashnaPage() {
                     </SectionCard>
 
                     {/* ═ QUERIST PROFILE + MOON YOGA + PAST/PRESENT/FUTURE ══ */}
-                    <Collapsible id="querist" title="Querist Profile & Context" icon="👤" accent="var(--rose)">
+                    <Collapsible id="querist" title={u('querist')} icon="👤" accent="var(--rose)">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                         {/* Guna */}
                         <div style={{ padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 7, fontSize: '0.73rem' }}>
-                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Guna</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>{t('page.guna')}</div>
                           <div style={{ color: 'var(--gold)', fontWeight: 600 }}>{r.queristGuna}</div>
                         </div>
                         {/* Physical Features */}
                         <div style={{ padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 7, fontSize: '0.72rem' }}>
-                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Physical Features</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>{t('page.features')}</div>
                           <div style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.planetPhysicalFeatures}</div>
                         </div>
                         {/* Moon Yoga */}
                         <div style={{ padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 7, fontSize: '0.73rem', borderLeft: `3px solid ${r.moonYoga.result.includes('⚠') ? 'var(--rose)' : 'var(--teal)'}` }}>
-                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Moon Yoga</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>{t('page.moonYoga')}</div>
                           <div style={{ fontWeight: 700, color: r.moonYoga.result.includes('⚠') ? 'var(--rose)' : 'var(--teal)', marginBottom: 2 }}>{r.moonYoga.name}</div>
                           <div style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.moonYoga.result}</div>
                         </div>
                         {/* Past/Present/Future */}
                         <div style={{ padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 7 }}>
                           <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
-                            Past · Present · Future <span style={{ color: 'var(--gold)' }}>(from {r.houseReference.type === 'arudha' ? 'AL' : 'Udaya'})</span>
+                            {u('ppf')} <span style={{ color: 'var(--gold)' }}>{u('ppfFrom', { ref: r.houseReference.type === 'arudha' ? 'AL' : u('udaya') })}</span>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.3rem', fontSize: '0.68rem' }}>
                             <div style={{ padding: '0.35rem', background: 'var(--surface-3)', borderRadius: 5, textAlign: 'center' }}>
-                              <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>PAST (H9-12)</div>
+                              <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>{t('page.past')}</div>
                               <div style={{ color: 'var(--rose)', fontWeight: 600 }}>{r.pastPresentFuture.past.join(', ') || '—'}</div>
                             </div>
                             <div style={{ padding: '0.35rem', background: 'var(--surface-3)', borderRadius: 5, textAlign: 'center' }}>
-                              <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>NOW (H1-4)</div>
+                              <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>{t('page.now')}</div>
                               <div style={{ color: 'var(--teal)', fontWeight: 600 }}>{r.pastPresentFuture.present.join(', ') || '—'}</div>
                             </div>
                             <div style={{ padding: '0.35rem', background: 'var(--surface-3)', borderRadius: 5, textAlign: 'center' }}>
-                              <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>FUTURE (H5-8)</div>
+                              <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>{t('page.future')}</div>
                               <div style={{ color: 'var(--gold)', fontWeight: 600 }}>{r.pastPresentFuture.future.join(', ') || '—'}</div>
                             </div>
                           </div>
@@ -1246,7 +1251,7 @@ export default function PrashnaPage() {
                         {/* Querist Facts (Ch12) */}
                         {r.queristFeatures.length > 0 && (
                           <div style={{ padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 7 }}>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Querist Facts — Vishwasa Jananam</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>{t('page.queristFacts')}</div>
                             <BulletList items={r.queristFeatures} />
                           </div>
                         )}
@@ -1254,38 +1259,38 @@ export default function PrashnaPage() {
                     </Collapsible>
 
                     {/* ═ MATERIAL ANALYSIS (Ch9) + DMJ ═══════════════════════ */}
-                    <Collapsible id="material" title="Material, Ornament & Flower Analysis" icon="⚗️" accent="var(--teal)">
+                    <Collapsible id="material" title={u('material')} icon="⚗️" accent="var(--teal)">
                       {r.subjectMaterialDetail ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.73rem' }}>
-                          {r.subjectMaterialDetail.split('. ').map((seg, i) => seg.trim() && (
+                          {r.subjectMaterialDetail.split(/(?<=[.।])\s/).map((seg, i) => seg.trim() && (
                             <div key={i} style={{ padding: '0.35rem 0.55rem', background: 'var(--surface-2)', borderRadius: 5, color: 'var(--text-secondary)' }}>{seg}</div>
                           ))}
                         </div>
                       ) : (
-                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>Select &quot;What&quot; or &quot;Lost Article&quot; or &quot;Who&quot; category for detailed material analysis</div>
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>{t('page.selectWhat')}</div>
                       )}
                       {/* DMJ dry/wet */}
                       <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', color: 'var(--teal)' }}>
-                        💧 <strong>Dry / Wet:</strong> {r.dryWetAnalysis}
+                        💧 <strong>{t('page.dryWet')}</strong> {r.dryWetAnalysis}
                       </div>
                     </Collapsible>
 
                     {/* ═ THIEF / THEFT ANALYSIS ═══════════════════════════════ */}
                     {(category === 'who' || category === 'lost_article') && (
-                      <SectionCard title="Theft & Lost Article Analysis" icon="🕵️" accent="var(--rose)">
+                      <SectionCard title={u('theft')} icon="🕵️" accent="var(--rose)">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           {/* Thief Entry */}
                           <div style={{ padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', borderLeft: '3px solid var(--rose)' }}>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: 2 }}>HOW THIEF ENTERED [CH3:2]</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: 2 }}>{t('page.thiefEntry')}</div>
                             <div style={{ color: 'var(--text-secondary)' }}>{r.thiefEntry}</div>
                           </div>
                           {/* Thief profile */}
                           {r.thief && (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.3rem' }}>
                               {[
-                                { k: 'Gender', v: r.thief.gender }, { k: 'Caste', v: r.thief.caste },
-                                { k: 'Relation', v: r.thief.relation }, { k: 'Posture', v: r.thief.posture },
-                                { k: 'Color', v: r.thief.color }, { k: 'Location Dir.', v: r.thief.location },
+                                { k: u('thief.gender'), v: r.thief.gender }, { k: u('thief.caste'), v: r.thief.caste },
+                                { k: u('thief.relation'), v: r.thief.relation }, { k: u('thief.posture'), v: r.thief.posture },
+                                { k: u('thief.color'), v: r.thief.color }, { k: u('thief.location'), v: r.thief.location },
                               ].map(({ k, v }) => (
                                 <div key={k} style={{ padding: '0.3rem 0.5rem', background: 'var(--surface-2)', borderRadius: 5, fontSize: '0.7rem' }}>
                                   <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)' }}>{k}</div>
@@ -1296,19 +1301,19 @@ export default function PrashnaPage() {
                           )}
                           {r.thief?.nameLetters && (
                             <div style={{ padding: '0.4rem 0.6rem', background: 'var(--gold-faint)', borderRadius: 6, border: '1px solid var(--gold-dim)', fontSize: '0.72rem' }}>
-                              <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: 2 }}>NAME LETTERS [CH30]</div>
+                              <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: 2 }}>{t('page.nameLetters')}</div>
                               <div style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem' }}>{r.thief.nameLetters}</div>
                               <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{r.thief.nameLetterExplanation}</div>
                             </div>
                           )}
                           {r.thief?.features && (
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6 }}>
-                              <strong style={{ color: 'var(--text-gold)' }}>Physical appearance:</strong> {r.thief.features}
+                              <strong style={{ color: 'var(--text-gold)' }}>{t('page.appearance')}</strong> {r.thief.features}
                             </div>
                           )}
                           {r.subjectNature && (
                             <div style={{ fontSize: '0.72rem', color: 'var(--teal)', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6 }}>
-                              <strong>Recovery:</strong> {r.subjectNature}
+                              <strong>{t('page.recovery')}</strong> {r.subjectNature}
                             </div>
                           )}
                         </div>
@@ -1317,19 +1322,19 @@ export default function PrashnaPage() {
 
                     {/* ═ HEALTH ANALYSIS [Ch13] ══════════════════════════════ */}
                     {category === 'health' && r.health && (
-                      <SectionCard title="Health & Disease Analysis" icon="🏥" accent="var(--amber)">
+                      <SectionCard title={u('healthTitle')} icon="🏥" accent="var(--amber)">
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                          <Chip label="Dosha" value={r.health.dosha} color="var(--amber)" />
-                          <Chip label="Curability" value={r.health.curability} color={r.health.curability.toLowerCase().includes('curable') ? 'var(--teal)' : 'var(--rose)'} />
+                          <Chip label={u('dosha')} value={r.health.dosha} color="var(--amber)" />
+                          <Chip label={u('curability')} value={r.health.curability} color={r.health.curable ? 'var(--teal)' : 'var(--rose)'} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.72rem' }}>
-                          <IndicatorRow label="Body System" value={r.health.bodySystem} ok={null} />
-                          <IndicatorRow label="Day of onset" value={r.health.dayOfStart} ok={null} />
-                          <IndicatorRow label="Place to take care (traditional)" value={r.health.placeOfDeath} ok={null} />
-                          <IndicatorRow label="Risk theme (traditional)" value={r.health.causeOfDeath} ok={null} />
-                          <IndicatorRow label="Spiritual direction (traditional)" value={r.health.rebirthNature} ok={null} />
+                          <IndicatorRow label={u('bodySystem')} value={r.health.bodySystem} ok={null} />
+                          <IndicatorRow label={u('onset')} value={r.health.dayOfStart} ok={null} />
+                          <IndicatorRow label={u('carePlace')} value={r.health.placeOfDeath} ok={null} />
+                          <IndicatorRow label={u('riskTheme')} value={r.health.causeOfDeath} ok={null} />
+                          <IndicatorRow label={u('spiritualDir')} value={r.health.rebirthNature} ok={null} />
                         </div>
-                        {r.health.deathSymptoms && r.health.deathSymptoms.includes('Extra care') && (
+                        {r.health.deathSymptoms && r.health.extraCare && (
                           <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--rose)12', borderRadius: 6, border: '1px solid var(--rose)', fontSize: '0.73rem', color: 'var(--rose)' }}>
                             ⚠️ {r.health.deathSymptoms}
                           </div>
@@ -1339,13 +1344,13 @@ export default function PrashnaPage() {
 
                     {/* ═ HOUSE QUERY [Ch15] ══════════════════════════════════ */}
                     {category === 'house_query' && r.houseQuery && (
-                      <SectionCard title="House Query Analysis" icon="🏠" accent="var(--teal)">
+                      <SectionCard title={u('houseQuery')} icon="🏠" accent="var(--teal)">
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem' }}>
                           {[
-                            { k: 'House Type', v: r.houseQuery.houseType },
-                            { k: 'Direction', v: r.houseQuery.direction },
-                            { k: 'Shape', v: r.houseQuery.shape },
-                            { k: 'Ownership', v: r.houseQuery.ownership },
+                            { k: u('hq.type'), v: r.houseQuery.houseType },
+                            { k: u('hq.direction'), v: r.houseQuery.direction },
+                            { k: u('hq.shape'), v: r.houseQuery.shape },
+                            { k: u('hq.ownership'), v: r.houseQuery.ownership },
                           ].map(({ k, v }) => <Chip key={k} label={k} value={v} />)}
                         </div>
                         <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: r.houseQuery.hasTreasure.startsWith('YES') ? 'var(--gold-faint)' : 'var(--surface-2)', borderRadius: 6, border: `1px solid ${r.houseQuery.hasTreasure.startsWith('YES') ? 'var(--gold-dim)' : 'var(--border-soft)'}`, fontWeight: 700, color: r.houseQuery.hasTreasure.startsWith('YES') ? 'var(--gold)' : 'var(--text-muted)', fontSize: '0.78rem', textAlign: 'center' }}>
@@ -1356,49 +1361,49 @@ export default function PrashnaPage() {
 
                     {/* ═ SPIRIT / BAADHA [Ch19] ══════════════════════════════ */}
                     {category === 'spirit' && r.spirit && (
-                      <SectionCard title="Baadha / Spirit Analysis" icon="👁️" accent="var(--rose)">
+                      <SectionCard title={u('spiritTitle')} icon="👁️" accent="var(--rose)">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                          <Chip label="Spirit Type" value={r.spirit.type} color="var(--rose)" />
-                          <Chip label="Deity" value={r.spirit.deity} color="var(--gold)" />
+                          <Chip label={u('spiritType')} value={r.spirit.type} color="var(--rose)" />
+                          <Chip label={u('deity')} value={r.spirit.deity} color="var(--gold)" />
                         </div>
                         <div style={{ padding: '0.5rem 0.75rem', background: 'var(--teal)12', borderRadius: 6, border: '1px solid var(--teal)', fontSize: '0.73rem', color: 'var(--teal)' }}>
-                          🙏 <strong>Remedy:</strong> {r.spirit.remedy}
+                          🙏 <strong>{t('page.remedy')}</strong> {r.spirit.remedy}
                         </div>
                       </SectionCard>
                     )}
 
                     {/* ═ MARRIAGE / INTERCOURSE [Ch18] ══════════════════════ */}
                     {(category === 'marriage' || category === 'intercourse') && r.relationship && (
-                      <SectionCard title="Relationship Analysis" icon="💍" accent="var(--gold)">
+                      <SectionCard title={u('relTitle')} icon="💍" accent="var(--gold)">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem' }}>
-                          <Chip label="Quality" value={r.relationship.quality} color="var(--teal)" />
-                          <Chip label="Partner" value={r.relationship.partner} />
-                          <Chip label="Nature" value={r.relationship.nature} />
+                          <Chip label={u('quality')} value={r.relationship.quality} color="var(--teal)" />
+                          <Chip label={u('partner')} value={r.relationship.partner} />
+                          <Chip label={u('nature')} value={r.relationship.nature} />
                         </div>
                       </SectionCard>
                     )}
 
                     {/* ═ FOOD [Ch16-17] ══════════════════════════════════════ */}
                     {category === 'food' && r.food && (
-                      <SectionCard title="Food Query" icon="🍽️" accent="var(--amber)">
+                      <SectionCard title={u('foodTitle')} icon="🍽️" accent="var(--amber)">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem' }}>
-                          <Chip label="Quality" value={r.food.quality} color={r.food.quality.toLowerCase().includes('good') ? 'var(--teal)' : 'var(--rose)'} />
-                          <Chip label="Type" value={r.food.type} />
-                          <Chip label="Taste" value={r.food.taste} />
+                          <Chip label={u('quality')} value={r.food.quality} color={r.food.good ? 'var(--teal)' : 'var(--rose)'} />
+                          <Chip label={u('type')} value={r.food.type} />
+                          <Chip label={u('taste')} value={r.food.taste} />
                         </div>
                       </SectionCard>
                     )}
 
                     {/* ═ PREGNANCY [Ch21] ════════════════════════════════════ */}
                     {category === 'pregnancy' && (
-                      <SectionCard title="Pregnancy / Child" icon="👶" accent="var(--rose)">
+                      <SectionCard title={u('pregTitle')} icon="👶" accent="var(--rose)">
                         <BulletList items={r.details.filter(d => d.toLowerCase().includes('ch21') || d.toLowerCase().includes('ketu') || d.toLowerCase().includes('pregnan') || d.toLowerCase().includes('child'))} />
                       </SectionCard>
                     )}
 
                     {/* ═ TRAVEL [Ch14] ═══════════════════════════════════════ */}
                     {category === 'travel' && (
-                      <SectionCard title="Travel / Return" icon="✈️" accent="var(--teal)">
+                      <SectionCard title={u('travelTitle')} icon="✈️" accent="var(--teal)">
                         <BulletList items={r.details.filter(d => d.toLowerCase().includes('ch14') || d.toLowerCase().includes('travel') || d.toLowerCase().includes('return') || d.toLowerCase().includes('mode'))} />
                       </SectionCard>
                     )}
@@ -1406,12 +1411,12 @@ export default function PrashnaPage() {
                     {/* ═ NAVAMSA + TRIMSAMSHA ══════════════════════════════════ */}
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
                       {r.navamsaSignification && (
-                        <SectionCard title="Navamsa" icon="🔬" accent="var(--gold)">
+                        <SectionCard title={u('navamsa')} icon="🔬" accent="var(--gold)">
                           <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{r.navamsaSignification}</div>
                         </SectionCard>
                       )}
                       {r.trimsamshaTopics.length > 0 && (
-                        <SectionCard title="Trimsamsha Topics" icon="📐" accent="var(--amber)">
+                        <SectionCard title={u('trimsamsha')} icon="📐" accent="var(--amber)">
                           <BulletList items={r.trimsamshaTopics} />
                         </SectionCard>
                       )}
@@ -1419,52 +1424,52 @@ export default function PrashnaPage() {
 
                     {/* ═ ANIMAL QUERY [Ch11] ═════════════════════════════════ */}
                     {r.animalQuery && (
-                      <SectionCard title="Animal Query" icon="🐾" accent="var(--amber)">
+                      <SectionCard title={u('animal')} icon="🐾" accent="var(--amber)">
                         <div style={{ fontSize: '0.8rem', color: 'var(--gold)', fontWeight: 600 }}>{r.animalQuery}</div>
                       </SectionCard>
                     )}
 
                     {/* ═ LAWSUIT ANALYSIS ════════════════════════════════════ */}
                     {category === 'lawsuit' && r.lawsuit && (
-                      <SectionCard title="Legal Dispute Analysis" icon="⚖️" accent="var(--rose)">
+                      <SectionCard title={u('legal')} icon="⚖️" accent="var(--rose)">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                          <Chip label="Your Strength" value={r.lawsuit.queristStrength} color={r.lawsuit.queristStrength === 'Strong' ? 'var(--teal)' : r.lawsuit.queristStrength === 'Weak' ? 'var(--rose)' : 'var(--amber)'} />
-                          <Chip label="Opponent Strength" value={r.lawsuit.opponentStrength} color={r.lawsuit.opponentStrength === 'Strong' ? 'var(--rose)' : r.lawsuit.opponentStrength === 'Weak' ? 'var(--teal)' : 'var(--amber)'} />
+                          <Chip label={u('yourStrength')} value={r.lawsuit.queristStrength} color={r.lawsuit.queristLevel === 'Strong' ? 'var(--teal)' : r.lawsuit.queristLevel === 'Weak' ? 'var(--rose)' : 'var(--amber)'} />
+                          <Chip label={u('oppStrength')} value={r.lawsuit.opponentStrength} color={r.lawsuit.opponentLevel === 'Strong' ? 'var(--rose)' : r.lawsuit.opponentLevel === 'Weak' ? 'var(--teal)' : 'var(--amber)'} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.73rem' }}>
                           <div style={{ padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6 }}>
-                            <strong style={{ color: 'var(--gold)' }}>Outcome:</strong> {r.lawsuit.outcome}
+                            <strong style={{ color: 'var(--gold)' }}>{t('page.outcome')}</strong> {r.lawsuit.outcome}
                           </div>
-                          <IndicatorRow label="Timeline" value={r.lawsuit.timing} ok={null} />
-                          <IndicatorRow label="Key Planet" value={r.lawsuit.keyPlanet} ok={null} />
+                          <IndicatorRow label={u('timeline')} value={r.lawsuit.timing} ok={null} />
+                          <IndicatorRow label={u('keyPlanet')} value={r.lawsuit.keyPlanet} ok={null} />
                         </div>
                       </SectionCard>
                     )}
 
                     {/* ═ EXAM / ELECTION ANALYSIS ════════════════════════════ */}
                     {category === 'exam' && r.exam && (
-                      <SectionCard title="Exam / Competition Analysis" icon="🎓" accent="var(--teal)">
+                      <SectionCard title={u('exam')} icon="🎓" accent="var(--teal)">
                         <div style={{ padding: '0.5rem 0.75rem', background: r.exam.success.includes('Excellent') ? 'var(--teal)12' : r.exam.success.includes('Good') ? 'var(--gold-faint)' : 'var(--rose)12', borderRadius: 7, border: `1px solid ${r.exam.success.includes('Excellent') ? 'var(--teal)' : r.exam.success.includes('Good') ? 'var(--gold-dim)' : 'var(--rose)'}`, marginBottom: '0.5rem', fontWeight: 600, color: r.exam.success.includes('Excellent') ? 'var(--teal)' : r.exam.success.includes('Good') ? 'var(--gold)' : 'var(--rose)', fontSize: '0.8rem' }}>
                           🎯 {r.exam.success}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.73rem' }}>
-                          <IndicatorRow label="Subject strength" value={r.exam.subject} ok={null} />
-                          <IndicatorRow label="Key strength" value={r.exam.keyStrength} ok={null} />
-                          <IndicatorRow label="Watch out" value={r.exam.weakness} ok={null} />
-                          <IndicatorRow label="Best timing" value={r.exam.timing} ok={null} />
+                          <IndicatorRow label={u('subjectStrength')} value={r.exam.subject} ok={null} />
+                          <IndicatorRow label={u('keyStrength')} value={r.exam.keyStrength} ok={null} />
+                          <IndicatorRow label={u('watchOut')} value={r.exam.weakness} ok={null} />
+                          <IndicatorRow label={u('bestTiming')} value={r.exam.timing} ok={null} />
                         </div>
                       </SectionCard>
                     )}
 
                     {/* ═ RAHU IN ASCENDANT ════════════════════════════════════ */}
                     {r.rahuInAscendant && (
-                      <SectionCard title="Rahu in Ascendant" icon="🐉" accent="var(--rose)">
+                      <SectionCard title={u('rahuAsc')} icon="🐉" accent="var(--rose)">
                         <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{r.rahuInAscendant}</div>
                       </SectionCard>
                     )}
 
                     {/* ═ SCORECARD ════════════════════════════════════════════ */}
-                    <Collapsible id="scorecard" title={`Score Breakdown (${r.scorecard.filter(s=>s.result==='good').length}✅ / ${r.scorecard.filter(s=>s.result==='bad').length}❌ of ${r.scorecard.filter(s=>s.weight>0).length} checks)`} icon="📊" accent="var(--teal)">
+                    <Collapsible id="scorecard" title={u('scorecard', { good: r.scorecard.filter(s => s.result === 'good').length, bad: r.scorecard.filter(s => s.result === 'bad').length, n: r.scorecard.filter(s => s.weight > 0).length })} icon="📊" accent="var(--teal)">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         {r.scorecard.filter(s => s.weight > 0).map((item, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', background: 'var(--surface-2)', borderRadius: 6, border: `1px solid ${item.result === 'good' ? 'var(--teal)30' : item.result === 'bad' ? 'var(--rose)30' : 'var(--border-soft)'}` }}>
@@ -1480,13 +1485,13 @@ export default function PrashnaPage() {
 
                     {/* ═ TIME STRENGTH NOTES ═══════════════════════════════════ */}
                     {r.timeStrengthNotes.length > 0 && (
-                      <Collapsible id="timestrength" title="Planetary Time Strength" icon="⏱" accent="var(--amber)">
+                      <Collapsible id="timestrength" title={u('timeStrength')} icon="⏱" accent="var(--amber)">
                         <BulletList items={r.timeStrengthNotes} />
                       </Collapsible>
                     )}
 
                     {/* ═ RULES APPLIED ═══════════════════════════════════════ */}
-                    <Collapsible id="rules" title={`Rules Applied (${r.rules.length} Krishneeyam rules)`} icon="📜" accent="var(--teal)">
+                    <Collapsible id="rules" title={u('rulesApplied', { n: r.rules.length })} icon="📜" accent="var(--teal)">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                         {r.rules.map((rule, i) => (
                           <div key={i} style={{ display: 'flex', gap: '0.4rem', fontSize: '0.7rem', lineHeight: 1.5, padding: '0.3rem 0', borderBottom: '1px solid var(--border-soft)' }}>
@@ -1498,7 +1503,7 @@ export default function PrashnaPage() {
                     </Collapsible>
 
                     {/* ═ DETAILED NOTES ══════════════════════════════════════ */}
-                    <Collapsible id="details" title={`Engine Details (${r.details.length} notes)`} icon="🔬" accent="var(--text-muted)">
+                    <Collapsible id="details" title={u('engineDetails', { n: r.details.length })} icon="🔬" accent="var(--text-muted)">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         {r.details.map((d, i) => (
                           <p key={i} style={{ margin: 0, fontSize: '0.68rem', lineHeight: 1.6, borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.25rem', color: 'var(--text-muted)' }}>• {d}</p>
@@ -1508,7 +1513,7 @@ export default function PrashnaPage() {
 
                     {/* ═ REMEDIES ════════════════════════════════════════════ */}
                     {r.remedies.length > 0 && (
-                      <SectionCard title="Remedies & Prescriptions" icon="🕯️" accent="var(--gold)">
+                      <SectionCard title={u('remedies')} icon="🕯️" accent="var(--gold)">
                         <BulletList items={r.remedies.map(rem => `🕯️ ${rem}`)} />
                       </SectionCard>
                     )}
@@ -1517,49 +1522,51 @@ export default function PrashnaPage() {
                     <button
                       style={{ padding: '0.65rem 1rem', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 600 }}
                       onClick={() => {
+                        const c = (k: string) => u(`copy.${k}`)
+                        const none = c('none')
                         const lines = [
-                          `KRISHNEEYAM PRASHNA ANALYSIS`,
+                          c('head'),
                           `=`.repeat(40),
-                          questionText ? `Question: "${questionText}"` : '',
-                          `Verdict: ${r.headline} (${r.confidence}% confidence)`,
-                          `Rashmi Score: ${r.rashmiScore}`,
+                          questionText ? `${c('question')}: "${questionText}"` : '',
+                          `${c('verdict')}: ${r.headline} (${r.confidence}% ${c('confidence')})`,
+                          `${c('rashmi')}: ${r.rashmiScore}`,
                           ``,
-                          `CORE INDICATORS`,
-                          `House reference: ${r.houseReference.label}`,
-                          `Udaya: ${RASHI_NAMES[chart.lagnas.ascRashi]} · ${r.ascendantType}`,
-                          arudhaLagnaRashi ? `Arudha Lagna: ${RASHI_NAMES[arudhaLagnaRashi]}` : '',
-                          resolvedAroodhaRashi ? `Aroodha (Sparsha): ${RASHI_NAMES[resolvedAroodhaRashi]}` : '',
-                          `Sign Mukha: ${r.signType}`,
-                          `Aroodha-Udaya: ${r.aroodhaUdayaRelation}`,
-                          `Chathra Rasi: ${RASHI_NAMES[r.chhatraRashi]} (${r.chhatraIsObstacle ? 'Obstacle' : 'Favorable'})`,
+                          c('core'),
+                          `${c('houseRef')}: ${r.houseReference.label}`,
+                          `${u('udaya')}: ${rn(chart.lagnas.ascRashi)} · ${r.ascendantType}`,
+                          arudhaLagnaRashi ? `${t('page.arudhaLagna')}: ${rn(arudhaLagnaRashi)}` : '',
+                          resolvedAroodhaRashi ? `${t('page.aroodhaSparsha')}: ${rn(resolvedAroodhaRashi)}` : '',
+                          `${u('signMukha')}: ${r.signType}`,
+                          `${c('aroodhaUdaya')}: ${r.aroodhaUdayaRelation}`,
+                          `${u('chathra')}: ${rn(r.chhatraRashi)} (${r.chhatraIsObstacle ? c('obstacle') : c('favorable')})`,
                           ``,
-                          `DREKKANA (Krishneeyam): Lord = ${r.drekkanaAnalysis.lord.split(' [')[0]}; Body = ${r.drekkanaAnalysis.bodyPart}`,
-                          `Five Element: ${r.subjectElement}`,
-                          `Sign Height: ${r.signHeight} | Location: ${r.signPlace}`,
+                          `${u('drekkana')}: ${c('lordEq')} = ${r.drekkanaAnalysis.lord.split(' [')[0]}; ${c('bodyEq')} = ${r.drekkanaAnalysis.bodyPart}`,
+                          `${c('fiveElement')}: ${r.subjectElement}`,
+                          `${c('signHeight')}: ${r.signHeight} | ${c('location')}: ${r.signPlace}`,
                           ``,
-                          `TIMING`,
-                          `${r.timing.rangeMin} to ${r.timing.rangeMax} (${r.timing.significatorPlanet})`,
+                          c('timing'),
+                          `${r.timing.rangeMin} ${c('to')} ${r.timing.rangeMax} (${r.timing.significatorPlanet})`,
                           r.timing.description,
                           ``,
-                          `QUERIST PROFILE`,
-                          `Guna: ${r.queristGuna}`,
-                          `Features: ${r.planetPhysicalFeatures}`,
-                          `Moon Yoga: ${r.moonYoga.name} — ${r.moonYoga.result}`,
-                          `Past: ${r.pastPresentFuture.past.join(', ') || 'none'}`,
-                          `Present: ${r.pastPresentFuture.present.join(', ') || 'none'}`,
-                          `Future: ${r.pastPresentFuture.future.join(', ') || 'none'}`,
-                          r.queristFeatures.length ? `\nQUERIST FACTS\n${r.queristFeatures.map(f => `• ${f}`).join('\n')}` : '',
-                          r.thief ? `\nTHIEF PROFILE\nEntry: ${r.thiefEntry}\nGender: ${r.thief.gender} | Caste: ${r.thief.caste} | Name letters: ${r.thief.nameLetters}` : '',
-                          r.health ? `\nHEALTH\nDosha: ${r.health.dosha} | Body: ${r.health.bodySystem} | Curability: ${r.health.curability}` : '',
-                          r.houseQuery ? `\nHOUSE\n${r.houseQuery.houseType} | ${r.houseQuery.direction} | Treasure: ${r.houseQuery.hasTreasure}` : '',
-                          r.spirit ? `\nSPIRIT\nType: ${r.spirit.type} | Deity: ${r.spirit.deity} | Remedy: ${r.spirit.remedy}` : '',
-                          r.subjectMaterialDetail ? `\nMATERIAL ANALYSIS\n${r.subjectMaterialDetail}` : '',
-                          `\nRULES APPLIED\n${r.rules.map(rule => `• ${rule}`).join('\n')}`,
-                          r.remedies.length ? `\nREMEDIES\n${r.remedies.map(rem => `• ${rem}`).join('\n')}` : '',
+                          c('queristProfile'),
+                          `${t('page.guna')}: ${r.queristGuna}`,
+                          `${c('features')}: ${r.planetPhysicalFeatures}`,
+                          `${t('page.moonYoga')}: ${r.moonYoga.name} — ${r.moonYoga.result}`,
+                          `${c('past')}: ${r.pastPresentFuture.past.join(', ') || none}`,
+                          `${c('present')}: ${r.pastPresentFuture.present.join(', ') || none}`,
+                          `${c('future')}: ${r.pastPresentFuture.future.join(', ') || none}`,
+                          r.queristFeatures.length ? `\n${c('queristFacts')}\n${r.queristFeatures.map(f => `• ${f}`).join('\n')}` : '',
+                          r.thief ? `\n${c('thiefProfile')}\n${c('entry')}: ${r.thiefEntry}\n${u('thief.gender')}: ${r.thief.gender} | ${u('thief.caste')}: ${r.thief.caste} | ${c('nameLetters')}: ${r.thief.nameLetters}` : '',
+                          r.health ? `\n${c('health')}\n${u('dosha')}: ${r.health.dosha} | ${c('body')}: ${r.health.bodySystem} | ${u('curability')}: ${r.health.curability}` : '',
+                          r.houseQuery ? `\n${c('house')}\n${r.houseQuery.houseType} | ${r.houseQuery.direction} | ${c('treasure')}: ${r.houseQuery.hasTreasure}` : '',
+                          r.spirit ? `\n${c('spirit')}\n${u('type')}: ${r.spirit.type} | ${u('deity')}: ${r.spirit.deity} | ${t('page.remedy')} ${r.spirit.remedy}` : '',
+                          r.subjectMaterialDetail ? `\n${c('material')}\n${r.subjectMaterialDetail}` : '',
+                          `\n${c('rules')}\n${r.rules.map(rule => `• ${rule}`).join('\n')}`,
+                          r.remedies.length ? `\n${c('remedies')}\n${r.remedies.map(rem => `• ${rem}`).join('\n')}` : '',
                         ].filter(Boolean).join('\n')
                         navigator.clipboard.writeText(lines)
                       }}>
-                      📋 Copy Full Analysis to Clipboard
+                      {u('copyBtn')}
                     </button>
                   </>
                 )
@@ -1589,7 +1596,7 @@ export default function PrashnaPage() {
               {mode === 'kp' && (
                 <>
                   <div className="card">
-                    <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Ruling Planets (KP)</h3>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>{t('page.rulingPlanets')}</h3>
                     {rulingPlanets.map((rp, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '0.4rem 0', borderBottom: '1px solid var(--border-soft)' }}>
                         <span style={{ opacity: 0.6 }}>{rp.label}</span>

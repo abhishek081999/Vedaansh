@@ -1,5 +1,8 @@
 {
-  "breadcrumb": { "home": "Home", "feature": "Prashna" },
+  "breadcrumb": {
+    "home": "Home",
+    "feature": "Prashna"
+  },
   "page": {
     "title": "PRASHNA",
     "badge": {
@@ -112,7 +115,8 @@
     "rainy": "Rainy season",
     "houseMatter": "House of the matter",
     "suggest": "Suggested question type",
-    "notSpecified": "— Not specified —"
+    "notSpecified": "— Not specified —",
+    "unreadable": "This chart could not be read. Please capture the moment again."
   },
   "category": {
     "yes_no": "Yes / No",
@@ -179,16 +183,46 @@
     "insufficient": "UNCLEAR"
   },
   "topics": {
-    "general": { "label": "General matter", "hint": "1st house, Sun" },
-    "career": { "label": "Career or post", "hint": "10th house, Saturn" },
-    "money": { "label": "Money or gain", "hint": "11th house, Jupiter" },
-    "marriage": { "label": "Marriage or partner", "hint": "7th house, Venus" },
-    "children": { "label": "Children", "hint": "5th house, Jupiter" },
-    "health": { "label": "Illness and recovery", "hint": "6th house, Sun" },
-    "education": { "label": "Study or exam", "hint": "5th house, Mercury" },
-    "property": { "label": "Home or property", "hint": "4th house, Mars" },
-    "travel": { "label": "Long journey", "hint": "9th house, Jupiter" },
-    "dispute": { "label": "Dispute or lawsuit", "hint": "6th house, Mars" }
+    "general": {
+      "label": "General matter",
+      "hint": "1st house, Sun"
+    },
+    "career": {
+      "label": "Career or post",
+      "hint": "10th house, Saturn"
+    },
+    "money": {
+      "label": "Money or gain",
+      "hint": "11th house, Jupiter"
+    },
+    "marriage": {
+      "label": "Marriage or partner",
+      "hint": "7th house, Venus"
+    },
+    "children": {
+      "label": "Children",
+      "hint": "5th house, Jupiter"
+    },
+    "health": {
+      "label": "Illness and recovery",
+      "hint": "6th house, Sun"
+    },
+    "education": {
+      "label": "Study or exam",
+      "hint": "5th house, Mercury"
+    },
+    "property": {
+      "label": "Home or property",
+      "hint": "4th house, Mars"
+    },
+    "travel": {
+      "label": "Long journey",
+      "hint": "9th house, Jupiter"
+    },
+    "dispute": {
+      "label": "Dispute or lawsuit",
+      "hint": "6th house, Mars"
+    }
   },
   "verdict": {
     "favourable": "Favourable",
@@ -311,6 +345,195 @@
       "timing": "Timing",
       "detail": "Item detail",
       "subject": "Subject"
+    }
+  },
+  "ui": {
+    "modeBtn": {
+      "krishneeyam": "🔮 Kerala",
+      "satpanchasika": "📜 Satpanchasika",
+      "kp": "⭐ KP",
+      "vedic": "🕉 Vedic"
+    },
+    "locationLabel": "Location",
+    "frozenAt": "🔴 Frozen at",
+    "newReadingBtn": "↺ New Reading",
+    "captureBtn": "⚡ Capture Moment",
+    "liveBadge": "🟢 Live",
+    "sinceBadge": "🔴 +{elapsed} since capture",
+    "houseRefHint": "Udaya = rising lagna · AL = Arudha Lagna (public/maya). Ascendant type stays on Udaya; houses & timing follow your choice.",
+    "aroodhaManualHint": "Ch11: sign body touches while asking",
+    "aroodhaUsing": "Using {sign}",
+    "aroodhaHint": "Krishneeyam sparsha sign (not Jaimini AL)",
+    "questionType": "Question type",
+    "suggest": "Your question looks like: {label}. Tap to use it.",
+    "houseToJudge": "House to judge (1.3):",
+    "rainy": "It is the rainy season here (needed to judge śloka 7.3)",
+    "historyHead": "📋 Reading History ({n})",
+    "historyLog": "Your log: {hits} came true, {misses} did not, of {total} marked.",
+    "historyHint": "Mark what actually happened to build your own record of hits and misses.",
+    "clearConfirm": "Clear all history?",
+    "clearAll": "Clear All",
+    "noQuestion": "(no question)",
+    "cameTrue": "It came true",
+    "notTrue": "It did not come true",
+    "clearMind": "Clear your mind and focus on your question.",
+    "awaitKrish": "Pick house reference (Udaya or Arudha Lagna), Aroodha sparsha, body touch, and category. ",
+    "awaitSat": "Pick your question type from the Ṣaṭpañcāśikā of Pṛthuyaśas. ",
+    "whenReady": "When ready, press <b>Capture Moment</b>.",
+    "stepsSat": [
+      "📜 Type",
+      "✍️ Question",
+      "📍 Location",
+      "⚡ Capture"
+    ],
+    "stepsKrish": [
+      "🔭 Lagna ref",
+      "📿 Aroodha",
+      "👤 Touch",
+      "🗂 Category",
+      "⚡ Capture"
+    ],
+    "consulting": "Consulting the Heavens",
+    "casting": "Casting Prashna Kundali · {what}",
+    "castSat": "Applying the 56 ślokas of Ṣaṭpañcāśikā…",
+    "castKrish": "Applying 524 Krishneeyam verses…",
+    "horaryChart": "Horary Chart",
+    "styleNorth": "north",
+    "styleSouth": "south",
+    "th": [
+      "Planet",
+      "Sign",
+      "Nakshatra",
+      "Dignity",
+      "H ({ref})",
+      "Notes"
+    ],
+    "lagna": "Lagna",
+    "moonIn": "Moon in <b>{nak}</b> · pada {pada}",
+    "oracle": "◆ Krishneeyam Oracle · {cat}",
+    "rashmi": "⚡ {n} Rashmi",
+    "udayaShort": "Udaya {sign}",
+    "alShort": " · AL {sign}",
+    "sparshaShort": " · Sparsha {sign}",
+    "coreTitle": "Core Astrological Indicators · {ref}",
+    "computedFrom": "Computed from <b>{sign}</b>{suffix} — switches when you change house reference above.",
+    "alSuffix": " (AL)",
+    "risingSuffix": " (rising)",
+    "ascType": "Ascendant Type",
+    "signMukha": "Sign Mukha",
+    "chathra": "Chathra Rasi",
+    "obstacleTag": "⚠ Obstacle",
+    "favorableTag": "✅ Favorable",
+    "ascendant": "Ascendant",
+    "obstacleFrom": "Obstacle (6/8/12 from {ref})",
+    "favorable": "Favorable",
+    "udaya": "Udaya",
+    "housesFrom": "Planetary Houses ({ref})",
+    "fromAl": "from AL",
+    "fromUdaya": "from Udaya",
+    "drekkana": "Drekkana Analysis",
+    "lord": "Lord: {lord}",
+    "right": "Right: {v}",
+    "left": "Left: {v}",
+    "seventh": "7th sign: {v}",
+    "element": "Element & Location",
+    "timingTitle": "Timing of Fructification",
+    "querist": "Querist Profile & Context",
+    "ppf": "Past · Present · Future",
+    "ppfFrom": "(from {ref})",
+    "material": "Material, Ornament & Flower Analysis",
+    "theft": "Theft & Lost Article Analysis",
+    "thief": {
+      "gender": "Gender",
+      "caste": "Caste",
+      "relation": "Relation",
+      "posture": "Posture",
+      "color": "Color",
+      "location": "Location Dir."
+    },
+    "healthTitle": "Health & Disease Analysis",
+    "dosha": "Dosha",
+    "curability": "Curability",
+    "bodySystem": "Body System",
+    "onset": "Day of onset",
+    "carePlace": "Place to take care (traditional)",
+    "riskTheme": "Risk theme (traditional)",
+    "spiritualDir": "Spiritual direction (traditional)",
+    "houseQuery": "House Query Analysis",
+    "hq": {
+      "type": "House Type",
+      "direction": "Direction",
+      "shape": "Shape",
+      "ownership": "Ownership"
+    },
+    "spiritTitle": "Baadha / Spirit Analysis",
+    "spiritType": "Spirit Type",
+    "deity": "Deity",
+    "relTitle": "Relationship Analysis",
+    "quality": "Quality",
+    "partner": "Partner",
+    "nature": "Nature",
+    "foodTitle": "Food Query",
+    "type": "Type",
+    "taste": "Taste",
+    "pregTitle": "Pregnancy / Child",
+    "travelTitle": "Travel / Return",
+    "navamsa": "Navamsa",
+    "trimsamsha": "Trimsamsha Topics",
+    "animal": "Animal Query",
+    "legal": "Legal Dispute Analysis",
+    "yourStrength": "Your Strength",
+    "oppStrength": "Opponent Strength",
+    "timeline": "Timeline",
+    "keyPlanet": "Key Planet",
+    "exam": "Exam / Competition Analysis",
+    "subjectStrength": "Subject strength",
+    "keyStrength": "Key strength",
+    "watchOut": "Watch out",
+    "bestTiming": "Best timing",
+    "rahuAsc": "Rahu in Ascendant",
+    "scorecard": "Score Breakdown ({good}✅ / {bad}❌ of {n} checks)",
+    "timeStrength": "Planetary Time Strength",
+    "rulesApplied": "Rules Applied ({n} Krishneeyam rules)",
+    "engineDetails": "Engine Details ({n} notes)",
+    "remedies": "Remedies & Prescriptions",
+    "copyBtn": "📋 Copy Full Analysis to Clipboard",
+    "copy": {
+      "head": "KRISHNEEYAM PRASHNA ANALYSIS",
+      "question": "Question",
+      "verdict": "Verdict",
+      "confidence": "confidence",
+      "rashmi": "Rashmi Score",
+      "core": "CORE INDICATORS",
+      "houseRef": "House reference",
+      "aroodhaUdaya": "Aroodha-Udaya",
+      "timing": "TIMING",
+      "to": "to",
+      "queristProfile": "QUERIST PROFILE",
+      "features": "Features",
+      "past": "Past",
+      "present": "Present",
+      "future": "Future",
+      "none": "none",
+      "queristFacts": "QUERIST FACTS",
+      "thiefProfile": "THIEF PROFILE",
+      "entry": "Entry",
+      "nameLetters": "Name letters",
+      "health": "HEALTH",
+      "body": "Body",
+      "house": "HOUSE",
+      "treasure": "Treasure",
+      "spirit": "SPIRIT",
+      "material": "MATERIAL ANALYSIS",
+      "rules": "RULES APPLIED",
+      "remedies": "REMEDIES",
+      "obstacle": "Obstacle",
+      "favorable": "Favorable",
+      "lordEq": "Lord",
+      "bodyEq": "Body",
+      "fiveElement": "Five Element",
+      "signHeight": "Sign Height",
+      "location": "Location"
     }
   }
 }

@@ -145,6 +145,10 @@ export interface KrishneeyamResult {
     dosha: string
     disease: string
     curability: string
+    /** True when the ascendant is movable (recovery expected). Read this, not the text. */
+    curable: boolean
+    /** True when the drekkana check calls for extra care. */
+    extraCare: boolean
     dayOfStart: string
     bodySystem: string           // Ch13: body system/organ affected
     deathSymptoms: string        // Ch13: Sarpa/Kolamukha/Grudhramukha drekkana check
@@ -177,6 +181,7 @@ export interface KrishneeyamResult {
   // Food
   food?: {
     quality: string
+    good: boolean
     type: string
     taste: string
   }
@@ -218,6 +223,8 @@ export interface KrishneeyamResult {
   lawsuit?: {
     queristStrength: string
     opponentStrength: string
+    queristLevel: 'Strong' | 'Moderate' | 'Weak'
+    opponentLevel: 'Strong' | 'Moderate' | 'Weak'
     outcome: string
     timing: string
     keyPlanet: string
@@ -2173,7 +2180,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     // Ch13: Death symptoms — Drekkana analysis
     const deathSymptoms = analyzeDeathSymptoms(grahas, lagnaRashi, lagnaSignDegree, moonRashi)
 
-    health = { dosha: diseaseDosha, disease: diseaseStr, curability, dayOfStart, bodySystem, deathSymptoms, placeOfDeath, causeOfDeath, rebirthNature }
+    health = { dosha: diseaseDosha, disease: diseaseStr, curability, curable: ascType === 'movable', extraCare: deathSymptoms.includes('Extra care'), dayOfStart, bodySystem, deathSymptoms, placeOfDeath, causeOfDeath, rebirthNature }
     rules.push(`[Ch13:4] Moon in house ${moonHouse} → Disease started ${moonHouse} day(s) before query`)
     rules.push(`[Ch13:5] ${ascType} sign ascendant → ${curability}`)
     rules.push(`[Ch13:6] Dosha: ${diseaseDosha}`)
@@ -2394,7 +2401,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     const planetInAscForFood = planetsInUdayaAsc[0]
     const taste = planetInAscForFood ? PLANET_TASTES_1[planetInAscForFood.id] : PLANET_TASTES_2[ascLordId]
 
-    food = { quality: foodQuality, type: foodType, taste: `${taste} (planet signification)` }
+    food = { quality: foodQuality, good: isBenefic(ascLordId), type: foodType, taste: `${taste} (planet signification)` }
     rules.push(`[Ch16:3] ${isBenefic(ascLordId) ? 'Benefic' : 'Malefic'} ascendant lord → ${foodQuality}`)
     details.push(`[Ch16:1-2] Taste: ${taste}`)
     if (planetsInUdayaAsc.length > 0) {
@@ -2486,6 +2493,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     lawsuit = {
       queristStrength: queristStrong >= 2 ? 'Strong' : queristStrong === 1 ? 'Moderate' : 'Weak',
       opponentStrength: opponentStrong >= 2 ? 'Strong' : opponentStrong === 1 ? 'Moderate' : 'Weak',
+      queristLevel: queristStrong >= 2 ? 'Strong' : queristStrong === 1 ? 'Moderate' : 'Weak',
+      opponentLevel: opponentStrong >= 2 ? 'Strong' : opponentStrong === 1 ? 'Moderate' : 'Weak',
       outcome, timing: legalTiming, keyPlanet,
     }
     scorecard.push({ label: 'Querist in Lawsuit', result: queristStrong > opponentStrong ? 'good' : 'bad', detail: outcome, weight: 2 })
