@@ -7,25 +7,30 @@
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { BookOpen, ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { useLang } from '@/i18n/useLang'
 import {
   SATPANCHASIKA_CHAPTERS,
   SATPANCHASIKA_COLOPHON,
   SATPANCHASIKA_SLOKAS,
+  getSatpanchasikaSloka,
+  satpanchasikaChapterTitle,
 } from '@/lib/engine/satpanchasikaSlokas'
 import type { SlokaStatus } from '@/lib/engine/satpanchasikaEngine'
 import { SlokaText } from './SatpanchasikaPanel'
 
-const STATUS_LABEL: Partial<Record<SlokaStatus, { label: string; color: string }>> = {
-  fired: { label: 'Fired', color: 'var(--teal)' },
-  not_fired: { label: 'Did not match', color: 'var(--text-muted)' },
-  not_evaluated: { label: 'Not evaluated', color: 'var(--amber)' },
-  timing: { label: 'Timing', color: 'var(--gold)' },
-  detail: { label: 'Item detail', color: 'var(--gold)' },
-  subject: { label: 'Subject', color: 'var(--gold)' },
+/** Badge colours; the labels live in `prashna.ref.status`. */
+const STATUS_COLOR: Partial<Record<SlokaStatus, string>> = {
+  fired: 'var(--teal)',
+  not_fired: 'var(--text-muted)',
+  not_evaluated: 'var(--amber)',
+  timing: 'var(--gold)',
+  detail: 'var(--gold)',
+  subject: 'var(--gold)',
 }
 
 export function SatpanchasikaReference({ status }: { status?: Record<string, SlokaStatus> }) {
   const t = useTranslations('prashna.ref')
+  const { lang } = useLang()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [chapter, setChapter] = useState<number | 'all'>('all')
@@ -34,9 +39,9 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
     const q = query.trim().toLowerCase()
     return SATPANCHASIKA_SLOKAS.filter(s =>
       (chapter === 'all' || s.chapter === chapter)
-      && (!q || s.id.startsWith(q) || s.meaning.toLowerCase().includes(q) || s.sanskrit.includes(query.trim())),
+      && (!q || s.id.startsWith(q) || (getSatpanchasikaSloka(s.id, lang)?.meaning ?? s.meaning).toLowerCase().includes(q) || s.sanskrit.includes(query.trim())),
     )
-  }, [query, chapter])
+  }, [query, chapter, lang])
 
   const Chevron = open ? ChevronDown : ChevronRight
 
@@ -73,7 +78,7 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
             <select className="input" aria-label={t('chapterAria')} value={chapter} onChange={e => setChapter(e.target.value === 'all' ? 'all' : Number(e.target.value))} style={{ flex: '1 1 200px', minWidth: 0, fontSize: '0.8rem' }}>
               <option value="all">{t('all')}</option>
               {SATPANCHASIKA_CHAPTERS.map(ch => (
-                <option key={ch.number} value={ch.number}>{t('chapterOption', { n: ch.number, title: ch.title, count: ch.slokaCount })}</option>
+                <option key={ch.number} value={ch.number}>{t('chapterOption', { n: ch.number, title: satpanchasikaChapterTitle(ch, lang), count: ch.slokaCount })}</option>
               ))}
             </select>
           </div>
@@ -86,15 +91,15 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
             return (
               <div key={ch.number} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <h3 style={{ margin: '0.25rem 0 0', fontSize: '0.82rem', color: 'var(--gold)' }}>
-                  <span lang="sa">{ch.sanskritTitle}</span> · {ch.title}
+                  <span lang="sa">{ch.sanskritTitle}</span> · {satpanchasikaChapterTitle(ch, lang)}
                 </h3>
                 {items.map(s => {
-                  const badge = status ? STATUS_LABEL[status[s.id]] : undefined
+                  const badge = status ? STATUS_COLOR[status[s.id]] : undefined
                   return (
                     <div key={s.id} style={{ padding: '0.6rem 0.7rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', marginBottom: 4 }}>
                         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold)' }}>{s.id}</span>
-                        {badge && status?.[s.id] && <span style={{ fontSize: '0.64rem', fontWeight: 700, color: badge.color }}>{t(`status.${status[s.id]}`)}</span>}
+                        {badge && status?.[s.id] && <span style={{ fontSize: '0.64rem', fontWeight: 700, color: badge }}>{t(`status.${status[s.id]}`)}</span>}
                       </div>
                       <SlokaText id={s.id} />
                     </div>

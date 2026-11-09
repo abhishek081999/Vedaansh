@@ -15,6 +15,8 @@ export interface StabilityPoint {
   offsetDegrees: number
   approxMinutes: number
   lagna: string
+  lagnaRashi: Rashi
+  lagnaDegree: number
   verdict: string
   changed: boolean
 }
@@ -22,6 +24,8 @@ export interface StabilityPoint {
 export interface StabilityResult {
   stable: boolean
   points: StabilityPoint[]
+  /** Smallest shift in minutes that changes the verdict; null when it holds. */
+  changesWithin: number | null
   summary: string
 }
 
@@ -45,16 +49,20 @@ export function analyseLagnaStability<T extends SatpanchasikaChartInput>(
       offsetDegrees: offset,
       approxMinutes: offset * 4,
       lagna: `${signName(shifted.lagnas.ascRashi)} ${(shifted.lagnas.ascDegree % 30).toFixed(1)}°`,
+      lagnaRashi: shifted.lagnas.ascRashi,
+      lagnaDegree: shifted.lagnas.ascDegree % 30,
       verdict,
       changed: verdict !== base,
     }
   })
   const changed = points.filter(p => p.changed)
+  const changesWithin = changed.length ? Math.min(...changed.map(p => Math.abs(p.approxMinutes))) : null
   return {
     stable: changed.length === 0,
     points,
-    summary: changed.length === 0
+    changesWithin,
+    summary: changesWithin === null
       ? 'The verdict holds across about 8 minutes either side, so a small error in the time does not change it.'
-      : `The verdict changes within ${Math.min(...changed.map(p => Math.abs(p.approxMinutes)))} minutes of the recorded time. Note the exact moment carefully and hold this reading loosely.`,
+      : `The verdict changes within ${changesWithin} minutes of the recorded time. Note the exact moment carefully and hold this reading loosely.`,
   }
 }

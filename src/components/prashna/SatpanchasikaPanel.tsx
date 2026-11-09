@@ -7,12 +7,16 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { RASHI_HI } from '@/i18n/jyotish'
+import { RASHI_NAMES } from '@/types/astrology'
 import {
   Activity, AlertTriangle, BookOpen, ChevronDown, ChevronRight, Clock, Compass, Copy, Info, ListChecks, Orbit, Scale,
   type LucideIcon,
 } from 'lucide-react'
 import {
-  SATPANCHASIKA_INTERPRETIVE_NOTES,
+  satpanchasikaInterpretiveNotes,
+  satpanchasikaText,
   type FiredRule,
   type RulePolarity,
   type SatpanchasikaReading,
@@ -20,23 +24,25 @@ import {
 } from '@/lib/engine/satpanchasikaEngine'
 import { getSatpanchasikaSloka } from '@/lib/engine/satpanchasikaSlokas'
 import type { StabilityResult } from '@/lib/engine/prashnaStability'
+import type { EngineLang } from '@/lib/engine/lang'
 
-export const VERDICT_STYLE: Record<SatpanchasikaVerdict, { color: string; label: string }> = {
-  favourable: { color: 'var(--teal)', label: 'Favourable' },
-  with_difficulty: { color: 'var(--gold)', label: 'With difficulty' },
-  leans_unfavourable: { color: 'var(--amber)', label: 'Leans against' },
-  unfavourable: { color: 'var(--rose)', label: 'Unfavourable' },
-  no_change: { color: 'var(--text-secondary)', label: 'No change' },
-  indication_only: { color: 'var(--text-secondary)', label: 'Indications' },
-  insufficient: { color: 'var(--text-muted)', label: 'Too few signals' },
+/** Verdict colours; the labels live in `prashna.verdict`. */
+export const VERDICT_STYLE: Record<SatpanchasikaVerdict, { color: string }> = {
+  favourable: { color: 'var(--teal)' },
+  with_difficulty: { color: 'var(--gold)' },
+  leans_unfavourable: { color: 'var(--amber)' },
+  unfavourable: { color: 'var(--rose)' },
+  no_change: { color: 'var(--text-secondary)' },
+  indication_only: { color: 'var(--text-secondary)' },
+  insufficient: { color: 'var(--text-muted)' },
 }
 
-const POLARITY_STYLE: Record<RulePolarity, { color: string; label: string }> = {
-  favourable: { color: 'var(--teal)', label: 'Favourable' },
-  unfavourable: { color: 'var(--rose)', label: 'Unfavourable' },
-  mixed: { color: 'var(--gold)', label: 'Mixed' },
-  no_change: { color: 'var(--text-secondary)', label: 'No change' },
-  descriptive: { color: 'var(--text-secondary)', label: 'Descriptive' },
+const POLARITY_COLOR: Record<RulePolarity, string> = {
+  favourable: 'var(--teal)',
+  unfavourable: 'var(--rose)',
+  mixed: 'var(--gold)',
+  no_change: 'var(--text-secondary)',
+  descriptive: 'var(--text-secondary)',
 }
 
 export function Section({ title, Icon, accent = 'var(--gold)', defaultOpen = true, children }: {
@@ -66,25 +72,29 @@ export function Section({ title, Icon, accent = 'var(--gold)', defaultOpen = tru
 }
 
 export function SlokaText({ id }: { id: string }) {
-  const sloka = getSatpanchasikaSloka(id)
+  const tr = useTranslations('prashna.sat')
+  const { lang } = useLang()
+  const sloka = getSatpanchasikaSloka(id, lang)
   if (!sloka) return null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
       <p lang="sa" style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--text-gold)' }}>{sloka.sanskrit}</p>
       <p style={{ margin: 0, fontSize: '0.76rem', lineHeight: 1.55, color: 'var(--text-secondary)' }}>{sloka.meaning}</p>
       {sloka.checkAgainstPrint && (
-        <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--amber)' }}>First half is faint in the scan: check against the print.</p>
+        <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--amber)' }}>{tr('faint')}</p>
       )}
     </div>
   )
 }
 
 function RuleRow({ rule }: { rule: FiredRule }) {
+  const tr = useTranslations('prashna.sat')
+  const tp = useTranslations('prashna.polarity')
   const [open, setOpen] = useState(false)
-  const style = POLARITY_STYLE[rule.polarity]
+  const color = POLARITY_COLOR[rule.polarity]
   const Chevron = open ? ChevronDown : ChevronRight
   return (
-    <div style={{ background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)', borderLeft: `3px solid ${style.color}` }}>
+    <div style={{ background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)', borderLeft: `3px solid ${color}` }}>
       <button
         type="button"
         aria-expanded={open}
@@ -97,8 +107,8 @@ function RuleRow({ rule }: { rule: FiredRule }) {
           <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.45, marginTop: 2 }}>{rule.facts.join(' · ')}</span>
         </span>
         <span style={{ flexShrink: 0, textAlign: 'right' }}>
-          <span style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: style.color }}>{style.label}</span>
-          {rule.weight > 0 && <span style={{ display: 'block', fontSize: '0.62rem', color: 'var(--text-muted)' }}>weight {rule.weight.toFixed(1)}</span>}
+          <span style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color }}>{tp(rule.polarity)}</span>
+          {rule.weight > 0 && <span style={{ display: 'block', fontSize: '0.62rem', color: 'var(--text-muted)' }}>{tr('weight', { n: rule.weight.toFixed(1) })}</span>}
         </span>
         <Chevron size={14} aria-hidden style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
       </button>
@@ -106,7 +116,7 @@ function RuleRow({ rule }: { rule: FiredRule }) {
         <div style={{ padding: '0 0.65rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <SlokaText id={rule.slokaId} />
           <p style={{ margin: 0, fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-            {rule.label}. Base {rule.baseWeight} × strength {rule.strengthFactor}{rule.repeated ? ' × 1.25 (stated twice in the text)' : ''}.
+            {tr('weightMath', { label: rule.label, base: rule.baseWeight, strength: rule.strengthFactor, repeat: rule.repeated ? tr('repeated') : '' })}
           </p>
         </div>
       )}
@@ -126,39 +136,50 @@ function DetailRow({ label, value, working }: { label: string; value: string; wo
   )
 }
 
-function readingAsText(r: SatpanchasikaReading, question: string): string {
+function readingAsText(
+  r: SatpanchasikaReading,
+  question: string,
+  tr: (key: string, values?: Record<string, string | number>) => string,
+  tp: (key: string) => string,
+  lang: EngineLang,
+): string {
   return [
-    'SATPANCHASIKA READING',
-    question ? `Question: ${question}` : '',
-    `Type: ${r.questionLabel}`,
-    `Reading: ${r.headline}`,
+    tr('copyHead'),
+    question ? tr('copyQuestion', { q: question }) : '',
+    tr('copyType', { type: r.questionLabel }),
+    tr('copyReading', { headline: r.headline }),
     '',
-    'RULES THAT FIRED',
-    ...r.fired.map(x => `${x.slokaId} [${x.polarity}, ${x.weight}] ${x.statement} (${x.facts.join('; ')})`),
+    tr('copyRules'),
+    ...r.fired.map(x => `${x.slokaId} [${tp(x.polarity)}, ${x.weight}] ${x.statement} (${x.facts.join('; ')})`),
     '',
-    r.timing.length ? 'TIMING (separate methods, not added together)' : '',
-    ...r.timing.map(t => `${t.slokas} ${t.name}: ${t.value ?? '-'} ${t.unit === 'event' ? '' : t.unit}. ${t.working}`),
+    r.timing.length ? tr('copyTiming') : '',
+    ...r.timing.map(t => `${t.slokas} ${t.name}: ${t.value ?? '-'} ${t.unit === 'event' ? '' : satpanchasikaText(t.unit, lang)}. ${t.working}`),
     '',
     ...r.notices,
   ].filter((line, i, all) => line !== '' || all[i - 1] !== '').join('\n')
 }
 
 /** Calendar date a span after the question (yyyy-MM-dd), with no timezone drift. */
-export function approxDate(askedOn: string, value: number, unit: 'months' | 'days' | 'event'): string | null {
+export function approxDate(askedOn: string, value: number, unit: 'months' | 'days' | 'event', lang: EngineLang = 'en'): string | null {
   const [y, m, d] = askedOn.split('-').map(Number)
   if (!y || !m || !d || unit === 'event') return null
   const date = unit === 'months' ? new Date(Date.UTC(y, m - 1 + value, d)) : new Date(Date.UTC(y, m - 1, d + value))
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+  return date.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
 export function StabilitySection({ stability }: { stability: StabilityResult }) {
+  const tr = useTranslations('prashna.sat')
+  const { lang } = useLang()
+  const sign = (n: StabilityResult['points'][number]['lagnaRashi']) => (lang === 'hi' ? RASHI_HI[n] : RASHI_NAMES[n])
   return (
-    <Section title={stability.stable ? 'Time sensitivity: stable' : 'Time sensitivity: changes nearby'} Icon={Activity} accent={stability.stable ? 'var(--teal)' : 'var(--amber)'}>
-      <p style={{ margin: '0 0 0.5rem', fontSize: '0.76rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>{stability.summary}</p>
+    <Section title={stability.stable ? tr('stable') : tr('unstable')} Icon={Activity} accent={stability.stable ? 'var(--teal)' : 'var(--amber)'}>
+      <p style={{ margin: '0 0 0.5rem', fontSize: '0.76rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+        {stability.changesWithin === null ? tr('stableSummary') : tr('unstableSummary', { min: stability.changesWithin })}
+      </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem' }}>
         {stability.points.map(p => (
           <div key={p.offsetDegrees} style={{ padding: '0.4rem 0.55rem', background: 'var(--surface-2)', borderRadius: 7, border: `1px solid ${p.changed ? 'var(--amber)' : 'var(--border-soft)'}` }}>
-            <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>About {p.approxMinutes > 0 ? '+' : ''}{p.approxMinutes} min · {p.lagna}</div>
+            <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{tr('aboutMin', { sign: p.approxMinutes > 0 ? '+' : '', min: p.approxMinutes, lagna: `${sign(p.lagnaRashi)} ${p.lagnaDegree.toFixed(1)}°` })}</div>
             <div style={{ fontSize: '0.74rem', fontWeight: 700, color: p.changed ? 'var(--amber)' : 'var(--text-secondary)' }}>{p.verdict}</div>
           </div>
         ))}
@@ -168,13 +189,15 @@ export function StabilitySection({ stability }: { stability: StabilityResult }) 
 }
 
 function PlanetTable({ reading }: { reading: SatpanchasikaReading }) {
+  const tr = useTranslations('prashna.sat')
+  const { lang } = useLang()
   return (
-    <Section title="How the engine sees each planet" Icon={Orbit} defaultOpen={false}>
+    <Section title={tr('planets')} Icon={Orbit} defaultOpen={false}>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
           <thead>
             <tr style={{ color: 'var(--text-muted)', textAlign: 'left' }}>
-              {['Planet', 'House', 'Sign', 'Navāṃśa', 'Nature', 'Strength'].map(h => (
+              {[tr('colPlanet'), tr('colHouse'), tr('colSign'), tr('colNav'), tr('colNature'), tr('colStrength')].map(h => (
                 <th key={h} style={{ padding: '0.3rem 0.4rem', fontWeight: 600, borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -182,12 +205,12 @@ function PlanetTable({ reading }: { reading: SatpanchasikaReading }) {
           <tbody>
             {reading.planets.map(p => (
               <tr key={p.id} style={{ borderBottom: '1px solid var(--border-soft)', color: 'var(--text-secondary)' }}>
-                <td style={{ padding: '0.3rem 0.4rem', fontWeight: 700, color: 'var(--text-gold)', whiteSpace: 'nowrap' }}>{p.name}{p.retrograde ? ' (R)' : ''}</td>
+                <td style={{ padding: '0.3rem 0.4rem', fontWeight: 700, color: 'var(--text-gold)', whiteSpace: 'nowrap' }}>{p.name}{p.retrograde ? tr('retro') : ''}</td>
                 <td style={{ padding: '0.3rem 0.4rem' }}>{p.house}</td>
                 <td style={{ padding: '0.3rem 0.4rem' }}>{p.sign}</td>
                 <td style={{ padding: '0.3rem 0.4rem' }}>{p.navamsa}</td>
-                <td style={{ padding: '0.3rem 0.4rem', color: p.nature === 'Benefic' ? 'var(--teal)' : 'var(--rose)' }} title={p.natureReason}>{p.nature}</td>
-                <td style={{ padding: '0.3rem 0.4rem', whiteSpace: 'nowrap' }}>{p.strength.toFixed(2)}{p.isStrongest ? ' (strongest)' : ''}</td>
+                <td style={{ padding: '0.3rem 0.4rem', color: p.nature === 'Benefic' ? 'var(--teal)' : 'var(--rose)' }} title={p.natureReason}>{satpanchasikaText(p.nature, lang)}</td>
+                <td style={{ padding: '0.3rem 0.4rem', whiteSpace: 'nowrap' }}>{p.strength.toFixed(2)}{p.isStrongest ? tr('strongest') : ''}</td>
               </tr>
             ))}
           </tbody>
@@ -200,13 +223,15 @@ function PlanetTable({ reading }: { reading: SatpanchasikaReading }) {
 export function SatpanchasikaPanel({ reading: r, questionText, stability, askedOn }: { reading: SatpanchasikaReading; questionText: string; stability?: StabilityResult | null; askedOn?: string }) {
   const tr = useTranslations('prashna.sat')
   const tv = useTranslations('prashna.verdict')
+  const tp = useTranslations('prashna.polarity')
+  const { lang } = useLang()
   const [copied, setCopied] = useState(false)
   const v = VERDICT_STYLE[r.verdict]
   const showClarity = r.verdict !== 'indication_only' && r.verdict !== 'insufficient'
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(readingAsText(r, questionText))
+      await navigator.clipboard.writeText(readingAsText(r, questionText, tr, tp, lang))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch { /* clipboard unavailable */ }
@@ -261,23 +286,23 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '0.45rem' }}>
               {r.timing.map(t => {
-                const date = t.status === 'computed' && t.value !== null && askedOn ? approxDate(askedOn, t.value, t.unit) : null
+                const date = t.status === 'computed' && t.value !== null && askedOn ? approxDate(askedOn, t.value, t.unit, lang) : null
                 return (
                   <div key={t.id} style={{ padding: '0.55rem 0.65rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.4rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--gold)' }}>{t.name} · {t.slokas}</span>
-                      <span style={{ fontSize: '0.62rem', fontWeight: 700, color: t.basis === 'text' ? 'var(--teal)' : 'var(--amber)' }}>{t.basis === 'text' ? 'From the text' : 'Adapted'}</span>
+                      <span style={{ fontSize: '0.62rem', fontWeight: 700, color: t.basis === 'text' ? 'var(--teal)' : 'var(--amber)' }}>{t.basis === 'text' ? tr('fromText') : tr('adapted')}</span>
                     </div>
                     <div style={{ fontSize: '1.05rem', fontWeight: 800, color: t.status === 'computed' ? 'var(--text-primary)' : 'var(--text-muted)', margin: '0.15rem 0' }}>
-                      {t.status === 'computed' ? (t.value === 0 ? 'Now' : `${t.value} ${t.unit}`) : t.status === 'event' ? 'On an event' : 'Void'}
+                      {t.status === 'computed' ? (t.value === 0 ? tr('now') : `${t.value} ${satpanchasikaText(t.unit, lang)}`) : t.status === 'event' ? tr('onEvent') : tr('void')}
                     </div>
-                    {date && <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.15rem' }}>Around {date}</div>}
-                    <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{t.purpose}. {t.working}</div>
+                    {date && <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.15rem' }}>{tr('around', { date })}</div>}
+                    <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{t.purpose}{lang === 'hi' ? '। ' : '. '}{t.working}</div>
                   </div>
                 )
               })}
             </div>
-            <p style={{ margin: '0.5rem 0 0', fontSize: '0.66rem', color: 'var(--text-muted)' }}>Dates count from the moment of the question. Each method is separate: they are not added or averaged.</p>
+            <p style={{ margin: '0.5rem 0 0', fontSize: '0.66rem', color: 'var(--text-muted)' }}>{tr('timingFoot')}</p>
           </>
         )}
         {r.paceNotes.length > 0 && <p style={{ margin: '0.5rem 0 0', fontSize: '0.74rem', fontWeight: 600, color: 'var(--teal)' }}>{r.paceNotes.join(' ')}</p>}
@@ -287,13 +312,13 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       {/* Lost item */}
       {r.lostItem && (
         <Section title={tr('lost')} Icon={Compass} accent="var(--teal)">
-          <DetailRow label="What it is" value={r.lostItem.object.kind} working={r.lostItem.object.working + (r.lostItem.objectBy16 ? ` Also ${r.lostItem.objectBy16}` : '')} />
-          <DetailRow label="Who has it" value={r.lostItem.whoHolds.value} working={r.lostItem.whoHolds.working} />
-          <DetailRow label="Where" value={r.lostItem.where.place} working={r.lostItem.where.working} />
-          <DetailRow label="Direction" value={r.lostItem.direction.value} working={r.lostItem.direction.working} />
-          <DetailRow label="Distance" value={`${r.lostItem.distance.steps} ${r.lostItem.distance.steps === 1 ? 'step' : 'steps'}`} working={r.lostItem.distance.working} />
-          <DetailRow label="When lost" value={r.lostItem.whenLost.value} working={r.lostItem.whenLost.working} />
-          <DetailRow label="Age of the person involved" value={r.lostItem.personAge.value} working={r.lostItem.personAge.working} />
+          <DetailRow label={tr('what')} value={satpanchasikaText(r.lostItem.object.kind, lang)} working={r.lostItem.object.working + (r.lostItem.objectBy16 ? tr('also', { text: r.lostItem.objectBy16 }) : '')} />
+          <DetailRow label={tr('whoHas')} value={r.lostItem.whoHolds.value} working={r.lostItem.whoHolds.working} />
+          <DetailRow label={tr('where')} value={r.lostItem.where.place} working={r.lostItem.where.working} />
+          <DetailRow label={tr('direction')} value={r.lostItem.direction.value} working={r.lostItem.direction.working} />
+          <DetailRow label={tr('distance')} value={`${r.lostItem.distance.steps} ${r.lostItem.distance.steps === 1 ? tr('step') : tr('steps')}`} working={r.lostItem.distance.working} />
+          <DetailRow label={tr('whenLost')} value={satpanchasikaText(r.lostItem.whenLost.value, lang)} working={r.lostItem.whenLost.working} />
+          <DetailRow label={tr('age')} value={r.lostItem.personAge.value} working={r.lostItem.personAge.working} />
         </Section>
       )}
 
@@ -303,14 +328,14 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
 
       {/* Subject */}
       <Section key={r.question} title={tr('concernsTitle')} Icon={Info} defaultOpen={['whom', 'object_class', 'person_age'].includes(r.question)}>
-        <DetailRow label="Concerns" value={r.subject.concerns} working={r.subject.concernsWorking} />
-        <DetailRow label="Class of the query" value={r.subject.classBy17} working={r.subject.classBy16 ? `From the rising navāṃśa (1.7). Also ${r.subject.classBy16}` : 'From the rising navāṃśa (1.7).'} />
+        <DetailRow label={tr('concerns')} value={r.subject.concerns} working={r.subject.concernsWorking} />
+        <DetailRow label={tr('class')} value={r.subject.classBy17} working={r.subject.classBy16 ? tr('classAlso', { text: r.subject.classBy16 }) : tr('classOnly')} />
         {r.subject.navamsaRelation && <p style={{ margin: '0.45rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{r.subject.navamsaRelation}</p>}
         {r.subject.personAge && <p style={{ margin: '0.45rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{r.subject.personAge}</p>}
       </Section>
 
       {/* Not evaluated */}
-      <Section title={`Not evaluated (${r.notEvaluated.length})`} Icon={AlertTriangle} accent="var(--text-muted)" defaultOpen={false}>
+      <Section title={tr('notEvaluated', { n: r.notEvaluated.length })} Icon={AlertTriangle} accent="var(--text-muted)" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {r.notEvaluated.map(n => (
             <div key={n.ruleId} style={{ fontSize: '0.72rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
@@ -338,7 +363,7 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
       {/* Decisions */}
       <Section title={tr('interpreted')} Icon={BookOpen} accent="var(--text-muted)" defaultOpen={false}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          {SATPANCHASIKA_INTERPRETIVE_NOTES.map(n => (
+          {satpanchasikaInterpretiveNotes(lang).map(n => (
             <div key={n.note} style={{ fontSize: '0.72rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
               <strong style={{ color: 'var(--gold)' }}>{n.slokas}</strong> {n.note}
             </div>

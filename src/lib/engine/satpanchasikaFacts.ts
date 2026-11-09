@@ -10,6 +10,8 @@ import { RASHI_NAMES } from '@/types/astrology'
 import { hasParasharaAspect, wholeSignCount } from './aspects'
 import { D9 } from './vargas'
 import { SIGN_LORDS } from './krishneeyam'
+import type { EngineLang } from './lang'
+import { SAT_NOTES_HI } from './locale/satpanchasikaSlokas.hi'
 
 export type Mobility = 'movable' | 'fixed' | 'dual'
 export type Rising = 'head' | 'back' | 'both'
@@ -235,3 +237,16 @@ export const SATPANCHASIKA_INTERPRETIVE_NOTES: Array<{ slokas: string; note: str
   { slokas: '6.4', note: 'Distance is reported only as navāṃśa steps from the middle and read proportionally to the setting. Yojanas are not converted.' },
   { slokas: '6.5, 7.6, 7.10', note: 'Caste, class and "kind of woman" statements stay in the śloka reference. Readings use only the planet\'s age signification, in neutral words.' },
 ]
+
+const SLOKA_LABEL_HI: [RegExp, string][] = [
+  [/ and throughout/, ' और सर्वत्र'], [/Planet table/, 'ग्रह तालिका'], [/sign table/, 'राशि तालिका'],
+  [/worked example/, 'हल किया गया उदाहरण'], [/ vs /, ' बनाम '], [/ and /, ' और '],
+]
+const slokaLabelHi = (s: string) => SLOKA_LABEL_HI.reduce((out, [re, hi]) => out.replace(re, hi), s)
+
+/** The interpretive notes in `lang`; śloka refs are the same in both. */
+export function satpanchasikaInterpretiveNotes(lang: EngineLang = 'en'): Array<{ slokas: string; note: string }> {
+  return lang === 'hi'
+    ? SATPANCHASIKA_INTERPRETIVE_NOTES.map((n, i) => ({ slokas: slokaLabelHi(n.slokas), note: SAT_NOTES_HI[i] ?? n.note }))
+    : SATPANCHASIKA_INTERPRETIVE_NOTES
+}

@@ -32,8 +32,9 @@ import {
 } from '@/lib/engine/krishneeyam'
 import {
   runSatpanchasika,
-  SATPANCHASIKA_QUESTIONS,
   SATPANCHASIKA_QUESTION_GROUPS,
+  satpanchasikaGroupLabel,
+  satpanchasikaQuestions,
   type ContestRole,
   type SatpanchasikaQuestion,
   type SatpanchasikaReading,
@@ -41,7 +42,7 @@ import {
 } from '@/lib/engine/satpanchasikaEngine'
 import { runVedicPrashna, VEDIC_TOPICS, type VedicPrashnaReading, type VedicTopic } from '@/lib/engine/vedicPrashna'
 import { analyseLagnaStability, type StabilityResult } from '@/lib/engine/prashnaStability'
-import { SatpanchasikaPanel, VERDICT_STYLE } from '@/components/prashna/SatpanchasikaPanel'
+import { SatpanchasikaPanel } from '@/components/prashna/SatpanchasikaPanel'
 import { VedicPrashnaPanel } from '@/components/prashna/VedicPrashnaPanel'
 import { SatpanchasikaReference } from '@/components/prashna/SatpanchasikaReference'
 
@@ -425,15 +426,16 @@ export default function PrashnaPage() {
           contestRole,
           house: satHouse,
           season: isRainySeason ? 'rainy' : undefined,
-        }),
+        }, lang),
         error: null,
       }
     } catch (err) {
       console.error('Satpanchasika error:', err)
       return { reading: null, error: t('page.unreadable') }
     }
-  }, [chart, mode, satQuestion, contestRole, satHouse, isRainySeason, t])
+  }, [chart, mode, satQuestion, contestRole, satHouse, isRainySeason, lang, t])
   const satpanchasikaReading = satResult.reading
+  const satQuestionList = useMemo(() => satpanchasikaQuestions(lang), [lang])
 
   const vedicResult = useMemo((): { reading: VedicPrashnaReading | null; error: string | null } => {
     if (!chart || mode !== 'vedic' || modeLocked) return { reading: null, error: null }
@@ -450,14 +452,14 @@ export default function PrashnaPage() {
     if (!chart) return null
     try {
       if (mode === 'satpanchasika') {
-        return analyseLagnaStability(chart, c => VERDICT_STYLE[runSatpanchasika(c, { question: satQuestion, contestRole, house: satHouse, season: isRainySeason ? 'rainy' : undefined }).verdict].label)
+        return analyseLagnaStability(chart, c => t(`verdict.${runSatpanchasika(c, { question: satQuestion, contestRole, house: satHouse, season: isRainySeason ? 'rainy' : undefined }).verdict}`))
       }
       if (mode === 'vedic' && !modeLocked) {
-        return analyseLagnaStability(chart, c => VERDICT_STYLE[runVedicPrashna(c, vedicTopic, lang).verdict].label)
+        return analyseLagnaStability(chart, c => t(`verdict.${runVedicPrashna(c, vedicTopic).verdict}`))
       }
     } catch { /* the reading itself reports the error */ }
     return null
-  }, [chart, mode, modeLocked, satQuestion, contestRole, satHouse, isRainySeason, vedicTopic, lang])
+  }, [chart, mode, modeLocked, satQuestion, contestRole, satHouse, isRainySeason, vedicTopic, t])
 
   const setHistoryOutcome = (id: string, outcome: 'hit' | 'miss') => setHistory(prev => {
     const next = prev.map(h => h.id === id ? { ...h, outcome: h.outcome === outcome ? undefined : outcome } : h)
@@ -797,7 +799,7 @@ export default function PrashnaPage() {
               {(() => {
                 const suggested = suggestSatQuestion(questionText)
                 if (!suggested || suggested === satQuestion) return null
-                const label = SATPANCHASIKA_QUESTIONS.find(q => q.id === suggested)?.label
+                const label = satQuestionList.find(q => q.id === suggested)?.label
                 return (
                   <button type="button" onClick={() => setSatQuestion(suggested)}
                     style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid var(--gold)', background: 'var(--gold-faint)', color: 'var(--text-gold)', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>
@@ -808,9 +810,9 @@ export default function PrashnaPage() {
               <div role="radiogroup" aria-label={u('questionType')} style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {SATPANCHASIKA_QUESTION_GROUPS.map(group => (
                   <div key={group}>
-                    <div style={{ fontSize: '0.66rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{group}</div>
+                    <div style={{ fontSize: '0.66rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{satpanchasikaGroupLabel(group, lang)}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.35rem' }}>
-                      {SATPANCHASIKA_QUESTIONS.filter(q => q.group === group).map(q => {
+                      {satQuestionList.filter(q => q.group === group).map(q => {
                         const active = satQuestion === q.id
                         return (
                           <button key={q.id} type="button" role="radio" aria-checked={active} onClick={() => setSatQuestion(q.id)}
@@ -1353,8 +1355,8 @@ export default function PrashnaPage() {
                             { k: u('hq.ownership'), v: r.houseQuery.ownership },
                           ].map(({ k, v }) => <Chip key={k} label={k} value={v} />)}
                         </div>
-                        <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: r.houseQuery.hasTreasure.startsWith('YES') ? 'var(--gold-faint)' : 'var(--surface-2)', borderRadius: 6, border: `1px solid ${r.houseQuery.hasTreasure.startsWith('YES') ? 'var(--gold-dim)' : 'var(--border-soft)'}`, fontWeight: 700, color: r.houseQuery.hasTreasure.startsWith('YES') ? 'var(--gold)' : 'var(--text-muted)', fontSize: '0.78rem', textAlign: 'center' }}>
-                          💰 Treasure: {r.houseQuery.hasTreasure}
+                        <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: r.houseQuery.treasure ? 'var(--gold-faint)' : 'var(--surface-2)', borderRadius: 6, border: `1px solid ${r.houseQuery.treasure ? 'var(--gold-dim)' : 'var(--border-soft)'}`, fontWeight: 700, color: r.houseQuery.treasure ? 'var(--gold)' : 'var(--text-muted)', fontSize: '0.78rem', textAlign: 'center' }}>
+                          💰 {u('copy.treasure')}: {r.houseQuery.hasTreasure}
                         </div>
                       </SectionCard>
                     )}
@@ -1397,14 +1399,14 @@ export default function PrashnaPage() {
                     {/* ═ PREGNANCY [Ch21] ════════════════════════════════════ */}
                     {category === 'pregnancy' && (
                       <SectionCard title={u('pregTitle')} icon="👶" accent="var(--rose)">
-                        <BulletList items={r.details.filter(d => d.toLowerCase().includes('ch21') || d.toLowerCase().includes('ketu') || d.toLowerCase().includes('pregnan') || d.toLowerCase().includes('child'))} />
+                        <BulletList items={r.details.filter((_, i) => r.detailTopics[i]?.pregnancy)} />
                       </SectionCard>
                     )}
 
                     {/* ═ TRAVEL [Ch14] ═══════════════════════════════════════ */}
                     {category === 'travel' && (
                       <SectionCard title={u('travelTitle')} icon="✈️" accent="var(--teal)">
-                        <BulletList items={r.details.filter(d => d.toLowerCase().includes('ch14') || d.toLowerCase().includes('travel') || d.toLowerCase().includes('return') || d.toLowerCase().includes('mode'))} />
+                        <BulletList items={r.details.filter((_, i) => r.detailTopics[i]?.travel)} />
                       </SectionCard>
                     )}
 
@@ -1449,7 +1451,7 @@ export default function PrashnaPage() {
                     {/* ═ EXAM / ELECTION ANALYSIS ════════════════════════════ */}
                     {category === 'exam' && r.exam && (
                       <SectionCard title={u('exam')} icon="🎓" accent="var(--teal)">
-                        <div style={{ padding: '0.5rem 0.75rem', background: r.exam.success.includes('Excellent') ? 'var(--teal)12' : r.exam.success.includes('Good') ? 'var(--gold-faint)' : 'var(--rose)12', borderRadius: 7, border: `1px solid ${r.exam.success.includes('Excellent') ? 'var(--teal)' : r.exam.success.includes('Good') ? 'var(--gold-dim)' : 'var(--rose)'}`, marginBottom: '0.5rem', fontWeight: 600, color: r.exam.success.includes('Excellent') ? 'var(--teal)' : r.exam.success.includes('Good') ? 'var(--gold)' : 'var(--rose)', fontSize: '0.8rem' }}>
+                        <div style={{ padding: '0.5rem 0.75rem', background: r.exam.level === 'excellent' ? 'var(--teal)12' : r.exam.level === 'good' ? 'var(--gold-faint)' : 'var(--rose)12', borderRadius: 7, border: `1px solid ${r.exam.level === 'excellent' ? 'var(--teal)' : r.exam.level === 'good' ? 'var(--gold-dim)' : 'var(--rose)'}`, marginBottom: '0.5rem', fontWeight: 600, color: r.exam.level === 'excellent' ? 'var(--teal)' : r.exam.level === 'good' ? 'var(--gold)' : 'var(--rose)', fontSize: '0.8rem' }}>
                           🎯 {r.exam.success}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.73rem' }}>

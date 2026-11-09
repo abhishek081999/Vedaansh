@@ -18,9 +18,11 @@ import {
 import { SATPANCHASIKA_SLOKAS } from './satpanchasikaSlokas'
 import { SIGN_LORDS } from './krishneeyam'
 import { D9 } from './vargas'
+import type { EngineLang } from './lang'
+import { satpanchasikaHi } from './locale/satpanchasikaHi'
 
 export type { ContestRole, RulePolarity, SatpanchasikaQuestion } from './satpanchasikaRules'
-export { SATPANCHASIKA_INTERPRETIVE_NOTES } from './satpanchasikaFacts'
+export { SATPANCHASIKA_INTERPRETIVE_NOTES, satpanchasikaInterpretiveNotes } from './satpanchasikaFacts'
 export type { SatpanchasikaChartInput } from './satpanchasikaFacts'
 
 export type SatpanchasikaVerdict =
@@ -32,6 +34,16 @@ export const SATPANCHASIKA_QUESTION_GROUPS = [
   'Family and health', 'About the question itself', 'Other',
 ] as const
 export type SatpanchasikaQuestionGroup = typeof SATPANCHASIKA_QUESTION_GROUPS[number]
+
+/** Display text for a value the reading keeps as an English key (object kind, time of day, nature, unit). */
+export function satpanchasikaText(text: string, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? satpanchasikaHi.text(text) : text
+}
+
+/** Group heading for display; the group itself stays the English key. */
+export function satpanchasikaGroupLabel(group: SatpanchasikaQuestionGroup, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? satpanchasikaHi.text(group) : group
+}
 
 export interface QuestionMeta {
   id: SatpanchasikaQuestion
@@ -85,6 +97,11 @@ export const SATPANCHASIKA_QUESTIONS: QuestionMeta[] = [
   { id: 'person_age', group: 'About the question itself', label: 'How old is the person meant', hint: 'Young, adult or elder', judgedHouse: 1, slokas: '7.6', answers: NONE, indicationOnly: true },
   { id: 'any_house', group: 'Other', label: 'Any area of life', hint: 'Choose a house: 1.3 judges any bhāva', judgedHouse: 1, slokas: '1.3', answers: answers('This house flourishes', 'This house flourishes and suffers together', 'This house leans towards suffering', 'This house suffers', ''), noSignal: 'Neither its lord, a benefic nor a malefic touches this house' },
 ]
+
+/** The question list with display text in `lang`; ids and groups stay English. */
+export function satpanchasikaQuestions(lang: EngineLang = 'en'): QuestionMeta[] {
+  return lang === 'hi' ? satpanchasikaHi.toHi(SATPANCHASIKA_QUESTIONS) : SATPANCHASIKA_QUESTIONS
+}
 
 export const SATPANCHASIKA_STUDY_NOTE =
   'A study framework from a classical text, not a forecast. Test it on past questions with known outcomes and keep a log of hits and misses.'
@@ -627,7 +644,14 @@ function buildTimingCaveat(question: SatpanchasikaQuestion, verdict: Satpanchasi
   return parts.length ? parts.join(' ') : null
 }
 
-export function runSatpanchasika(chart: SatpanchasikaChartInput, options: SatpanchasikaOptions): SatpanchasikaReading {
+export function runSatpanchasika(chart: SatpanchasikaChartInput, options: SatpanchasikaOptions, lang: EngineLang = 'en'): SatpanchasikaReading {
+  const reading = readSatpanchasika(chart, options)
+  // The English is built from joined templates; translate the finished strings
+  // in one pass. Ids, polarity, units and the kind/time-of-day keys stay English.
+  return lang === 'hi' ? satpanchasikaHi.toHi(reading) : reading
+}
+
+function readSatpanchasika(chart: SatpanchasikaChartInput, options: SatpanchasikaOptions): SatpanchasikaReading {
   const f = buildChartFacts(chart)
   const meta = SATPANCHASIKA_QUESTIONS.find(q => q.id === options.question)
   if (!meta) throw new Error(`Unknown Satpanchasika question: ${options.question}`)
