@@ -23,6 +23,67 @@ function toneColor(kind: SaturnMoonPhaseKind): string {
   return 'var(--amber)'
 }
 
+function PhaseCard({ phase, compact }: { phase: SaturnMoonPhase; compact?: boolean }) {
+  const t = useTranslations('transit.sadeSati')
+  const color = toneColor(phase.kind)
+  const placement = phase.isCurrent
+    ? t('placementProgress', {
+        rashi: phase.saturnRashiName,
+        house: phase.fromMoonHouse,
+        pct: phase.progressPct,
+      })
+    : t('placement', { rashi: phase.saturnRashiName, house: phase.fromMoonHouse })
+
+  return (
+    <div
+      style={{
+        border: '1px solid var(--border-soft)',
+        borderLeft: `4px solid ${color}`,
+        borderRadius: 10,
+        padding: compact ? '0.65rem 0.75rem' : '0.85rem 1rem',
+        background: phase.isCurrent ? `${color}10` : 'var(--surface-2)',
+      }}
+    >
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.35rem', marginBottom: '0.3rem' }}>
+        <strong style={{ color: 'var(--text-primary)', fontSize: compact ? '0.82rem' : '0.9rem' }}>
+          {phase.label}
+        </strong>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          {phase.startIso} → {phase.endIso}
+        </span>
+      </div>
+      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: phase.isCurrent ? '0.45rem' : 0 }}>
+        {placement}
+      </div>
+      {!compact && (
+        <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {phase.summary}
+        </p>
+      )}
+      {phase.isCurrent && (
+        <div
+          style={{
+            marginTop: '0.55rem',
+            height: 6,
+            borderRadius: 4,
+            background: 'var(--surface-3)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${phase.progressPct}%`,
+              height: '100%',
+              background: color,
+              borderRadius: 4,
+            }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
   const t = useTranslations('transit.sadeSati')
   const { lang } = useLang()
@@ -50,15 +111,6 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
     if (p.kind === 'sade_sati_setting') return t('shortSetting')
     return p.label.replace(/Sade Sati — |साढ़े साती — /, '').split(/[\s—]/)[0]
   }
-
-  const placementLine = (phase: SaturnMoonPhase): string =>
-    phase.isCurrent
-      ? t('placementProgress', {
-          rashi: phase.saturnRashiName,
-          house: phase.fromMoonHouse,
-          pct: phase.progressPct,
-        })
-      : t('placement', { rashi: phase.saturnRashiName, house: phase.fromMoonHouse })
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -137,58 +189,6 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
   const badge = statusBadge(report)
   const pastCycles = report.cycles.filter(c => !c.isCurrent && new Date(c.endIso) < new Date(report.asOfIso))
   const futureCycles = report.cycles.filter(c => !c.isCurrent && new Date(c.startIso) > new Date(report.asOfIso))
-
-  function PhaseCard({ phase, compact }: { phase: SaturnMoonPhase; compact?: boolean }) {
-    const color = toneColor(phase.kind)
-    return (
-      <div
-        style={{
-          border: '1px solid var(--border-soft)',
-          borderLeft: `4px solid ${color}`,
-          borderRadius: 10,
-          padding: compact ? '0.65rem 0.75rem' : '0.85rem 1rem',
-          background: phase.isCurrent ? `${color}10` : 'var(--surface-2)',
-        }}
-      >
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.35rem', marginBottom: '0.3rem' }}>
-          <strong style={{ color: 'var(--text-primary)', fontSize: compact ? '0.82rem' : '0.9rem' }}>
-            {phase.label}
-          </strong>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            {phase.startIso} → {phase.endIso}
-          </span>
-        </div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: phase.isCurrent ? '0.45rem' : 0 }}>
-          {placementLine(phase)}
-        </div>
-        {!compact && (
-          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            {phase.summary}
-          </p>
-        )}
-        {phase.isCurrent && (
-          <div
-            style={{
-              marginTop: '0.55rem',
-              height: 6,
-              borderRadius: 4,
-              background: 'var(--surface-3)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${phase.progressPct}%`,
-                height: '100%',
-                background: color,
-                borderRadius: 4,
-              }}
-            />
-          </div>
-        )}
-      </div>
-    )
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.35rem' }}>
