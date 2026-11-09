@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Save } from 'lucide-react'
 import type { Gender } from '@/types/astrology'
 import { Button } from '@/components/ui/primitives/Button'
@@ -27,6 +28,7 @@ export function ClientNumerologyBar({ currentName, onLoad }: {
   currentName: string
   onLoad: (c: { name: string; birthDate: string; gender: Gender }) => void
 }) {
+  const t = useTranslations('numerology.client')
   const [clients, setClients] = useState<ClientRow[] | null>(null)
   const [clientId, setClientId] = useState('')
   const [includeRemedies, setIncludeRemedies] = useState(true)
@@ -67,11 +69,14 @@ export function ClientNumerologyBar({ currentName, onLoad }: {
         }),
       })
       const json = await res.json() as { success: boolean; error?: string; data?: { remediesAdded: number } }
-      if (!res.ok || !json.success) throw new Error(json.error ?? 'Could not save')
+      if (!res.ok || !json.success) throw new Error(json.error ?? t('fail'))
       const n = json.data?.remediesAdded ?? 0
-      setStatus({ tone: 'ok', text: `Saved to ${selected.name}${n ? ` with ${n} remed${n === 1 ? 'y' : 'ies'}` : ''}.` })
+      setStatus({
+        tone: 'ok',
+        text: n ? t('savedRemedies', { name: selected.name, n }) : t('saved', { name: selected.name }),
+      })
     } catch (err) {
-      setStatus({ tone: 'error', text: err instanceof Error ? err.message : 'Could not save' })
+      setStatus({ tone: 'error', text: err instanceof Error ? err.message : t('fail') })
     } finally {
       setSaving(false)
     }
@@ -82,19 +87,19 @@ export function ClientNumerologyBar({ currentName, onLoad }: {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'end' }}>
       <div style={{ minWidth: 200, flex: '1 1 200px' }}>
-        <Label htmlFor="numerology-client" caps>CRM client</Label>
+        <Label htmlFor="numerology-client" caps>{t('label')}</Label>
         <select id="numerology-client" className="input" value={clientId} onChange={e => pick(e.target.value)} disabled={!clients}>
-          <option value="">{clients ? 'Load a client…' : 'Loading clients…'}</option>
+          <option value="">{clients ? t('load') : t('loading')}</option>
           {clients?.map(c => <option key={c._id} value={c._id}>{c.name} · {c.birthDate}</option>)}
         </select>
       </div>
       <label style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', fontSize: '0.76rem', color: 'var(--text-secondary)', paddingBottom: 8 }}>
         <input type="checkbox" checked={includeRemedies} onChange={e => setIncludeRemedies(e.target.checked)} />
-        Add key remedies to tracker
+        {t('remedies')}
       </label>
       <Button size="sm" variant="ghost" onClick={() => { void save() }} disabled={!selected || saving}>
         <Save size={14} aria-hidden style={{ marginRight: 4 }} />
-        {saving ? 'Saving…' : 'Save to client'}
+        {saving ? t('saving') : t('save')}
       </Button>
       {status && (
         <span role="status" style={{ fontSize: '0.74rem', color: status.tone === 'ok' ? 'var(--teal)' : 'var(--rose)', paddingBottom: 8 }}>
@@ -103,7 +108,7 @@ export function ClientNumerologyBar({ currentName, onLoad }: {
       )}
       {selected && (
         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', flexBasis: '100%' }}>
-          Saved notes use {selected.name}&apos;s stored birth date and gender; the name field above sets the spelling analysed.
+          {t('note', { name: selected.name })}
         </span>
       )}
     </div>

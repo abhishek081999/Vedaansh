@@ -4,6 +4,7 @@
 //  Vedic praśna reading: significators, weighted factors, Tajika links, timing.
 // ─────────────────────────────────────────────────────────────
 
+import { useTranslations } from 'next-intl'
 import { AlertTriangle, Clock, Scale, Target } from 'lucide-react'
 import type { VedicPolarity, VedicPrashnaReading } from '@/lib/engine/vedicPrashna'
 import { grahaName, ordinal } from '@/lib/engine/satpanchasikaFacts'
@@ -25,26 +26,29 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
   stability: StabilityResult | null
   askedOn?: string
 }) {
+  const tr = useTranslations('prashna.vedic')
+  const tv = useTranslations('prashna.verdict')
+  const tp = useTranslations('prashna.polarity')
   const v = VERDICT_STYLE[r.verdict]
   const s = r.significators
   const chips = [
-    { label: 'Querist (lagna lord)', value: grahaName(s.lagnaLord) },
-    { label: `Matter (${ordinal(s.karyaHouse)} lord)`, value: grahaName(s.karyaLord) },
-    { label: 'Kāraka', value: grahaName(s.karaka) },
+    { label: tr('querist'), value: grahaName(s.lagnaLord) },
+    { label: tr('matter', { ord: ordinal(s.karyaHouse) }), value: grahaName(s.karyaLord) },
+    { label: tr('karaka'), value: grahaName(s.karaka) },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: 0 }}>
       <div style={{ borderRadius: 12, border: '1px solid var(--border)', borderTop: `4px solid ${v.color}`, background: 'var(--surface-1)', padding: '1rem 1.1rem' }}>
-        <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Vedic praśna · {r.topicLabel}</div>
+        <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{tr('kicker', { topic: r.topicLabel })}</div>
         <h2 style={{ fontSize: '1.3rem', margin: '0.3rem 0', color: v.color, fontFamily: 'var(--font-display)', lineHeight: 1.25 }}>{r.headline}</h2>
         {questionText && <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic', margin: '0 0 0.4rem' }}>&quot;{questionText}&quot;</p>}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem 1rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-          <span style={{ fontWeight: 700, color: v.color }}>{v.label}</span>
-          <span>Signal clarity {r.clarity}%</span>
-          <span>Weights: for {r.weights.favourable.toFixed(1)} · against {r.weights.unfavourable.toFixed(1)} · mixed {r.weights.mixed.toFixed(1)}</span>
+          <span style={{ fontWeight: 700, color: v.color }}>{tv(r.verdict)}</span>
+          <span>{tr('clarity', { n: r.clarity })}</span>
+          <span>{tr('weights', { for: r.weights.favourable.toFixed(1), against: r.weights.unfavourable.toFixed(1), mixed: r.weights.mixed.toFixed(1) })}</span>
         </div>
         <p style={{ margin: '0.4rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Strength comes from {r.strengthSource === 'shadbala' ? 'each planet\'s ṣaḍbala' : 'dignity, because ṣaḍbala was unavailable'}. Clarity shows how one-sided the signals are; it is not a probability.
+          {tr('strength', { source: r.strengthSource === 'shadbala' ? tr('shadbala') : tr('dignity') })}
         </p>
       </div>
 
@@ -55,7 +59,7 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
         </div>
       </div>
 
-      <Section title="Significators" Icon={Target} accent="var(--teal)">
+      <Section title={tr('significators')} Icon={Target} accent="var(--teal)">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem' }}>
           {chips.map(c => (
             <div key={c.label} style={{ padding: '0.45rem 0.6rem', background: 'var(--surface-2)', borderRadius: 7, border: '1px solid var(--border-soft)' }}>
@@ -66,14 +70,14 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
         </div>
       </Section>
 
-      <Section title={`Factors weighed (${r.factors.length})`} Icon={Scale}>
+      <Section title={tr('factors', { n: r.factors.length })} Icon={Scale}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
           {GROUPS.map(group => {
             const items = r.factors.filter(x => x.group === group)
             if (!items.length) return null
             return (
               <div key={group} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                <h3 style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{group}</h3>
+                <h3 style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tr(`group.${group}`)}</h3>
                 {items.map(x => {
                   const p = POLARITY[x.polarity]
                   return (
@@ -83,8 +87,8 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.45, marginTop: 2 }}>{x.detail}</div>
                       </div>
                       <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.66rem', fontWeight: 700, color: p.color }}>{p.label}</div>
-                        {x.weight > 0 && <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>weight {x.weight.toFixed(1)}</div>}
+                        <div style={{ fontSize: '0.66rem', fontWeight: 700, color: p.color }}>{tp(x.polarity === 'descriptive' ? 'note' : x.polarity)}</div>
+                        {x.weight > 0 && <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{tr('weight', { n: x.weight.toFixed(1) })}</div>}
                       </div>
                     </div>
                   )
@@ -95,18 +99,18 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
         </div>
       </Section>
 
-      <Section title="Timing" Icon={Clock} accent="var(--amber)">
+      <Section title={tr('timing')} Icon={Clock} accent="var(--amber)">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '0.45rem' }}>
           {r.timing.map(t => (
             <div key={t.name} style={{ padding: '0.55rem 0.65rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--gold)' }}>{t.name}</div>
               <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.15rem 0' }}>{t.value}</div>
-              {t.days !== undefined && askedOn && <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.15rem' }}>Around {approxDate(askedOn, t.days, 'days')}</div>}
+              {t.days !== undefined && askedOn && <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.15rem' }}>{tr('around', { date: approxDate(askedOn, t.days, 'days') ?? '' })}</div>}
               <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{t.working}</div>
             </div>
           ))}
         </div>
-        <p style={{ margin: '0.5rem 0 0', fontSize: '0.66rem', color: 'var(--text-muted)' }}>Separate methods, not added or averaged.</p>
+        <p style={{ margin: '0.5rem 0 0', fontSize: '0.66rem', color: 'var(--text-muted)' }}>{tr('separate')}</p>
       </Section>
 
       {stability && <StabilitySection stability={stability} />}

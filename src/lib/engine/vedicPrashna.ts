@@ -15,6 +15,8 @@ import {
   type ChartFacts, type SatpanchasikaChartInput,
 } from './satpanchasikaFacts'
 import { synthesiseVerdict, type SatpanchasikaVerdict } from './satpanchasikaEngine'
+import type { EngineLang } from './lang'
+import { VEDIC_HEADLINE_HI, VEDIC_NOTICE_HI, VEDIC_STUDY_HI, VEDIC_TOPIC_HI } from './locale/vedicPrashna.hi'
 
 export type VedicTopic =
   | 'general' | 'career' | 'money' | 'marriage' | 'children'
@@ -302,7 +304,7 @@ function buildTiming(f: ChartFacts, a: GrahaId, b: GrahaId): VedicTiming[] {
   return out
 }
 
-export function runVedicPrashna(chart: VedicChartInput, topicId: VedicTopic): VedicPrashnaReading {
+export function runVedicPrashna(chart: VedicChartInput, topicId: VedicTopic, lang: EngineLang = 'en'): VedicPrashnaReading {
   const f = buildChartFacts(chart)
   const topic = VEDIC_TOPICS.find(t => t.id === topicId)
   if (!topic) throw new Error(`Unknown Vedic prashna topic: ${topicId}`)
@@ -328,15 +330,18 @@ export function runVedicPrashna(chart: VedicChartInput, topicId: VedicTopic): Ve
 
   return {
     topic: topic.id,
-    topicLabel: topic.label,
+    topicLabel: lang === 'hi' ? (VEDIC_TOPIC_HI[topic.id] ?? topic.label) : topic.label,
     verdict: synthesis.verdict,
-    headline: HEADLINES[synthesis.verdict],
+    headline: lang === 'hi' ? VEDIC_HEADLINE_HI[synthesis.verdict] : HEADLINES[synthesis.verdict],
     clarity: synthesis.clarity,
     weights: { favourable: synthesis.weights.favourable, unfavourable: synthesis.weights.unfavourable, mixed: synthesis.weights.mixed },
     significators: { lagnaLord, karyaHouse: topic.house, karyaLord, karaka: topic.karaka },
     factors,
     timing: buildTiming(f, lagnaLord, karyaLord),
     strengthSource: f.strengthSource,
-    notices: [STUDY_NOTE, ...(topic.notice ? [topic.notice] : [])],
+    notices: [
+      lang === 'hi' ? VEDIC_STUDY_HI : STUDY_NOTE,
+      ...(topic.notice ? [lang === 'hi' ? (VEDIC_NOTICE_HI[topic.id] ?? topic.notice) : topic.notice] : []),
+    ],
   }
 }

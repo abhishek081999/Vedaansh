@@ -22,6 +22,7 @@ import {
   type NadiYogaChartInput,
   type NadiYogaPlacement,
 } from '@/lib/engine/nadi/yogas'
+import { nLang, nOrd, nR, nSay, type EngineLang } from '@/lib/engine/nadi/text'
 
 export const NADI_MARRIAGE_SCOPE =
   'Read this on the person first, then on parents or siblings. It is not read on a maternal uncle or aunt. A result already present in the family is the combination that has shown. Otherwise it stays open for the person or the children.'
@@ -31,6 +32,32 @@ export const NADI_MARRIAGE_BOND =
 
 export const NADI_MARRIAGE_HEALTH =
   'When a separation is not what shows, the same Venus is checked for the kidneys, uterus, and reproductive organs, for the person or an immediate relative.'
+
+export const NADI_MARRIAGE_SCOPE_HI =
+  'इसे पहले व्यक्ति पर पढ़ें, फिर माता-पिता या भाई-बहनों पर। इसे मामा या मौसी पर नहीं पढ़ा जाता। परिवार में पहले से मौजूद फल वही योग है जो प्रकट हो चुका है। अन्यथा यह व्यक्ति या संतान के लिए खुला रहता है।'
+
+export const NADI_MARRIAGE_BOND_HI =
+  'शरीर, मन और भावना से पूरे एक वर्ष टिका संबंध सातवें भाव से पढ़ा जाता है। इससे छोटा संबंध पाँचवें भाव से पढ़ा जाता है।'
+
+export const NADI_MARRIAGE_HEALTH_HI =
+  'जब अलगाव नहीं दिखता, तब उसी शुक्र से व्यक्ति या निकट संबंधी के गुर्दे, गर्भाशय और प्रजनन अंगों की जाँच की जाती है।'
+
+const DEF_HI: Record<string, { name: string; reading: string }> = {
+  've-ma-ra': { name: 'शुक्र + मंगल + राहु', reading: 'इन विवाह योगों में सबसे प्रबल। अलगाव, विवाहेतर संबंध, और भागकर विवाह, इन रूपों की जाँच की जाती है। संबंध में भरोसे की भी जाँच की जाती है।' },
+  've-ma-ke': { name: 'शुक्र + मंगल + केतु', reading: 'बहुत प्रबल विवाह योग। अलगाव, विवाहेतर संबंध, और भागकर विवाह, इन रूपों की जाँच की जाती है।' },
+  've-mo-ra': { name: 'शुक्र + चंद्र + राहु', reading: 'विवाहेतर संबंध, भागकर विवाह, और सास-बहू (माता और पत्नी) के बीच टकराव। विवाह के बाद जन्मस्थान से दूर रहने की जाँच की जाती है।' },
+  've-mo-ke': { name: 'शुक्र + चंद्र + केतु', reading: 'विवाहेतर संबंध, भागकर विवाह, और सास-बहू (माता और पत्नी) के बीच टकराव। विवाह के बाद जन्मस्थान से दूर रहने की जाँच की जाती है।' },
+  've-me-ra': { name: 'शुक्र + बुध + राहु', reading: 'विवाहेतर संबंध और लगातार वैवाहिक परेशानी, इन रूपों की जाँच की जाती है।' },
+  've-me-ke': { name: 'शुक्र + बुध + केतु', reading: 'विवाहेतर संबंध और लगातार वैवाहिक परेशानी, इन रूपों की जाँच की जाती है।' },
+  've-sa-ra': { name: 'शुक्र + शनि + राहु', reading: 'अलगाव, दो विवाह, और देरी, इन रूपों की जाँच की जाती है। इसके भीतर का शनि-शुक्र जोड़ा, विवाह के फल से अलग, धन के रूप में भी पढ़ा जाता है।' },
+  've-sa-ke': { name: 'शुक्र + शनि + केतु', reading: 'अलगाव, दो विवाह, और देरी, इन रूपों की जाँच की जाती है। इसके भीतर का शनि-शुक्र जोड़ा, विवाह के फल से अलग, धन के रूप में भी पढ़ा जाता है।' },
+  've-ma': { name: 'शुक्र + मंगल', reading: 'आवेग, जल्दबाज़ी में विवाह, और विवाह में टकराव, इन रूपों की जाँच की जाती है। संपत्ति और वाहन की भी जाँच की जाती है।' },
+  've-sa': { name: 'शनि + शुक्र', reading: 'अलगाव, देर से विवाह या विवाह न होना, उम्र में बड़ा साथी, या लगातार बीमार रहने वाला जीवनसाथी। शनि की गरिमा इसे नहीं बदलती। यही जोड़ा, विवाह से अलग पढ़ा जाने वाला, एक प्रबल धन योग है।' },
+  've-mo': { name: 'शुक्र + चंद्र', reading: 'विवाहेतर संबंध, भागकर विवाह, सास-बहू (माता और पत्नी) के बीच टकराव, और विवाह के बाद जन्मस्थान से दूर रहना।' },
+  've-ra': { name: 'शुक्र + राहु', reading: 'विवाह का मध्यम जोखिम। यह कभी-कभी शांत रहता है, और मंगल या चंद्र के जुड़ने पर अधिक प्रबल होता है।' },
+  've-ke': { name: 'शुक्र + केतु', reading: 'विवाह का मध्यम जोखिम, शुक्र-राहु से थोड़ा हल्का। यह कभी-कभी शांत रहता है।' },
+  've-su': { name: 'सूर्य + शुक्र', reading: 'संतान जन्म और प्रजनन अंग, इन रूपों की जाँच की जाती है। शुक्र इन अंगों का स्वामी है।' },
+}
 
 export interface NadiMarriageYoga {
   id: string
@@ -167,6 +194,8 @@ const DEFS: readonly MarriageDef[] = [
 ]
 
 export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[] {
+  const L = nLang(input.lang)
+  const t = (en: string, hi: string) => nSay(L, en, hi)
   const hits: NadiMarriageYoga[] = []
   const signs = [...new Set(input.grahas.map((g) => g.rashi))]
   for (const sign of signs) {
@@ -175,18 +204,18 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
     const dropped = new Set(matched.flatMap((def) => def.suppresses))
     for (const def of matched) {
       if (dropped.has(def.id)) continue
-      let reading = def.reading
-      const closeness = nadiClosenessClause(nadiConjunctionGrade(inSign, def.planets))
+      let reading = t(def.reading, DEF_HI[def.id]?.reading ?? def.reading)
+      const closeness = nadiClosenessClause(nadiConjunctionGrade(inSign, def.planets), L)
       if (closeness) reading += ` ${closeness}`
       if (def.id === 've-sa' && nadiConjunct(inSign, ['Ve', 'Sa', 'Ju'])) {
-        reading += ' Jupiter sitting with them may soften the marriage result. Saturn and Venus stay the pair to read.'
+        reading += t(' Jupiter sitting with them may soften the marriage result. Saturn and Venus stay the pair to read.', ' उनके साथ बैठा गुरु विवाह के फल को नरम कर सकता है। फिर भी पढ़ने वाला जोड़ा शनि और शुक्र ही है।')
       }
-      const hit = toHit(input, def, sign, reading)
+      const hit = toHit(input, def, sign, reading, L)
       if (def.id === 've-ra' && hit.house === 7) {
-        hit.reading += ' In the 7th house, classical Nadi texts describe this as a delay in marriage, a separation, or a loss in the marriage. The texts give the possibilities and do not fix an outcome.'
+        hit.reading += t(' In the 7th house, classical Nadi texts describe this as a delay in marriage, a separation, or a loss in the marriage. The texts give the possibilities and do not fix an outcome.', ' सातवें भाव में, शास्त्रीय नाड़ी ग्रंथ इसे विवाह में देरी, अलगाव, या विवाह में हानि बताते हैं। ग्रंथ संभावनाएँ बताते हैं, कोई निश्चित परिणाम तय नहीं करते।')
       }
       if (input.chart === 'D9' && def.id === 've-ke') {
-        hit.reading += ' In Navamsha, a second marriage is the form checked.'
+        hit.reading += t(' In Navamsha, a second marriage is the form checked.', ' नवांश में दूसरे विवाह के रूप की जाँच की जाती है।')
       }
       hits.push(hit)
     }
@@ -195,26 +224,26 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
   if (ketu && wholeSignHouseFromLagna(input.ascRashi, ketu.rashi) === 7) {
     hits.push({
       id: `${input.chart}-ke-7`,
-      name: 'Ketu in the 7th',
+      name: t('Ketu in the 7th', 'सातवें भाव में केतु'),
       chart: input.chart,
       house: 7,
-      signName: RASHI_NAMES[ketu.rashi],
+      signName: L === 'hi' ? nR(ketu.rashi, L) : RASHI_NAMES[ketu.rashi],
       organs: false,
-      reading: 'The early passing of the spouse is the form checked. This is not read as a separation.',
+      reading: t('The early passing of the spouse is the form checked. This is not read as a separation.', 'जीवनसाथी के जल्दी निधन के रूप की जाँच की जाती है। इसे अलगाव के रूप में नहीं पढ़ा जाता।'),
     })
   }
   if (input.chart === 'D9') {
     const marsRahu = input.grahas.find((g) => g.id === 'Ma')
     if (marsRahu && nadiConjunct(input.grahas, ['Ma', 'Ra'])) {
-      const closeness = nadiClosenessClause(nadiConjunctionGrade(input.grahas, ['Ma', 'Ra']))
+      const closeness = nadiClosenessClause(nadiConjunctionGrade(input.grahas, ['Ma', 'Ra']), L)
       hits.push({
         id: `${input.chart}-ma-ra-second`,
-        name: 'Mars + Rahu',
+        name: t('Mars + Rahu', 'मंगल + राहु'),
         chart: input.chart,
         house: wholeSignHouseFromLagna(input.ascRashi, marsRahu.rashi),
-        signName: RASHI_NAMES[marsRahu.rashi],
+        signName: L === 'hi' ? nR(marsRahu.rashi, L) : RASHI_NAMES[marsRahu.rashi],
         organs: false,
-        reading: `In Navamsha, a second marriage is the form checked.${closeness ? ` ${closeness}` : ''}`,
+        reading: `${t('In Navamsha, a second marriage is the form checked.', 'नवांश में दूसरे विवाह के रूप की जाँच की जाती है।')}${closeness ? ` ${closeness}` : ''}`,
       })
     }
     const seventhSign = rashiForHouseFromLagna(input.ascRashi, 7)
@@ -225,50 +254,55 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
       if (nadiAfflictedBy(seventhLord, co).length > 0) {
         hits.push({
           id: `${input.chart}-7th-lord`,
-          name: '7th lord of Navamsha',
+          name: t('7th lord of Navamsha', 'नवांश का सप्तमेश'),
           chart: input.chart,
           house: wholeSignHouseFromLagna(input.ascRashi, placed.rashi),
-          signName: RASHI_NAMES[placed.rashi],
+          signName: L === 'hi' ? nR(placed.rashi, L) : RASHI_NAMES[placed.rashi],
           organs: false,
-          reading: 'The 7th lord of Navamsha is afflicted. A separation or a second marriage is the form checked.',
+          reading: t('The 7th lord of Navamsha is afflicted. A separation or a second marriage is the form checked.', 'नवांश का सप्तमेश पीड़ित है। अलगाव या दूसरे विवाह के रूप की जाँच की जाती है।'),
         })
       }
     }
-    const axis = navamshaAxis(input.ascRashi, input.grahas)
+    const axis = navamshaAxis(input.ascRashi, input.grahas, L)
     if (axis) hits.push(axis)
   }
-  const repeated = mutableExchange(input)
+  const repeated = mutableExchange(input, L)
   if (repeated) hits.push(repeated)
   return hits
 }
 
-export function marriageSummary(yoga: NadiMarriageYoga): string {
+export function marriageSummary(yoga: NadiMarriageYoga, lang?: EngineLang): string {
   if (yoga.id.endsWith('node-axis')) return yoga.reading
+  if (lang === 'hi') {
+    const chart = yoga.chart === 'D9' ? 'नवांश' : 'जन्म कुंडली'
+    return `${yoga.name} (${chart}, ${yoga.signName}, ${nOrd(yoga.house, 'hi')} भाव)। ${yoga.reading}`
+  }
   const chart = yoga.chart === 'D9' ? 'Navamsha' : 'Birth chart'
   return `${yoga.name} (${chart}, ${yoga.signName}, ${ordinal(yoga.house)}). ${yoga.reading}`
 }
 
-export function marriageNote(yogas: readonly NadiMarriageYoga[]): string | null {
+export function marriageNote(yogas: readonly NadiMarriageYoga[], lang?: EngineLang): string | null {
   if (yogas.length === 0) return null
-  const parts = [NADI_MARRIAGE_SCOPE, NADI_MARRIAGE_BOND]
-  if (yogas.length > 1) parts.push('More than one of these is present, so the marriage reading is stronger.')
-  if (yogas.some((yoga) => yoga.organs)) parts.push(NADI_MARRIAGE_HEALTH)
+  const L = nLang(lang)
+  const parts = [nSay(L, NADI_MARRIAGE_SCOPE, NADI_MARRIAGE_SCOPE_HI), nSay(L, NADI_MARRIAGE_BOND, NADI_MARRIAGE_BOND_HI)]
+  if (yogas.length > 1) parts.push(nSay(L, 'More than one of these is present, so the marriage reading is stronger.', 'इनमें से एक से अधिक योग मौजूद हैं, इसलिए विवाह का फल अधिक प्रबल है।'))
+  if (yogas.some((yoga) => yoga.organs)) parts.push(nSay(L, NADI_MARRIAGE_HEALTH, NADI_MARRIAGE_HEALTH_HI))
   return parts.join(' ')
 }
 
-function toHit(input: NadiYogaChartInput, def: MarriageDef, sign: NadiYogaPlacement['rashi'], reading: string): NadiMarriageYoga {
+function toHit(input: NadiYogaChartInput, def: MarriageDef, sign: NadiYogaPlacement['rashi'], reading: string, L: EngineLang = 'en'): NadiMarriageYoga {
   return {
     id: `${input.chart}-${def.id}`,
-    name: def.name,
+    name: L === 'hi' ? DEF_HI[def.id]?.name ?? def.name : def.name,
     chart: input.chart,
     house: wholeSignHouseFromLagna(input.ascRashi, sign),
-    signName: RASHI_NAMES[sign],
+    signName: L === 'hi' ? nR(sign, L) : RASHI_NAMES[sign],
     reading,
     organs: def.organs,
   }
 }
 
-function mutableExchange(input: NadiYogaChartInput): NadiMarriageYoga | null {
+function mutableExchange(input: NadiYogaChartInput, L: EngineLang): NadiMarriageYoga | null {
   const mutable = input.ascRashi === 3 || input.ascRashi === 6 || input.ascRashi === 9 || input.ascRashi === 12
   if (input.chart !== 'D1' || !mutable) return null
   const mercury = input.grahas.find((g) => g.id === 'Me')
@@ -284,16 +318,16 @@ function mutableExchange(input: NadiYogaChartInput): NadiMarriageYoga | null {
   if (!kendra(mercury.rashi) || !kendra(jupiter.rashi)) return null
   return {
     id: 'D1-me-ju-kendra',
-    name: 'Jupiter–Mercury exchange',
+    name: nSay(L, 'Jupiter–Mercury exchange', 'गुरु–बुध परिवर्तन योग'),
     chart: 'D1',
     house: wholeSignHouseFromLagna(input.ascRashi, mercury.rashi),
-    signName: RASHI_NAMES[mercury.rashi],
+    signName: L === 'hi' ? nR(mercury.rashi, L) : RASHI_NAMES[mercury.rashi],
     organs: false,
-    reading: 'Jupiter and Mercury exchange in the angles. Two or three marriages are the form checked.',
+    reading: nSay(L, 'Jupiter and Mercury exchange in the angles. Two or three marriages are the form checked.', 'गुरु और बुध केंद्रों में परिवर्तन योग बनाते हैं। दो या तीन विवाह, इस रूप की जाँच की जाती है।'),
   }
 }
 
-function navamshaAxis(asc: NadiYogaChartInput['ascRashi'], grahas: readonly NadiYogaPlacement[]): NadiMarriageYoga | null {
+function navamshaAxis(asc: NadiYogaChartInput['ascRashi'], grahas: readonly NadiYogaPlacement[], L: EngineLang): NadiMarriageYoga | null {
   const onAxis = grahas.some((g) => {
     if (g.id !== 'Ra' && g.id !== 'Ke') return false
     const house = wholeSignHouseFromLagna(asc, g.rashi)
@@ -302,12 +336,12 @@ function navamshaAxis(asc: NadiYogaChartInput['ascRashi'], grahas: readonly Nadi
   if (!onAxis) return null
   return {
     id: 'D9-node-axis',
-    name: 'Rahu or Ketu on the Navamsha 1–7 axis',
+    name: nSay(L, 'Rahu or Ketu on the Navamsha 1–7 axis', 'नवांश की 1–7 धुरी पर राहु या केतु'),
     chart: 'D9',
     house: 1,
-    signName: 'axis',
+    signName: nSay(L, 'axis', 'धुरी'),
     organs: false,
-    reading: 'Rahu or Ketu in the 1st or 7th of Navamsha is read as a separation, a very late marriage, or no marriage.',
+    reading: nSay(L, 'Rahu or Ketu in the 1st or 7th of Navamsha is read as a separation, a very late marriage, or no marriage.', 'नवांश के पहले या सातवें भाव में राहु या केतु अलगाव, बहुत देर से विवाह, या विवाह न होने के रूप में पढ़ा जाता है।'),
   }
 }
 

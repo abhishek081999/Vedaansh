@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId, Rashi } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
 import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import {
   getNumberFriendship,
@@ -26,6 +27,8 @@ import {
   NUMBER_PROFILES,
   PERSONAL_YEAR_THEMES,
   getCompoundMeaning,
+  getNumberProfile,
+  personalYearTheme,
   type CoreNumber,
 } from './data'
 import { GRAHA_NUMBER } from './tools'
@@ -501,7 +504,10 @@ export function getDailyAnkaMuhurta(input: {
   moolank: CoreNumber
   bhagyank: CoreNumber
   today: ParsedDate
+  lang?: EngineLang
 }): DailyAnkaMuhurta {
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
   const hadBirthday =
     input.today.month > input.birth.month ||
     (input.today.month === input.birth.month && input.today.day >= input.birth.day)
@@ -514,28 +520,29 @@ export function getDailyAnkaMuhurta(input: {
   const rootToday = reduceToCore(input.today.day) as CoreNumber
   const isPowerDay = rootToday === input.moolank
   const isDestinyDay = rootToday === input.bhagyank
-  const p = NUMBER_PROFILES[personalDay]
+  const p = getNumberProfile(personalDay, lang)
   const doList: string[] = []
   const dontList: string[] = []
   if (h === 'excellent' || h === 'good' || isPowerDay) {
-    doList.push('Important meetings, signings, launches')
-    doList.push(`Wear ${p.luckyColors[0]} / ${p.luckyColors[1] ?? p.luckyColors[0]}`)
-    doList.push(`Face ${p.direction} for key work`)
+    doList.push(hi ? 'महत्वपूर्ण बैठक, हस्ताक्षर, आरंभ' : 'Important meetings, signings, launches')
+    doList.push(hi ? `${p.luckyColors[0]} / ${p.luckyColors[1] ?? p.luckyColors[0]} पहनें` : `Wear ${p.luckyColors[0]} / ${p.luckyColors[1] ?? p.luckyColors[0]}`)
+    doList.push(hi ? `मुख्य कार्य के लिए ${p.direction} की ओर मुख करें` : `Face ${p.direction} for key work`)
   } else {
-    doList.push('Routine work, planning, documentation')
-    doList.push(`Light ${p.planet} remedy: ${p.remedies[0]}`)
+    doList.push(hi ? 'नियमित कार्य, योजना, दस्तावेज़' : 'Routine work, planning, documentation')
+    doList.push(hi ? `हल्का ${p.planet} उपाय: ${p.remedies[0]}` : `Light ${p.planet} remedy: ${p.remedies[0]}`)
   }
   if (h === 'challenging') {
-    dontList.push('Avoid new debt, confrontations, and risky travel')
-    dontList.push(`Avoid colours: ${p.avoidColors.join(', ')}`)
+    dontList.push(hi ? 'नया ऋण, टकराव और जोखिम भरी यात्रा टालें' : 'Avoid new debt, confrontations, and risky travel')
+    dontList.push(hi ? `इन रंगों से बचें: ${p.avoidColors.join(', ')}` : `Avoid colours: ${p.avoidColors.join(', ')}`)
   } else {
-    dontList.push('Avoid overcommitting beyond energy')
+    dontList.push(hi ? 'ऊर्जा से अधिक वचन न बाँधें' : 'Avoid overcommitting beyond energy')
   }
   if (personalDay === 4 || personalDay === 8) {
-    dontList.push('Minimize speculation and impulsive purchases')
+    dontList.push(hi ? 'सट्टा और आवेगी खरीद कम करें' : 'Minimize speculation and impulsive purchases')
   }
   const mm = String(input.today.month).padStart(2, '0')
   const dd = String(input.today.day).padStart(2, '0')
+  const theme = hi ? personalYearTheme(personalDay, lang).theme : PERSONAL_YEAR_THEMES[personalDay].theme
   return {
     date: `${input.today.year}-${mm}-${dd}`,
     personalDay,
@@ -546,8 +553,12 @@ export function getDailyAnkaMuhurta(input: {
     isDestinyDay,
     doList,
     dontList,
-    remedyOfDay: `${p.beejMantra} (11×) · ${p.fastingDay} practices if today matches`,
-    summary: `Personal day ${personalDay} (${p.planet}) · ${PERSONAL_YEAR_THEMES[personalDay].theme}${isPowerDay ? ' · POWER DAY' : ''}${isDestinyDay ? ' · DESTINY DAY' : ''}`,
+    remedyOfDay: hi
+      ? `${p.beejMantra} (११ बार) · आज मेल खाए तो ${p.fastingDay} के अभ्यास`
+      : `${p.beejMantra} (11×) · ${p.fastingDay} practices if today matches`,
+    summary: hi
+      ? `व्यक्तिगत दिन ${personalDay} (${p.planet}) · ${theme}${isPowerDay ? ' · शक्ति दिवस' : ''}${isDestinyDay ? ' · भाग्य दिवस' : ''}`
+      : `Personal day ${personalDay} (${p.planet}) · ${theme}${isPowerDay ? ' · POWER DAY' : ''}${isDestinyDay ? ' · DESTINY DAY' : ''}`,
   }
 }
 

@@ -1,0 +1,590 @@
+nadi.placements[].prediction	Ketu sits in Cancer in the 1st (Lagna). Ketu rules no sign. It acts like Moon, lord of Cancer, so the body is read with a cut. Cancer carries the nature of the 4th (Sukha), so the home joins the body. Cuts and a sudden end to a body theme when other difficult planets join.
+nadi.houses[].prediction	The 1st is Cancer. Cancer carries the nature of the 4th (Sukha), so the home joins the body. Its lord, Moon, sits in the 6th, so the 1st is read from the 6th. Ketu occupies it. Ketu brings a cut. Ketu is here, so the living significances of the 1st are under pressure.
+nadi.houses[].prediction	The 2nd is Leo. Leo carries the nature of the 5th (Putra), so children and study joins wealth. Its lord, Sun, sits in the 11th, so the 2nd is read from the 11th. No planet occupies it.
+nadi.houses[].prediction	The 3rd is Virgo. Virgo carries the nature of the 6th (Ripu), so service joins siblings. Its lord, Mercury, sits in the 10th, so the 3rd is read from the 10th. No planet occupies it.
+nadi.houses[].prediction	The 4th is Libra. Libra carries the nature of the 7th (Kalatra), so marriage joins the home. Its lord, Venus, sits in the 9th, so the 4th is read from the 9th. No planet occupies it.
+nadi.houses[].prediction	The 5th is Scorpio. Scorpio carries the nature of the 8th (Ayu), so hidden matters joins children and study. Its lord, Mars, sits in the 8th, so the 5th is read from the 8th. No planet occupies it.
+nadi.placements[].prediction	Moon sits in Sagittarius in the 6th (Ripu). It rules the 1st. The body is read from the 6th. Sagittarius carries the nature of the 9th (Bhagya), so luck joins service.
+nadi.houses[].prediction	The 6th is Sagittarius. Sagittarius carries the nature of the 9th (Bhagya), so luck joins service. Its lord, Jupiter, sits in the 12th, so the 6th is read from the 12th. Moon occupies it. Moon carries the 1st.
+nadi.placements[].prediction	Saturn sits in Capricorn in the 7th (Kalatra). It rules the 7th and the 8th. Hidden matters are read from the 7th. It is also the lord of the 7th. Capricorn carries the nature of the 10th (Karma), so the career joins marriage. Saturn is in its own sign, so delay and labour arrive cleanly. Saturn is retrograde, so this result is late. Rahu sits with it, so the living themes of the 7th are under pressure.
+nadi.placements[].prediction	Rahu sits in Capricorn in the 7th (Kalatra). Rahu rules no sign. It acts like Saturn, lord of Capricorn, so marriage and hidden matters are read with a sudden turn. Saturn sits with it, so that reading is stronger. Capricorn carries the nature of the 10th (Karma), so the career joins marriage. Saturn sits with it, so the living themes of the 7th are under pressure.
+nadi.houses[].prediction	The 7th is Capricorn. Capricorn carries the nature of the 10th (Karma), so the career joins marriage. Its lord, Saturn, sits in it, so the 7th is read from itself. Saturn and Rahu occupy it. Saturn carries the 8th. Rahu brings a sudden turn. Saturn and Rahu are here, so the living significances of the 7th are under pressure.
+nadi.placements[].prediction	Mars sits in Aquarius in the 8th (Ayu). It rules the 5th and the 10th. Children and study, and the career are read from the 8th. Aquarius carries the nature of the 11th (Labha), so gains join hidden matters.
+nadi.houses[].prediction	The 8th is Aquarius. Aquarius carries the nature of the 11th (Labha), so gains joins hidden matters. Its lord, Saturn, sits in the 7th, so the 8th is read from the 7th. Mars occupies it. Mars carries the 5th and the 10th. Mars is here, so the living significances of the 8th are under pressure.
+nadi.placements[].prediction	Venus sits in Pisces in the 9th (Bhagya). It rules the 4th and the 11th. The home and gains are read from the 9th. Pisces carries the nature of the 12th (Vyaya), so foreign lands join luck. Venus is exalted, so marriage and romance, and vehicles arrive cleanly.
+nadi.houses[].prediction	The 9th is Pisces. Pisces carries the nature of the 12th (Vyaya), so foreign lands joins luck. Its lord, Jupiter, sits in the 12th, so the 9th is read from the 12th. Venus occupies it. Venus carries the 4th and the 11th.
+nadi.placements[].prediction	Mercury sits in Aries in the 10th (Karma). It rules the 3rd and the 12th. Siblings and foreign lands are read from the 10th. Aries carries the nature of the 1st (Lagna), so the body joins the career. Mercury is retrograde, so this result is late.
+nadi.houses[].prediction	The 10th is Aries. Aries carries the nature of the 1st (Lagna), so the body joins the career. Its lord, Mars, sits in the 8th, so the 10th is read from the 8th. Mercury occupies it. Mercury carries the 3rd and the 12th.
+nadi.placements[].prediction	Sun sits in Taurus in the 11th (Labha). It rules the 2nd. Wealth is read from the 11th. Taurus carries the nature of the 2nd (Dhana), so wealth joins gains.
+nadi.houses[].prediction	The 11th is Taurus. Taurus carries the nature of the 2nd (Dhana), so wealth joins gains. Its lord, Venus, sits in the 9th, so the 11th is read from the 9th. Sun occupies it. Sun carries the 2nd.
+nadi.placements[].prediction	Jupiter sits in Gemini in the 12th (Vyaya). It rules the 6th and the 9th. Service and luck are read from the 12th. Gemini carries the nature of the 3rd (Parakrama), so siblings join foreign lands.
+nadi.houses[].prediction	The 12th is Gemini. Gemini carries the nature of the 3rd (Parakrama), so siblings joins foreign lands. Its lord, Mercury, sits in the 10th, so the 12th is read from the 10th. Jupiter occupies it. Jupiter carries the 6th and the 9th.
+nadi.placementNote	A planet is read from the house it occupies, then from the houses it rules, then from its sign. The sign brings the nature of its own natural house. Rahu and Ketu rule no sign: they act like the lord of the sign they occupy.
+nadi.placements[].classicalHouse	Sun in 11th: gains, influential friends, fulfillment of ambitions.
+nadi.placements[].classicalSign	Sun in Taurus: steady authority over resources; patient pride; wealth through persistence.
+nadi.placements[].classicalHouse	Moon in 6th: health anxiety, service mind; overcomes enemies through adaptability.
+nadi.placements[].classicalSign	Moon in Sagittarius: faith-seeking emotions; optimistic if supported.
+nadi.placements[].classicalHouse	Mars in 8th: take care around accidents and surgery; research courage, inheritance fights.
+nadi.placements[].classicalSign	Mars in Aquarius: networked hustle; group courage; tech fight drive.
+nadi.placements[].classicalHouse	Mercury in 10th: career in communication, accounting, counsel, trade.
+nadi.placements[].classicalSign	Mercury in Aries: quick speech, debating intellect; unfinished multiplicity.
+nadi.placements[].classicalHouse	Jupiter in 12th: moksha tendency, charitable expense, peaceful bed/foreign dharma.
+nadi.placements[].classicalSign	Jupiter in Gemini: teaching curiosity; many skills; scattered dharma if weak.
+nadi.placements[].classicalHouse	Venus in 9th: fortunate pleasures, dharmic arts, soft father/guru relations.
+nadi.placements[].classicalSign	Venus exalted in Pisces: supreme bhakti-beauty, refined love.
+nadi.placements[].classicalHouse	Saturn in 7th: delayed marriage, older/serious partner; duty-bound unions.
+nadi.placements[].classicalSign	Saturn in own Capricorn: structural karma mastery.
+nadi.placements[].classicalHouse	Rahu in 7th: foreign/unusual partner, intense desire marriage; ethics need care.
+nadi.placements[].classicalSign	Rahu in Capricorn: unconventional career climb; ambition with swings.
+nadi.placements[].classicalHouse	Ketu in Lagna: detached identity, spiritual/moksha bent, psychic sensitivity.
+nadi.placements[].classicalSign	Ketu in Cancer: detachment from mother/home; inner sanctuary sought.
+nadi.links[].id	8-7-business-loss
+nadi.links[].id	8-10-career-break
+nadi.links[].id	9-12-foreign-luck
+nadi.timings[].id	native-career
+nadi.timings[].id	native-marriage
+nadi.timings[].id	younger-career
+nadi.timings[].id	younger-marriage
+nadi.timings[].id	mother-career
+nadi.timings[].id	mother-marriage
+nadi.timings[].id	mother-health
+nadi.timings[].id	children-career
+nadi.timings[].id	children-marriage
+nadi.timings[].id	maternal-career
+nadi.timings[].id	maternal-marriage
+nadi.timings[].id	spouse-career
+nadi.timings[].id	spouse-marriage
+nadi.timings[].id	father-career
+nadi.timings[].id	father-marriage
+nadi.timings[].id	elder-career
+nadi.timings[].id	elder-marriage
+nadi.timings[].id	second-marriage
+nadi.dashamshaNote	Dashamsha career is read from the lagna and the 10th. Placement is read before an aspect. The lines are options read together. An exchange is read ahead of the other lines.
+nadi.dashamshaNotes[]	Moon aspects the 10th of Dashamsha. Food, or work with the public is one option.
+nadi.dashamshaNotes[]	Jupiter aspects the 10th of Dashamsha. Teaching, or spiritual work is one option.
+nadi.dashamshaNotes[]	Saturn aspects the Dashamsha lagna and aspects the 10th of Dashamsha. Law, or service is one option.
+nadi.dashamshaNotes[]	In the 5th or 9th from Saturn in Dashamsha: Sun. Government work is one option.
+nadi.dashamshaNotes[]	In the 5th or 9th from Saturn in Dashamsha: Venus. Business, food, luxury, entertainment, or medicine. The practical form is food, clothing, entertainment, or beauty. The trained form is finance is one option.
+nadi.dashamshaNotes[]	The antardasha of Sun is running. Sun sits in the 8th, so a loss of work, a transfer, or a break is checked.
+nadi.neighborhoodNote	The 3rd house, and Gemini, are read for the immediate neighborhood. A sign exchange is read ahead of an aspect.
+nadi.propertyNote	Chaturthamsha is read as its own chart. The lagna and the 4th are the property houses, and Mars is the property significator. Parental property and self-acquired property are read together. A link with the 12th or with Rahu is property away from home. The Sun on the lagna, the 4th, or their lords is government quarters. An exchange is read ahead of the other lines.
+nadi.propertyNotes[]	An exchange of the 10th and the 12th is present in Chaturthamsha. Property is read from that.
+nadi.propertyNotes[]	The 4th lord of Chaturthamsha is in its own sign. The 4th is read as strong for property.
+nadi.propertyNotes[]	Mars is in its own sign in Chaturthamsha. Property is read from Mars.
+nadi.propertyNotes[]	Venus is debilitated in the 12th of Chaturthamsha. That is read as exalted for property.
+nadi.propertyNotes[]	Venus, the lagna lord of Chaturthamsha, sits in the 12th. Property away from home is checked.
+nadi.propertyNotes[]	Saturn, the 4th lord of Chaturthamsha, connects with the 12th lord and connects with Rahu. Property away from home is checked.
+nadi.vehicleNote	Shodashamsha is read as its own chart. The lagna and the 4th are the vehicle houses, and Venus is the vehicle significator. The strongest of the Moon, Venus, Saturn, and Mars gives the color. Rahu or Ketu on the lagna, the 4th, the 4th lord, Mars, or Venus is an accident checked. The Sun is a government vehicle. Mars on the lagna or the 4th is a vehicle with a light or a flag. An exchange is read ahead of the other lines.
+nadi.vehicleNotes[]	An exchange of the lagna and the 3rd is present in Shodashamsha. A vehicle is read from that.
+nadi.vehicleNotes[]	Venus is in moolatrikona in Shodashamsha. A vehicle is read from Venus.
+nadi.vehicleNotes[]	Saturn is the strongest of the Moon, Venus, Saturn, and Mars in Shodashamsha. Black is the color read for a vehicle.
+nadi.vehicleNotes[]	Saturn is debilitated in the 8th of Shodashamsha. That is read as exalted for a vehicle.
+nadi.vehicleNotes[]	Rahu connects with the 4th, the 4th lord, and Mars in Shodashamsha. Ketu connects with the 4th, the 4th lord, and Mars in Shodashamsha. An accident with a vehicle is checked.
+nadi.vehicleNotes[]	Mars sits in the lagna and aspects the 4th of Shodashamsha. A vehicle with a light or a flag is checked.
+nadi.marriageRuleNote	Three checks are read together: Mars with Saturn, the Upapada and the 2nd from it, and a score under 25 in the 7th or the 8th. One or two are delay or trouble. All three are the stronger separation reading. Yogas and transits stay on the lagna and Navamsha. The Moon chart is kept for dasha.
+nadi.marriageRuleNotes[]	Mars and Saturn sit in the 2nd and the 12th from each other. They sit on the lagna or the 7th. Trouble in marriage is checked.
+nadi.marriageRuleNotes[]	A difficult planet reaches the Upapada (Aquarius) or the 2nd from it. Trouble in marriage is checked. Helpful planets on these signs outnumber the difficult planets, so the trouble is read more lightly.
+nadi.marriageRuleNotes[]	Not all three marriage rules are present. Delay or trouble in marriage is checked.
+nadi.marriageRuleNotes[]	Rahu or Ketu is on the lagna and the 7th. Trouble in marriage is checked.
+nadi.future.years[].lines[]	The 1st is the most afflicted house. Self, and head and skull, are checked. The 1st year, and every 12 years after it, is when this house is read.
+nadi.future.years[].lines[]	The 7th is the most afflicted house. Spouse, and kidneys and reproductive system, are checked. The 7th year, and every 12 years after it, is when this house is read.
+nadi.yearNotes[]	In the 25th year, Sun activates the 11th, read for gains of every kind and elder siblings.
+nadi.yearNotes[]	In the 30th year, Rahu activates the 7th, read for marriage and spouse and the start of a relationship.
+nadi.yearNotes[]	In the 32nd year, Mars activates the 8th, read for occult and hidden matters and business loss.
+nadi.future.years[].lines[]	In the 37th year, Jupiter activates the 12th, read for loss and spending and foreign lands and long travel. That year is the one now running.
+nadi.yearNotes[]	In the 20th year, Aries and Pisces are active. Aries falls in the 10th, with Mercury, read for speech. A rise in work is checked. Pisces falls in the 9th, with Venus, read for marriage and romance. The lord sits in the 12th. A move away from home is checked. A rise in work is checked.
+nadi.yearNotes[]	In the 24th year, Taurus and Aquarius are active. Taurus falls in the 11th, with Sun, read for father’s status. The lord is exalted. A gain or a large expense is checked. Aquarius falls in the 8th, with Mars, read for land and buildings.
+nadi.yearNotes[]	In the 28th year, Gemini and Capricorn are active. Gemini falls in the 12th, with Jupiter, read for wisdom. Capricorn falls in the 7th, with Saturn, read for delay. An unexpected event is checked.
+nadi.yearNotes[]	In the 32nd year, Cancer and Sagittarius are active. Cancer falls in the 1st, with Ketu. An unexpected event is checked. Sagittarius falls in the 6th, with Moon, read for mind. The lord sits in the 12th. A move away from home is checked. Mars's year is also open, so the two readings are taken together.
+nadi.yearNotes[]	In the 36th year, Leo and Scorpio are active. Leo falls in the 2nd. No planet sits there, so the 2nd is read for wealth and income and inheritance. A gain or a large expense is checked. Scorpio falls in the 5th. No planet sits there, so the 5th is read for education and romance.
+nadi.future.years[].lines[]	In the 40th year, Virgo and Libra are active. Virgo falls in the 3rd. No planet sits there, so the 3rd is read for courage and short journeys. Libra falls in the 4th. No planet sits there, so the 4th is read for home, land, and property and vehicles. The lord is exalted. The year-count house is the same one, so this year is read more strongly.
+nadi.future.years[].lines[]	The largest score jump is between the 12th and the 11th. The 12th year, and every 12 years after it, is read as transformative.
+nadi.marriageYogas[].name	Venus + Moon
+nadi.marriageYogas[].reading	Affairs, running away to marry, conflict between mother and wife, and living away from the birthplace after marriage. The planets sit within 15°, the wide form.
+nadi.marriageNote	Read this on the person first, then on parents or siblings. It is not read on a maternal uncle or aunt. A result already present in the family is the combination that has shown. Otherwise it stays open for the person or the children. A bond held for a full year in body, mind, and feeling is read from the 7th. A shorter bond is read from the 5th.
+nadi.career.lines[]	In the 5th or 9th sign from Saturn: Sun. A conjunction would come ahead of this.
+nadi.career.lines[]	A government post, for the person or for the father. The father’s health and the heart are under pressure, and a court case is checked.
+nadi.career.exams	The 5th lord and the 9th lord are not both strong. A competitive exam is not the result read from this chart.
+nadi.careerContext	Read the size of the result against the place of birth. The chart is the floor.
+nadi.bcp.lines[]	The 37th running year activates the 1st (Lagna). The same house runs every 12 years.
+nadi.bcp.lines[]	It also ran in the 25th year.
+nadi.bcp.lines[]	It next runs in the 49th year.
+nadi.bcp.lines[]	This house is read for body, health and stamina, longevity.
+nadi.bcp.lines[]	Ketu sits here.
+nadi.future.years[].lines[]	Ketu here: a cut, an injury, or a surgery, and a break in a relationship. A change of place is also checked.
+nadi.future.years[].lines[]	Its lord Moon sits in the 6th.
+nadi.future.years[].lines[]	The lord meets the 6th, 8th, or 12th. An accident, an illness, or a heavy loss is checked.
+nadi.future.years[].lines[]	Ketu at 16.54° in this house is read around 2 December 2026.
+nadi.future.years[].lines[]	Its lord Moon at 29.85° is read around 13 May 2027.
+nadi.snapshots[].id	ketu-mark
+nadi.snapshots[].reading	Ketu in the 1st: a mark, cut, or scar is checked on Head, Skull.
+nadi.wealthWindows[].reason	the lord of the 2nd
+nadi.wealthTimingNote	Wealth is read from the 2nd, the 9th, and the 11th. The Navamsha sign of those lords is the wealth year, and the same sign weighs more than a trine to it. Jupiter on the lord’s degree is the peak. An aspect is not. It applies when the person is of an age to earn. The size of the gain is not read. The period of a vargottama planet, a strong 9th lord, or an exchanging planet is also a money period. The Sun and Saturn exchange is the one that is not. Jupiter on the Bhrigu Bindu, and Jupiter in the wealth nakshatra, are further years.
+nadi.future.windows[]	Sun rules the 2nd and sits in Taurus at 0°. The year Jupiter is in Taurus is read as a gain. The peak is the day Jupiter reaches 0° in any sign.
+nadi.future.windows[]	Jupiter rules the 9th and sits in Gemini at 15°. The year Jupiter is in Gemini is read as a gain. The peak is the day Jupiter reaches 15° in any sign.
+nadi.future.windows[]	Venus rules the 11th and sits in Pisces at 18°. The year Jupiter is in Pisces is read as a gain. The peak is the day Jupiter reaches 18° in any sign.
+nadi.future.windows[]	Mars rules the 10th and sits in Aquarius at 24°. Jupiter on 24° is read as work.
+nadi.future.windows[]	Jupiter in Capricorn, the Navamsha of the 2nd lord, is a wealth year.
+nadi.future.windows[]	Jupiter in Aquarius, the Navamsha of the 9th lord, is a wealth year.
+nadi.future.windows[]	Jupiter in Sagittarius, the Navamsha of the 11th lord, is a wealth year.
+nadi.wealthTiming[]	The arudha of the 9th falls in the 12th. Its score is 21, read as a strong year at age 21. This score is given more weight than the other wealth houses.
+nadi.wealthTiming[]	The 2nd scores 28, the 9th scores 29, and the 11th scores 31. Each score is an age to watch for wealth.
+nadi.wealthTiming[]	The lowest score falls in the 12th. A low score there is read as less trouble from that house.
+nadi.wealthTiming[]	The 1st scores higher than the 12th. The years those two houses run are read as a turning point.
+nadi.future.periods[].lines[]	Jupiter rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.
+nadi.future.windows[]	The Bhrigu Bindu falls in Cancer. The year Jupiter is in that sign is read as fortune. A trine of that sign is the lighter form.
+nadi.wealthTiming[]	The wealth nakshatra is Shravana. Rahu sits there, so that period is read as a money period. Jupiter in that nakshatra, or the 9th or the 18th from it, is a money window.
+nadi.specialNote	A degree that matches Mrityu Bhaga is read as weak for that planet’s people, health, and period. Pushkar Navamsha and Pushkar Bhaga are read as strong periods, unless that Navamsha sign falls in the 6th, 8th, or 12th. The two cancel when they fall together. A first sound is read from a planet that connects with the lagna or the Navamsha lagna.
+nadi.specialNotes[]	Moon is in Pushkar Navamsha, and that Navamsha sign falls in the 6th from the lagna. The benefit is read as cancelled.
+nadi.specialNotes[]	Mars is in Pushkar Navamsha and at Pushkar Bhaga. That is the strongest form. The period of Mars is read as exceptionally strong.
+nadi.specialNotes[]	Rahu is in Pushkar Navamsha. The mahadasha of Rahu is running, and the period is read as one of the best.
+nadi.specialNotes[]	A first sound is read from Moon, Mars, Mercury, and Jupiter. Each connects with the lagna or the Navamsha lagna.
+nadi.specialNotes[]	Not used for a first sound: Venus, Saturn, Rahu, and Ketu. A planet in Mrityu Bhaga, a debilitated planet, or a planet with a difficult planet on it is left out.
+nadi.specialNotes[]	The lagna lord is vargottama in the 6th. Its sound can still be read, and the Navamsha lagna lord is the other choice.
+nadi.patel.note	C.S. Patel reads the 22nd drekkana from the lagna and from the Moon, the 64th Navamsha from each of those, and the Bhrigu Bindu. The drekkana is a 10° band. The 64th Navamsha is the 4th of Navamsha. Jupiter on the Bhrigu Bindu is the fortune year. Jupiter on the 7th lord’s Navamsha, on Venus’s Navamsha, or on the Upapada is watched for marriage. Jupiter on Saturn’s Navamsha is watched for work. A period of the point’s lord times it. These lines check a hard period. They do not name its form.
+nadi.patel.points[].id	khara-lagna
+nadi.patel.points[].title	22nd drekkana · lagna
+nadi.patel.points[].reading	The 22nd drekkana from the lagna is the first 10° of Aquarius. Its lord is Saturn. No planet sits in that 10° band. Health, an accident, or a hard turn is checked when this lord’s period runs.
+nadi.patel.points[].id	khara-moon
+nadi.patel.points[].title	22nd drekkana · Moon
+nadi.patel.points[].reading	The 22nd drekkana from the Moon is the last 10° of Cancer. Its lord is Moon. No planet sits in that 10° band. The mind and the mother are checked when this lord’s period runs.
+nadi.patel.points[].id	navamsha-64-lagna
+nadi.patel.points[].title	64th Navamsha · lagna
+nadi.patel.points[].reading	The 64th Navamsha from the lagna is Sagittarius, the 4th of Navamsha. Its lord is Jupiter. Moon and Venus sit in this Navamsha. A hard period for health is checked when this lord’s period runs. The period of Jupiter is open, so this point is timed now.
+nadi.patel.points[].id	navamsha-64-moon
+nadi.patel.points[].title	64th Navamsha · Moon
+nadi.patel.points[].reading	The 64th Navamsha from the Moon is Pisces. Its lord is Jupiter. No planet sits in this Navamsha. The mind and the mother are checked when this lord’s period runs. The period of Jupiter is open, so this point is timed now.
+nadi.patel.lines[]	The Bhrigu Bindu falls in Cancer. Jupiter in that sign is read as fortune. A trine of that sign is the lighter year.
+nadi.patel.lines[]	Marriage is watched when Jupiter reaches Capricorn (Navamsha of the 7th lord), Sagittarius (Venus’s Navamsha), and Aquarius (Upapada).
+nadi.patel.lines[]	Work is watched when Jupiter reaches Capricorn, Saturn’s Navamsha.
+nadi.future.note	The coming years stack the year-count with the sign ages, the planet ages, the degree years, and the score years that land on the same year. A Vimshottari period ahead is read with the same career, money, marriage, property, and vehicle rules. A planet’s degree inside the active house marks a date in that birthday year.
+nadi.future.years[].lines[]	The 37th year activates the 1st (Lagna), read for body, health and stamina, longevity. Ketu sits here.
+nadi.future.years[].lines[]	The 38th year activates the 2nd (Dhana), read for wealth and income, inheritance, savings and jewelry. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Sun sits in the 11th.
+nadi.future.years[].lines[]	Its lord Sun at 0.39° is read around 20 May 2027.
+nadi.future.years[].lines[]	The 39th year activates the 3rd (Parakrama), read for courage, short journeys, younger siblings. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Mercury sits in the 10th.
+nadi.future.years[].lines[]	Its lord Mercury at 14.33° is read around 5 November 2028.
+nadi.future.years[].lines[]	The 40th year activates the 4th (Sukha), read for home, land, and property, vehicles, mother. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Venus sits in the 9th. The lord is exalted, so the year is read as strong.
+nadi.future.years[].lines[]	Its lord Venus at 18.76° is read around 29 December 2029.
+nadi.future.years[].lines[]	The 41st year activates the 5th (Putra), read for education, romance, children. No planet sits in this house.
+nadi.future.years[].lines[]	The sign is Scorpio, so tantra is also checked.
+nadi.future.years[].lines[]	Its lord Mars sits in the 8th.
+nadi.future.years[].lines[]	Its lord Mars at 24.39° is read around 8 March 2031.
+nadi.future.years[].lines[]	The 42nd year activates the 6th (Ripu), read for disease, debt, enemies. Moon sits here.
+nadi.future.years[].lines[]	A court matter, illness, enemies, a hospital, and heavy expense are checked.
+nadi.future.years[].lines[]	Its lord Jupiter sits in the 12th.
+nadi.future.years[].lines[]	Moon at 29.85° in this house is read around 13 May 2032.
+nadi.future.years[].lines[]	Its lord Jupiter at 15.76° is read around 23 November 2031.
+nadi.future.years[].lines[]	The 43rd year activates the 7th (Kalatra), read for marriage and spouse, the start of a relationship, own business. Saturn and Rahu sit here.
+nadi.future.years[].lines[]	Rahu here: a sudden turn, a loss, a court matter, or a change of place or work.
+nadi.future.years[].lines[]	Marriage, a relationship, a vehicle, or jewelry is checked.
+nadi.future.years[].lines[]	Its lord Saturn sits in the 7th.
+nadi.future.years[].lines[]	Saturn at 1.53° in this house is read around 3 June 2032.
+nadi.future.years[].lines[]	Rahu at 16.54° in this house is read around 2 December 2032.
+nadi.future.years[].lines[]	The 44th year activates the 8th (Ayu), read for occult and hidden matters, business loss, transformation. Mars sits here.
+nadi.future.years[].lines[]	Mars at 24.39° in this house is read around 8 March 2034.
+nadi.future.years[].lines[]	Its lord Saturn at 1.53° is read around 3 June 2033.
+nadi.future.years[].lines[]	The 45th year activates the 9th (Bhagya), read for luck received without effort, dharma, long journeys and pilgrimage. Venus sits here.
+nadi.future.years[].lines[]	Venus is exalted here, so the year is read as strong.
+nadi.future.years[].lines[]	Venus at 18.76° in this house is read around 29 December 2034.
+nadi.future.years[].lines[]	Its lord Jupiter at 15.76° is read around 23 November 2034.
+nadi.future.years[].lines[]	The 46th year activates the 10th (Karma), read for father, government and rank, career earned by effort. Mercury sits here.
+nadi.future.years[].lines[]	Mercury at 14.33° in this house is read around 6 November 2035.
+nadi.future.years[].lines[]	Its lord Mars at 24.39° is read around 8 March 2036.
+nadi.future.years[].lines[]	The 47th year activates the 11th (Labha), read for gains of every kind, elder siblings, friends. Sun sits here.
+nadi.future.years[].lines[]	Sun at 0.39° in this house is read around 20 May 2036.
+nadi.future.years[].lines[]	Its lord Venus at 18.76° is read around 29 December 2036.
+nadi.future.years[].lines[]	The 48th year activates the 12th (Vyaya), read for loss and spending, foreign lands and long travel, investment, because the money is locked away. Jupiter sits here.
+nadi.future.years[].lines[]	Jupiter at 15.76° in this house is read around 23 November 2037.
+nadi.future.years[].lines[]	Its lord Mercury at 14.33° is read around 5 November 2037.
+nadi.future.years[].lines[]	The 49th year activates the 1st (Lagna), read for body, health and stamina, longevity. Ketu sits here.
+nadi.future.years[].lines[]	Ketu at 16.54° in this house is read around 2 December 2038.
+nadi.future.years[].lines[]	Its lord Moon at 29.85° is read around 13 May 2039.
+nadi.future.years[].lines[]	The 55th year activates the 7th (Kalatra), read for marriage and spouse, the start of a relationship, own business. Saturn and Rahu sit here.
+nadi.future.years[].lines[]	Saturn at 1.53° in this house is read around 3 June 2044.
+nadi.future.years[].lines[]	Rahu at 16.54° in this house is read around 2 December 2044.
+nadi.future.years[].lines[]	The 60th year activates the 12th (Vyaya), read for loss and spending, foreign lands and long travel, investment, because the money is locked away. Jupiter sits here.
+nadi.future.years[].lines[]	Jupiter at 15.76° in this house is read around 23 November 2049.
+nadi.future.years[].lines[]	Its lord Mercury at 14.33° is read around 5 November 2049.
+nadi.future.years[].lines[]	The 61st year activates the 1st (Lagna), read for body, health and stamina, longevity. Ketu sits here.
+nadi.future.years[].lines[]	Ketu at 16.54° in this house is read around 2 December 2050.
+nadi.future.years[].lines[]	Its lord Moon at 29.85° is read around 13 May 2051.
+nadi.future.periods[].title	Rahu mahadasha · Sun antardasha
+nadi.future.periods[].lines[]	The period of Sun is open, so this combination is timed now.
+nadi.future.periods[].lines[]	Rahu sits in the wealth nakshatra. This period is read as a money period.
+nadi.future.periods[].lines[]	Sun sits in the 8th of Dashamsha, so a loss of work, a transfer, or a break is checked.
+nadi.future.periods[].title	Rahu mahadasha · Moon antardasha
+nadi.future.periods[].lines[]	Moon is vargottama. This period is read as a strong money period.
+nadi.future.periods[].lines[]	Moon is in the exchange, so this period is read as supported for property.
+nadi.future.periods[].title	Rahu mahadasha · Mars antardasha
+nadi.future.periods[].lines[]	Mars falls in this period. Travel toward the south, or a temple in the south, is checked.
+nadi.future.periods[].lines[]	Mars is the property significator, so property is checked.
+nadi.future.periods[].lines[]	Mars is in the exchange, so this period is read as supported for a vehicle.
+nadi.future.periods[].title	Jupiter mahadasha · Jupiter antardasha
+nadi.future.periods[].lines[]	Jupiter rules the 7th of Navamsha. This period is read for marriage or for meeting the partner.
+nadi.future.periods[].lines[]	Jupiter rules the 10th, so a rise in the career is checked.
+nadi.future.periods[].lines[]	Jupiter rules the 4th, so a vehicle is checked, including through the parents when the person is not earning.
+nadi.future.periods[].lines[]	This period is read as a poor time for a major decision, a deal, or a new project.
+nadi.future.periods[].title	Jupiter mahadasha · Saturn antardasha
+nadi.future.periods[].lines[]	The period of Saturn times the khaarab combination.
+nadi.future.periods[].lines[]	Saturn is vargottama. This period is read as a strong money period.
+nadi.future.periods[].lines[]	Saturn rules the 8th of Dashamsha, so a loss of work, a transfer, or a break is checked.
+nadi.future.periods[].lines[]	Saturn rules the 4th, so property is checked.
+nadi.future.periods[].title	Jupiter mahadasha · Mercury antardasha
+nadi.future.periods[].lines[]	Mercury rules the 1st of Navamsha. This period is read for marriage or for meeting the partner.
+nadi.future.periods[].lines[]	Mercury rules the Dashamsha lagna, so a rise in the career is checked.
+nadi.future.periods[].lines[]	Mercury is in the exchange, so this period is read as supported for property.
+nadi.future.periods[].lines[]	Mercury rules the Shodashamsha lagna and is in the exchange, so a vehicle is checked, including through the parents when the person is not earning.
+nadi.placements[].prediction	Moon sits in Gemini in the 1st (Lagna). It rules the 2nd. Wealth is read from the 1st. Gemini carries the nature of the 3rd (Parakrama), so siblings join the body.
+nadi.houses[].prediction	The 1st is Gemini. Gemini carries the nature of the 3rd (Parakrama), so siblings joins the body. Its lord, Mercury, sits in the 6th, so the 1st is read from the 6th. Moon occupies it. Moon carries the 2nd.
+nadi.houses[].prediction	The 2nd is Cancer. Cancer carries the nature of the 4th (Sukha), so the home joins wealth. Its lord, Moon, sits in the 1st, so the 2nd is read from the 1st. No planet occupies it.
+nadi.houses[].prediction	The 3rd is Leo. Leo carries the nature of the 5th (Putra), so children and study joins siblings. Its lord, Sun, sits in the 5th, so the 3rd is read from the 5th. No planet occupies it.
+nadi.placements[].prediction	Mars sits in Virgo in the 4th (Sukha). It rules the 6th and the 11th. Service and gains are read from the 4th. Virgo carries the nature of the 6th (Ripu), so service joins the home. Property dispute, or a cut/surgery theme for the mother. Venus sits with it, so marriage and romance join the 4th.
+nadi.placements[].prediction	Venus sits in Virgo in the 4th (Sukha). It rules the 5th and the 12th. Children and study, and foreign lands are read from the 4th. Virgo carries the nature of the 6th (Ripu), so service joins the home. Venus is debilitated, so marriage and romance are strained. Mars sits with it, so the living themes of the 4th are under pressure.
+nadi.houses[].prediction	The 4th is Virgo. Virgo carries the nature of the 6th (Ripu), so service joins the home. Its lord, Mercury, sits in the 6th, so the 4th is read from the 6th. Mars and Venus occupy it. Mars carries the 6th and the 11th. Venus carries the 5th and the 12th. Mars is here, so the living significances of the 4th are under pressure.
+nadi.placements[].prediction	Sun sits in Libra in the 5th (Putra). It rules the 3rd. Siblings are read from the 5th. Libra carries the nature of the 7th (Kalatra), so marriage joins children and study. Sun is debilitated, so father’s status is strained. Ketu sits with it, so the living themes of the 5th are under pressure.
+nadi.placements[].prediction	Ketu sits in Libra in the 5th (Putra). Ketu rules no sign. It acts like Venus, lord of Libra, so children and study, and foreign lands are read with a cut. Libra carries the nature of the 7th (Kalatra), so marriage joins children and study. A break in study, then software or research if the rest of the chart supports it. Sun sits with it, so father’s status joins the 5th.
+nadi.houses[].prediction	The 5th is Libra. Libra carries the nature of the 7th (Kalatra), so marriage joins children and study. Its lord, Venus, sits in the 4th, so the 5th is read from the 4th. Sun and Ketu occupy it. Sun carries the 3rd. Ketu brings a cut. Ketu is here, so the living significances of the 5th are under pressure.
+nadi.placements[].prediction	Mercury sits in Scorpio in the 6th (Ripu). It rules the 1st and the 4th. The body and the home are read from the 6th. Scorpio carries the nature of the 8th (Ayu), so hidden matters join service. Saturn sits with it, so the living themes of the 6th are under pressure.
+nadi.placements[].prediction	Saturn sits in Scorpio in the 6th (Ripu). It rules the 8th and the 9th. Hidden matters and luck are read from the 6th. Scorpio carries the nature of the 8th (Ayu), so hidden matters join service. Mercury sits with it, so speech joins the 6th.
+nadi.houses[].prediction	The 6th is Scorpio. Scorpio carries the nature of the 8th (Ayu), so hidden matters joins service. Its lord, Mars, sits in the 4th, so the 6th is read from the 4th. Mercury and Saturn occupy it. Mercury carries the 1st and the 4th. Saturn carries the 8th and the 9th. Saturn is here, so the living significances of the 6th are under pressure.
+nadi.houses[].prediction	The 7th is Sagittarius. Sagittarius carries the nature of the 9th (Bhagya), so luck joins marriage. Its lord, Jupiter, sits in the 8th, so the 7th is read from the 8th. No planet occupies it.
+nadi.placements[].prediction	Jupiter sits in Capricorn in the 8th (Ayu). It rules the 7th and the 10th. Marriage and the career are read from the 8th. Capricorn carries the nature of the 10th (Karma), so the career joins hidden matters. Jupiter is debilitated, so wisdom is strained.
+nadi.houses[].prediction	The 8th is Capricorn. Capricorn carries the nature of the 10th (Karma), so the career joins hidden matters. Its lord, Saturn, sits in the 6th, so the 8th is read from the 6th. Jupiter occupies it. Jupiter carries the 7th and the 10th.
+nadi.houses[].prediction	The 9th is Aquarius. Aquarius carries the nature of the 11th (Labha), so gains joins luck. Its lord, Saturn, sits in the 6th, so the 9th is read from the 6th. No planet occupies it.
+nadi.houses[].prediction	The 10th is Pisces. Pisces carries the nature of the 12th (Vyaya), so foreign lands joins the career. Its lord, Jupiter, sits in the 8th, so the 10th is read from the 8th. No planet occupies it.
+nadi.placements[].prediction	Rahu sits in Aries in the 11th (Labha). Rahu rules no sign. It acts like Mars, lord of Aries, so service and gains are read with a sudden turn. Aries carries the nature of the 1st (Lagna), so the body joins gains. Friends who cheat or do not hold.
+nadi.houses[].prediction	The 11th is Aries. Aries carries the nature of the 1st (Lagna), so the body joins gains. Its lord, Mars, sits in the 4th, so the 11th is read from the 4th. Rahu occupies it. Rahu brings a sudden turn. Rahu is here, so the living significances of the 11th are under pressure.
+nadi.houses[].prediction	The 12th is Taurus. Taurus carries the nature of the 2nd (Dhana), so wealth joins foreign lands. Its lord, Venus, sits in the 4th, so the 12th is read from the 4th. No planet occupies it.
+nadi.placements[].classicalHouse	Sun in 5th: intelligent, advisory roles; children few or delayed if under pressure; mantra siddhi possible.
+nadi.placements[].classicalSign	Sun debilitated in Libra: ego vs partnership; humility and ancestral remedies help.
+nadi.placements[].classicalHouse	Moon in Lagna: attractive, changeable mind, popularity; health follows mental peace.
+nadi.placements[].classicalSign	Moon in Gemini: curious, talkative mind; dual emotions; learning hunger.
+nadi.placements[].classicalHouse	Mars in 4th: domestic agitation, property disputes or renovations; mother’s comfort strained.
+nadi.placements[].classicalSign	Mars in Virgo: precise fighter; service competition; surgical skill.
+nadi.placements[].classicalHouse	Mercury in 6th: analytical service, debate with enemies; nervous strain if under pressure.
+nadi.placements[].classicalSign	Mercury in Scorpio: research speech; secret analysis; occult study.
+nadi.placements[].classicalHouse	Jupiter in 8th: longevity, occult wisdom, inheritance; sudden grace in crisis.
+nadi.placements[].classicalSign	Jupiter debilitated in Capricorn: faith meets cold karma; learn through effort.
+nadi.placements[].classicalHouse	Venus in 4th: beautiful home, vehicles, maternal comforts.
+nadi.placements[].classicalSign	Venus debilitated in Virgo: critical love, service over romance; accept imperfections.
+nadi.placements[].classicalHouse	Saturn in 6th: strong to grind through enemies/disease/debt via routine.
+nadi.placements[].classicalSign	Saturn in Scorpio: long occult endurance; chronic tests; regenerative duty.
+nadi.placements[].classicalHouse	Rahu in 11th: large gains via networks, desires magnified.
+nadi.placements[].classicalSign	Rahu in Aries: amplified initiative; foreign pioneering; restless identity heat.
+nadi.placements[].classicalHouse	Ketu in 5th: past-life intellect, unconventional children/romance, mantra tendency.
+nadi.placements[].classicalSign	Ketu in Libra: partnership dissatisfaction then fakir detachment.
+nadi.links[].id	4-12-foreign-home
+nadi.links[].id	5-3-short-study
+nadi.links[].id	11-4-gain-asset
+nadi.dashamshaNotes[]	Sun aspects the 10th of Dashamsha. Government work is one option.
+nadi.dashamshaNotes[]	Moon sits in the 10th of Dashamsha. Food, or work with the public is one option.
+nadi.dashamshaNotes[]	Mercury sits in the 10th of Dashamsha. Business, management, astrology, accounts, or mathematics is one option.
+nadi.dashamshaNotes[]	Rahu sits in the 10th of Dashamsha. Technology, or an unconventional field is one option.
+nadi.dashamshaNotes[]	Ketu aspects the 10th of Dashamsha. Technology, or an unconventional field is one option.
+nadi.dashamshaNotes[]	The antardasha of Moon is running. Moon sits in the 10th, so a rise in the career is checked.
+nadi.dashamshaNotes[]	The antardasha of Moon is running. Moon rules the 8th, so a loss of work, a transfer, or a break is checked.
+nadi.neighborhoodNotes[]	Saturn aspects the 3rd. Iron work nearby is checked. An aspect is the weaker form.
+nadi.propertyNotes[]	An exchange of the lagna and the 5th is present in Chaturthamsha. Property is read from that.
+nadi.propertyNotes[]	Jupiter, the lagna lord and the 4th lord of Chaturthamsha, connects with the 12th lord and connects with Rahu. Property away from home is checked.
+nadi.vehicleNotes[]	An exchange of the 2nd and the 6th is present in Shodashamsha. A vehicle is read from that.
+nadi.vehicleNotes[]	Moon and Saturn are the strongest of these in Shodashamsha. White is read from Moon. Black is read from Saturn.
+nadi.vehicleNotes[]	Rahu connects with the 4th and Mars in Shodashamsha. Ketu connects with the 4th and Mars in Shodashamsha. An accident with a vehicle is checked.
+nadi.vehicleNotes[]	The Sun sits in the 4th of Shodashamsha, and Mars aspects the 4th. A government vehicle with a light or a flag is checked.
+nadi.vehicleNotes[]	The mahadasha of Saturn is running. Saturn is in the exchange, so this period is read as supported for a vehicle.
+nadi.marriageRuleNotes[]	A difficult planet reaches the Upapada (Capricorn) or the 2nd from it. Trouble in marriage is checked.
+nadi.marriageRuleNotes[]	The 7th or the 8th scores under 25. Separation or discord in marriage is checked.
+nadi.future.years[].lines[]	The 5th is the most afflicted house. Children, and heart and brain, are checked. The 5th year, and every 12 years after it, is when this house is read.
+nadi.yearNotes[]	In the 25th year, Sun activates the 5th, read for education and romance.
+nadi.yearNotes[]	In the 30th year, Rahu activates the 11th, read for gains of every kind and elder siblings.
+nadi.yearNotes[]	In the 32nd year, Mars activates the 4th, read for home, land, and property and vehicles.
+nadi.yearNotes[]	In the 37th year, Jupiter activates the 8th, read for occult and hidden matters and business loss.
+nadi.yearNotes[]	In the 20th year, Aries and Pisces are active. Aries falls in the 11th, with Rahu. An unexpected event is checked. A gain or a large expense is checked. Pisces falls in the 10th. No planet sits there, so the 10th is read for father and government and rank. The lord is debilitated, so a struggle is checked.
+nadi.yearNotes[]	In the 24th year, Taurus and Aquarius are active. Taurus falls in the 12th. No planet sits there, so the 12th is read for loss and spending and foreign lands and long travel. The lord is debilitated, so a struggle is checked. Aquarius falls in the 9th. No planet sits there, so the 9th is read for luck received without effort and dharma. The year-count house is the same one, so this year is read more strongly.
+nadi.yearNotes[]	In the 28th year, Gemini and Capricorn are active. Gemini falls in the 1st, with Moon, read for mind. Capricorn falls in the 8th, with Jupiter, read for wisdom.
+nadi.yearNotes[]	In the 32nd year, Cancer and Sagittarius are active. Cancer falls in the 2nd. No planet sits there, so the 2nd is read for wealth and income and inheritance. A gain or a large expense is checked. Sagittarius falls in the 7th. No planet sits there, so the 7th is read for marriage and spouse and the start of a relationship. The lord is debilitated, so a struggle is checked. Mars's year is also open, so the two readings are taken together.
+nadi.yearNotes[]	In the 36th year, Leo and Scorpio are active. Leo falls in the 3rd. No planet sits there, so the 3rd is read for courage and short journeys. The lord is debilitated, so a struggle is checked. The lord sits in the 5th. A rise in rank is checked. Scorpio falls in the 6th, with Mercury and Saturn, read for speech and delay. An exchange includes this sign.
+nadi.yearNotes[]	In the 40th year, Virgo and Libra are active. Virgo falls in the 4th, with Mars and Venus, read for land and buildings and marriage and romance. An exchange includes this sign. Libra falls in the 5th, with Sun, read for father’s status. An unexpected event is checked. The lord is debilitated, so a struggle is checked. The year-count house is the same one, so this year is read more strongly.
+nadi.career.lines[]	An exchange is present, so career is read from those houses. The 10th is set aside.
+nadi.career.lines[]	Exchange of the 4th and the 6th. Either may show: property, rent, vehicles, or a family business in land; or medicine, law, or consulting, with service and comfort around the person.
+nadi.career.notes[]	The 5th is under pressure. Where a planet offers both a trained post and a practical trade, the practical trade is the one to read.
+nadi.bcp.lines[]	The 42nd running year activates the 6th (Ripu). The same house runs every 12 years.
+nadi.bcp.lines[]	It also ran in the 30th year.
+nadi.bcp.lines[]	It next runs in the 54th year.
+nadi.bcp.lines[]	This house is read for disease, debt, enemies.
+nadi.bcp.lines[]	Mercury, Saturn sit here.
+nadi.future.years[].lines[]	Its lord Mars sits in the 4th.
+nadi.future.years[].lines[]	An exchange touches this house, so its result is stronger this year.
+nadi.future.years[].lines[]	Mercury at 8.84° in this house is read around 18 February 2027.
+nadi.future.years[].lines[]	Saturn at 4.65° in this house is read around 29 December 2026.
+nadi.future.years[].lines[]	Its lord Mars at 10.14° is read around 5 March 2027.
+nadi.snapshots[].id	sa-water-capricorn
+nadi.snapshots[].reading	Saturn is in a water sign, so the houses it rules do not deliver their good results. The house of Capricorn is read as destroyed. That is the 8th (Capricorn). Living significations under pressure: Reproductive organs, Anus and rectum.
+nadi.snapshots[].reading	Ketu in the 5th: a mark, cut, or scar is checked on Heart, Brain.
+nadi.future.windows[]	Moon rules the 2nd and sits in Gemini at 10°. The year Jupiter is in Gemini is read as a gain. The peak is the day Jupiter reaches 10° in any sign.
+nadi.future.windows[]	Saturn rules the 9th and sits in Scorpio at 4°. The year Jupiter is in Scorpio is read as a gain. The peak is the day Jupiter reaches 4° in any sign.
+nadi.future.windows[]	Mars rules the 11th and sits in Virgo at 10°. The year Jupiter is in Virgo is read as a gain. The peak is the day Jupiter reaches 10° in any sign.
+nadi.future.windows[]	Jupiter rules the 10th and sits in Capricorn at 14°. Jupiter on 14° is read as work.
+nadi.future.windows[]	Jupiter in Leo, the Navamsha of the 9th lord, is a wealth year.
+nadi.future.windows[]	Jupiter in Aries, the Navamsha of the 11th lord, is a wealth year.
+nadi.wealthTiming[]	The 2nd scores 35, the 9th scores 22, and the 11th scores 36. Each score is an age to watch for wealth.
+nadi.wealthTiming[]	The 11th holds the highest score, the house of gains. This is a lucky placement. The 10th sits lower, so the gains are read as coming without matching labour.
+nadi.wealthTiming[]	The 7th holds the lowest score. Marriage and the body of that house are the strained part.
+nadi.wealthTiming[]	The 8th scores higher than the 7th. The years those two houses run are read as a turning point.
+nadi.future.periods[].lines[]	Saturn rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.
+nadi.future.windows[]	The Bhrigu Bindu falls in Taurus. The year Jupiter is in that sign is read as fortune. A trine of that sign is the lighter form.
+nadi.future.windows[]	The wealth nakshatra is Punarvasu. Jupiter in that nakshatra, or the 9th or the 18th from it, is a money window.
+nadi.specialNotes[]	Mercury is in Pushkar Navamsha. The period of Mercury is read as one of the best.
+nadi.specialNotes[]	Jupiter is in Pushkar Navamsha, and that Navamsha sign falls in the 12th from the lagna. The benefit is read as cancelled.
+nadi.specialNotes[]	A first sound is read from Moon, Mars, and Saturn. Each connects with the lagna or the Navamsha lagna.
+nadi.specialNotes[]	Not used for a first sound: Mercury, Jupiter, and Venus. A planet in Mrityu Bhaga, a debilitated planet, or a planet with a difficult planet on it is left out.
+nadi.patel.points[].reading	The 22nd drekkana from the lagna is the middle 10° of Capricorn. Its lord is Saturn. Jupiter sits in that 10° band. Health, an accident, or a hard turn is checked when this lord’s period runs. The period of Saturn is open, so this point is timed now.
+nadi.patel.points[].reading	The 22nd drekkana from the Moon is the middle 10° of Capricorn. Its lord is Saturn. Jupiter sits in that 10° band. The mind and the mother are checked when this lord’s period runs. The period of Saturn is open, so this point is timed now.
+nadi.patel.points[].reading	The 64th Navamsha from the lagna is Gemini, the 4th of Navamsha. Its lord is Mercury. No planet sits in this Navamsha. A hard period for health is checked when this lord’s period runs.
+nadi.patel.points[].reading	The 64th Navamsha from the Moon is Aries. Its lord is Mars. Mars sits in this Navamsha. The mind and the mother are checked when this lord’s period runs. The period of Mars is open, so this point is timed now.
+nadi.patel.lines[]	The Bhrigu Bindu falls in Taurus. Jupiter in that sign is read as fortune. A trine of that sign is the lighter year.
+nadi.patel.lines[]	Marriage is watched when Jupiter reaches Taurus (Navamsha of the 7th lord), Virgo (Venus’s Navamsha), and Capricorn (Upapada).
+nadi.patel.lines[]	Work is watched when Jupiter reaches Leo, Saturn’s Navamsha.
+nadi.future.years[].lines[]	The 42nd year activates the 6th (Ripu), read for disease, debt, enemies. Mercury and Saturn sit here.
+nadi.future.years[].lines[]	The 43rd year activates the 7th (Kalatra), read for marriage and spouse, the start of a relationship, own business. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Jupiter sits in the 8th. The lord is debilitated, so the year is read as strained.
+nadi.future.years[].lines[]	Its lord Jupiter at 14.95° is read around 2 May 2028.
+nadi.future.years[].lines[]	The 44th year activates the 8th (Ayu), read for occult and hidden matters, business loss, transformation. Jupiter sits here.
+nadi.future.years[].lines[]	Its lord Saturn sits in the 6th.
+nadi.future.years[].lines[]	Jupiter at 14.95° in this house is read around 3 May 2029.
+nadi.future.years[].lines[]	Its lord Saturn at 4.65° is read around 29 December 2028.
+nadi.future.years[].lines[]	The 45th year activates the 9th (Bhagya), read for luck received without effort, dharma, long journeys and pilgrimage. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Saturn at 4.65° is read around 29 December 2029.
+nadi.future.years[].lines[]	The 46th year activates the 10th (Karma), read for father, government and rank, career earned by effort. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Jupiter at 14.95° is read around 3 May 2031.
+nadi.future.years[].lines[]	The 47th year activates the 11th (Labha), read for gains of every kind, elder siblings, friends. Rahu sits here.
+nadi.future.years[].lines[]	Rahu at 15.52° in this house is read around 9 May 2032.
+nadi.future.years[].lines[]	Its lord Mars at 10.14° is read around 5 March 2032.
+nadi.future.years[].lines[]	The 48th year activates the 12th (Vyaya), read for loss and spending, foreign lands and long travel, investment, because the money is locked away. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Venus sits in the 4th. The lord is debilitated, so the year is read as strained.
+nadi.future.years[].lines[]	Its lord Venus at 27.67° is read around 5 October 2033.
+nadi.future.years[].lines[]	The 49th year activates the 1st (Lagna), read for body, health and stamina, longevity. Moon sits here.
+nadi.future.years[].lines[]	Its lord Mercury sits in the 6th.
+nadi.future.years[].lines[]	Moon at 10.44° in this house is read around 9 March 2034.
+nadi.future.years[].lines[]	Its lord Mercury at 8.84° is read around 18 February 2034.
+nadi.future.years[].lines[]	The 50th year activates the 2nd (Dhana), read for wealth and income, inheritance, savings and jewelry. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Moon sits in the 1st.
+nadi.future.years[].lines[]	Its lord Moon at 10.44° is read around 9 March 2035.
+nadi.future.years[].lines[]	The 51st year activates the 3rd (Parakrama), read for courage, short journeys, younger siblings. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Sun sits in the 5th. The lord is debilitated, so the year is read as strained.
+nadi.future.years[].lines[]	Its lord Sun at 16.54° is read around 22 May 2036.
+nadi.future.years[].lines[]	The 52nd year activates the 4th (Sukha), read for home, land, and property, vehicles, mother. Mars and Venus sit here.
+nadi.future.years[].lines[]	Mars at 10.14° in this house is read around 5 March 2037.
+nadi.future.years[].lines[]	Venus at 27.67° in this house is read around 5 October 2037.
+nadi.future.years[].lines[]	Its lord Mercury at 8.84° is read around 18 February 2037.
+nadi.future.years[].lines[]	The 53rd year activates the 5th (Putra), read for education, romance, children. Sun and Ketu sit here.
+nadi.future.years[].lines[]	Sun at 16.54° in this house is read around 22 May 2038.
+nadi.future.years[].lines[]	Ketu at 15.52° in this house is read around 10 May 2038.
+nadi.future.years[].lines[]	Its lord Venus at 27.67° is read around 5 October 2038.
+nadi.future.years[].lines[]	The 60th year activates the 12th (Vyaya), read for loss and spending, foreign lands and long travel, investment, because the money is locked away. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Venus at 27.67° is read around 5 October 2045.
+nadi.future.years[].lines[]	The 65th year activates the 5th (Putra), read for education, romance, children. Sun and Ketu sit here.
+nadi.future.years[].lines[]	Sun at 16.54° in this house is read around 22 May 2050.
+nadi.future.years[].lines[]	Ketu at 15.52° in this house is read around 10 May 2050.
+nadi.future.years[].lines[]	Its lord Venus at 27.67° is read around 5 October 2050.
+nadi.future.periods[].title	Saturn mahadasha · Moon antardasha
+nadi.future.periods[].lines[]	The period of Saturn is open, so this combination is timed now.
+nadi.future.periods[].lines[]	Moon sits in the 10th of Dashamsha, so a rise in the career is checked.
+nadi.future.periods[].lines[]	Moon rules the 8th of Dashamsha, so a loss of work, a transfer, or a break is checked.
+nadi.future.periods[].lines[]	Saturn is in the exchange, so this period is read as supported for a vehicle.
+nadi.future.periods[].title	Saturn mahadasha · Mars antardasha
+nadi.future.periods[].lines[]	A lord of the exchange falls in this period. The career result is read then.
+nadi.future.periods[].lines[]	This period is read as a strong money period.
+nadi.future.periods[].lines[]	Mars is the property significator and is in the exchange, so property is checked.
+nadi.future.periods[].lines[]	A decision made in this period is read as supported.
+nadi.future.periods[].title	Saturn mahadasha · Rahu antardasha
+nadi.future.periods[].lines[]	The period of Saturn and Rahu times the khaarab combination.
+nadi.future.periods[].lines[]	Rahu sits in the 10th of Dashamsha, so a rise in the career is checked.
+nadi.future.periods[].title	Saturn mahadasha · Jupiter antardasha
+nadi.future.periods[].lines[]	Jupiter rules the 1st of Navamsha. This period is read for marriage or for meeting the partner.
+nadi.future.periods[].lines[]	Jupiter rules the Dashamsha lagna, so a rise in the career is checked.
+nadi.future.periods[].lines[]	Jupiter rules the Chaturthamsha lagna, rules the 4th, and is in the exchange, so property is checked.
+nadi.future.periods[].title	Mercury mahadasha · Mercury antardasha
+nadi.future.periods[].lines[]	The period of Mercury times the khaarab combination.
+nadi.future.periods[].lines[]	Mercury rules the 7th of Navamsha. This period is read for marriage or for meeting the partner.
+nadi.future.periods[].lines[]	Mercury rules the 10th and sits in the 10th of Dashamsha, so a rise in the career is checked.
+nadi.future.periods[].lines[]	Mercury rules the Shodashamsha lagna, so a vehicle is checked, including through the parents when the person is not earning.
+nadi.future.periods[].title	Mercury mahadasha · Ketu antardasha
+nadi.future.periods[].lines[]	The period of Mercury and Ketu times the khaarab combination.
+nadi.future.periods[].title	Mercury mahadasha · Venus antardasha
+nadi.future.periods[].lines[]	The period of Mercury and Venus times the khaarab combination.
+nadi.future.periods[].lines[]	Venus is vargottama. This period is read as a strong money period.
+nadi.future.periods[].lines[]	Venus is the vehicle significator and is in the exchange, so a vehicle is checked, including through the parents when the person is not earning.
+nadi.placements[].prediction	Moon sits in Capricorn in the 1st (Lagna). It rules the 7th. Marriage is read from the 1st. Capricorn carries the nature of the 10th (Karma), so the career joins the body. Mercury sits with it, so speech joins the 1st.
+nadi.placements[].prediction	Mercury sits in Capricorn in the 1st (Lagna). It rules the 6th and the 9th. Service and luck are read from the 1st. Capricorn carries the nature of the 10th (Karma), so the career joins the body. Mercury is retrograde, so this result is late. Combustion is recorded. It does not cancel the career or wealth result. Moon sits with it, so mind joins the 1st.
+nadi.houses[].prediction	The 1st is Capricorn. Capricorn carries the nature of the 10th (Karma), so the career joins the body. Its lord, Saturn, sits in the 5th, so the 1st is read from the 5th. Moon and Mercury occupy it. Moon carries the 7th. Mercury carries the 6th and the 9th.
+nadi.placements[].prediction	Sun sits in Aquarius in the 2nd (Dhana). It rules the 8th. Hidden matters are read from the 2nd. Aquarius carries the nature of the 11th (Labha), so gains join wealth.
+nadi.houses[].prediction	The 2nd is Aquarius. Aquarius carries the nature of the 11th (Labha), so gains joins wealth. Its lord, Saturn, sits in the 5th, so the 2nd is read from the 5th. Sun occupies it. Sun carries the 8th.
+nadi.placements[].prediction	Venus sits in Pisces in the 3rd (Parakrama). It rules the 5th and the 10th. Children and study, and the career are read from the 3rd. Pisces carries the nature of the 12th (Vyaya), so foreign lands join siblings. Venus is exalted, so marriage and romance, and vehicles arrive cleanly.
+nadi.houses[].prediction	The 3rd is Pisces. Pisces carries the nature of the 12th (Vyaya), so foreign lands joins siblings. Its lord, Jupiter, sits in the 5th, so the 3rd is read from the 5th. Venus occupies it. Venus carries the 5th and the 10th.
+nadi.houses[].prediction	The 4th is Aries. Aries carries the nature of the 1st (Lagna), so the body joins the home. Its lord, Mars, sits in the 11th, so the 4th is read from the 11th. No planet occupies it.
+nadi.placements[].prediction	Jupiter sits in Taurus in the 5th (Putra). It rules the 3rd and the 12th. Siblings and foreign lands are read from the 5th. Taurus carries the nature of the 2nd (Dhana), so wealth joins children and study. With Rahu, a serious blood or heart theme is checked before a soft reading. Saturn sits with it, so the living themes of the 5th are under pressure.
+nadi.placements[].prediction	Saturn sits in Taurus in the 5th (Putra). It rules the 1st and the 2nd. The body and wealth are read from the 5th. Taurus carries the nature of the 2nd (Dhana), so wealth joins children and study. Jupiter sits with it, so wisdom joins the 5th.
+nadi.houses[].prediction	The 5th is Taurus. Taurus carries the nature of the 2nd (Dhana), so wealth joins children and study. Its lord, Venus, sits in the 3rd, so the 5th is read from the 3rd. Jupiter and Saturn occupy it. Jupiter carries the 3rd and the 12th. Saturn carries the 1st and the 2nd. Saturn is here, so the living significances of the 5th are under pressure.
+nadi.placements[].prediction	Rahu sits in Gemini in the 6th (Ripu). Rahu rules no sign. It acts like Mercury, lord of Gemini, so service and luck are read with a sudden turn. Gemini carries the nature of the 3rd (Parakrama), so siblings join service.
+nadi.houses[].prediction	The 6th is Gemini. Gemini carries the nature of the 3rd (Parakrama), so siblings joins service. Its lord, Mercury, sits in the 1st, so the 6th is read from the 1st. Rahu occupies it. Rahu brings a sudden turn. Rahu is here, so the living significances of the 6th are under pressure.
+nadi.houses[].prediction	The 7th is Cancer. Cancer carries the nature of the 4th (Sukha), so the home joins marriage. Its lord, Moon, sits in the 1st, so the 7th is read from the 1st. No planet occupies it.
+nadi.houses[].prediction	The 8th is Leo. Leo carries the nature of the 5th (Putra), so children and study joins hidden matters. Its lord, Sun, sits in the 2nd, so the 8th is read from the 2nd. No planet occupies it.
+nadi.houses[].prediction	The 9th is Virgo. Virgo carries the nature of the 6th (Ripu), so service joins luck. Its lord, Mercury, sits in the 1st, so the 9th is read from the 1st. No planet occupies it.
+nadi.houses[].prediction	The 10th is Libra. Libra carries the nature of the 7th (Kalatra), so marriage joins the career. Its lord, Venus, sits in the 3rd, so the 10th is read from the 3rd. No planet occupies it.
+nadi.placements[].prediction	Mars sits in Scorpio in the 11th (Labha). It rules the 4th and the 11th. The home is read from the 11th. It is also the lord of the 11th. Scorpio carries the nature of the 8th (Ayu), so hidden matters join gains. Mars is in its own sign, so land and buildings, and cuts and surgery arrive cleanly.
+nadi.houses[].prediction	The 11th is Scorpio. Scorpio carries the nature of the 8th (Ayu), so hidden matters joins gains. Its lord, Mars, sits in it, so the 11th is read from itself. Mars occupies it. Mars carries the 4th. Mars is here, so the living significances of the 11th are under pressure.
+nadi.placements[].prediction	Ketu sits in Sagittarius in the 12th (Vyaya). Ketu rules no sign. It acts like Jupiter, lord of Sagittarius, so siblings and foreign lands are read with a cut. Sagittarius carries the nature of the 9th (Bhagya), so luck joins foreign lands.
+nadi.houses[].prediction	The 12th is Sagittarius. Sagittarius carries the nature of the 9th (Bhagya), so luck joins foreign lands. Its lord, Jupiter, sits in the 5th, so the 12th is read from the 5th. Ketu occupies it. Ketu brings a cut. Ketu is here, so the living significances of the 12th are under pressure.
+nadi.placements[].classicalHouse	Sun in 2nd: wealth through government/authority; proud speech; strain with family if under pressure.
+nadi.placements[].classicalSign	Sun in Aquarius: networked authority; gains via groups; unconventional leadership.
+nadi.placements[].classicalSign	Moon in Capricorn: practical dry moods; duty over comfort; late emotional ease.
+nadi.placements[].classicalHouse	Mars in 11th: gains through courage and networks; elder sibling energy strong.
+nadi.placements[].classicalSign	Mars in own Scorpio: penetrating research force, controlled intensity.
+nadi.placements[].classicalHouse	Mercury in Lagna: witty, youthful, learned speech; versatile body-mind.
+nadi.placements[].classicalSign	Mercury in Capricorn: serious admin intellect; precise career communication.
+nadi.placements[].classicalHouse	Jupiter in 5th: excellent for children, counsel, mantra, past-life merit.
+nadi.placements[].classicalSign	Jupiter in Taurus: wealth wisdom; truthful resource speech.
+nadi.placements[].classicalHouse	Venus in 3rd: artistic skills, romantic hobbies, refined courage.
+nadi.placements[].classicalHouse	Saturn in 5th: delayed children/romance; disciplined learning; fear of creativity.
+nadi.placements[].classicalSign	Saturn in Taurus: slow wealth building; restrained values speech.
+nadi.placements[].classicalHouse	Rahu in 6th: defeats enemies uniquely; health oddities; service in tech/foreign systems.
+nadi.placements[].classicalSign	Rahu often strong in Gemini—skill amplification.
+nadi.placements[].classicalHouse	Ketu in 12th: strong moksha indication, isolation, dream wisdom.
+nadi.placements[].classicalSign	Ketu spiritualized in Jupiter themes—moksha tendency.
+nadi.dashamshaNotes[]	An exchange of the 1st and the 8th is present in Dashamsha. It is read ahead of the lagna and the 10th.
+nadi.dashamshaNotes[]	Moon sits in the Dashamsha lagna. Food, or work with the public is one option.
+nadi.dashamshaNotes[]	Mars sits in the Dashamsha lagna. Uniformed work, engineering, technology, or medicine is one option.
+nadi.dashamshaNotes[]	Jupiter aspects the Dashamsha lagna. Teaching, or spiritual work is one option.
+nadi.dashamshaNotes[]	Rahu aspects the 10th of Dashamsha. Technology, or an unconventional field is one option.
+nadi.dashamshaNotes[]	Ketu sits in the 10th of Dashamsha. Technology, or an unconventional field is one option.
+nadi.dashamshaNotes[]	In the 5th or 9th from Saturn in Dashamsha: Moon. Food, or work with the public is one option.
+nadi.dashamshaNotes[]	In the 5th or 9th from Saturn in Dashamsha: Mars. Uniformed work, engineering, technology, or medicine is one option.
+nadi.dashamshaNotes[]	Sun and Mercury together in Dashamsha. Business with a government link is one option.
+nadi.neighborhoodNotes[]	An exchange takes in the 3rd. That is read ahead of an aspect for the neighborhood.
+nadi.neighborhoodNotes[]	Rahu in Gemini. Wireless signal nearby is checked.
+nadi.propertyNotes[]	An exchange of the 9th and the 10th is present in Chaturthamsha. Property is read from that.
+nadi.propertyNotes[]	Mars, the 4th lord of Chaturthamsha, connects with the 12th lord. Property away from home is checked.
+nadi.propertyNotes[]	The Sun connects with the lagna lord of Chaturthamsha. Government quarters are checked.
+nadi.vehicleNotes[]	Rahu connects with the lagna in Shodashamsha. Ketu connects with the lagna in Shodashamsha. An accident with a vehicle is checked.
+nadi.vehicleNotes[]	The Sun aspects the lagna of Shodashamsha. A government vehicle is checked.
+nadi.marriageRuleNotes[]	Mars and Saturn aspect each other. Trouble in marriage is checked.
+nadi.marriageRuleNotes[]	A difficult planet reaches the Upapada (Libra) or the 2nd from it. Trouble in marriage is checked.
+nadi.marriageRuleNotes[]	All three marriage rules are present. Separation is the strong reading.
+nadi.future.years[].lines[]	The 2nd is the most afflicted house. Family, and face and teeth, are checked. The 2nd year, and every 12 years after it, is when this house is read.
+nadi.yearNotes[]	In the 25th year, Sun activates the 2nd, read for wealth and income and inheritance.
+nadi.future.years[].lines[]	In the 30th year, Rahu activates the 6th, read for disease and debt.
+nadi.future.years[].lines[]	In the 32nd year, Mars activates the 11th, read for gains of every kind and elder siblings.
+nadi.future.years[].lines[]	In the 37th year, Jupiter activates the 5th, read for education and romance. Childbirth is read from the 5th and the 9th together. The 5th sign is even, so a daughter is the form read.
+nadi.yearNotes[]	In the 20th year, Aries and Pisces are active. Aries falls in the 4th. No planet sits there, so the 4th is read for home, land, and property and vehicles. Pisces falls in the 3rd, with Venus, read for marriage and romance. An exchange includes this sign. The lord sits in the 5th. A rise in rank is checked.
+nadi.yearNotes[]	In the 24th year, Taurus and Aquarius are active. Taurus falls in the 5th, with Jupiter and Saturn, read for wisdom and delay. An exchange includes this sign. The lord is exalted. Aquarius falls in the 2nd, with Sun, read for father’s status. The lord sits in the 5th. A rise in rank is checked. A gain or a large expense is checked.
+nadi.future.years[].lines[]	In the 28th year, Gemini and Capricorn are active. Gemini falls in the 6th, with Rahu. An unexpected event is checked. Capricorn falls in the 1st, with Moon and Mercury, read for mind and speech. The lord sits in the 5th. A rise in rank is checked.
+nadi.future.years[].lines[]	In the 32nd year, Cancer and Sagittarius are active. Cancer falls in the 7th. No planet sits there, so the 7th is read for marriage and spouse and the start of a relationship. Sagittarius falls in the 12th, with Ketu. An unexpected event is checked. The lord sits in the 5th. A rise in rank is checked. Mars's year is also open, so the two readings are taken together.
+nadi.future.years[].lines[]	In the 36th year, Leo and Scorpio are active. Leo falls in the 8th. No planet sits there, so the 8th is read for occult and hidden matters and business loss. Scorpio falls in the 11th, with Mars, read for land and buildings. A gain or a large expense is checked.
+nadi.future.years[].lines[]	In the 40th year, Virgo and Libra are active. Virgo falls in the 9th. No planet sits there, so the 9th is read for luck received without effort and dharma. Libra falls in the 10th. No planet sits there, so the 10th is read for father and government and rank. The lord is exalted.
+nadi.future.years[].lines[]	The largest score jump is between the 4th and the 3rd. The 4th year, and every 12 years after it, is read as transformative.
+nadi.marriageYogas[].name	Sun + Venus
+nadi.marriageYogas[].reading	Childbirth and the reproductive organs are the forms checked. Venus rules those organs. The planets sit within 15°, the wide form.
+nadi.marriageYogas[].name	7th lord of Navamsha
+nadi.marriageYogas[].reading	The 7th lord of Navamsha is afflicted. A separation or a second marriage is the form checked.
+nadi.marriageNote	Read this on the person first, then on parents or siblings. It is not read on a maternal uncle or aunt. A result already present in the family is the combination that has shown. Otherwise it stays open for the person or the children. A bond held for a full year in body, mind, and feeling is read from the 7th. A shorter bond is read from the 5th. More than one of these is present, so the marriage reading is stronger.
+nadi.career.lines[]	Exchange of the 3rd and the 5th. Either may show: writing, courage, or short journeys; or speculation, markets, or education.
+nadi.career.notes[]	A lord of the exchange is in the running period, so the career result is read now.
+nadi.career.notes[]	The 5th supports study. Where a planet offers both a trained post and a practical trade, the trained post is the one to read.
+nadi.bcp.lines[]	The 26th running year activates the 2nd (Dhana). The same house runs every 12 years.
+nadi.bcp.lines[]	It also ran in the 14th year.
+nadi.bcp.lines[]	It next runs in the 38th year.
+nadi.bcp.lines[]	This house is read for wealth and income, inheritance, savings and jewelry.
+nadi.bcp.lines[]	Sun sits here.
+nadi.future.years[].lines[]	Its lord Saturn sits in the 5th.
+nadi.future.years[].lines[]	Sun at 7.48° in this house is read around 22 May 2026.
+nadi.future.years[].lines[]	Its lord Saturn at 0.81° is read around 2 March 2026.
+nadi.snapshots[].reading	Jupiter and Saturn are together. The house they occupy is read as destroyed. That is the 5th (Taurus). Living significations under pressure: Children; Heart, Brain. An exchange of the lord of this house may hold the result back.
+nadi.snapshots[].reading	Ketu in the 12th: a mark, cut, or scar is checked on Feet.
+nadi.future.windows[]	Saturn rules the 2nd and sits in Taurus at 0°. The year Jupiter is in Taurus is read as a gain. The peak is the day Jupiter reaches 0° in any sign.
+nadi.future.windows[]	Mercury rules the 9th and sits in Capricorn at 23°. The year Jupiter is in Capricorn is read as a gain. The peak is the day Jupiter reaches 23° in any sign.
+nadi.future.windows[]	Mars rules the 11th and sits in Scorpio at 8°. The year Jupiter is in Scorpio is read as a gain. The peak is the day Jupiter reaches 8° in any sign.
+nadi.future.windows[]	Venus rules the 10th and sits in Pisces at 18°. Jupiter on 18° is read as work.
+nadi.future.windows[]	Jupiter in Virgo, the Navamsha of the 11th lord, is a wealth year.
+nadi.wealthTiming[]	The arudha of the 9th falls in the 5th. Its score is 25, read as a strong year at age 25. This score is given more weight than the other wealth houses.
+nadi.wealthTiming[]	The 2nd scores 26, the 9th scores 31, and the 11th scores 39. Each score is an age to watch for wealth.
+nadi.wealthTiming[]	Moon is vargottama and in the running period. That period is read as a strong money period.
+nadi.wealthTiming[]	A lord of the exchange is in the running period. That period is read as a strong money period.
+nadi.future.windows[]	The Bhrigu Bindu falls in Virgo. The year Jupiter is in that sign is read as fortune. A trine of that sign is the lighter form.
+nadi.future.windows[]	The wealth nakshatra is Shravana. Jupiter in that nakshatra, or the 9th or the 18th from it, is a money window.
+nadi.specialNotes[]	Moon is in Mrityu Bhaga. The mother is checked, and the mind is checked. The period of Moon is read as difficult.
+nadi.specialNotes[]	Mars is in Pushkar Navamsha. The period of Mars is read as one of the best.
+nadi.specialNotes[]	Jupiter is in Pushkar Navamsha. The antardasha of Jupiter is running, and the period is read as one of the best.
+nadi.specialNotes[]	Ketu is in Pushkar Navamsha and at Pushkar Bhaga. That is the strongest form. The period of Ketu is read as exceptionally strong.
+nadi.specialNotes[]	A first sound is read from Mercury. Mercury connects with the lagna or the Navamsha lagna.
+nadi.specialNotes[]	Not used for a first sound: Moon, Mars, Jupiter, and Saturn. A planet in Mrityu Bhaga, a debilitated planet, or a planet with a difficult planet on it is left out.
+nadi.specialNotes[]	The lagna lord is not the choice. Venus is the strong planet used instead.
+nadi.patel.points[].reading	The 22nd drekkana from the lagna is the first 10° of Leo. Its lord is Sun. No planet sits in that 10° band. Health, an accident, or a hard turn is checked when this lord’s period runs.
+nadi.patel.points[].reading	The 22nd drekkana from the Moon is the first 10° of Leo. Its lord is Sun. No planet sits in that 10° band. The mind and the mother are checked when this lord’s period runs.
+nadi.patel.points[].reading	The 64th Navamsha from the lagna is Aries, the 4th of Navamsha. Its lord is Mars. Rahu sits in this Navamsha. A hard period for health is checked when this lord’s period runs.
+nadi.patel.points[].reading	The 64th Navamsha from the Moon is Aries. Its lord is Mars. Rahu sits in this Navamsha. The mind and the mother are checked when this lord’s period runs.
+nadi.patel.lines[]	The Bhrigu Bindu falls in Virgo. Jupiter in that sign is read as fortune. A trine of that sign is the lighter year.
+nadi.patel.lines[]	Marriage is watched when Jupiter reaches Capricorn (Navamsha of the 7th lord), Sagittarius (Venus’s Navamsha), and Libra (Upapada).
+nadi.future.years[].lines[]	The 26th year activates the 2nd (Dhana), read for wealth and income, inheritance, savings and jewelry. Sun sits here.
+nadi.future.years[].lines[]	The 2nd scores 26. That age is watched for wealth.
+nadi.future.years[].lines[]	The 27th year activates the 3rd (Parakrama), read for courage, short journeys, younger siblings. Venus sits here.
+nadi.future.years[].lines[]	Its lord Jupiter sits in the 5th.
+nadi.future.years[].lines[]	Venus at 18.62° in this house is read around 5 October 2027.
+nadi.future.years[].lines[]	Its lord Jupiter at 8.4° is read around 2 June 2027.
+nadi.future.years[].lines[]	The 28th year activates the 4th (Sukha), read for home, land, and property, vehicles, mother. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Mars sits in the 11th.
+nadi.future.years[].lines[]	Its lord Mars at 8.78° is read around 6 June 2028.
+nadi.future.years[].lines[]	The 29th year activates the 5th (Putra), read for education, romance, children. Jupiter and Saturn sit here.
+nadi.future.years[].lines[]	Its lord Venus sits in the 3rd. The lord is exalted, so the year is read as strong.
+nadi.future.years[].lines[]	Jupiter at 8.4° in this house is read around 2 June 2029.
+nadi.future.years[].lines[]	Saturn at 0.81° in this house is read around 2 March 2029.
+nadi.future.years[].lines[]	Its lord Venus at 18.62° is read around 5 October 2029.
+nadi.future.years[].lines[]	The 30th year activates the 6th (Ripu), read for disease, debt, enemies. Rahu sits here.
+nadi.future.years[].lines[]	Its lord Mercury sits in the 1st.
+nadi.future.years[].lines[]	Rahu at 20.89° in this house is read around 1 November 2030.
+nadi.future.years[].lines[]	Its lord Mercury at 23.49° is read around 3 December 2030.
+nadi.future.years[].lines[]	The 31st year activates the 7th (Kalatra), read for marriage and spouse, the start of a relationship, own business. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Moon at 0.58° is read around 27 February 2031.
+nadi.future.years[].lines[]	The 9th scores 31. That age is watched for wealth.
+nadi.future.years[].lines[]	The 32nd year activates the 8th (Ayu), read for occult and hidden matters, business loss, transformation. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Sun sits in the 2nd.
+nadi.future.years[].lines[]	Its lord Sun at 7.48° is read around 21 May 2032.
+nadi.future.years[].lines[]	The 33rd year activates the 9th (Bhagya), read for luck received without effort, dharma, long journeys and pilgrimage. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Mercury at 23.49° is read around 3 December 2033.
+nadi.future.years[].lines[]	The 34th year activates the 10th (Karma), read for father, government and rank, career earned by effort. No planet sits in this house.
+nadi.future.years[].lines[]	Its lord Venus at 18.62° is read around 5 October 2034.
+nadi.future.years[].lines[]	The 35th year activates the 11th (Labha), read for gains of every kind, elder siblings, friends. Mars sits here.
+nadi.future.years[].lines[]	Mars at 8.78° in this house is read around 7 June 2035.
+nadi.future.years[].lines[]	The 36th year activates the 12th (Vyaya), read for loss and spending, foreign lands and long travel, investment, because the money is locked away. Ketu sits here.
+nadi.future.years[].lines[]	Ketu at 20.89° in this house is read around 1 November 2036.
+nadi.future.years[].lines[]	Its lord Jupiter at 8.4° is read around 2 June 2036.
+nadi.future.years[].lines[]	The 37th year activates the 1st (Lagna), read for body, health and stamina, longevity. Moon and Mercury sit here.
+nadi.future.years[].lines[]	Moon at 0.58° in this house is read around 27 February 2037.
+nadi.future.years[].lines[]	Mercury at 23.49° in this house is read around 3 December 2037.
+nadi.future.years[].lines[]	Its lord Saturn at 0.81° is read around 2 March 2037.
+nadi.future.years[].lines[]	The 38th year activates the 2nd (Dhana), read for wealth and income, inheritance, savings and jewelry. Sun sits here.
+nadi.future.years[].lines[]	Sun at 7.48° in this house is read around 22 May 2038.
+nadi.future.years[].lines[]	Its lord Saturn at 0.81° is read around 2 March 2038.
+nadi.future.years[].lines[]	The 39th year activates the 3rd (Parakrama), read for courage, short journeys, younger siblings. Venus sits here.
+nadi.future.years[].lines[]	Venus at 18.62° in this house is read around 5 October 2039.
+nadi.future.years[].lines[]	Its lord Jupiter at 8.4° is read around 2 June 2039.
+nadi.future.years[].lines[]	The 11th scores 39. That age is watched for wealth.
+nadi.future.years[].lines[]	Its lord Mars at 8.78° is read around 6 June 2040.
+nadi.future.years[].lines[]	The 50th year activates the 2nd (Dhana), read for wealth and income, inheritance, savings and jewelry. Sun sits here.
+nadi.future.years[].lines[]	Sun at 7.48° in this house is read around 22 May 2050.
+nadi.future.years[].lines[]	Its lord Saturn at 0.81° is read around 2 March 2050.
+nadi.future.periods[].title	Rahu mahadasha · Jupiter antardasha
+nadi.future.periods[].title	Rahu mahadasha · Saturn antardasha
+nadi.future.periods[].lines[]	Saturn rules the 1st of Navamsha. This period is read for marriage or for meeting the partner.
+nadi.future.periods[].lines[]	Saturn rules the Chaturthamsha lagna, so property is checked.
+nadi.future.periods[].title	Rahu mahadasha · Mercury antardasha
+nadi.future.periods[].lines[]	Mercury rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.
+nadi.future.periods[].lines[]	Mercury rules the Dashamsha lagna and rules the 10th, so a rise in the career is checked.
+nadi.future.periods[].lines[]	Mercury sits in the 8th of Dashamsha, so a loss of work, a transfer, or a break is checked.
+nadi.future.periods[].title	Rahu mahadasha · Ketu antardasha
+nadi.future.periods[].lines[]	Ketu sits in the 10th of Dashamsha, so a rise in the career is checked.
+nadi.future.periods[].title	Rahu mahadasha · Venus antardasha
+nadi.future.periods[].lines[]	Venus is in the exchange, so this period is read as supported for property.
+nadi.future.periods[].lines[]	Venus rules the Shodashamsha lagna and is the vehicle significator, so a vehicle is checked, including through the parents when the person is not earning.

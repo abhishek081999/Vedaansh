@@ -5,8 +5,15 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
-import { HARMONY_LABEL, type Harmony } from '@/lib/engine/numerology/calc'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import type { EngineLang } from '@/lib/engine/lang'
+import type { Harmony } from '@/lib/engine/numerology/calc'
 import type { CompoundQuality } from '@/lib/engine/numerology/data'
+
+export function useNumerologyLang(): EngineLang {
+  return useLang().lang
+}
 
 export const HARMONY_COLOR: Record<Harmony, string> = {
   excellent: 'var(--teal)',
@@ -23,6 +30,7 @@ export const QUALITY_COLOR: Record<CompoundQuality, string> = {
 }
 
 export function HarmonyPill({ harmony, label }: { harmony: Harmony; label?: string }) {
+  const t = useTranslations('numerology.harmony')
   const color = HARMONY_COLOR[harmony]
   return (
     <span style={{
@@ -30,7 +38,7 @@ export function HarmonyPill({ harmony, label }: { harmony: Harmony; label?: stri
       border: `1px solid ${color}`, color, letterSpacing: '0.05em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
-      {label ?? HARMONY_LABEL[harmony]}
+      {label ?? t(harmony)}
     </span>
   )
 }

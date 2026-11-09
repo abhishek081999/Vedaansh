@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { JsonLd } from '@/components/seo/JsonLd'
+import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
-import { NADI_SEO } from '@/lib/seo/intro-content'
+import { nadiIntro } from '@/lib/seo/intro-content.hi'
+import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
-export const metadata: Metadata = {
+const metadataEn: Metadata = {
   title: 'Nadi Astrology — Houses, Yogas & Timing',
   description: 'Nadi Astrology on your Vedic birth chart: the active reading, twelve houses, yogas, marriage, career, wealth, coming years, transits, and remedies.',
-  alternates: { canonical: `${SITE_URL}/nadi` },
   keywords: ['Nadi astrology', 'Bhrigu Nandi Nadi', 'Vedic chart', 'planetary positions', 'Vimshottari dasha'],
   openGraph: {
     title: 'Nadi Astrology — Houses, Yogas & Timing | Vedaansh',
@@ -24,17 +26,28 @@ export const metadata: Metadata = {
   },
 }
 
-const jsonLd = breadcrumbJsonLd([
-  { name: 'Home', path: '/' },
-  { name: 'Nadi Astrology', path: '/nadi' },
-])
+export async function generateMetadata(): Promise<Metadata> {
+  return localizeMetadata('/nadi', await pageLocale(), metadataEn, {
+    title: 'नाड़ी ज्योतिष — भाव, योग और समय',
+    description: 'आपकी वैदिक जन्म कुंडली पर नाड़ी ज्योतिष: सक्रिय पठन, बारह भाव, योग, विवाह, करियर, धन, आने वाले वर्ष, गोचर और उपाय।',
+    ogTitle: 'नाड़ी ज्योतिष — भाव, योग और समय | Vedaansh',
+    ogDescription: 'जन्म कुंडली पर सक्रिय नाड़ी पठन: भाव, योग, विवाह, करियर, धन, आने वाले वर्ष और लाइव आकाश।',
+    keywords: ['नाड़ी ज्योतिष', 'भृगु नंदी नाड़ी', 'वैदिक कुंडली', 'ग्रह स्थिति', 'विंशोत्तरी दशा'],
+  })
+}
 
 export default async function NadiLayout({ children }: { children: React.ReactNode }) {
+  const locale = await pageLocale()
+  const t = await getTranslations('nadi')
+  const jsonLd = breadcrumbJsonLd([
+    { name: t('breadcrumb.home'), path: '/' },
+    { name: t('breadcrumb.feature'), path: '/nadi' },
+  ])
   return (
     <>
       <JsonLd data={jsonLd} />
-      {children}
-      <SeoIntro {...NADI_SEO} />
+      <IntlScope namespaces={['nadi']}>{children}</IntlScope>
+      <SeoIntro {...nadiIntro(locale)} />
     </>
   )
 }

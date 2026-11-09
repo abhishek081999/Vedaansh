@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { SBCAnalysisExtended } from '@/lib/engine/sarvatobhadra'
 
 // ── Types ──────────────────────────────────────────────────────
@@ -40,14 +41,14 @@ const PLANET_COLOR: Record<string, string> = {
 
 type StockTabId = 'signal' | 'sectors' | 'daily' | 'nakshatras' | 'hora' | 'strategies' | 'portfolio'
 
-const STOCK_TABS: { id: StockTabId; icon: string; label: string }[] = [
-  { id: 'signal',     icon: '📡', label: 'Live Signal'  },
-  { id: 'sectors',    icon: '🏭', label: 'Sectors'      },
-  { id: 'daily',      icon: '📅', label: 'Daily Plan'   },
-  { id: 'nakshatras', icon: '⭐', label: 'Nakshatra'    },
-  { id: 'hora',       icon: '⏰', label: 'Hora'         },
-  { id: 'strategies', icon: '📈', label: 'Strategies'   },
-  { id: 'portfolio',  icon: '💼', label: 'Portfolio'    },
+const STOCK_TABS: { id: StockTabId; icon: string }[] = [
+  { id: 'signal',     icon: '📡' },
+  { id: 'sectors',    icon: '🏭' },
+  { id: 'daily',      icon: '📅' },
+  { id: 'nakshatras', icon: '⭐' },
+  { id: 'hora',       icon: '⏰' },
+  { id: 'strategies', icon: '📈' },
+  { id: 'portfolio',  icon: '💼' },
 ]
 
 interface PlanetSector {
@@ -384,6 +385,7 @@ function AllocationBar({ items }: { items: { label: string; pct: number; color: 
 // ── Main Component ────────────────────────────────────────────
 
 export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis }: Props) {
+  const t = useTranslations('sbc.stock')
   const [activeTab, setActiveTab] = useState<StockTabId>('signal')
   const [isMobile,  setIsMobile]  = useState(false)
 
@@ -428,10 +430,10 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
           }}>📈</div>
           <div>
             <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 'clamp(1rem,2.5vw,1.25rem)', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Sarvatobhadra × Stock Market Intelligence
+              {t('title')}
             </h2>
             <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Vedic planetary timing for trading · Sector rotation · Daily signals
+              {t('lede')}
             </p>
           </div>
         </div>
@@ -443,7 +445,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         }}>
           <SignalDots level={signal.level} color={signal.color} />
           <div>
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s Signal</div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('signal')}</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 900, color: signal.color }}>{signal.level}</div>
           </div>
         </div>
@@ -472,7 +474,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             }}
           >
             <span>{tab.icon}</span>
-            <span>{tab.label}</span>
+            <span>{t(`tabs.${tab.id}`)}</span>
           </button>
         ))}
       </div>

@@ -15,6 +15,8 @@
  */
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
@@ -50,6 +52,7 @@ import {
   type MuhurtaEvent,
 } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
 import type { GrahaId } from '@/types/astrology'
 import {
   USE_CASES,
@@ -234,6 +237,8 @@ function ScoreRing({ score }: { score: number }) {
 // ─── Main Page ────────────────────────────────────────────────
 
 export default function SBCPage() {
+  const t = useTranslations('sbc')
+  const { lang } = useLang()
   const { chart }  = useChart()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
@@ -328,13 +333,14 @@ export default function SBCPage() {
       grid,
       birthNakIdx,
       nameNakIdx,
+      lang,
     )
-  }, [natalGrahas, transitRaw, showTransits, grid, birthNakIdx, nameNakIdx])
+  }, [natalGrahas, transitRaw, showTransits, grid, birthNakIdx, nameNakIdx, lang])
 
   const tithi = useMemo(() => {
     if (sunLon === null || moonLon === null) return null
-    return getTithiInfo(sunLon, moonLon)
-  }, [sunLon, moonLon])
+    return getTithiInfo(sunLon, moonLon, lang)
+  }, [sunLon, moonLon, lang])
 
   const cellVedhas = useMemo(() => {
     if (!selectedCell || !analysis) return []
@@ -383,24 +389,24 @@ export default function SBCPage() {
   }, [advisorCat, planetStatuses, searchQuery])
 
   const RIGHT_TABS: Array<[RightTab, string, string]> = [
-    ['pulse',       '💰', 'Pulse'],
-    ['life',        '🌐', 'Life'],
-    ['muhurta',     '🪔', 'Muhurta'],
-    ['activations', '⚡', 'Vedha'],
-    ['body',        '🫀', 'Body'],
-    ['remedies',    '💊', 'Remedies'],
+    ['pulse',       '💰', t('page.tabs.pulse')],
+    ['life',        '🌐', t('page.tabs.life')],
+    ['muhurta',     '🪔', t('page.tabs.muhurta')],
+    ['activations', '⚡', t('page.tabs.activations')],
+    ['body',        '🫀', t('page.tabs.body')],
+    ['remedies',    '💊', t('page.tabs.remedies')],
   ]
 
   const mobileTabs = [
-    { id: 'grid' as const, icon: Grid3X3, label: 'Grid' },
-    { id: 'pulse' as const, icon: TrendingUp, label: 'Pulse' },
-    { id: 'life' as const, icon: Globe, label: 'Life' },
-    { id: 'muhurta' as const, icon: Flame, label: 'Muhurta' },
-    { id: 'activations' as const, icon: Zap, label: 'Vedha' },
-    { id: 'body' as const, icon: Heart, label: 'Body' },
-    { id: 'remedies' as const, icon: Pill, label: 'Fix' },
-    { id: 'advisor' as const, icon: Sparkles, label: 'Guide' },
-    { id: 'market' as const, icon: LineChart, label: 'More' },
+    { id: 'grid' as const, icon: Grid3X3, label: t('page.tabs.grid') },
+    { id: 'pulse' as const, icon: TrendingUp, label: t('page.tabs.pulse') },
+    { id: 'life' as const, icon: Globe, label: t('page.tabs.life') },
+    { id: 'muhurta' as const, icon: Flame, label: t('page.tabs.muhurta') },
+    { id: 'activations' as const, icon: Zap, label: t('page.tabs.activations') },
+    { id: 'body' as const, icon: Heart, label: t('page.tabs.body') },
+    { id: 'remedies' as const, icon: Pill, label: t('page.tabs.fix') },
+    { id: 'advisor' as const, icon: Sparkles, label: t('page.tabs.guide') },
+    { id: 'market' as const, icon: LineChart, label: t('page.tabs.more') },
   ]
 
   const showLeftPanel = showFull && (!isMobile || mobileView === 'grid')
@@ -433,13 +439,13 @@ export default function SBCPage() {
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-gold)', fontSize: '0.9rem' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)' }}>|</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.875rem', fontWeight: 700, color: 'var(--accent)' }}>Sarvatobhadra Chakra</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.875rem', fontWeight: 700, color: 'var(--accent)' }}>{t('page.brand')}</span>
           {analysis?.birthNakAffected && (
-            <span style={{ fontSize: '0.62rem', padding: '2px 8px', borderRadius: 20, background: 'rgba(232,64,64,0.15)', border: '1px solid rgba(232,64,64,0.35)', color: '#e84040', fontWeight: 700 }}>⚠ Birth Star Afflicted</span>
+            <span style={{ fontSize: '0.62rem', padding: '2px 8px', borderRadius: 20, background: 'rgba(232,64,64,0.15)', border: '1px solid rgba(232,64,64,0.35)', color: '#e84040', fontWeight: 700 }}>⚠ {t('page.birthAfflicted')}</span>
           )}
         </div>
         <nav style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
-          {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Muhurta</Link>}
+          {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>{t('page.muhurta')}</Link>}
           <ThemeToggle />
         </nav>
       </header>
@@ -454,10 +460,10 @@ export default function SBCPage() {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '0.75rem' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.4rem' : 'clamp(1.2rem,2.8vw,1.65rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              Sarvatobhadra Chakra
+              {t('page.title')}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontStyle: 'italic', margin: '3px 0 0' }}>
-              Classical 9×9 Vedic grid — Transit Vedha · Life Areas · Muhurta Intelligence
+              {t('page.subtitle')}
             </p>
           </div>
 
@@ -467,7 +473,7 @@ export default function SBCPage() {
               <div style={{ padding: '0.35rem 0.875rem', borderRadius: 20, background: `${tithiColor}15`, border: `1px solid ${tithiColor}35`, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ fontSize: '0.68rem', fontWeight: 900, color: tithiColor }}>{tithi.name}</span>
                 <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>·</span>
-                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{tithi.paksha === 'shukla' ? '☽ Shukla' : '🌑 Krishna'} Paksha</span>
+                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{tithi.paksha === 'shukla' ? t('page.shukla') : t('page.krishna')} {t('page.paksha')}</span>
                 <span style={{ fontSize: '0.6rem', padding: '1px 6px', borderRadius: 10, background: `${tithiColor}20`, color: tithiColor, fontWeight: 700 }}>{tithi.quality}</span>
               </div>
             )}
@@ -488,10 +494,10 @@ export default function SBCPage() {
           }}>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-              Free preview: birth star + chakra grid. Vedha analysis, life areas, muhurta, remedies, and Life Advisor require Gold.
+              {t('page.freePreview')}
             </div>
             <Link href="/pricing" style={{ textDecoration: 'none' }}>
-              <Button variant="primary" size="sm">View plans</Button>
+              <Button variant="primary" size="sm">{t('page.viewPlans')}</Button>
             </Link>
           </div>
         )}
@@ -888,7 +894,7 @@ export default function SBCPage() {
                     {analysis.activations.slice(0, 10).map((a, i) => (
                       <div key={i} style={{ fontSize: '0.68rem', borderLeft: `2px solid ${a.type === 'shubha' ? 'var(--teal)' : 'var(--rose)'}`, paddingLeft: '0.55rem' }}>
                         <div style={{ fontWeight: 800, color: a.type === 'shubha' ? 'var(--teal)' : 'var(--rose)', marginBottom: 1 }}>
-                          {a.transitPlanet} → {a.natalPlanet} ({a.nakshatraName.split(' ')[0]})
+                          {lang === 'hi' ? `${GRAHA_HI[a.transitPlanet] ?? a.transitPlanet} → ${GRAHA_HI[a.natalPlanet] ?? a.natalPlanet} (${NAKSHATRA_HI[a.nakshatra] ?? a.nakshatraName})` : <>{a.transitPlanet} → {a.natalPlanet} ({a.nakshatraName.split(' ')[0]})</>}
                         </div>
                         <div style={{ color: 'var(--text-muted)', lineHeight: 1.35 }}>{a.meaning.slice(0, 120)}</div>
                       </div>

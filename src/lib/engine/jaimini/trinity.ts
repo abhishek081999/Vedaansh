@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId, Rashi, ChartOutput, GrahaData } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { jG, jR, say, type EngineLang } from '@/lib/engine/locale/jaiminiLang'
 import { calcCharaKarakas } from '../karakas'
 import { EXALTATION_SIGN } from '../dignity'
 import { getRashiDrishti } from './aspects'
@@ -105,7 +105,9 @@ function hasMaleficDrishti(target: GrahaData, grahas: GrahaData[]): boolean {
  *   from AK, which then takes the role.
  * Rudra: stronger of the 2nd and 8th lords from Lagna.
  */
-export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTrinity {
+export function calculateJaiminiTrinity(chart: Partial<ChartOutput>, lang: EngineLang = 'en'): JaiminiTrinity {
+  const G = (id: GrahaId) => jG(id, lang)
+  const R = (r: Rashi) => jR(r, lang)
   const grahas = (chart.grahas || []).filter(g => CLASSICAL.includes(g.id))
   const lagnas = chart.lagnas || { ascRashi: 1 as Rashi }
   const lagnaRashi = lagnas.ascRashi as Rashi
@@ -128,23 +130,26 @@ export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTri
     const eighthLordPlanet = grahas.find(g => g.id === eighthLordFromAK)
     if (eighthLordPlanet && eighthLordPlanet.rashi === eighthFromAK && eighthLordFromAK !== 'Sa') {
       brahma = eighthLordFromAK
-      brahmaReason =
-        `8th lord from AK (${GRAHA_NAMES[eighthLordFromAK]}) occupies the 8th from AK (${RASHI_NAMES[eighthFromAK]})`
+      brahmaReason = say(lang,
+        `8th lord from AK (${G(eighthLordFromAK)}) occupies the 8th from AK (${R(eighthFromAK)})`,
+        `आत्मकारक से अष्टमेश (${G(eighthLordFromAK)}) आत्मकारक से आठवें भाव (${R(eighthFromAK)}) में बैठा है`)
     }
   }
 
   if (!brahma) {
     const seventh = houseFrom(lagnaRashi, 7)
     const seed = strongerSign(lagnaRashi, seventh, bala)
-    const seedLabel = seed === lagnaRashi ? 'Lagna' : '7th house'
+    const seedLabel = seed === lagnaRashi ? say(lang, 'Lagna', 'लग्न') : say(lang, '7th house', 'सप्तम भाव')
     const candidates = [6, 8, 12]
       .map(h => SIGN_LORD[houseFrom(seed, h)])
       .filter(id => id !== 'Sa')
 
     brahma = strongestAmong(candidates, grahas, bala)
     brahmaReason = brahma
-      ? `Strongest of 6th/8th/12th lords from stronger of Lagna vs 7th (${seedLabel} / ${RASHI_NAMES[seed]}), Saturn skipped → ${GRAHA_NAMES[brahma]}`
-      : 'No eligible Brahma candidate (Saturn skipped)'
+      ? say(lang,
+        `Strongest of 6th/8th/12th lords from stronger of Lagna vs 7th (${seedLabel} / ${R(seed)}), Saturn skipped → ${G(brahma)}`,
+        `लग्न और सप्तम में से बलवान (${seedLabel} / ${R(seed)}) से षष्ठेश, अष्टमेश और द्वादशेश में सबसे बलवान, शनि को छोड़कर → ${G(brahma)}`)
+      : say(lang, 'No eligible Brahma candidate (Saturn skipped)', 'ब्रह्मा के लिए कोई योग्य ग्रह नहीं (शनि को छोड़ा गया)')
   }
 
   // ── Maheshwara ─────────────────────────────────────────────
@@ -160,15 +165,17 @@ export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTri
 
     maheshwara = strongestAmong(exaltedInTwelfth, grahas, bala)
     if (maheshwara) {
-      maheshwaraReason =
-        `Exalted ${GRAHA_NAMES[maheshwara]} occupies the 12th from AK (${RASHI_NAMES[twelfthFromAK]})`
+      maheshwaraReason = say(lang,
+        `Exalted ${G(maheshwara)} occupies the 12th from AK (${R(twelfthFromAK)})`,
+        `उच्च का ${G(maheshwara)} आत्मकारक से बारहवें भाव (${R(twelfthFromAK)}) में बैठा है`)
     } else {
       maheshwara = SIGN_LORD[eighthFromAK]
-      maheshwaraReason =
-        `8th lord from AK (${GRAHA_NAMES[maheshwara]}, 8th = ${RASHI_NAMES[eighthFromAK]})`
+      maheshwaraReason = say(lang,
+        `8th lord from AK (${G(maheshwara)}, 8th = ${R(eighthFromAK)})`,
+        `आत्मकारक से अष्टमेश (${G(maheshwara)}, अष्टम = ${R(eighthFromAK)})`)
     }
   } else {
-    maheshwaraReason = 'Atmakaraka not found — Maheshwara unavailable'
+    maheshwaraReason = say(lang, 'Atmakaraka not found — Maheshwara unavailable', 'आत्मकारक नहीं मिला — महेश्वर उपलब्ध नहीं')
   }
 
   // ── Rudra ──────────────────────────────────────────────────
@@ -181,17 +188,22 @@ export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTri
 
   if (secondLord === eighthLord) {
     rudra = secondLord
-    rudraReason = `2nd and 8th lords from Lagna are the same (${GRAHA_NAMES[secondLord]})`
+    rudraReason = say(lang,
+      `2nd and 8th lords from Lagna are the same (${G(secondLord)})`,
+      `लग्न से द्वितीयेश और अष्टमेश एक ही ग्रह है (${G(secondLord)})`)
   } else {
     rudra = strongerPlanet(secondLord, eighthLord, grahas, bala)
-    rudraReason =
-      `Stronger of 2nd lord (${GRAHA_NAMES[secondLord]}) and 8th lord (${GRAHA_NAMES[eighthLord]}) from Lagna → ${GRAHA_NAMES[rudra]}`
+    rudraReason = say(lang,
+      `Stronger of 2nd lord (${G(secondLord)}) and 8th lord (${G(eighthLord)}) from Lagna → ${G(rudra)}`,
+      `लग्न से द्वितीयेश (${G(secondLord)}) और अष्टमेश (${G(eighthLord)}) में बलवान → ${G(rudra)}`)
 
     const weaker: GrahaId = rudra === secondLord ? eighthLord : secondLord
     const weakerGraha = grahas.find(g => g.id === weaker)
     if (weakerGraha && hasMaleficDrishti(weakerGraha, grahas)) {
       aprani = weaker
-      rudraReason += `. Aprani Rudra: weaker lord ${GRAHA_NAMES[weaker]} receives a malefic's drishti`
+      rudraReason += say(lang,
+        `. Aprani Rudra: weaker lord ${G(weaker)} receives a malefic's drishti`,
+        `। अप्राणी रुद्र: कमज़ोर स्वामी ${G(weaker)} पर पाप ग्रह की दृष्टि है`)
     }
   }
 

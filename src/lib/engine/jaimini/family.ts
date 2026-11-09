@@ -8,6 +8,7 @@
 
 import type { GrahaData, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { jG, jLang, say, type EngineLang } from '../locale/jaiminiLang'
 
 export interface FamilyKarakaRow {
   relation: string
@@ -52,30 +53,32 @@ function row(
   relation: string,
   rule: string,
   planet: GrahaId,
+  lang: EngineLang,
   note: string | null = null,
 ): FamilyKarakaRow {
-  return { relation, rule, planet, planetName: GRAHA_NAMES[planet], note }
+  return { relation, rule, planet, planetName: lang === 'hi' ? jG(planet, lang) : GRAHA_NAMES[planet], note }
 }
 
 /** Fixed Jaimini significators for relatives. These do not follow the chara-karaka order. */
-export function calculateFamilyKarakas(grahas: GrahaData[]): FamilyKarakaRow[] {
+export function calculateFamilyKarakas(grahas: GrahaData[], lang: EngineLang = 'en'): FamilyKarakaRow[] {
+  const L = jLang(lang)
   const father = stronger('Su', 'Ve', grahas)
   const mother = stronger('Mo', 'Ve', grahas)
   const moon = grahas.find(g => g.id === 'Mo')
   const venus = grahas.find(g => g.id === 'Ve')
   const motherNote = isWeak(moon) && isWeak(venus)
-    ? 'Moon and Venus are both weak, so Mars can signify the mother in this chart.'
+    ? say(L, 'Moon and Venus are both weak, so Mars can signify the mother in this chart.', 'चंद्र और शुक्र दोनों निर्बल हैं, इसलिए इस कुंडली में मंगल माता का कारक बन सकता है।')
     : null
 
   return [
-    row('Father', 'Stronger of Sun or Venus', father),
-    row('Mother', 'Stronger of Moon or Venus', mother, motherNote),
-    row('Younger siblings', 'Mars', 'Ma'),
-    row('Uncle / aunt', 'Mercury', 'Me'),
-    row('Paternal grandfather', 'Jupiter', 'Ju'),
-    row('Spouse', 'Venus', 'Ve'),
-    row('Children', 'Saturn', 'Sa'),
-    row('Maternal grandfather', 'Rahu', 'Ra'),
-    row('Grandmother', 'Ketu', 'Ke'),
+    row(say(L, 'Father', 'पिता'), say(L, 'Stronger of Sun or Venus', 'सूर्य या शुक्र में जो बलवान हो'), father, L),
+    row(say(L, 'Mother', 'माता'), say(L, 'Stronger of Moon or Venus', 'चंद्र या शुक्र में जो बलवान हो'), mother, L, motherNote),
+    row(say(L, 'Younger siblings', 'छोटे भाई-बहन'), say(L, 'Mars', 'मंगल'), 'Ma', L),
+    row(say(L, 'Uncle / aunt', 'चाचा / बुआ'), say(L, 'Mercury', 'बुध'), 'Me', L),
+    row(say(L, 'Paternal grandfather', 'दादा'), say(L, 'Jupiter', 'गुरु'), 'Ju', L),
+    row(say(L, 'Spouse', 'पति / पत्नी'), say(L, 'Venus', 'शुक्र'), 'Ve', L),
+    row(say(L, 'Children', 'संतान'), say(L, 'Saturn', 'शनि'), 'Sa', L),
+    row(say(L, 'Maternal grandfather', 'नाना'), say(L, 'Rahu', 'राहु'), 'Ra', L),
+    row(say(L, 'Grandmother', 'दादी / नानी'), say(L, 'Ketu', 'केतु'), 'Ke', L),
   ]
 }

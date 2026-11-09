@@ -7,12 +7,16 @@
 
 import type { Rashi } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { nG, nJoin, nLang, nSay, type EngineLang } from '@/lib/engine/nadi/text'
 import { wholeSignHouseFromLagna, type ClassicalGrahaId, type HouseNumber } from '@/lib/engine/houseInterpretations'
 import { NADI_CONJUNCTION_ORB } from './grahas'
-import { NADI_HOUSES, NADI_PAPA_GRAHAS } from './houses'
+import { NADI_PAPA_GRAHAS, nadiHouses } from './houses'
 
 export const NADI_DEGREE_NOTE =
   'A planet’s degree is the year of life in which its result is read. A fraction of 0.30 or more takes the next year. Planets in a combination are added for the year of the full result. The same year can hold more than one event.'
+
+export const NADI_DEGREE_NOTE_HI =
+  'ग्रह का अंश जीवन का वह वर्ष है जिसमें उसका फल पढ़ा जाता है। 0.30 या अधिक का भिन्न अगला वर्ष लेता है। पूरे फल के वर्ष के लिए योग में शामिल ग्रहों के अंश जोड़े जाते हैं। एक ही वर्ष में एक से अधिक घटनाएँ हो सकती हैं।'
 
 const PAPA = new Set<string>(NADI_PAPA_GRAHAS)
 const DUSTHANA = new Set<HouseNumber>([6, 8, 12])
@@ -59,9 +63,19 @@ function birthYear(birthDate?: string): number | null {
   return Number.isInteger(year) && year > 0 ? year : null
 }
 
-function around(year: number, born: number | null): string {
+function around(year: number, born: number | null, lang: EngineLang = 'en'): string {
   if (born == null) return ''
-  return `, around ${born + year}`
+  return lang === 'hi' ? `, लगभग ${born + year} में` : `, around ${born + year}`
+}
+
+/** Hindi year-of-life phrase: "24वें वर्ष". */
+function yearHi(n: number): string {
+  return n === 1 ? 'पहले वर्ष' : `${n}वें वर्ष`
+}
+
+function houseHi(n: number): string {
+  const ord = ['', 'पहले', 'दूसरे', 'तीसरे', 'चौथे', 'पाँचवें', 'छठे', 'सातवें', 'आठवें', 'नौवें', 'दसवें', 'ग्यारहवें', 'बारहवें']
+  return `${ord[n] ?? `${n}वें`} भाव`
 }
 
 function shownDegree(degree: number): string {
@@ -73,7 +87,9 @@ export function degreeTimingNotes(input: {
   ascRashi: Rashi
   grahas: readonly NadiDegreePlacement[]
   birthDate?: string
+  lang?: EngineLang
 }): string[] {
+  const L = nLang(input.lang)
   const born = birthYear(input.birthDate)
   const timed: Timed[] = []
   for (const graha of input.grahas) {
@@ -93,21 +109,35 @@ export function degreeTimingNotes(input: {
   const lines: { year: number; text: string }[] = []
   for (const planet of timed) {
     const alone = !timed.some((other) => other.id !== planet.id && other.rashi === planet.rashi)
-    const themes = (NADI_HOUSES[planet.house]?.significances ?? [])
-      .filter((line) => !/death|die|passed/i.test(line))
+    const safeThemes = (nadiHouses('en')[planet.house]?.significances ?? [])
+      .map((line, i) => ({ line, i }))
+      .filter(({ line }) => !/death|die|passed/i.test(line))
       .slice(0, 2)
-      .join(', ')
-      .toLowerCase()
+    const themes = safeThemes.map(({ line }) => line).join(', ').toLowerCase()
+    const themesHi = safeThemes.map(({ i }) => nadiHouses('hi')[planet.house].significances[i]).join(', ')
+    const name = GRAHA_NAMES[planet.id]
+    const nameHi = nG(planet.id, 'hi')
+    const deg = shownDegree(planet.degree)
     const bits = [
-      `${GRAHA_NAMES[planet.id]} at ${shownDegree(planet.degree)}° is read in the ${ordinal(planet.year)} year${around(planet.year, born)}.`,
+      nSay(L,
+        `${name} at ${deg}° is read in the ${ordinal(planet.year)} year${around(planet.year, born)}.`,
+        `${deg}° पर ${nameHi} जीवन के ${yearHi(planet.year)} में पढ़ा जाता है${around(planet.year, born, 'hi')}।`),
     ]
-    if (planet.year === 0) bits[0] = `${GRAHA_NAMES[planet.id]} at ${shownDegree(planet.degree)}° is read in the year of birth${born != null ? ` (${born})` : ''}. The 1st year is also checked.`
-    if (themes) bits.push(`It sits in the ${ordinal(planet.house)}, read for ${themes}.`)
-    if (planet.house === 4) bits.push('A change of residence is checked.')
-    if (planet.house === 7 || planet.id === 'Ve') bits.push('A relationship is checked.')
-    if (planet.id === 'Ra' || planet.id === 'Ke') bits.push('Fame, or a sudden problem, is checked.')
-    if (PAPA.has(planet.id) || DUSTHANA.has(planet.house)) bits.push('A problem is checked in the same year.')
-    if (alone && planet.year <= 2) bits.push('A planet alone at a low degree is the harder form of this reading.')
+    if (planet.year === 0) {
+      bits[0] = nSay(L,
+        `${name} at ${deg}° is read in the year of birth${born != null ? ` (${born})` : ''}. The 1st year is also checked.`,
+        `${deg}° पर ${nameHi} जन्म के वर्ष${born != null ? ` (${born})` : ''} में पढ़ा जाता है। पहले वर्ष की भी जाँच की जाती है।`)
+    }
+    if (themes) {
+      bits.push(nSay(L,
+        `It sits in the ${ordinal(planet.house)}, read for ${themes}.`,
+        `यह ${houseHi(planet.house)} में है, जो ${themesHi} के लिए पढ़ा जाता है।`))
+    }
+    if (planet.house === 4) bits.push(nSay(L, 'A change of residence is checked.', 'निवास परिवर्तन की जाँच की जाती है।'))
+    if (planet.house === 7 || planet.id === 'Ve') bits.push(nSay(L, 'A relationship is checked.', 'किसी संबंध की जाँच की जाती है।'))
+    if (planet.id === 'Ra' || planet.id === 'Ke') bits.push(nSay(L, 'Fame, or a sudden problem, is checked.', 'यश, या अचानक आने वाली समस्या, की जाँच की जाती है।'))
+    if (PAPA.has(planet.id) || DUSTHANA.has(planet.house)) bits.push(nSay(L, 'A problem is checked in the same year.', 'उसी वर्ष किसी समस्या की जाँच की जाती है।'))
+    if (alone && planet.year <= 2) bits.push(nSay(L, 'A planet alone at a low degree is the harder form of this reading.', 'कम अंश पर अकेला ग्रह इस फल का कठिन रूप है।'))
     lines.push({ year: planet.year, text: bits.join(' ') })
   }
 
@@ -124,13 +154,19 @@ export function degreeTimingNotes(input: {
       if (!within(set)) return
       const sum = set.reduce((total, planet) => total + planet.year, 0)
       const names = joinNames(set.map((planet) => GRAHA_NAMES[planet.id]))
+      const namesHi = nJoin(set.map((planet) => nG(planet.id, 'hi')), 'hi')
       const zero = set.some((planet) => planet.year === 0)
-      const text = !zero
+      const textHi = !zero
+        ? `${namesHi} साथ हैं। अंशों का योग ${sum} है, इसलिए पूरा फल ${yearHi(sum)} में पढ़ा जाता है${around(sum, born, 'hi')}।`
+        : sum === 0
+          ? `${namesHi} साथ हैं। अंशों का योग 0 है, इसलिए पूरा फल जन्म के वर्ष${born != null ? ` (${born})` : ''} में पढ़ा जाता है। पहले वर्ष की भी जाँच की जाती है।`
+          : `${namesHi} साथ हैं। अंशों का योग ${sum} है। ${yearHi(sum)}${around(sum, born, 'hi')} और ${yearHi(sum + 1)}${around(sum + 1, born, 'hi')} दोनों की जाँच की जाती है, क्योंकि 0° पर ग्रह पहले वर्ष में भी पढ़ा जाता है।`
+      const textEn = !zero
         ? `${names} are together. The degrees sum to ${sum}, so the full result is read in the ${ordinal(sum)} year${around(sum, born)}.`
         : sum === 0
           ? `${names} are together. The degrees sum to 0, so the full result is read in the year of birth${born != null ? ` (${born})` : ''}. The 1st year is also checked.`
           : `${names} are together. The degrees sum to ${sum}. The ${ordinal(sum)} year${around(sum, born)} and the ${ordinal(sum + 1)} year${around(sum + 1, born)} are both checked, because a planet at 0° is also read in the 1st year.`
-      lines.push({ year: sum, text })
+      lines.push({ year: sum, text: nSay(L, textEn, textHi) })
     }
     for (let i = 0; i < ordered.length; i++) {
       for (let j = i + 1; j < ordered.length; j++) {

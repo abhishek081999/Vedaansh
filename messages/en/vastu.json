@@ -1,0 +1,301 @@
+{
+  "breadcrumb": { "home": "Home", "vastu": "Vastu" },
+  "page": {
+    "badge": "Advanced Module",
+    "emptyTitle": "Birth Chart Required",
+    "emptyBody": "Astro-Vastu maps your natal planetary positions across the 16 cosmic directions of your living space using Mahavastu principles. We need your birth details to generate your personalized spatial analysis.",
+    "enterBirth": "Enter Birth Details",
+    "requires": "Requires date, time, and place of birth for accurate analysis",
+    "fallbackName": "Lagna Kundali",
+    "lagna": "Lagna",
+    "moon": "Moon",
+    "ak": "AK",
+    "hideChart": "▲ Hide Chart",
+    "showChart": "▼ Show Chart",
+    "footerTitle": "Vedic Directional Wisdom",
+    "footerBody": "Astro-Vastu bridges the micro-cosmos (your horoscope) and the macro-cosmos (your environment). By balancing the Pancha Bhutas based on your strongest and weakest planets, you create a resonance that amplifies prosperity and well-being. The 45 Devatas of the Vastu Purusha Mandala represent specific psychographic energies that can be harmonized through conscious spatial design.",
+    "features": {
+      "compass": { "title": "16-Zone Compass", "desc": "Mahavastu directional mapping" },
+      "deities": { "title": "45 Deities Grid", "desc": "Ekashitipada mandala analysis" },
+      "rooms": { "title": "Room Placement", "desc": "Personalized space optimization" },
+      "remedy": { "title": "Remedy Engine", "desc": "Planetary correction protocols" }
+    }
+  },
+  "elements": {
+    "Jal": "Jal", "Agni": "Agni", "Vayu": "Vayu", "Prithvi": "Prithvi", "Akasha": "Akasha",
+    "Water": "Water", "Fire": "Fire", "Air": "Air", "Earth": "Earth", "Space": "Space"
+  },
+  "prana": { "Udana": "Udana", "Prana": "Prana", "Vyana": "Vyana", "Apana": "Apana", "Samana": "Samana" },
+  "dirs": {
+    "N": "N", "NNE": "NNE", "NE": "NE", "ENE": "ENE", "E": "E", "ESE": "ESE",
+    "SE": "SE", "SSE": "SSE", "S": "S", "SSW": "SSW", "SW": "SW", "WSW": "WSW",
+    "W": "W", "WNW": "WNW", "NW": "NW", "NNW": "NNW"
+  },
+  "dignity": {
+    "exalted": "exalted", "own": "own", "moolatrikona": "moolatrikona", "debilitated": "debilitated",
+    "great_friend": "great_friend", "friend": "friend", "neutral": "Neutral", "enemy": "enemy", "great_enemy": "great_enemy",
+    "card": {
+      "exalted": "Exalted ↑", "own": "Own Sign", "moolatrikona": "Moolatrikona",
+      "debilitated": "Debilitated ↓", "neutral": "Neutral"
+    },
+    "short": {
+      "exalted": "exa", "own": "own", "moolatrikona": "MuT", "debilitated": "deb",
+      "great_friend": "gre", "friend": "fri", "neutral": "neu", "enemy": "ene", "great_enemy": "gre"
+    }
+  },
+  "severity": { "critical": "critical", "high": "high", "medium": "medium", "low": "low" },
+  "lordQuality": { "excellent": "excellent", "strong": "strong", "good": "good", "weak": "weak", "afflicted": "afflicted" },
+  "dwara": { "best": "Shubha", "good": "Madhyama", "average": "Samanya", "bad": "Ashubha" },
+  "dwaraLegend": {
+    "best": "Shubha (Auspicious)", "good": "Madhyama (Good)",
+    "average": "Samanya (Average)", "bad": "Ashubha (Avoid)"
+  },
+  "score": { "high": "Highly Auspicious", "low": "Troubled — Remedy Required", "mid": "Moderate" },
+  "priority": { "top": "TOP PRIORITY", "high": "HIGH", "medium": "MEDIUM" },
+  "dig": { "strong": "⭐ Strong", "weak": "⚠ Weak", "neutral": "— Neutral" },
+  "hero": {
+    "kicker": "Mahavastu · Jyotisha Vidya",
+    "title": "Advanced Astro-Vastu",
+    "body": "Precision synthesis of <em>Manasara, Mayamata, Brihat Samhita</em> and Mahavastu — mapping 16 directional zones, 45 Vastu Devatas, Navagraha zones, Prana Vayu, and Pancha Bhuta balance to your natal chart.",
+    "kona": "{count}-Kona",
+    "harmony": "Spatial Harmony",
+    "score": "{score}% Score"
+  },
+  "stats": {
+    "power": "Power Zone", "weak": "Weak Zone", "entrance": "Best Entrance", "element": "Lead Element",
+    "strength": "{score}% strength", "dominant": "Dominant Bhuta"
+  },
+  "preview": {
+    "body": "Free preview: chart + compass overview. Bhava Vastu, mandala, doshas, rooms, and remedies require Gold.",
+    "plans": "View plans",
+    "moreTabs": "More tabs on Gold",
+    "unlock": "Overall grade <b>{grade}</b> · full property report, doshas & remedies on Gold",
+    "unlockBtn": "Unlock report"
+  },
+  "tabs": {
+    "chart": "Lagna Chart", "compass": "Compass", "bhavas": "Bhava Vastu",
+    "mandala": "Mandala", "doshas": "Doshas", "rooms": "Rooms & Design", "remedies": "Remedies & Yantras"
+  },
+  "mobile": {
+    "chart": "Chart", "compass": "Compass", "bhavas": "Bhavas", "mandala": "Mandala",
+    "doshas": "Doshas", "rooms": "Rooms", "remedy": "Remedy", "aria": "Astro Vastu sections"
+  },
+  "chart": {
+    "title": "Lagna Kundali",
+    "subtitle": "Natal birth chart — use alongside the directional analysis for a complete Astro-Vastu reading",
+    "retro": " (Retro)",
+    "planetTip": "{graha} · {deg}° {rashi}{retro}"
+  },
+  "compass": {
+    "brahm": "BRAHM", "sthan": "STHAN",
+    "zoneAnalysis": "Zone Analysis",
+    "elementLine": "{icon} {element} (Pancha Bhuta) · Prana: {prana} Vayu",
+    "energy": "Energy Score",
+    "quality": "Quality", "prana": "Prana Vayu", "pranaValue": "{prana} Vayu",
+    "element": "Element", "deityLord": "Deity Lord",
+    "navagrahaLord": "{name} — Navagraha Lord",
+    "mantra": "Mantra: {mantra}",
+    "occupants": "Occupants", "none": "No planets in this zone",
+    "remedyTitle": "⚠ Remedy Required",
+    "leverageTitle": "✓ Auspicious Zone — Leverage It",
+    "remedyBody": "Balance {element} energy in the {name}. Perform {graha} Graha Shanti. Place {icon} elemental markers. Remove heavy obstructions or sharp corners pointed at this zone.",
+    "leverageBody": "Activate this zone for {quality}. Strengthen it with {icon} {element} element markers. This is your primary power corridor.",
+    "clickHint": "Click a segment on the compass or a zone to view analysis",
+    "axisTitle": "⚔ Veedhi Shoola — Axis Tension Analysis",
+    "tension": "⚡ Tension — elemental realignment needed",
+    "balanced": "✓ Balanced axis"
+  },
+  "mandala": {
+    "title": "💠 Vastu Purusha Mandala",
+    "subtitle": "Ekashitipada (81-pada) — 45 Devatas · Click cell for deity details & mantra",
+    "blessed": "Blessed", "afflicted": "Afflicted",
+    "devata": "Devata Detail",
+    "dwara": "32 Dwara: {label}",
+    "fallbackDesc": "A vital energy field in the Vastu Mandala representing specific cosmic attributes.",
+    "bija": "Bija Mantra for Activation",
+    "hitTitle": "Planetary Hit Analysis",
+    "afflictedHit": "⚠ Afflicted: {name}",
+    "blessedHit": "✓ Blessed: {name}",
+    "noAffliction": "✓ No Malefic Affliction",
+    "selectTitle": "Select a Deity",
+    "selectBody": "Click any cell to explore its deity, mantra, qualities, and planetary influence"
+  },
+  "dosha": {
+    "title": "Vastu Dosha Analysis",
+    "subtitle": "From Manasara, Mayamata, Vishwakarma Prakash & classical Vastu Shastra",
+    "zone": "Zone: {zone}",
+    "effect": "⚡ Effect",
+    "remedy": "✦ Remedy"
+  },
+  "navagraha": {
+    "title": "Navagraha Directional Zones",
+    "subtitle": "Nine planetary zones — Vedic Vastu Navagraha placement from Brihat Samhita",
+    "direction": "Direction: {name} ({dir})",
+    "strength": "Planetary Strength"
+  },
+  "bhuta": {
+    "title": "Pancha Bhuta — Five Element Balance",
+    "subtitle": "The five cosmic elements and their directional zones from Vedic cosmology"
+  },
+  "pranaBlock": {
+    "title": "Prana Vayu — Five Life Force Currents",
+    "subtitle": "The five vital energy flows (Pancha Prana) mapped to directional zones"
+  },
+  "marmaBlock": {
+    "title": "16 Marma Points — Sacred Energy Meridians",
+    "subtitle": "From Vastu Shastra: these 16 points must NEVER be drilled, bored, or pierced"
+  },
+  "rooms": {
+    "facingTitle": "Personalized House Facing",
+    "facingSubtitle": "Based on Lagna Rashi — Vedic directional alignment",
+    "optimal": "Optimal Orientation",
+    "based": "Based on your {rashi} Ascendant: {why}",
+    "quote": "Vastu Shastra: \"The door facing harmonious to Lagna ensures the master lives in alignment with their cosmic mandate.\"",
+    "guideTitle": "Room Placement Guide",
+    "guideSubtitle": "Optimal room locations per Vastu Shastra directives"
+  },
+  "digBala": {
+    "title": "Dig Bala — Directional Strength",
+    "subtitle": "Planetary directional strength (Shadbala component) from Parashari Jyotisha",
+    "optimal": "{desc} · Optimal: {dir}"
+  },
+  "sleep": {
+    "title": "Shayana Vidhi — Sleeping Direction",
+    "subtitle": "From Charaka Samhita & Vastu Shilpa — the science of optimal rest",
+    "head": "Head → {head}",
+    "quote": "📜 Charaka Samhita (Sutra 3.15): \"One should sleep with head toward South or East. Sleeping with head to North diminishes Ojas (vital essence) and shortens life.\""
+  },
+  "dikpala": {
+    "title": "Ashta Dikpalas",
+    "subtitle": "Eight directional guardians — from Agni Purana & Vastu Shastra",
+    "puja": "Puja: {day}",
+    "weapon": "Weapon: {weapon} · Mount: {mount}"
+  },
+  "color": {
+    "title": "Zonal Color Therapy",
+    "subtitle": "Vedic chromotherapy by direction — Varna Vastu Shastra",
+    "note": "Chromotherapy based on planetary rulership — colors amplify the planet's beneficial energy in each directional zone."
+  },
+  "plants": {
+    "title": "Vastu Vriksha Shastra — Plant Placement",
+    "subtitle": "Auspicious tree & plant placement from Brihat Samhita (Ch. 55) & Vastu Vidya",
+    "place": "Place: {zone}",
+    "avoid": "Avoid: {text}"
+  },
+  "remedy": {
+    "title": "Priority Remedial Action Plan",
+    "subtitle": "Personalized to your natal chart — zones most requiring correction",
+    "scoreLine": "Score: {score}% · {quality} · {icon} {element}",
+    "perform": "Perform {graha} (Graha Shanti) puja. Place {icon} elemental markers in {zone}.",
+    "recite": " Recite: \"{mantra}...\"",
+    "remove": " Remove structural obstructions.",
+    "noneTitle": "No High-Priority Remedies Required",
+    "noneBody": "Your natal chart shows strong spatial harmony across all zones."
+  },
+  "yantra": {
+    "title": "Yantra Placement Guide",
+    "subtitle": "From Tantric Vastu tradition — sacred geometric energy tools for each zone"
+  },
+  "metal": {
+    "title": "Dhatu Vastu — Metal & Element Remedies",
+    "subtitle": "Correct metals for each direction — from Vastu Shastra Dhatu Prakarana",
+    "place": "Place:",
+    "avoid": "Avoid: {text}"
+  },
+  "heat": {
+    "title": "Zonal Energy Heatmap",
+    "subtitle": "Relative energy saturation across all directions",
+    "over": "Zones >75%:",
+    "power": "Power Corridors",
+    "under": "Zones <40%:",
+    "fix": "Require Immediate Correction"
+  },
+  "eq": {
+    "title": "Elemental Equilibrium",
+    "subtitle": "Pancha Bhuta balance across your chart",
+    "Jal": "Water/Jal", "Agni": "Fire/Agni", "Vayu": "Air/Vayu", "Prithvi": "Earth", "Akasha": "Space",
+    "objects": "🐚 Vastu Objects Placement"
+  },
+  "dynamic": {
+    "strong": "H{house} lord {lord} is strong in house {lordHouse}. The {dir} zone naturally energises; keep it clean and unobstructed.",
+    "weak": "H{house} lord {lord} is weak in house {lordHouse}. Prioritise Vastu remedies in the {dir} zone to support this area.",
+    "neutral": "H{house} lord {lord} is neutral in house {lordHouse}. Maintain balance in the {dir} zone.",
+    "occupants": " Occupants: {names} project their energy here."
+  },
+  "bhavas": {
+    "bannerTitle": "Astro Vastu — Vedic Jyotish × Vastu Synthesis",
+    "bannerBody": "Your natal Kundali mapped to your living space. Each of the 12 Bhavas governs a direction; each planet rules a Vastu zone.",
+    "wheelTitle": "Bhava Chakra — House-Direction Wheel",
+    "wheelSub": "12 houses mapped to Vastu directions",
+    "center1": "BHAVA", "center2": "CHAKRA", "center3": "Jyotish × Vastu",
+    "chip": "H{house}·{dir}",
+    "compassTitle": "Planet Compass — Graha Direction Map",
+    "compassSub": "Which planet rules which Vastu zone",
+    "nneKetu": "NNE = Ketu", "nneRest": "(H8 · Research)",
+    "eneSun": "ENE = Sun", "eneRest": "(H10 · Career)",
+    "lagnaTitle": "Your Lagna (Ascendant) Profile",
+    "lagnaSub": "Your rising sign shapes the entire energetic identity of your home",
+    "lagnaName": "{rashi} Lagna",
+    "signLine": "{element} Sign · {quality}",
+    "signOnly": "{element} Sign",
+    "lagnaLord": "Lagna Lord",
+    "zone": "Zone:", "vastuZone": "Vastu Zone:", "element": "Element:",
+    "activation": "🏠 Activation", "vastuActivation": "🏠 Vastu Activation",
+    "refTitle": "12-Bhava Spatial Reference",
+    "refSub": "House · Rashi · Lord placement · Planets in house · Vastu zone",
+    "empty": "Empty",
+    "lordLine": "{rashi} · Lord:",
+    "cols": {
+      "h": "H#", "sanskrit": "Sanskrit", "rashi": "Rashi", "lord": "Lord (H)",
+      "planets": "Planets in House", "quality": "Lord Quality", "zone": "Zone", "insight": "Vastu Insight"
+    },
+    "signCols": {
+      "sign": "Sign", "rashi": "Rashi", "element": "Element", "lord": "Lord",
+      "character": "Character", "activation": "Vastu Activation"
+    },
+    "you": "YOU",
+    "grahaTitle": "Graha Vastu Profile Cards",
+    "grahaSub": "Your natal planet positions mapped to Vastu spatial zones",
+    "yourChart": "Your chart:",
+    "planetStrength": "Planetary Strength",
+    "lordChartTitle": "House Lord Quality — Your Chart",
+    "lordChartSub": "Where your lord sits determines each life zone's spatial energy",
+    "lordNote": "💡 Each row shows: which house lord rules the house, which house it sits in, and the resulting quality of that life area's spatial energy.",
+    "lifeTitle": "Life Area → Zone Map",
+    "lifeSub": "Your goal determines which spatial zone to activate",
+    "planTitle": "Personalised Astro-Vastu Action Plan",
+    "planSub": "Priority spatial activations derived from your Lagna and planetary positions",
+    "rashiTitle": "12 Rashi Vastu Quick Reference",
+    "rashiSub": "Each zodiac sign's spatial energy and Vastu activation tip",
+    "coreTitle": "Core Principle of Vedic Astro Vastu",
+    "coreBody": "Astro Vastu integrates the principles of Vastu Shastra with insights from Jyotish (Vedic Astrology). The goal is to enhance positive energy and overall well-being by aligning living spaces with both Vastu directional principles and the individual's astrological chart. By mapping planetary influences to spatial zones, we create environments that resonate with each person's unique cosmic blueprint — facilitating smoother energy flow, enhancing positive outcomes, and mitigating adverse influences.",
+    "coreByline": "— Classical Vedic synthesis: Jyotish Shastra × Vastu Shastra"
+  },
+  "actions": {
+    "p1": "Activate your Lagna Lord ({lord}) zone — {zone}",
+    "p2": "Energise NE (9th Bhava/Fortune Zone)",
+    "p2detail": "Puja room or sacred corner in NE. Remove all clutter and toilet from this zone. Light ghee lamp daily.",
+    "p3": "Stabilise SW (4th Bhava/Home Comfort Zone)",
+    "p3detail": "Master bedroom in SW with head facing South. Heavy wardrobes in SW corner. No cuts or missing corners in SW.",
+    "p4": "Activate ENE for Career (10th Bhava)",
+    "p4detail": "Home office or work desk facing ENE or N. Professional awards in ENE zone. Sun yantra in East wall.",
+    "p5": "Maintain SE Kitchen (2nd Bhava/Wealth)",
+    "p5detail": "Kitchen stove in SE. Cooking facing East. Cash locker away from SW only if Rahu is difficult. Agni deepam in SE.",
+    "retro": "Remedy {graha} (Retrograde) — {zone} zone",
+    "retroDetail": "Retrograde {graha} needs special spatial attention. {spatial}"
+  },
+  "report": {
+    "title": "Property Potential Report",
+    "sources": "Synthesized from Manasara · Mayamata · Brihat Samhita · Mahavastu",
+    "grade": "Overall Grade: {grade}",
+    "strength": "Primary Strength",
+    "strengthBody": "The <b>{zone}</b> zone leads at {score}%, creating natural resonance for <b>{quality}</b>. Harness this Power Corridor actively.",
+    "weakness": "Primary Weakness",
+    "weaknessBody": "The <b>{zone}</b> zone shows depletion at {score}%, potentially manifesting as challenges in <b>{quality}</b>. Priority remedy zone.",
+    "recommendation": "Key Recommendation",
+    "recommendationBody": "Activate the <b>{entrance}</b> entrance and balance <b>{icon} {element}</b> element. Perform {graha} Graha Shanti for maximum spatial alignment.",
+    "footer": "Advanced Astro-Vastu Engine · Sources: Manasara · Mayamata · Brihat Samhita · Vishwakarma Prakash · Samarangana Sutradhara · Mahavastu",
+    "footer2": "Align property compass with Magnetic North for accurate remedial deployment",
+    "disclaimer": "ℹ️ This analysis uses your natal planetary longitudes for directional correlation. For full Vastu Shanti, consult a qualified Vastu practitioner to physically survey the property with compass and floor plan. Digital analysis provides directional tendencies; on-site measurement gives exact door positions and marma locations."
+  }
+}

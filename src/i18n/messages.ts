@@ -21,6 +21,13 @@ export const NAMESPACES = [
   'nakshatra',
   'dosha',
   'auth',
+  'jaimini',
+  'nadi',
+  'prashna',
+  'vastu',
+  'acg',
+  'sbc',
+  'numerology',
 ] as const
 export type Namespace = (typeof NAMESPACES)[number]
 

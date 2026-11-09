@@ -6,6 +6,8 @@
  */
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
@@ -52,21 +54,6 @@ type AroodhaMode = 'auto_lagna' | 'auto_al' | 'manual'
 
 /** Free plan may use Satpanchasika only; Kerala / Vedic / KP require Gold+. */
 const PAID_PRASHNA_MODES = new Set<KPMode>(['krishneeyam', 'vedic', 'kp'])
-
-const MODE_LABEL: Record<KPMode, string> = {
-  satpanchasika: 'Satpanchasika',
-  krishneeyam: 'Kerala',
-  vedic: 'Vedic',
-  kp: 'KP',
-}
-
-const CATEGORY_LABELS: Record<PrashnaCategory, string> = {
-  yes_no: 'Yes / No', when: 'When', what: 'What', who: 'Who (Thief)',
-  lost_article: 'Lost Article', health: 'Health', travel: 'Traveller',
-  pregnancy: 'Pregnancy', marriage: 'Marriage', house_query: 'House',
-  spirit: 'Spirit / Baadha', intercourse: 'Intercourse', food: 'Food',
-  lawsuit: 'Lawsuit', exam: 'Exam / Election', general: 'General',
-}
 
 const CATEGORY_ICONS: Record<PrashnaCategory, string> = {
   yes_no: '⚖️', when: '⏰', what: '🔍', who: '🕵️', lost_article: '💎',
@@ -226,6 +213,8 @@ interface HistoryEntry {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function PrashnaPage() {
+  const t = useTranslations('prashna')
+  const { lang } = useLang()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const canUsePaidModes = planMeetsUiGate(userPlan, 'gold')
@@ -409,8 +398,8 @@ export default function PrashnaPage() {
       category, bodyTouchPart: bodyTouch || undefined,
       houseReferenceRashi: houseRefRashi,
       houseReferenceType: houseReference,
-    })
-  }, [chart, mode, resolvedAroodhaRashi, category, bodyTouch, houseReference, arudhaLagnaRashi])
+    }, lang)
+  }, [chart, mode, resolvedAroodhaRashi, category, bodyTouch, houseReference, arudhaLagnaRashi, lang])
 
   const satResult = useMemo((): { reading: SatpanchasikaReading | null; error: string | null } => {
     if (!chart || mode !== 'satpanchasika') return { reading: null, error: null }
@@ -434,12 +423,12 @@ export default function PrashnaPage() {
   const vedicResult = useMemo((): { reading: VedicPrashnaReading | null; error: string | null } => {
     if (!chart || mode !== 'vedic' || modeLocked) return { reading: null, error: null }
     try {
-      return { reading: runVedicPrashna(chart, vedicTopic), error: null }
+      return { reading: runVedicPrashna(chart, vedicTopic, lang), error: null }
     } catch (err) {
       console.error('Vedic prashna error:', err)
       return { reading: null, error: 'This chart could not be read. Please capture the moment again.' }
     }
-  }, [chart, mode, modeLocked, vedicTopic])
+  }, [chart, mode, modeLocked, vedicTopic, lang])
   const vedicReading = vedicResult.reading
 
   const stability = useMemo((): StabilityResult | null => {
@@ -449,11 +438,11 @@ export default function PrashnaPage() {
         return analyseLagnaStability(chart, c => VERDICT_STYLE[runSatpanchasika(c, { question: satQuestion, contestRole, house: satHouse, season: isRainySeason ? 'rainy' : undefined }).verdict].label)
       }
       if (mode === 'vedic' && !modeLocked) {
-        return analyseLagnaStability(chart, c => VERDICT_STYLE[runVedicPrashna(c, vedicTopic).verdict].label)
+        return analyseLagnaStability(chart, c => VERDICT_STYLE[runVedicPrashna(c, vedicTopic, lang).verdict].label)
       }
     } catch { /* the reading itself reports the error */ }
     return null
-  }, [chart, mode, modeLocked, satQuestion, contestRole, satHouse, isRainySeason, vedicTopic])
+  }, [chart, mode, modeLocked, satQuestion, contestRole, satHouse, isRainySeason, vedicTopic, lang])
 
   const setHistoryOutcome = (id: string, outcome: 'hit' | 'miss') => setHistory(prev => {
     const next = prev.map(h => h.id === id ? { ...h, outcome: h.outcome === outcome ? undefined : outcome } : h)
@@ -691,7 +680,7 @@ export default function PrashnaPage() {
             }}>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-                {MODE_LABEL[mode]} Prashna requires Gold. Free includes Satpanchasika only.
+                {t('page.goldRequired', { mode: t(`page.mode.${mode}`) })}
               </div>
               <Link href="/pricing" style={{ textDecoration: 'none' }}>
                 <Button variant="primary" size="sm">View plans</Button>
@@ -734,9 +723,9 @@ export default function PrashnaPage() {
               <div style={{ flex: 1, minWidth: 320 }}>
                 <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>Query Category</div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(8, 1fr)', gap: '4px' }}>
-                  {(Object.keys(CATEGORY_LABELS) as PrashnaCategory[]).map(cat => (
+                  {(Object.keys(CATEGORY_ICONS) as PrashnaCategory[]).map(cat => (
                     <button key={cat} onClick={() => setCategory(cat)} disabled={frozen}
-                      title={CATEGORY_LABELS[cat]}
+                      title={t(`category.${cat}`)}
                       style={{
                         border: category === cat ? `2px solid ${verdictColor}` : '1px solid var(--border-soft)',
                         borderRadius: 7, padding: '0.3rem 0.15rem',
@@ -746,7 +735,7 @@ export default function PrashnaPage() {
                       }}>
                       <span style={{ fontSize: '1rem' }}>{CATEGORY_ICONS[cat]}</span>
                       <span style={{ fontSize: '0.48rem', color: category === cat ? verdictColor : 'var(--text-muted)', fontWeight: 600, lineHeight: 1.2, textAlign: 'center' }}>
-                        {CATEGORY_LABELS[cat].split(' ')[0]}
+                        {t(`category.${cat}`)}
                       </span>
                     </button>
                   ))}
@@ -897,7 +886,7 @@ export default function PrashnaPage() {
                       <span style={{ fontWeight: 900, color: col, fontSize: '0.85rem', flexShrink: 0, width: 60, textAlign: 'center' }}>{h.verdict}<br/><span style={{ fontSize: '0.6rem', fontWeight: 400 }}>{h.confidence}%</span></span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.question || '(no question)'}</div>
-                        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{h.system ?? `${CATEGORY_ICONS[h.category]} ${CATEGORY_LABELS[h.category]}`} · {h.location} · {new Date(h.ts).toLocaleString()}</div>
+                        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{h.system ?? `${CATEGORY_ICONS[h.category]} ${t(`category.${h.category}`)}`} · {h.location} · {new Date(h.ts).toLocaleString(lang === 'hi' ? 'hi-IN' : undefined)}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         <button type="button" aria-pressed={h.outcome === 'hit'} aria-label="It came true" title="It came true" onClick={() => setHistoryOutcome(h.id, 'hit')}
@@ -1072,7 +1061,7 @@ export default function PrashnaPage() {
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '0.6rem', color: verdictColor, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-                              ◆ Krishneeyam Oracle · {CATEGORY_ICONS[category]} {CATEGORY_LABELS[category]}
+                              ◆ Krishneeyam Oracle · {CATEGORY_ICONS[category]} {t(`category.${category}`)}
                             </div>
                             <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.6rem', margin: '0 0 0.25rem', color: verdictColor, fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
                               {r.headline}

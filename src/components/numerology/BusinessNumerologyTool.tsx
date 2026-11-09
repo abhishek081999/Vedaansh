@@ -6,11 +6,12 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { scoreBusiness, suggestLaunchDates } from '@/lib/engine/numerology/business'
 import { getNameNumber } from '@/lib/engine/numerology/calc'
-import { NUMBER_PROFILES, type CoreNumber } from '@/lib/engine/numerology/data'
+import { getNumberProfile, type CoreNumber } from '@/lib/engine/numerology/data'
 import { Field } from '@/components/ui/primitives/Field'
-import { HarmonyPill, NumberOrb, QUALITY_COLOR, SectionCard, gridColumns } from './shared'
+import { HarmonyPill, NumberOrb, QUALITY_COLOR, SectionCard, gridColumns, useNumerologyLang } from './shared'
 
 const VERDICT_COLOR = {
   excellent: 'var(--teal)',
@@ -24,6 +25,9 @@ function monthValue(d: Date): string {
 }
 
 export function BusinessNumerologyTool({ moolank, bhagyank }: { moolank: CoreNumber; bhagyank: CoreNumber }) {
+  const t = useTranslations('numerology.business')
+  const tv = useTranslations('numerology.verdict')
+  const lang = useNumerologyLang()
   const [name, setName] = useState('')
   const [launchDate, setLaunchDate] = useState('')
   const [registration, setRegistration] = useState('')
@@ -31,10 +35,10 @@ export function BusinessNumerologyTool({ moolank, bhagyank }: { moolank: CoreNum
 
   const owner = useMemo(() => ({ moolank, bhagyank }), [moolank, bhagyank])
   const result = useMemo(
-    () => (name.trim() ? scoreBusiness({ name, launchDate: launchDate || undefined, registration, owner }) : null),
-    [name, launchDate, registration, owner],
+    () => (name.trim() ? scoreBusiness({ name, launchDate: launchDate || undefined, registration, owner, lang }) : null),
+    [name, launchDate, registration, owner, lang],
   )
-  const nameRoot = useMemo(() => (name.trim() ? getNameNumber(name)?.value ?? null : null), [name])
+  const nameRoot = useMemo(() => (name.trim() ? getNameNumber(name, 'chaldean', lang)?.value ?? null : null), [name, lang])
   const suggestions = useMemo(() => {
     const m = /^(\d{4})-(\d{2})$/.exec(month)
     if (!m) return []
@@ -44,19 +48,19 @@ export function BusinessNumerologyTool({ moolank, bhagyank }: { moolank: CoreNum
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <SectionCard
-        title="Business Numerology"
-        subtitle={`Name, launch date, logo initial and GST / PAN / CIN / phone, scored for owner Moolank ${moolank} and Bhagyank ${bhagyank}.`}
+        title={t('title')}
+        subtitle={t('sub', { m: moolank, b: bhagyank })}
       >
         <div style={gridColumns(200)}>
-          <Field label="Business / brand name" value={name} maxLength={120} placeholder="Shree Ganesh Traders" onChange={e => setName(e.target.value)} />
-          <Field label="Launch / incorporation date" type="date" value={launchDate} onChange={e => setLaunchDate(e.target.value)} />
+          <Field label={t('name')} value={name} maxLength={120} placeholder={t('namePh')} onChange={e => setName(e.target.value)} />
+          <Field label={t('launch')} type="date" value={launchDate} onChange={e => setLaunchDate(e.target.value)} />
           <Field
-            label="GST / PAN / CIN / phone"
+            label={t('reg')}
             value={registration}
             maxLength={30}
             placeholder="27AAPFU0939F1ZV"
             onChange={e => setRegistration(e.target.value)}
-            hint="Letters use Chaldean values; digits count at face value."
+            hint={t('hint')}
           />
         </div>
 
@@ -65,8 +69,8 @@ export function BusinessNumerologyTool({ moolank, bhagyank }: { moolank: CoreNum
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ fontSize: '1.6rem', fontFamily: 'var(--font-display)', color: VERDICT_COLOR[result.verdict], lineHeight: 1 }}>{result.score}</div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: VERDICT_COLOR[result.verdict], textTransform: 'capitalize' }}>{result.verdict}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Weighted: name ×3, date ×2, initial and registration ×1</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: VERDICT_COLOR[result.verdict], textTransform: 'capitalize' }}>{tv(result.verdict)}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('weights')}</div>
               </div>
             </div>
             <div style={gridColumns(230)}>
@@ -78,7 +82,7 @@ export function BusinessNumerologyTool({ moolank, bhagyank }: { moolank: CoreNum
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.value}</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {p.compound > 9 ? `${p.compound} → ` : ''}{p.root} · {NUMBER_PROFILES[p.root].planet} · <span style={{ color: VERDICT_COLOR[p.score >= 63 ? 'good' : p.score >= 43 ? 'acceptable' : 'unfavourable'] }}>{p.score}</span>
+                        {p.compound > 9 ? `${p.compound} → ` : ''}{p.root} · {getNumberProfile(p.root, lang).planet} · <span style={{ color: VERDICT_COLOR[p.score >= 63 ? 'good' : p.score >= 43 ? 'acceptable' : 'unfavourable'] }}>{p.score}</span>
                       </div>
                     </div>
                   </div>
@@ -92,29 +96,29 @@ export function BusinessNumerologyTool({ moolank, bhagyank }: { moolank: CoreNum
                 </div>
               ))}
             </div>
-            {result.tips.map(t => <div key={t} style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>• {t}</div>)}
+            {result.tips.map(tip => <div key={tip} style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>• {tip}</div>)}
           </>
         )}
       </SectionCard>
 
       <SectionCard
-        title="Launch Date Finder"
-        subtitle={nameRoot ? `Dates that support you and the business name (root ${nameRoot}).` : 'Dates that support your Moolank and Bhagyank. Enter a business name to also match it.'}
+        title={t('finderTitle')}
+        subtitle={nameRoot ? t('finderKnown', { root: nameRoot }) : t('finderUnknown')}
       >
-        <Field label="Month" type="month" value={month} onChange={e => setMonth(e.target.value)} />
+        <Field label={t('month')} type="month" value={month} onChange={e => setMonth(e.target.value)} />
         {suggestions.length > 0 ? (
           <div style={gridColumns(130)}>
             {suggestions.map(s => (
               <div key={s.date} style={{ padding: '0.5rem 0.6rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
                 <div style={{ fontWeight: 600, color: 'var(--text-gold)', fontSize: '0.85rem' }}>{s.date}</div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Date {s.dateRoot} · day {s.dayRoot} · {s.score}</div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('dateLine', { dateRoot: s.dateRoot, dayRoot: s.dayRoot, score: s.score })}</div>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>No strongly supportive dates this month — try the next one.</p>
+          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>{t('none')}</p>
         )}
-        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>Confirm the final pick with the Muhurta tool for tithi, nakshatra and lagna.</p>
+        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('muhurta')}</p>
       </SectionCard>
     </div>
   )

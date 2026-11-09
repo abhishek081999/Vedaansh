@@ -8,6 +8,8 @@
 
 import type { DashaNode, GrahaData, GrahaId, LagnaData, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { jG, jLang, jOrd, jR, say, type EngineLang } from '../locale/jaiminiLang'
+import { INSIGHT_NAKSHATRA_HI, INSIGHT_PADA_HI } from '../locale/jaiminiInsights.hi'
 import { FIXED_HOUSE_SIGNIFICATORS } from '../karakas'
 import { readArgalaSources } from './argala'
 import { getRashiDrishti } from './aspects'
@@ -26,6 +28,7 @@ export interface InsightContext {
   nodes: DashaNode[]
   method: JaiminiMethod
   asOf?: Date
+  lang?: EngineLang
 }
 
 export interface SignWindows {
@@ -43,19 +46,14 @@ function distance(from: Rashi, to: Rashi): number {
   return ((to - from + 12) % 12) + 1
 }
 
-function ordinal(n: number): string {
-  if (n === 1) return '1st'
-  if (n === 2) return '2nd'
-  if (n === 3) return '3rd'
-  return `${n}th`
-}
-
 function occupantsText(ctx: InsightContext, sign: Rashi): string {
+  const L = jLang(ctx.lang)
   const here = ctx.grahas.filter(g => g.rashi === sign && GRAHA_NAMES[g.id] && isPracticalical(g.id))
-  if (!here.length) return 'no planet'
+  if (!here.length) return say(L, 'no planet', 'कोई ग्रह नहीं')
   return here.map(g => {
     const role = ctx.roleOf[g.id]
-    return role ? `${GRAHA_NAMES[g.id]} (${role})` : GRAHA_NAMES[g.id]
+    const name = L === 'hi' ? jG(g.id, L) : GRAHA_NAMES[g.id]
+    return role ? `${name} (${role})` : name
   }).join(', ')
 }
 
@@ -78,34 +76,38 @@ function running(node: DashaNode, now: number): boolean {
 }
 
 /** Current and next time a sign runs, as mahadasha or as antardasha inside the running one. */
-export function signWindows(nodes: DashaNode[], sign: Rashi, now: number = Date.now()): SignWindows {
+export function signWindows(nodes: DashaNode[], sign: Rashi, now: number = Date.now(), lang: EngineLang = 'en'): SignWindows {
+  const L = jLang(lang)
   const short = RASHI_SHORT[sign]
-  const maha = nodes.find(n => running(n, now))
-  const antar = maha?.children?.find(n => running(n, now))
+  const mahaNode = nodes.find(n => running(n, now))
+  const antarNode = mahaNode?.children?.find(n => running(n, now))
+  const mahaWord = say(L, 'mahadasha', 'महादशा')
+  const antarWord = say(L, 'antardasha', 'अंतर्दशा')
   let current: string | null = null
-  if (maha?.lord === short) current = `mahadasha ${years(maha)}`
-  else if (antar?.lord === short) current = `antardasha ${years(antar)}`
+  if (mahaNode?.lord === short) current = `${mahaWord} ${years(mahaNode)}`
+  else if (antarNode?.lord === short) current = `${antarWord} ${years(antarNode)}`
 
   const candidates: Array<{ at: number; text: string }> = []
   for (const n of nodes) {
     if (n.lord === short && new Date(n.start).getTime() > now) {
-      candidates.push({ at: new Date(n.start).getTime(), text: `mahadasha ${years(n)}` })
+      candidates.push({ at: new Date(n.start).getTime(), text: `${mahaWord} ${years(n)}` })
     }
   }
-  for (const n of maha?.children ?? []) {
+  for (const n of mahaNode?.children ?? []) {
     if (n.lord === short && new Date(n.start).getTime() > now) {
-      candidates.push({ at: new Date(n.start).getTime(), text: `antardasha ${years(n)}` })
+      candidates.push({ at: new Date(n.start).getTime(), text: `${antarWord} ${years(n)}` })
     }
   }
   candidates.sort((a, b) => a.at - b.at)
   return { current, next: candidates[0]?.text ?? null }
 }
 
-function windowText(w: SignWindows): string {
-  if (w.current && w.next) return `Running now as ${w.current}. Next: ${w.next}.`
-  if (w.current) return `Running now as ${w.current}.`
-  if (w.next) return `Next: ${w.next}.`
-  return 'It does not run again in this cycle.'
+function windowText(w: SignWindows, lang: EngineLang = 'en'): string {
+  const L = jLang(lang)
+  if (w.current && w.next) return say(L, `Running now as ${w.current}. Next: ${w.next}.`, `अभी ${w.current} के रूप में चल रहा है। आगे: ${w.next}।`)
+  if (w.current) return say(L, `Running now as ${w.current}.`, `अभी ${w.current} के रूप में चल रहा है।`)
+  if (w.next) return say(L, `Next: ${w.next}.`, `आगे: ${w.next}।`)
+  return say(L, 'It does not run again in this cycle.', 'यह इस चक्र में फिर नहीं चलता।')
 }
 
 /** Sign strength band by rank among the twelve Jaimini Rashi Bala totals. */
@@ -134,23 +136,26 @@ export interface GatewayReading {
 }
 
 export function readGateway(ctx: InsightContext, dwaraSign: Rashi): GatewayReading {
+  const L = jLang(ctx.lang)
   const { dwara, bahya } = calculateGatewaySigns(ctx.lagnas.ascRashi, dwaraSign)
   const { band, rank } = rashiBand(ctx.bala, bahya)
   const outcome = band === 'strong'
-    ? 'The exit sign is strong, so what starts now tends to finish well.'
+    ? say(L, 'The exit sign is strong, so what starts now tends to finish well.', 'निकास राशि बलवान है, इसलिए जो अब शुरू होता है वह अच्छे से पूरा होने की ओर है।')
     : band === 'weak'
-      ? 'The exit sign is weak, so what starts now tends to finish with effort or an unsatisfying result.'
-      : 'The exit sign has average strength, so the outcome depends on the lord and aspects.'
+      ? say(L, 'The exit sign is weak, so what starts now tends to finish with effort or an unsatisfying result.', 'निकास राशि निर्बल है, इसलिए जो अब शुरू होता है वह प्रयास या असंतोषजनक फल के साथ पूरा होता है।')
+      : say(L, 'The exit sign has average strength, so the outcome depends on the lord and aspects.', 'निकास राशि का बल औसत है, इसलिए फल स्वामी और दृष्टि पर निर्भर है।')
   const house = distance(ctx.lagnas.ascRashi, dwara)
+  const dwaraName = L === 'hi' ? jR(dwara, L) : RASHI_NAMES[dwara]
+  const bahyaName = L === 'hi' ? jR(bahya, L) : RASHI_NAMES[bahya]
   return {
     dwara,
     bahya,
     band,
     rank,
-    entry: `Dwara is ${RASHI_NAMES[dwara]}, the ${ordinal(house)} from Lagna, holding ${occupantsText(ctx, dwara)}. Events of this period enter through this sign.`,
-    exit: `Bahya is ${RASHI_NAMES[bahya]}, the same count of ${house} from Dwara, holding ${occupantsText(ctx, bahya)}. It ranks ${ordinal(rank)} of 12 in Rashi Bala. ${outcome}`,
+    entry: say(L, `Dwara is ${dwaraName}, the ${jOrd(house, L)} from Lagna, holding ${occupantsText(ctx, dwara)}. Events of this period enter through this sign.`, `द्वार ${dwaraName} है, लग्न से ${jOrd(house, L)} भाव, जिसमें ${occupantsText(ctx, dwara)} है। इस काल की घटनाएँ इस राशि से प्रवेश करती हैं।`),
+    exit: say(L, `Bahya is ${bahyaName}, the same count of ${house} from Dwara, holding ${occupantsText(ctx, bahya)}. It ranks ${jOrd(rank, L)} of 12 in Rashi Bala. ${outcome}`, `बाह्य ${bahyaName} है, द्वार से वही ${house} की गिनती, जिसमें ${occupantsText(ctx, bahya)} है। राशि बल में 12 में से यह ${jOrd(rank, L)} स्थान पर है। ${outcome}`),
     useFor: ctx.method === 'practical'
-      ? 'Use the pair for a situation with an entry and an exit, such as a court case or an illness: Dwara shows how the person got in, and Bahya shows whether and how they come out.'
+      ? say(L, 'Use the pair for a situation with an entry and an exit, such as a court case or an illness: Dwara shows how the person got in, and Bahya shows whether and how they come out.', 'प्रवेश और निकास वाली स्थिति के लिए इस जोड़े का उपयोग करें, जैसे मुकदमा या रोग: द्वार बताता है व्यक्ति कैसे भीतर गया, और बाह्य बताता है वह निकलता है या नहीं और कैसे।')
       : null,
   }
 }
@@ -172,46 +177,48 @@ function signOfLongitude(lon: number): Rashi | null {
 }
 
 export function readSpecialLagnas(ctx: InsightContext): { rows: SpecialLagnaRow[]; comparison: string | null } {
+  const L = jLang(ctx.lang)
   const now = (ctx.asOf ?? new Date()).getTime()
   const rows: SpecialLagnaRow[] = []
   const add = (id: SpecialLagnaRow['id'], name: string, lon: number, text: (band: StrengthBand) => string) => {
     const sign = signOfLongitude(lon)
     if (!sign) return
     const { band } = rashiBand(ctx.bala, sign)
+    const signName = L === 'hi' ? jR(sign, L) : RASHI_NAMES[sign]
     rows.push({
       id,
       name,
       sign,
       band,
-      reading: `${RASHI_NAMES[sign]} holds ${occupantsText(ctx, sign)}. ${text(band)}`,
-      timing: windowText(signWindows(ctx.nodes, sign, now)),
+      reading: say(L, `${signName} holds ${occupantsText(ctx, sign)}. ${text(band)}`, `${signName} में ${occupantsText(ctx, sign)} है। ${text(band)}`),
+      timing: windowText(signWindows(ctx.nodes, sign, now, L), L),
     })
   }
 
-  add('GL', 'Ghatika Lagna', ctx.lagnas.ghatiLagna, band => {
-    const base = 'It shows power, authority, and when raja yoga switches on. Its sign dasha opens the authority phase.'
+  add('GL', say(L, 'Ghatika Lagna', 'घटिका लग्न'), ctx.lagnas.ghatiLagna, band => {
+    const base = say(L, 'It shows power, authority, and when raja yoga switches on. Its sign dasha opens the authority phase.', 'यह शक्ति, अधिकार और राजयोग के चालू होने का समय दिखाता है। इसकी राशि दशा अधिकार का चरण खोलती है।')
     if (ctx.method !== 'practical') return base
     return band === 'weak'
-      ? `${base} It is weak here, so the person tends to work harder than the return.`
+      ? say(L, `${base} It is weak here, so the person tends to work harder than the return.`, `${base} यहाँ यह निर्बल है, इसलिए व्यक्ति प्रतिफल से अधिक मेहनत करता है।`)
       : band === 'strong'
-        ? `${base} It is strong here, so authority does arrive.`
+        ? say(L, `${base} It is strong here, so authority does arrive.`, `${base} यहाँ यह बलवान है, इसलिए अधिकार आता है।`)
         : base
   })
-  add('VL', 'Varnada Lagna', ctx.lagnas.varnadaLagna, () => 'It shows social standing and how the world places the person. It matters most for fame, reputation, and public life.')
-  add('HL', 'Hora Lagna', ctx.lagnas.horaLagna, () => 'It shows wealth and material manifestation.')
+  add('VL', say(L, 'Varnada Lagna', 'वर्णद लग्न'), ctx.lagnas.varnadaLagna, () => say(L, 'It shows social standing and how the world places the person. It matters most for fame, reputation, and public life.', 'यह सामाजिक स्थान और दुनिया की नजर में व्यक्ति का स्थान दिखाता है। यश, प्रतिष्ठा और सार्वजनिक जीवन के लिए यह सबसे मायने रखता है।'))
+  add('HL', say(L, 'Hora Lagna', 'होरा लग्न'), ctx.lagnas.horaLagna, () => say(L, 'It shows wealth and material manifestation.', 'यह धन और भौतिक प्रकट होना दिखाता है।'))
 
   const vl = rows.find(r => r.id === 'VL')
   let comparison: string | null = null
   if (vl) {
     const lagnaBand = rashiBand(ctx.bala, ctx.lagnas.ascRashi).band
     if (lagnaBand === 'strong' && vl.band !== 'strong') {
-      comparison = 'Lagna is stronger than Varnada. The person is strong inside and gets less outside recognition.'
+      comparison = say(L, 'Lagna is stronger than Varnada. The person is strong inside and gets less outside recognition.', 'लग्न वर्णद से बलवान है। व्यक्ति भीतर से मजबूत है और बाहर पहचान कम मिलती है।')
     } else if (vl.band === 'strong' && lagnaBand !== 'strong') {
-      comparison = 'Varnada is stronger than Lagna. The public image is more powerful than the inner footing.'
+      comparison = say(L, 'Varnada is stronger than Lagna. The public image is more powerful than the inner footing.', 'वर्णद लग्न से बलवान है। सार्वजनिक छवि भीतरी आधार से अधिक शक्तिशाली है।')
     } else if (vl.band === 'strong' && lagnaBand === 'strong') {
-      comparison = 'Lagna and Varnada are both strong. Inner strength and public standing agree.'
+      comparison = say(L, 'Lagna and Varnada are both strong. Inner strength and public standing agree.', 'लग्न और वर्णद दोनों बलवान हैं। भीतरी बल और सार्वजनिक स्थान सहमत हैं।')
     } else {
-      comparison = 'Neither Lagna nor Varnada stands out in strength, so public standing is built slowly.'
+      comparison = say(L, 'Neither Lagna nor Varnada stands out in strength, so public standing is built slowly.', 'न लग्न न वर्णद बल में अलग दिखते हैं, इसलिए सार्वजनिक स्थान धीरे बनता है।')
     }
   }
   return { rows, comparison }
@@ -230,21 +237,25 @@ export interface TrinityActivationRow {
 }
 
 export function readTrinityActivation(ctx: InsightContext): TrinityActivationRow[] {
+  const L = jLang(ctx.lang)
   const now = (ctx.asOf ?? new Date()).getTime()
   const trinity = calculateJaiminiTrinity({ grahas: ctx.grahas, lagnas: ctx.lagnas })
   const rows: Array<Pick<TrinityActivationRow, 'id' | 'title' | 'theme'> & { planet: GrahaId | null }> = [
-    { id: 'brahma', title: 'Brahma', planet: trinity.brahma.id, theme: 'Creation. New work, a new relationship, or a new phase begins.' },
-    { id: 'maheshwara', title: 'Maheshwara', planet: trinity.maheshwara.id, theme: 'Transformation. Life changes direction, often through the end of an old form.' },
-    { id: 'rudra', title: 'Rudra', planet: trinity.rudra.id, theme: 'Pressure and endings. A phase, job, or arrangement closes, and caution is needed.' },
+    { id: 'brahma', title: say(L, 'Brahma', 'ब्रह्मा'), planet: trinity.brahma.id, theme: say(L, 'Creation. New work, a new relationship, or a new phase begins.', 'सृजन। नया कर्म, नया संबंध, या नया चरण शुरू होता है।') },
+    { id: 'maheshwara', title: say(L, 'Maheshwara', 'महेश्वर'), planet: trinity.maheshwara.id, theme: say(L, 'Transformation. Life changes direction, often through the end of an old form.', 'रूपांतर। जीवन दिशा बदलता है, अक्सर पुराने रूप के अंत से।') },
+    { id: 'rudra', title: say(L, 'Rudra', 'रुद्र'), planet: trinity.rudra.id, theme: say(L, 'Pressure and endings. A phase, job, or arrangement closes, and caution is needed.', 'दबाव और समापन। एक चरण, काम या व्यवस्था बंद होती है, और सावधानी चाहिए।') },
   ]
   return rows.map(row => {
     const sign = ctx.grahas.find(g => g.id === row.planet)?.rashi ?? null
-    const w = sign ? signWindows(ctx.nodes, sign, now) : { current: null, next: null }
+    const w = sign ? signWindows(ctx.nodes, sign, now, L) : { current: null, next: null }
+    const timing = sign
+      ? say(L, `${GRAHA_NAMES[row.planet as GrahaId]} sits in ${RASHI_NAMES[sign]}. ${windowText(w, L)}`, `${jG(row.planet as GrahaId, L)} ${jR(sign, L)} में है। ${windowText(w, L)}`)
+      : say(L, 'This role has no planet in this chart.', 'इस भूमिका का इस कुंडली में कोई ग्रह नहीं है।')
     return {
       ...row,
       sign,
       active: Boolean(w.current),
-      timing: sign ? `${GRAHA_NAMES[row.planet as GrahaId]} sits in ${RASHI_NAMES[sign]}. ${windowText(w)}` : 'This role has no planet in this chart.',
+      timing,
     }
   })
 }
@@ -272,6 +283,7 @@ export function readArudhaInsights(
   ctx: InsightContext,
   arudhas: { AL: Rashi; A7: Rashi },
 ): ArudhaInsight[] {
+  const L = jLang(ctx.lang)
   const al = arudhas.AL
   const second = signAt(al, 2)
   const tenth = signAt(al, 10)
@@ -283,35 +295,45 @@ export function readArudhaInsights(
   const gainsKind = ctx.method !== 'practical' || !inEleventh.length
     ? ''
     : inEleventh.length > 1
-      ? ' Several planets here point to more than one source of income.'
+      ? say(L, ' Several planets here point to more than one source of income.', ' यहाँ कई ग्रह आय के एक से अधिक स्रोत बताते हैं।')
       : ['Ra', 'Ke', 'Ma'].includes(inEleventh[0].id)
-        ? ' This planet points to income that carries risk or is open to question.'
+        ? say(L, ' This planet points to income that carries risk or is open to question.', ' यह ग्रह ऐसी आय बताता है जिसमें जोखिम है या जो प्रश्न के योग्य है।')
         : ['Ju', 'Ve', 'Me', 'Mo'].includes(inEleventh[0].id)
-          ? ' This planet points to clean, ethical income.'
+          ? say(L, ' This planet points to clean, ethical income.', ' यह ग्रह स्वच्छ, नैतिक आय बताता है।')
           : ''
 
+  const leakHi: Partial<Record<GrahaId, string>> = {
+    Ra: 'राहु कलंक या जोड़-तोड़ से हानि बताता है।',
+    Ke: 'केतु ऐसा धन बताता है जो व्यक्ति को पता चले बिना चला जाता है।',
+    Su: 'सूर्य सरकारी दंड, कर और जुर्माना बताता है।',
+    Ma: 'मंगल रिश्वत और कच्ची भूमि से हानि बताता है।',
+    Sa: 'शनि धीमी निकासी बताता है: घटते भंडार के विरुद्ध छोटा खर्च।',
+    Me: 'बुध, पाप दबाव में हो तो, कानूनी और कागजी विवाद बताता है।',
+    Ju: 'गुरु, पाप दबाव में हो तो, कानूनी या सलाह की लागत बताता है।',
+  }
   const leakLines = ctx.method === 'practical'
-    ? inTwelfth.map(g => LEAK_BY_PLANET[g.id]).filter(Boolean).join(' ')
+    ? inTwelfth.map(g => (L === 'hi' ? leakHi[g.id] : LEAK_BY_PLANET[g.id])).filter(Boolean).join(' ')
     : ''
   const leakLoad = inTwelfth.length
-    ? `This house is occupied, so spending is heavy${ctx.method === 'practical' ? ' even when income is high' : ''}.`
-    : 'This house is empty, so spending stays easier to control.'
+    ? say(L, `This house is occupied, so spending is heavy${ctx.method === 'practical' ? ' even when income is high' : ''}.`, `यह भाव भरा है, इसलिए खर्च भारी है${ctx.method === 'practical' ? ', आय अधिक हो तब भी' : ''}।`)
+    : say(L, 'This house is empty, so spending stays easier to control.', 'यह भाव खाली है, इसलिए खर्च नियंत्रित करना आसान रहता है।')
 
   const a7House = distance(al, arudhas.A7)
   const a7Tone = [1, 5, 9].includes(a7House)
-    ? 'That is a harmonious placement for the relationship image.'
+    ? say(L, 'That is a harmonious placement for the relationship image.', 'यह संबंध-छवि के लिए सामंजस्य वाला स्थान है।')
     : [6, 8, 12].includes(a7House)
-      ? 'That is a placement of friction between self-image and the relationship.'
+      ? say(L, 'That is a placement of friction between self-image and the relationship.', 'यह आत्म-छवि और संबंध के बीच घर्षण का स्थान है।')
       : a7House === 7
-        ? 'They face each other, so the relationship is highly visible.'
-        : 'That is a neutral placement.'
+        ? say(L, 'They face each other, so the relationship is highly visible.', 'वे आमने-सामने हैं, इसलिए संबंध बहुत दिखाई देता है।')
+        : say(L, 'That is a neutral placement.', 'यह तटस्थ स्थान है।')
+  const rn = (sign: Rashi) => (L === 'hi' ? jR(sign, L) : RASHI_NAMES[sign])
 
   return [
-    { id: 'wealth', title: 'Visible wealth (2nd from AL)', sign: second, text: `${RASHI_NAMES[second]} holds ${occupantsText(ctx, second)}. It shows the money people see.` },
-    { id: 'gains', title: 'Income (11th from AL)', sign: eleventh, text: `${RASHI_NAMES[eleventh]} holds ${occupantsText(ctx, eleventh)}. It shows how income arrives.${gainsKind}` },
-    { id: 'leak', title: 'Where money leaks (12th from AL)', sign: twelfth, text: `${RASHI_NAMES[twelfth]} holds ${occupantsText(ctx, twelfth)}. ${leakLoad}${leakLines ? ` ${leakLines}` : ''}` },
-    { id: 'fame', title: 'Fame (10th from AL)', sign: tenth, text: `${RASHI_NAMES[tenth]} holds ${occupantsText(ctx, tenth)}. It shows what the person is publicly known for.` },
-    { id: 'relationship', title: 'Relationship image (A7 from AL)', sign: arudhas.A7, text: `A7 is ${RASHI_NAMES[arudhas.A7]}, the ${ordinal(a7House)} from AL. ${a7Tone}` },
+    { id: 'wealth', title: say(L, 'Visible wealth (2nd from AL)', 'दिखने वाला धन (AL से दूसरा)'), sign: second, text: say(L, `${rn(second)} holds ${occupantsText(ctx, second)}. It shows the money people see.`, `${rn(second)} में ${occupantsText(ctx, second)} है। यह वह धन दिखाता है जो लोग देखते हैं।`) },
+    { id: 'gains', title: say(L, 'Income (11th from AL)', 'आय (AL से ग्यारहवाँ)'), sign: eleventh, text: say(L, `${rn(eleventh)} holds ${occupantsText(ctx, eleventh)}. It shows how income arrives.${gainsKind}`, `${rn(eleventh)} में ${occupantsText(ctx, eleventh)} है। यह बताता है कि आय कैसे आती है।${gainsKind}`) },
+    { id: 'leak', title: say(L, 'Where money leaks (12th from AL)', 'धन कहाँ रिसता है (AL से बारहवाँ)'), sign: twelfth, text: say(L, `${rn(twelfth)} holds ${occupantsText(ctx, twelfth)}. ${leakLoad}${leakLines ? ` ${leakLines}` : ''}`, `${rn(twelfth)} में ${occupantsText(ctx, twelfth)} है। ${leakLoad}${leakLines ? ` ${leakLines}` : ''}`) },
+    { id: 'fame', title: say(L, 'Fame (10th from AL)', 'यश (AL से दसवाँ)'), sign: tenth, text: say(L, `${rn(tenth)} holds ${occupantsText(ctx, tenth)}. It shows what the person is publicly known for.`, `${rn(tenth)} में ${occupantsText(ctx, tenth)} है। यह बताता है कि व्यक्ति सार्वजनिक रूप से किसके लिए जाना जाता है।`) },
+    { id: 'relationship', title: say(L, 'Relationship image (A7 from AL)', 'संबंध की छवि (AL से A7)'), sign: arudhas.A7, text: say(L, `A7 is ${rn(arudhas.A7)}, the ${jOrd(a7House, L)} from AL. ${a7Tone}`, `A7 ${rn(arudhas.A7)} है, AL से ${jOrd(a7House, L)} भाव। ${a7Tone}`) },
   ]
 }
 
@@ -330,6 +352,7 @@ export interface HouseTriadRow {
 
 /** Chara karaka in the house, sign lord, and fixed karaka read together. */
 export function readHouseTriads(ctx: InsightContext): HouseTriadRow[] {
+  const L = jLang(ctx.lang)
   const lagna = ctx.lagnas.ascRashi
   const placed = classical(ctx.grahas).map(g => ({ id: g.id, rashi: g.rashi, degree: g.degree }))
   const rows: HouseTriadRow[] = []
@@ -337,8 +360,8 @@ export function readHouseTriads(ctx: InsightContext): HouseTriadRow[] {
     const sign = signAt(lagna, house)
     const inHouse = classical(ctx.grahas).filter(g => g.rashi === sign && ctx.roleOf[g.id])
     const charaKarakas = inHouse.length
-      ? inHouse.map(g => `${ctx.roleOf[g.id]} (${GRAHA_NAMES[g.id]})`).join(', ')
-      : 'none'
+      ? inHouse.map(g => `${ctx.roleOf[g.id]} (${L === 'hi' ? jG(g.id, L) : GRAHA_NAMES[g.id]})`).join(', ')
+      : say(L, 'none', 'कोई नहीं')
     const lordId = resolveSignLord(sign, placed)
     const lordGraha = ctx.grahas.find(g => g.id === lordId)
     const lordHouse = lordGraha ? distance(lagna, lordGraha.rashi) : 0
@@ -350,23 +373,27 @@ export function readHouseTriads(ctx: InsightContext): HouseTriadRow[] {
     const hard = [6, 8, 12]
     const strained = [lordHouse, fixedHouse].filter(h => hard.includes(h)).length
 
+    const lordName = L === 'hi' ? jG(lordId, L) : GRAHA_NAMES[lordId]
+    const fixedName = L === 'hi' ? jG(fixedId, L) : GRAHA_NAMES[fixedId]
     const parts = [
-      inHouse.length ? `${charaKarakas} acts on this house directly.` : 'No chara karaka sits here, so the lord and fixed karaka carry it.',
-      `The lord ${GRAHA_NAMES[lordId]}${lordRole ? ` (${lordRole})` : ''} is in the ${ordinal(lordHouse)}.`,
-      `The fixed karaka ${GRAHA_NAMES[fixedId]}${fixedRole ? ` (${fixedRole})` : ''} is in the ${ordinal(fixedHouse)}.`,
+      inHouse.length
+        ? say(L, `${charaKarakas} acts on this house directly.`, `${charaKarakas} इस भाव पर सीधे कार्य करता है।`)
+        : say(L, 'No chara karaka sits here, so the lord and fixed karaka carry it.', 'यहाँ कोई चर कारक नहीं बैठा, इसलिए स्वामी और स्थिर कारक इसे उठाते हैं।'),
+      say(L, `The lord ${lordName}${lordRole ? ` (${lordRole})` : ''} is in the ${jOrd(lordHouse, L)}.`, `स्वामी ${lordName}${lordRole ? ` (${lordRole})` : ''} ${jOrd(lordHouse, L)} भाव में है।`),
+      say(L, `The fixed karaka ${fixedName}${fixedRole ? ` (${fixedRole})` : ''} is in the ${jOrd(fixedHouse, L)}.`, `स्थिर कारक ${fixedName}${fixedRole ? ` (${fixedRole})` : ''} ${jOrd(fixedHouse, L)} भाव में है।`),
       strained === 2
-        ? 'Both sit in difficult houses, so this area takes work.'
+        ? say(L, 'Both sit in difficult houses, so this area takes work.', 'दोनों कठिन भावों में हैं, इसलिए इस क्षेत्र में मेहनत लगती है।')
         : strained === 1
-          ? 'One sits in a difficult house, so results are mixed.'
-          : 'Neither sits in a difficult house, so the area has support.',
+          ? say(L, 'One sits in a difficult house, so results are mixed.', 'एक कठिन भाव में है, इसलिए फल मिश्रित हैं।')
+          : say(L, 'Neither sits in a difficult house, so the area has support.', 'कोई कठिन भाव में नहीं है, इसलिए क्षेत्र को सहारा है।'),
     ]
     rows.push({
       house,
       sign,
       charaKarakas,
-      lord: GRAHA_NAMES[lordId],
+      lord: lordName,
       lordHouse,
-      fixedKaraka: GRAHA_NAMES[fixedId],
+      fixedKaraka: fixedName,
       fixedHouse,
       reading: parts.join(' '),
     })
@@ -426,19 +453,21 @@ export interface AkNakshatraReading {
 }
 
 export function readAkNakshatra(ctx: InsightContext, ak: GrahaId): AkNakshatraReading | null {
+  const L = jLang(ctx.lang)
   const graha = ctx.grahas.find(g => g.id === ak)
   if (!graha) return null
   const { name, lord, pada } = nakshatraOf(graha.rashi, graha.degree)
   const entry = NAKSHATRA_NATURE[name]
+  const hi = INSIGHT_NAKSHATRA_HI[name]
   const isPractical = ctx.method === 'practical'
   return {
     planet: ak,
     nakshatra: name,
     lord,
     pada,
-    nature: entry?.nature ?? '',
-    story: isPractical ? entry?.story ?? null : null,
-    cause: isPractical ? PADA_CAUSE[pada] ?? null : null,
+    nature: L === 'hi' ? hi?.nature ?? entry?.nature ?? '' : entry?.nature ?? '',
+    story: isPractical ? (L === 'hi' ? hi?.story ?? entry?.story ?? null : entry?.story ?? null) : null,
+    cause: isPractical ? (L === 'hi' ? INSIGHT_PADA_HI[pada] ?? null : PADA_CAUSE[pada] ?? null) : null,
     detailed: entry?.detailed ?? false,
   }
 }
@@ -469,6 +498,7 @@ export function readTransitTriggers(
   positions: TransitPosition[],
   targets: { dashaSign: Rashi | null; ak?: GrahaId; dk?: GrahaId; upapada?: Rashi },
 ): TransitTriggerReading {
+  const L = jLang(ctx.lang)
   const signOf = (id?: GrahaId) => ctx.grahas.find(g => g.id === id)?.rashi
   const akSign = signOf(targets.ak)
   const dkSign = signOf(targets.dk)
@@ -484,8 +514,12 @@ export function readTransitTriggers(
   for (const { target, sign } of list) {
     if (!sign) continue
     const hits = slow.flatMap(p => {
-      if (p.rashi === sign) return [`${GRAHA_NAMES[p.id]} transits this sign`]
-      if (getRashiDrishti(p.rashi).includes(sign)) return [`${GRAHA_NAMES[p.id]} aspects from ${RASHI_NAMES[p.rashi]}`]
+      if (p.rashi === sign) {
+        return [say(L, `${GRAHA_NAMES[p.id]} transits this sign`, `${jG(p.id, L)} इस राशि का गोचर कर रहा है`)]
+      }
+      if (getRashiDrishti(p.rashi).includes(sign)) {
+        return [say(L, `${GRAHA_NAMES[p.id]} aspects from ${RASHI_NAMES[p.rashi]}`, `${jG(p.id, L)} ${jR(p.rashi, L)} से दृष्टि डालता है`)]
+      }
       return []
     })
     rows.push({ target, sign, hits })
@@ -510,10 +544,10 @@ export function readTransitTriggers(
       transit,
       count,
       text: count === 4
-        ? 'Dasha, karaka, argala, and transit all line up, so an event in this area is well supported now.'
+        ? say(L, 'Dasha, karaka, argala, and transit all line up, so an event in this area is well supported now.', 'दशा, कारक, अर्गला और गोचर चारों मिलते हैं, इसलिए इस क्षेत्र की घटना अभी अच्छी तरह संभली है।')
         : count === 3
-          ? 'Three of the four factors line up. The event can come, with some delay or change of shape.'
-          : 'Fewer than three factors line up, so expect delay or a smaller result for now.',
+          ? say(L, 'Three of the four factors line up. The event can come, with some delay or change of shape.', 'चार में से तीन कारक मिलते हैं। घटना आ सकती है, कुछ विलंब या रूप बदलकर।')
+          : say(L, 'Fewer than three factors line up, so expect delay or a smaller result for now.', 'तीन से कम कारक मिलते हैं, इसलिए अभी विलंब या छोटा फल अपेक्षित है।'),
     },
   }
 }

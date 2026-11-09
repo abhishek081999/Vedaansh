@@ -4,6 +4,13 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import {
+  ACG_INTENSITY_HI,
+  ACG_INTERPRETATIONS_HI,
+  type AcgAngle,
+  type AcgIntensity,
+} from '@/lib/engine/locale/astroInterpretation.hi'
 
 export interface ACGInterpretation {
   graha: GrahaId
@@ -85,4 +92,28 @@ export const ACG_INTERPRETATIONS: Record<GrahaId, Record<string, string>> = {
     MC: "Obsessive career drive. Major transformations in public standing or a full career reset and fresh start.",
     IC: "Deep family secrets or intense power dynamics within the home. A place of 'roots' reconstruction."
   }
+}
+
+/** Display labels for line intensity. The ids stay English in every language. */
+export const ACG_INTENSITY_LABELS: Record<AcgIntensity, string> = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Subtle: 'Subtle',
+}
+
+const ACG_ANGLES = new Set<AcgAngle>(['AS', 'DS', 'MC', 'IC'])
+
+function isAcgAngle(angle: string): angle is AcgAngle {
+  return ACG_ANGLES.has(angle as AcgAngle)
+}
+
+export function acgIntensityLabel(level: AcgIntensity, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? ACG_INTENSITY_HI[level] : ACG_INTENSITY_LABELS[level]
+}
+
+/** Line reading for one graha and angle. Omitted lang and `'en'` return the English sentence unchanged. */
+export function getAcgInterpretation(graha: GrahaId, angle: string, lang: EngineLang = 'en'): string | undefined {
+  const en = ACG_INTERPRETATIONS[graha]?.[angle]
+  if (!en || lang !== 'hi' || !isAcgAngle(angle)) return en
+  return ACG_INTERPRETATIONS_HI[graha][angle]
 }

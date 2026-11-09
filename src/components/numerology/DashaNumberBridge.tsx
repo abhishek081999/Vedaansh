@@ -6,10 +6,12 @@
 
 import { Link } from '@/i18n/navigation'
 import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
 import type { NumerologyReport } from '@/lib/engine/numerology/calc'
 import { buildDashaNumberBridge } from '@/lib/engine/numerology/tools'
-import { HarmonyPill, NumberOrb, SectionCard, gridColumns } from './shared'
+import { HarmonyPill, NumberOrb, SectionCard, gridColumns, useNumerologyLang } from './shared'
+
 const OUTLOOK_COLOR = {
   favourable: 'var(--teal)',
   mixed: 'var(--gold)',
@@ -24,10 +26,12 @@ export function DashaNumberBridgePanel({
   report: NumerologyReport
   chart: ChartOutput | null
 }) {
+  const t = useTranslations('numerology.dasha')
+  const to = useTranslations('numerology.outlook')
+  const lang = useNumerologyLang()
   const bridge = useMemo(() => {
     if (!chart?.dashas?.vimshottari?.length) return null
     if (chart.meta.birthDate !== `${String(report.date.year).padStart(4, '0')}-${String(report.date.month).padStart(2, '0')}-${String(report.date.day).padStart(2, '0')}`) {
-      // Only link dasha when analysing the active chart's DOB
       return null
     }
     return buildDashaNumberBridge({
@@ -35,15 +39,16 @@ export function DashaNumberBridgePanel({
       moolank: report.moolank.value,
       bhagyank: report.bhagyank.value,
       personalYear: report.cycles.personalYear,
+      lang,
     })
-  }, [chart, report])
+  }, [chart, report, lang])
 
   if (!chart) {
     return (
-      <SectionCard title="Dasha ↔ Number Timing" subtitle="Load a birth chart to map Vimshottari Mahadasha / Antardasha lords onto Anka numbers.">
+      <SectionCard title={t('title')} subtitle={t('needChart')}>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          <Link href="/?new=true" style={{ color: 'var(--text-gold)' }}>Enter birth details</Link>
-          {' '}to unlock chart-linked dasha timing for this numerology reading.
+          <Link href="/?new=true" style={{ color: 'var(--text-gold)' }}>{t('enter')}</Link>
+          {' '}{t('unlock')}
         </p>
       </SectionCard>
     )
@@ -51,24 +56,25 @@ export function DashaNumberBridgePanel({
 
   if (!bridge) {
     return (
-      <SectionCard title="Dasha ↔ Number Timing">
+      <SectionCard title={t('title')}>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Dasha bridge appears when the numerology date matches your active chart&apos;s birth date
-          ({chart.meta.birthDate}). Reset the DOB above to the chart date, or ensure Vimshottari dashas are calculated.
+          {t('mismatch', { date: chart.meta.birthDate })}
         </p>
       </SectionCard>
     )
   }
 
+  const headers = [t('lord'), t('no'), t('start'), t('end'), t('vs'), t('outlook')]
+
   return (
-    <SectionCard title="Dasha ↔ Number Timing" subtitle={bridge.summary} accent="var(--gold)">
+    <SectionCard title={t('title')} subtitle={bridge.summary} accent="var(--gold)">
       {bridge.amplification && (
         <div style={{
           padding: '0.7rem 0.85rem', borderRadius: 'var(--r-md)',
           background: 'var(--gold-faint)', border: '1px solid var(--border-bright)',
           fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5,
         }}>
-          <strong style={{ color: 'var(--text-gold)' }}>Amplification: </strong>{bridge.amplification}
+          <strong style={{ color: 'var(--text-gold)' }}>{t('amp')} </strong>{bridge.amplification}
         </div>
       )}
 
@@ -85,14 +91,14 @@ export function DashaNumberBridgePanel({
               {c.number != null ? <NumberOrb value={c.number} size={40} /> : <span style={{ width: 40, textAlign: 'center', color: 'var(--text-muted)' }}>—</span>}
               <div>
                 <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{c.lordName}</div>
-                <div style={{ fontSize: '0.68rem', color: OUTLOOK_COLOR[c.outlook], fontWeight: 700, textTransform: 'uppercase' }}>{c.outlook}</div>
+                <div style={{ fontSize: '0.68rem', color: OUTLOOK_COLOR[c.outlook], fontWeight: 700, textTransform: 'uppercase' }}>{to(c.outlook)}</div>
               </div>
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{c.start} → {c.end}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', margin: '0.4rem 0', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-              {c.moolankHarmony && <>Moolank <HarmonyPill harmony={c.moolankHarmony} /></>}
-              {c.bhagyankHarmony && <>Bhagyank <HarmonyPill harmony={c.bhagyankHarmony} /></>}
-              {c.personalYearHarmony && <>Year <HarmonyPill harmony={c.personalYearHarmony} /></>}
+              {c.moolankHarmony && <>{t('moolank')} <HarmonyPill harmony={c.moolankHarmony} /></>}
+              {c.bhagyankHarmony && <>{t('bhagyank')} <HarmonyPill harmony={c.bhagyankHarmony} /></>}
+              {c.personalYearHarmony && <>{t('year')} <HarmonyPill harmony={c.personalYearHarmony} /></>}
             </div>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{c.note}</p>
           </div>
@@ -102,13 +108,13 @@ export function DashaNumberBridgePanel({
       {bridge.upcomingMahas.length > 0 && (
         <div>
           <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.45rem' }}>
-            Upcoming Mahadashas
+            {t('upcoming')}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', minWidth: 420 }}>
               <thead>
                 <tr style={{ color: 'var(--text-muted)', textAlign: 'left' }}>
-                  {['Lord', 'No.', 'Start', 'End', 'vs Moolank', 'Outlook'].map(h => (
+                  {headers.map(h => (
                     <th key={h} style={{ padding: '0.35rem 0.45rem', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid var(--border-soft)' }}>{h}</th>
                   ))}
                 </tr>
@@ -121,7 +127,7 @@ export function DashaNumberBridgePanel({
                     <td style={{ padding: '0.4rem 0.45rem', color: 'var(--text-muted)' }}>{m.start}</td>
                     <td style={{ padding: '0.4rem 0.45rem', color: 'var(--text-muted)' }}>{m.end}</td>
                     <td style={{ padding: '0.4rem 0.45rem' }}>{m.moolankHarmony ? <HarmonyPill harmony={m.moolankHarmony} /> : '—'}</td>
-                    <td style={{ padding: '0.4rem 0.45rem', color: OUTLOOK_COLOR[m.outlook], fontWeight: 600, textTransform: 'capitalize' }}>{m.outlook}</td>
+                    <td style={{ padding: '0.4rem 0.45rem', color: OUTLOOK_COLOR[m.outlook], fontWeight: 600, textTransform: 'capitalize' }}>{to(m.outlook)}</td>
                   </tr>
                 ))}
               </tbody>

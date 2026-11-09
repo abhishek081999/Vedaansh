@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ClassicalGrahaId } from '@/lib/engine/houseInterpretations'
+import type { EngineLang } from '@/lib/engine/lang'
+import { NADI_COMBUSTION_NOTE_HI, NADI_GRAHAS_HI } from '@/lib/engine/locale/nadiTables.hi'
 
 export type NadiGrahaNature = 'benefic' | 'malefic' | 'shadow'
 
@@ -113,4 +115,22 @@ export function nadiGraha(id: string): NadiGrahaProfile | null {
 /** Affliction in this method: same house as Saturn, Mars, Rahu, or Ketu, ignoring the planet itself. */
 export function nadiAfflictedBy(id: ClassicalGrahaId, coOccupants: readonly string[]): string[] {
   return coOccupants.filter((other) => other !== id && (other === 'Sa' || other === 'Ma' || other === 'Ra' || other === 'Ke'))
+}
+
+let grahasHi: Record<ClassicalGrahaId, NadiGrahaProfile> | null = null
+
+/** Graha catalog in the requested language. Ids, natures and numbers stay the same. */
+export function nadiGrahas(lang?: EngineLang): Record<ClassicalGrahaId, NadiGrahaProfile> {
+  if (lang !== 'hi') return NADI_GRAHAS
+  if (grahasHi) return grahasHi
+  const out = {} as Record<ClassicalGrahaId, NadiGrahaProfile>
+  for (const id of Object.keys(NADI_GRAHAS) as ClassicalGrahaId[]) {
+    out[id] = { ...NADI_GRAHAS[id], ...NADI_GRAHAS_HI[id] }
+  }
+  grahasHi = out
+  return out
+}
+
+export function nadiCombustionNote(lang?: EngineLang): string {
+  return lang === 'hi' ? NADI_COMBUSTION_NOTE_HI : NADI_COMBUSTION_NOTE
 }

@@ -15,7 +15,8 @@ import {
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
 import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
-import { NADI_HOUSES } from '@/lib/engine/nadi/houses'
+import { nadiHouses } from '@/lib/engine/nadi/houses'
+import { nG, nJoin, nLang, nNom, nOrd, nR, nSay, type EngineLang } from '@/lib/engine/nadi/text'
 import { houseCountedFrom } from '@/lib/engine/nadi/rotation'
 import { rashiAgeNotes } from '@/lib/engine/nadi/rashiAge'
 import { nadiAspectsSign } from '@/lib/engine/nadi/snapshots'
@@ -23,6 +24,9 @@ import { nadiConjunct, type NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
 
 export const NADI_MARRIAGE_RULE_NOTE =
   'Three checks are read together: Mars with Saturn, the Upapada and the 2nd from it, and a score under 25 in the 7th or the 8th. One or two are delay or trouble. All three are the stronger separation reading. Yogas and transits stay on the lagna and Navamsha. The Moon chart is kept for dasha.'
+
+export const NADI_MARRIAGE_RULE_NOTE_HI =
+  'तीन जाँचें साथ पढ़ी जाती हैं: मंगल के साथ शनि, उपपद और उससे दूसरा भाव, और सातवें या आठवें भाव में 25 से कम अंक। एक या दो हों तो देरी या परेशानी। तीनों हों तो अलगाव का प्रबल फल। योग और गोचर लग्न और नवांश पर ही देखे जाते हैं। चंद्र कुंडली दशा के लिए रखी जाती है।'
 
 const MALEFIC: readonly ClassicalGrahaId[] = ['Su', 'Ma', 'Ra', 'Ke', 'Sa']
 const BENEFIC: readonly ClassicalGrahaId[] = ['Ju', 'Ve', 'Me', 'Mo']
@@ -49,12 +53,14 @@ export function readChartLectures(input: {
   sav?: readonly number[]
   upapada?: Rashi
   runningYear?: number
+  lang?: EngineLang
 }): ChartLectureReading {
+  const L = nLang(input.lang)
   return {
-    marriage: marriageNotes(input),
-    afflicted: afflictedNotes(input),
-    years: [...activationNotes(input), ...rashiAgeNotes(input), ...savJumpNotes(input)],
-    wealth: wealthNotes(input),
+    marriage: marriageNotes(input, L),
+    afflicted: afflictedNotes(input, L),
+    years: [...activationNotes(input, L), ...rashiAgeNotes({ ...input, lang: L }), ...savJumpNotes(input, L)],
+    wealth: wealthNotes(input, L),
   }
 }
 
@@ -63,24 +69,26 @@ function marriageNotes(input: {
   grahas: readonly Placement[]
   sav?: readonly number[]
   upapada?: Rashi
-}): string[] {
+}, L: EngineLang): string[] {
   const lines: string[] = []
   const rules: string[] = []
   const marsSaturn = marsSaturnLink(input.grahas)
   if (marsSaturn) {
     rules.push('Mars and Saturn')
     const axis = onMarriageAxis(input.ascRashi, input.grahas, ['Ma', 'Sa'])
-    lines.push(`Mars and Saturn ${marsSaturn}.${axis} Trouble in marriage is checked.`)
+    lines.push(nSay(L,
+      `Mars and Saturn ${marsSaturn}.${axis} Trouble in marriage is checked.`,
+      `मंगल और शनि ${MARS_SATURN_HI[marsSaturn] ?? marsSaturn}।${axis ? ' वे लग्न या सातवें भाव में हैं।' : ''} विवाह में परेशानी की जाँच की जाती है।`))
   }
-  if (input.upapada && upapadaTouched(input.upapada, input.grahas, lines)) rules.push('the Upapada')
+  if (input.upapada && upapadaTouched(input.upapada, input.grahas, lines, L)) rules.push('the Upapada')
   if (lowSav(input)) {
     rules.push('a low score')
-    lines.push('The 7th or the 8th scores under 25. Separation or discord in marriage is checked.')
+    lines.push(nSay(L, 'The 7th or the 8th scores under 25. Separation or discord in marriage is checked.', 'सातवें या आठवें भाव का अंक 25 से कम है। विवाह में अलगाव या कलह की जाँच की जाती है।'))
   }
   if (rules.length === 3) {
-    lines.push('All three marriage rules are present. Separation is the strong reading.')
+    lines.push(nSay(L, 'All three marriage rules are present. Separation is the strong reading.', 'विवाह के तीनों नियम मौजूद हैं। अलगाव प्रबल फल है।'))
   } else if (rules.length > 0) {
-    lines.push('Not all three marriage rules are present. Delay or trouble in marriage is checked.')
+    lines.push(nSay(L, 'Not all three marriage rules are present. Delay or trouble in marriage is checked.', 'विवाह के तीनों नियम मौजूद नहीं हैं। विवाह में देरी या परेशानी की जाँच की जाती है।'))
   }
 
   const rahu = input.grahas.find((g) => g.id === 'Ra')
@@ -91,20 +99,27 @@ function marriageNotes(input: {
   ) {
     const seventh = rashiForHouseFromLagna(input.ascRashi, 7)
     const jupiter = input.grahas.find((g) => g.id === 'Ju')
-    const lighter = jupiter && (jupiter.rashi === seventh || nadiAspectsSign(jupiter.rashi, 'Ju', seventh))
-      ? ' Jupiter reaches the 7th, so the trouble is read more lightly.'
+    const reaches = jupiter && (jupiter.rashi === seventh || nadiAspectsSign(jupiter.rashi, 'Ju', seventh))
+    const lighter = reaches
+      ? nSay(L, ' Jupiter reaches the 7th, so the trouble is read more lightly.', ' गुरु सातवें भाव तक पहुँचता है, इसलिए परेशानी हल्की पढ़ी जाती है।')
       : ''
-    lines.push(`Rahu or Ketu is on the lagna and the 7th. Trouble in marriage is checked.${lighter}`)
+    lines.push(nSay(L, `Rahu or Ketu is on the lagna and the 7th. Trouble in marriage is checked.${lighter}`, `राहु या केतु लग्न और सातवें भाव की धुरी पर है। विवाह में परेशानी की जाँच की जाती है।${lighter}`))
   }
 
   const venus = input.grahas.find((g) => g.id === 'Ve')
   if (venus && saturnAspects(input.grahas, venus.rashi) && (conjunct(input.grahas, 'Ve', 'Ma') || conjunct(input.grahas, 'Ve', 'Ra'))) {
-    lines.push('Venus is with Mars or Rahu, and Saturn aspects it. The marriage is read as under heavy pressure.')
+    lines.push(nSay(L, 'Venus is with Mars or Rahu, and Saturn aspects it. The marriage is read as under heavy pressure.', 'शुक्र मंगल या राहु के साथ है, और उस पर शनि की दृष्टि है। विवाह पर भारी दबाव पढ़ा जाता है।'))
   }
   if (venus && wholeSignHouseFromLagna(input.ascRashi, venus.rashi) === 12 && dignityOf(venus) !== 'debilitated') {
-    lines.push('Venus in the 12th is read as auspicious.')
+    lines.push(nSay(L, 'Venus in the 12th is read as auspicious.', 'बारहवें भाव में शुक्र शुभ पढ़ा जाता है।'))
   }
   return lines
+}
+
+const MARS_SATURN_HI: Record<string, string> = {
+  'are together': 'साथ हैं',
+  'aspect each other': 'एक-दूसरे पर दृष्टि डालते हैं',
+  'sit in the 2nd and the 12th from each other': 'एक-दूसरे से दूसरे और बारहवें भाव में हैं',
 }
 
 function marsSaturnLink(grahas: readonly Placement[]): string | null {
@@ -119,13 +134,17 @@ function marsSaturnLink(grahas: readonly Placement[]): string | null {
   return null
 }
 
-function upapadaTouched(ul: Rashi, grahas: readonly Placement[], lines: string[]): boolean {
+function upapadaTouched(ul: Rashi, grahas: readonly Placement[], lines: string[], L: EngineLang): boolean {
   const second = houseCountedFrom(ul, 2)
   const malefic = [...hitsOn(ul, grahas, MALEFIC), ...hitsOn(second, grahas, MALEFIC)]
   if (malefic.length === 0) return false
   const benefic = [...hitsOn(ul, grahas, BENEFIC), ...hitsOn(second, grahas, BENEFIC)]
-  const light = benefic.length > malefic.length ? ' Helpful planets on these signs outnumber the difficult planets, so the trouble is read more lightly.' : ''
-  lines.push(`A difficult planet reaches the Upapada (${RASHI_NAMES[ul]}) or the 2nd from it. Trouble in marriage is checked.${light}`)
+  const light = benefic.length > malefic.length
+    ? nSay(L, ' Helpful planets on these signs outnumber the difficult planets, so the trouble is read more lightly.', ' इन राशियों पर शुभ ग्रह कठिन ग्रहों से अधिक हैं, इसलिए परेशानी हल्की पढ़ी जाती है।')
+    : ''
+  lines.push(nSay(L,
+    `A difficult planet reaches the Upapada (${RASHI_NAMES[ul]}) or the 2nd from it. Trouble in marriage is checked.${light}`,
+    `कोई कठिन ग्रह उपपद (${nR(ul, L)}) या उससे दूसरे भाव तक पहुँचता है। विवाह में परेशानी की जाँच की जाती है।${light}`))
   return true
 }
 
@@ -147,7 +166,7 @@ function lowSav(input: { ascRashi: Rashi; sav?: readonly number[] }): boolean {
   })
 }
 
-function afflictedNotes(input: { ascRashi: Rashi; grahas: readonly Placement[] }): string[] {
+function afflictedNotes(input: { ascRashi: Rashi; grahas: readonly Placement[] }, L: EngineLang): string[] {
   let best = 0
   const winners: { house: HouseNumber; score: number }[] = []
   for (let house = 1; house <= 12; house += 1) {
@@ -158,7 +177,17 @@ function afflictedNotes(input: { ascRashi: Rashi; grahas: readonly Placement[] }
     winners.push({ house: house as HouseNumber, score })
   }
   return winners.map(({ house }) => {
-    const profile = NADI_HOUSES[house]
+    if (L === 'hi') {
+      const hp = nadiHouses('hi')[house]
+      const people = hp.relatives.slice(0, 2).join(' और ')
+      const body = house === 3 ? 'दोनों भुजाओं और हाथों' : hp.bodyParts.slice(0, 2).join(' और ')
+      const matter = people.length > 0 ? `${people}, और ${body} की जाँच की जाती है।` : `${body} की जाँच की जाती है।`
+      const sign = rashiForHouseFromLagna(input.ascRashi, house)
+      const benefic = input.grahas.some((g) => BENEFIC.includes(g.id) && g.rashi === sign)
+      const softer = benefic ? ' वहाँ एक शुभ ग्रह भी है, इसलिए गंभीरता कम पढ़ी जाती है।' : ''
+      return `${nNom(house)} भाव सबसे अधिक पीड़ित भाव है। ${matter}${softer} ${house}वाँ वर्ष, और उसके बाद हर 12 वर्ष, वह समय है जब यह भाव पढ़ा जाता है।`
+    }
+    const profile = nadiHouses('en')[house]
     const people = profile.relatives.slice(0, 2).join(' and ').toLowerCase()
     const body = house === 3 ? 'both arms and the hands' : profile.bodyParts.slice(0, 2).join(' and ').toLowerCase()
     const matter = people.length > 0 ? `${people}, and ${body}, are checked.` : `${body} are checked.`
@@ -186,30 +215,33 @@ function afflictionScore(input: { ascRashi: Rashi; grahas: readonly Placement[] 
   return placed.length + aspecting.length
 }
 
-function activationNotes(input: { ascRashi: Rashi; grahas: readonly Placement[]; runningYear?: number }): string[] {
+function activationNotes(input: { ascRashi: Rashi; grahas: readonly Placement[]; runningYear?: number }, L: EngineLang): string[] {
   const lines: string[] = []
   for (const row of AGES) {
     const planet = input.grahas.find((g) => g.id === row.id)
     if (!planet) continue
     const house = wholeSignHouseFromLagna(input.ascRashi, planet.rashi)
-    const themes = NADI_HOUSES[house].significances
-      .filter((line) => !/death|die|passed/i.test(line))
+    const safe = nadiHouses('en')[house].significances
+      .map((line, i) => ({ line, i }))
+      .filter(({ line }) => !/death|die|passed/i.test(line))
       .slice(0, 2)
-      .join(' and ')
-      .toLowerCase()
-    let line = `In the ${ordinal(row.age)} year, ${GRAHA_NAMES[row.id]} activates the ${ordinal(house)}, read for ${themes}.`
-    if (input.runningYear === row.age) line += ' That year is the one now running.'
+    const themes = safe.map(({ line }) => line).join(' and ').toLowerCase()
+    const themesHi = nJoin(safe.map(({ i }) => nadiHouses('hi')[house].significances[i]), 'hi')
+    let line = nSay(L,
+      `In the ${ordinal(row.age)} year, ${GRAHA_NAMES[row.id]} activates the ${ordinal(house)}, read for ${themes}.`,
+      `${row.age}वें वर्ष में ${nG(row.id, 'hi')} ${nOrd(house, 'hi')} भाव को सक्रिय करता है, जो ${themesHi} के लिए पढ़ा जाता है।`)
+    if (input.runningYear === row.age) line += nSay(L, ' That year is the one now running.', ' यही वर्ष अभी चल रहा है।')
     if (row.id === 'Ju' && (house === 5 || house === 9)) {
-      line += ' Childbirth is read from the 5th and the 9th together.'
+      line += nSay(L, ' Childbirth is read from the 5th and the 9th together.', ' संतान जन्म पाँचवें और नौवें भाव को साथ लेकर पढ़ा जाता है।')
       const fifth = rashiForHouseFromLagna(input.ascRashi, 5)
-      if (fifth % 2 === 0) line += ' The 5th sign is even, so a daughter is the form read.'
+      if (fifth % 2 === 0) line += nSay(L, ' The 5th sign is even, so a daughter is the form read.', ' पाँचवीं राशि सम है, इसलिए पुत्री का फल पढ़ा जाता है।')
     }
     lines.push(line)
   }
   return lines
 }
 
-function savJumpNotes(input: { ascRashi: Rashi; sav?: readonly number[] }): string[] {
+function savJumpNotes(input: { ascRashi: Rashi; sav?: readonly number[] }, L: EngineLang): string[] {
   const sav = input.sav
   if (!sav || sav.length < 12) return []
   let best = 0
@@ -229,12 +261,14 @@ function savJumpNotes(input: { ascRashi: Rashi; sav?: readonly number[] }): stri
     const high = low === house ? next : house as HouseNumber
     pairs.push({ low, high })
   }
-  return pairs.map((pair) => `The largest score jump is between the ${ordinal(pair.low)} and the ${ordinal(pair.high)}. The ${ordinal(pair.low)} year, and every 12 years after it, is read as transformative.`)
+  return pairs.map((pair) => nSay(L,
+    `The largest score jump is between the ${ordinal(pair.low)} and the ${ordinal(pair.high)}. The ${ordinal(pair.low)} year, and every 12 years after it, is read as transformative.`,
+    `अंकों में सबसे बड़ी छलाँग ${nOrd(pair.low, 'hi')} और ${nOrd(pair.high, 'hi')} भाव के बीच है। ${pair.low}वाँ वर्ष, और उसके बाद हर 12 वर्ष, परिवर्तनकारी पढ़ा जाता है।`))
 }
 
-function wealthNotes(input: { grahas: readonly Placement[] }): string[] {
+function wealthNotes(input: { grahas: readonly Placement[] }, L: EngineLang): string[] {
   if (!nadiConjunct(input.grahas, ['Mo', 'Ma'])) return []
-  return ['The Moon and Mars are together. Wealth is read from that.']
+  return [nSay(L, 'The Moon and Mars are together. Wealth is read from that.', 'चंद्र और मंगल साथ हैं। धन इसी से पढ़ा जाता है।')]
 }
 
 function onMarriageAxis(asc: Rashi, grahas: readonly Placement[], ids: readonly ClassicalGrahaId[]): string {

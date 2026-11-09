@@ -14,6 +14,7 @@
  */
 
 import { useState, useMemo, useCallback, CSSProperties } from 'react'
+import { useTranslations } from 'next-intl'
 import type { SBCCell, PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
 import { PLANET_SYMBOL, PLANET_COLOR, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import type { GrahaId } from '@/types/astrology'
@@ -90,6 +91,7 @@ export function SarvatobhadraChakra({
   nameNakshatraIndex,
   showDiagonalVedha = true,
 }: Props) {
+  const t = useTranslations('sbc.chakra')
   const [hovered, setHovered] = useState<[number, number] | null>(null)
 
   const cs = Math.floor(size / 9)
@@ -225,11 +227,11 @@ export function SarvatobhadraChakra({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       {/* North label */}
-      <DirectionLabel label="NORTH" sub="↑ Uttara" size={size} />
+      <DirectionLabel label={t('north')} sub={`↑ ${t('uttara')}`} size={size} />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {/* West label */}
-        <DirectionLabel label="WEST" sub="← Paschim" size={size} vertical />
+        <DirectionLabel label={t('west')} sub={`← ${t('paschim')}`} size={size} vertical />
 
         {/* Grid */}
         <div
@@ -422,23 +424,23 @@ export function SarvatobhadraChakra({
         </div>
 
         {/* East label */}
-        <DirectionLabel label="EAST" sub="→ Purva" size={size} vertical />
+        <DirectionLabel label={t('east')} sub={`→ ${t('purva')}`} size={size} vertical />
       </div>
 
       {/* South label */}
-      <DirectionLabel label="SOUTH" sub="↓ Dakshina" size={size} />
+      <DirectionLabel label={t('south')} sub={`↓ ${t('dakshina')}`} size={size} />
 
       {/* Legend row */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: 4 }}>
         {birthKey && (
-          <LegendItem color="rgba(255,215,0,0.85)" border="2px solid rgba(255,215,0,0.9)" label="Birth Star" icon="⭐" />
+          <LegendItem color="rgba(255,215,0,0.85)" border="2px solid rgba(255,215,0,0.9)" label={t('birth')} icon="⭐" />
         )}
         {nameKey && (
-          <LegendItem color="rgba(135,206,250,0.6)" border="2px solid rgba(135,206,250,0.9)" label="Name Star" icon="🔤" />
+          <LegendItem color="rgba(135,206,250,0.6)" border="2px solid rgba(135,206,250,0.9)" label={t('name')} icon="🔤" />
         )}
-        <LegendItem color="var(--sbc-nak-vdh)" border="1px solid var(--sbc-vdh-bdr)" label="Vedha Zone" />
-        <LegendItem color="rgba(139,90,220,0.22)" border="1px dashed rgba(170,100,255,0.5)" label="Diagonal Vedha" />
-        <LegendItem color="transparent" border="1px solid var(--sbc-act-bdr)" label="Natal Activated" />
+        <LegendItem color="var(--sbc-nak-vdh)" border="1px solid var(--sbc-vdh-bdr)" label={t('vedha')} />
+        <LegendItem color="rgba(139,90,220,0.22)" border="1px dashed rgba(170,100,255,0.5)" label={t('diagonal')} />
+        <LegendItem color="transparent" border="1px solid var(--sbc-act-bdr)" label={t('natal')} />
       </div>
     </div>
   )

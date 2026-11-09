@@ -2,12 +2,14 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
 import { Zap } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useChart } from '@/components/providers/ChartProvider'
 import { EmptyState } from '@/components/ui/primitives/EmptyState'
 
 const JaiminiPanel = dynamic(() => import('@/components/ui/JaiminiPanel'), { ssr: false })
 
 export default function JaiminiPage() {
+  const t = useTranslations('jaimini.page')
   const { chart, openBirthForm } = useChart()
 
   if (!chart) {
@@ -15,9 +17,9 @@ export default function JaiminiPage() {
       <EmptyState
         className="main-empty-state"
         icon={<Zap size={40} strokeWidth={1.5} style={{ color: 'var(--text-gold)', opacity: 0.75 }} />}
-        title="Jaimini Astrology"
-        description="Load or create a birth chart to explore Chara Karakas (natural indicator), Arudha Padas, Rashi Drishti (aspect), and Chara Dasha timelines."
-        action={{ label: 'Open Birth Form', onClick: openBirthForm }}
+        title={t('title')}
+        description={t('description')}
+        action={{ label: t('openForm'), onClick: openBirthForm }}
       />
     )
   }

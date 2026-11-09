@@ -19,6 +19,7 @@ const BodySchema = z.object({
   system: z.enum(['chaldean', 'pythagorean']).optional(),
   /** Caller's local date, so personal day / month match their timezone. */
   today: IsoDate.optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
 
 export async function POST(request: Request) {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const { birthDate, name, gender, system, today } = parsed.data
+  const { birthDate, name, gender, system, today, lang } = parsed.data
   const todayDate = today ? parseBirthDate(today) : null
   if (today && !todayDate) {
     return NextResponse.json({ success: false, error: 'Invalid today date' }, { status: 400 })
@@ -60,11 +61,12 @@ export async function POST(request: Request) {
       gender,
       system,
       today: todayDate ?? undefined,
+      lang,
     })
     if (!core) {
       return NextResponse.json({ success: false, error: 'Invalid date of birth' }, { status: 400 })
     }
-    return NextResponse.json({ success: true, data: buildNumerologyPremium(core) })
+    return NextResponse.json({ success: true, data: buildNumerologyPremium(core, lang ?? 'en') })
   } catch (err) {
     console.error('[numerology/premium]', err)
     return NextResponse.json(

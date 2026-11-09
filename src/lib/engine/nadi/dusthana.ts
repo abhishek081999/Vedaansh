@@ -7,6 +7,7 @@
 
 import type { Rashi } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { nG, nLang, nOrd, nSay, type EngineLang } from '@/lib/engine/nadi/text'
 import { getDignity } from '@/lib/engine/dignity'
 import {
   RASHI_LORDS,
@@ -20,6 +21,11 @@ import type { NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
 export const NADI_DUSTHANA_NOTE =
   'A planet exalted in the 6th, 8th, or 12th is read as debilitated. A planet debilitated there is read as exalted. Rahu and Ketu take this from the dispositor (ruler of the sign it sits in). An exchange, or a conjunction of three or more, still stands.'
 
+export const NADI_DUSTHANA_NOTE_HI =
+  'छठे, आठवें या बारहवें भाव में उच्च का ग्रह नीच की तरह पढ़ा जाता है। वहाँ नीच का ग्रह उच्च की तरह पढ़ा जाता है। राहु और केतु यह फल अपने राशि-स्वामी (जिस राशि में बैठे हैं उसका स्वामी) से लेते हैं। परिवर्तन योग, या तीन या अधिक ग्रहों की युति, फिर भी टिकी रहती है।'
+
+const DIG_HI = { exalted: 'उच्च', debilitated: 'नीच' } as const
+
 const DUSTHANA = new Set<HouseNumber>([6, 8, 12])
 const CLASSICAL: readonly ClassicalGrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
 
@@ -27,7 +33,9 @@ export function dusthanaReversalNotes(input: {
   ascRashi: Rashi
   grahas: readonly NadiYogaPlacement[]
   parivartana?: readonly { a: HouseNumber; b: HouseNumber }[]
+  lang?: EngineLang
 }): string[] {
+  const L = nLang(input.lang)
   const lines: string[] = []
   const exchanging = new Set<ClassicalGrahaId>()
   for (const pair of input.parivartana ?? []) {
@@ -43,12 +51,14 @@ export function dusthanaReversalNotes(input: {
     const dignity = pole(planet)
     if (!dignity) continue
     if (id === 'Ve' && house === 12 && dignity === 'debilitated') {
-      lines.push('Venus is debilitated in the 12th. That debilitation stays. The 12th does not turn it into exaltation. The placement is still read as auspicious.')
+      lines.push(nSay(L, 'Venus is debilitated in the 12th. That debilitation stays. The 12th does not turn it into exaltation. The placement is still read as auspicious.', 'शुक्र बारहवें भाव में नीच है। यह नीचता बनी रहती है। बारहवाँ भाव इसे उच्च में नहीं बदलता। फिर भी यह स्थिति शुभ पढ़ी जाती है।'))
       continue
     }
     const reversed = dignity === 'exalted' ? 'debilitated' : 'exalted'
-    let line = `${GRAHA_NAMES[id]} is ${dignity} in the ${ordinal(house)}. In the 6th, 8th, or 12th that is read as ${reversed}.`
-    line += stillStands(id, planet.rashi, exchanging, input.grahas)
+    let line = nSay(L,
+      `${GRAHA_NAMES[id]} is ${dignity} in the ${ordinal(house)}. In the 6th, 8th, or 12th that is read as ${reversed}.`,
+      `${nG(id, L)} ${nOrd(house, L)} भाव में ${DIG_HI[dignity]} है। छठे, आठवें या बारहवें भाव में यह ${DIG_HI[reversed]} पढ़ा जाता है।`)
+    line += stillStands(id, planet.rashi, exchanging, input.grahas, L)
     lines.push(line)
   }
 
@@ -63,8 +73,10 @@ export function dusthanaReversalNotes(input: {
     const dignity = pole(host)
     if (!dignity) continue
     const reversed = dignity === 'exalted' ? 'debilitated' : 'exalted'
-    let line = `${GRAHA_NAMES[id]}’s dispositor ${GRAHA_NAMES[lord]} is ${dignity}, and ${GRAHA_NAMES[id]} sits in the ${ordinal(house)}. ${GRAHA_NAMES[id]} is read as ${reversed}.`
-    line += stillStands(id, planet.rashi, exchanging, input.grahas)
+    let line = nSay(L,
+      `${GRAHA_NAMES[id]}’s dispositor ${GRAHA_NAMES[lord]} is ${dignity}, and ${GRAHA_NAMES[id]} sits in the ${ordinal(house)}. ${GRAHA_NAMES[id]} is read as ${reversed}.`,
+      `${nG(id, L)} का राशि-स्वामी ${nG(lord, L)} ${DIG_HI[dignity]} है, और ${nG(id, L)} ${nOrd(house, L)} भाव में है। ${nG(id, L)} ${DIG_HI[reversed]} पढ़ा जाता है।`)
+    line += stillStands(id, planet.rashi, exchanging, input.grahas, L)
     lines.push(line)
   }
   return lines
@@ -75,11 +87,12 @@ function stillStands(
   rashi: Rashi,
   exchanging: ReadonlySet<ClassicalGrahaId>,
   grahas: readonly NadiYogaPlacement[],
+  L: EngineLang,
 ): string {
   const bits: string[] = []
-  if (exchanging.has(id)) bits.push('The exchange still stands.')
+  if (exchanging.has(id)) bits.push(nSay(L, 'The exchange still stands.', 'परिवर्तन योग फिर भी टिका रहता है।'))
   const crowd = grahas.filter((g) => g.rashi === rashi).length >= 3
-  if (crowd) bits.push('The conjunction still stands.')
+  if (crowd) bits.push(nSay(L, 'The conjunction still stands.', 'युति फिर भी टिकी रहती है।'))
   return bits.length ? ` ${bits.join(' ')}` : ''
 }
 

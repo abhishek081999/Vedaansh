@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { BookOpen, ChevronDown, ChevronRight, Search } from 'lucide-react'
 import {
   SATPANCHASIKA_CHAPTERS,
@@ -24,6 +25,7 @@ const STATUS_LABEL: Partial<Record<SlokaStatus, { label: string; color: string }
 }
 
 export function SatpanchasikaReference({ status }: { status?: Record<string, SlokaStatus> }) {
+  const t = useTranslations('prashna.ref')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [chapter, setChapter] = useState<number | 'all'>('all')
@@ -47,13 +49,13 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', textAlign: 'left' }}
       >
         <BookOpen size={16} aria-hidden style={{ color: 'var(--gold)', flexShrink: 0 }} />
-        <span style={{ flex: 1, fontSize: '0.88rem', fontWeight: 700 }}>The 56 ślokas of Ṣaṭpañcāśikā</span>
+        <span style={{ flex: 1, fontSize: '0.88rem', fontWeight: 700 }}>{t('title')}</span>
         <Chevron size={16} aria-hidden style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
       </button>
       {open && (
         <div style={{ padding: '0 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Pṛthuyaśas, son of Varāhamihira. Text from the V. Subrahmanya Sastri edition (3rd ed., Bangalore, 1978). Meanings are short gists, not the book&apos;s translation. Some ślokas hold dated social categories: they are kept here as text and are not used in readings.
+            {t('intro')}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
@@ -61,22 +63,22 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
               <input
                 type="search"
                 className="input"
-                aria-label="Search ślokas"
-                placeholder="Search by number or word"
+                aria-label={t('searchAria')}
+                placeholder={t('searchPlaceholder')}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 style={{ paddingLeft: 30, width: '100%', fontSize: '0.8rem' }}
               />
             </div>
-            <select className="input" aria-label="Chapter" value={chapter} onChange={e => setChapter(e.target.value === 'all' ? 'all' : Number(e.target.value))} style={{ flex: '1 1 200px', minWidth: 0, fontSize: '0.8rem' }}>
-              <option value="all">All chapters (56)</option>
+            <select className="input" aria-label={t('chapterAria')} value={chapter} onChange={e => setChapter(e.target.value === 'all' ? 'all' : Number(e.target.value))} style={{ flex: '1 1 200px', minWidth: 0, fontSize: '0.8rem' }}>
+              <option value="all">{t('all')}</option>
               {SATPANCHASIKA_CHAPTERS.map(ch => (
-                <option key={ch.number} value={ch.number}>{ch.number}. {ch.title} ({ch.slokaCount})</option>
+                <option key={ch.number} value={ch.number}>{t('chapterOption', { n: ch.number, title: ch.title, count: ch.slokaCount })}</option>
               ))}
             </select>
           </div>
 
-          {list.length === 0 && <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>No śloka matches that search.</p>}
+          {list.length === 0 && <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t('none')}</p>}
 
           {SATPANCHASIKA_CHAPTERS.map(ch => {
             const items = list.filter(s => s.chapter === ch.number)
@@ -92,7 +94,7 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
                     <div key={s.id} style={{ padding: '0.6rem 0.7rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', marginBottom: 4 }}>
                         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold)' }}>{s.id}</span>
-                        {badge && <span style={{ fontSize: '0.64rem', fontWeight: 700, color: badge.color }}>{badge.label}</span>}
+                        {badge && status?.[s.id] && <span style={{ fontSize: '0.64rem', fontWeight: 700, color: badge.color }}>{t(`status.${status[s.id]}`)}</span>}
                       </div>
                       <SlokaText id={s.id} />
                     </div>

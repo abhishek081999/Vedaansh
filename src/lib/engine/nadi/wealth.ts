@@ -15,9 +15,14 @@ import {
 } from '@/lib/engine/houseInterpretations'
 import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
 import { getDignity } from '@/lib/engine/dignity'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
+import { nG, nJoin, nLang, nOrd, nR, nSay, type EngineLang } from '@/lib/engine/nadi/text'
 
 export const NADI_WEALTH_TIMING_NOTE =
   'Wealth is read from the 2nd, the 9th, and the 11th. The Navamsha sign of those lords is the wealth year, and the same sign weighs more than a trine to it. Jupiter on the lord’s degree is the peak. An aspect is not. It applies when the person is of an age to earn. The size of the gain is not read. The period of a vargottama planet, a strong 9th lord, or an exchanging planet is also a money period. The Sun and Saturn exchange is the one that is not. Jupiter on the Bhrigu Bindu, and Jupiter in the wealth nakshatra, are further years.'
+
+export const NADI_WEALTH_TIMING_NOTE_HI =
+  'धन दूसरे, नौवें और ग्यारहवें भाव से पढ़ा जाता है। इन स्वामियों की नवांश राशि धन का वर्ष है, और वही राशि उसके त्रिकोण से अधिक महत्व रखती है। स्वामी के अंश पर गुरु शिखर है। दृष्टि नहीं। यह तब लागू होता है जब व्यक्ति कमाने की आयु में हो। लाभ का आकार नहीं पढ़ा जाता। वर्गोत्तम ग्रह, बलवान नवमेश, या परिवर्तन योग वाले ग्रह की दशा भी धन की अवधि है। सूर्य और शनि का परिवर्तन योग अपवाद है। भृगु बिंदु पर गुरु, और धन वाले नक्षत्र में गुरु, आगे के वर्ष हैं।'
 
 export interface WealthTimingInput {
   ascRashi: Rashi
@@ -36,24 +41,30 @@ export interface WealthTimingInput {
   bhriguBindu?: number
   moonNakshatra?: number
   nakshatras?: Partial<Record<ClassicalGrahaId, number>>
+  lang?: EngineLang
 }
 
 export function wealthTimingNotes(input: WealthTimingInput): string[] {
+  const L = nLang(input.lang)
   const lines: string[] = []
-  lines.push(...lordLines(input, [2, 9, 11], 'gain'))
-  lines.push(...lordLines(input, [10], 'work'))
-  lines.push(...navamshaLines(input))
-  lines.push(...binduLines(input))
+  lines.push(...lordLines(input, [2, 9, 11], 'gain', L))
+  lines.push(...lordLines(input, [10], 'work', L))
+  lines.push(...navamshaLines(input, L))
+  lines.push(...binduLines(input, L))
   if (input.arudhaLagna != null && wholeSignHouseFromLagna(input.ascRashi, input.arudhaLagna) === 7) {
-    lines.push('The arudha lagna falls in the 7th. Marriage and the spouse are read as supported.')
+    lines.push(nSay(L, 'The arudha lagna falls in the 7th. Marriage and the spouse are read as supported.', 'आरूढ़ लग्न सातवें भाव में पड़ता है। विवाह और जीवनसाथी को सहारा पढ़ा जाता है।'))
   }
-  lines.push(...periodLines(input))
-  lines.push(...binduFortune(input))
-  lines.push(...sampatLine(input))
+  lines.push(...periodLines(input, L))
+  lines.push(...binduFortune(input, L))
+  lines.push(...sampatLine(input, L))
   return lines
 }
 
-function lordLines(input: WealthTimingInput, houses: HouseNumber[], kind: 'gain' | 'work'): string[] {
+function houseListHi(houses: readonly HouseNumber[]): string {
+  return `${nJoin(houses.map((house) => nOrd(house, 'hi')), 'hi')} भाव`
+}
+
+function lordLines(input: WealthTimingInput, houses: HouseNumber[], kind: 'gain' | 'work', L: EngineLang): string[] {
   const byLord = new Map<ClassicalGrahaId, HouseNumber[]>()
   for (const house of houses) {
     const lord = lordOf(input.ascRashi, house)
@@ -66,8 +77,19 @@ function lordLines(input: WealthTimingInput, houses: HouseNumber[], kind: 'gain'
     const planet = input.grahas.find((g) => g.id === lord)
     if (!planet) continue
     const name = GRAHA_NAMES[lord]
-    const place = `${name} rules ${houseList(ruled)} and sits in ${RASHI_NAMES[planet.rashi]}`
     const deg = wholeDegree(planet.degree)
+    if (L === 'hi') {
+      const place = `${nG(lord, 'hi')} ${houseListHi(ruled)} का स्वामी है और ${nR(planet.rashi, 'hi')} में`
+      const at = deg == null ? `${place} है।` : `${place} ${deg}° पर है।`
+      if (kind === 'work') {
+        lines.push(deg == null ? `${at} उस ग्रह पर गुरु काम के रूप में पढ़ा जाता है।` : `${at} ${deg}° पर गुरु काम के रूप में पढ़ा जाता है।`)
+        continue
+      }
+      const year = `जिस वर्ष गुरु ${nR(planet.rashi, 'hi')} में हो, वह लाभ के रूप में पढ़ा जाता है।`
+      lines.push(deg == null ? `${at} ${year}` : `${at} ${year} शिखर वह दिन है जब गुरु किसी भी राशि में ${deg}° पर पहुँचे।`)
+      continue
+    }
+    const place = `${name} rules ${houseList(ruled)} and sits in ${RASHI_NAMES[planet.rashi]}`
     if (kind === 'work') {
       lines.push(deg == null
         ? `${place}. Jupiter on that planet is read as work.`
@@ -82,7 +104,7 @@ function lordLines(input: WealthTimingInput, houses: HouseNumber[], kind: 'gain'
   return lines
 }
 
-function navamshaLines(input: WealthTimingInput): string[] {
+function navamshaLines(input: WealthTimingInput, L: EngineLang): string[] {
   if (!input.navamsha) return []
   const bySign = new Map<Rashi, HouseNumber[]>()
   for (const house of [2, 9, 11] as const) {
@@ -94,12 +116,15 @@ function navamshaLines(input: WealthTimingInput): string[] {
   }
   const lines: string[] = []
   for (const [sign, houses] of bySign) {
-    lines.push(`Jupiter in ${RASHI_NAMES[sign]}, the Navamsha of ${lordList(houses)}, is a wealth year.`)
+    lines.push(nSay(L,
+      `Jupiter in ${RASHI_NAMES[sign]}, the Navamsha of ${lordList(houses)}, is a wealth year.`,
+      `${nR(sign, 'hi')} में गुरु, जो ${nJoin(houses.map((house) => nOrd(house, 'hi')), 'hi')} भाव के स्वामी का नवांश है, धन का वर्ष है।`))
   }
   return lines
 }
 
-function binduLines(input: WealthTimingInput): string[] {
+function binduLines(input: WealthTimingInput, L: EngineLang): string[] {
+  if (L === 'hi') return binduLinesHi(input)
   const sav = input.sav
   if (!sav || sav.length !== 12) return []
   const lines: string[] = []
@@ -169,7 +194,78 @@ function binduLines(input: WealthTimingInput): string[] {
   return lines
 }
 
-function periodLines(input: WealthTimingInput): string[] {
+const HOUSE_NOM_HI = ['', 'पहला', 'दूसरा', 'तीसरा', 'चौथा', 'पाँचवाँ', 'छठा', 'सातवाँ', 'आठवाँ', 'नौवाँ', 'दसवाँ', 'ग्यारहवाँ', 'बारहवाँ']
+
+function binduLinesHi(input: WealthTimingInput): string[] {
+  const sav = input.sav
+  if (!sav || sav.length !== 12) return []
+  const o = (n: number) => `${nOrd(n, 'hi')} भाव`
+  const lines: string[] = []
+  if (input.ninthArudha != null) {
+    const house = wholeSignHouseFromLagna(input.ascRashi, input.ninthArudha)
+    const score = Math.round(sav[input.ninthArudha - 1] ?? 0)
+    lines.push(`नवम भाव का आरूढ़ ${o(house)} में पड़ता है। इसका अंक ${score} है, जो ${score} वर्ष की आयु को बलवान वर्ष के रूप में दिखाता है। इस अंक को धन के अन्य भावों से अधिक महत्व दिया जाता है।`)
+  }
+  const scored = ([2, 9, 11] as const).map((house) => {
+    const sign = rashiForHouseFromLagna(input.ascRashi, house)
+    return `${o(house)} का अंक ${Math.round(sav[sign - 1] ?? 0)}`
+  })
+  lines.push(`${scored[0]}, ${scored[1]} और ${scored[2]} है। हर अंक धन के लिए देखने योग्य आयु है।`)
+  const houses = ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const).map((house) => {
+    const sign = rashiForHouseFromLagna(input.ascRashi, house)
+    return { house, score: Math.round(sav[sign - 1] ?? 0) }
+  })
+  const max = Math.max(...houses.map((row) => row.score))
+  const min = Math.min(...houses.map((row) => row.score))
+  const highest = houses.filter((row) => row.score === max)
+  const lowest = houses.filter((row) => row.score === min)
+  const hi1 = highest.length === 1 ? highest[0]!.house : null
+  const lo1 = lowest.length === 1 ? lowest[0]!.house : null
+  if (hi1 === 11) {
+    const tenth = houses.find((row) => row.house === 10)
+    let line = 'सबसे ऊँचा अंक ग्यारहवें भाव, लाभ के भाव, में है। यह भाग्यशाली स्थिति है।'
+    if (tenth && tenth.score < highest[0]!.score) line += ' दसवाँ भाव नीचे है, इसलिए लाभ बराबर मेहनत के बिना आते पढ़े जाते हैं।'
+    lines.push(line)
+  } else if (hi1 === 8) {
+    lines.push('सबसे ऊँचा अंक आठवें भाव में है। गूढ़ विद्या का अध्ययन, धनी ससुराल और विरासत, ये रूप पढ़े जाते हैं।')
+  } else if (hi1 === 2 || hi1 === 9 || hi1 === 10) {
+    const theme = hi1 === 2 ? 'धन बलवान पढ़ा जाता है।' : hi1 === 9 ? 'भाग्य बलवान पढ़ा जाता है, जिसमें विदेश यात्रा भी है।' : 'करियर बलवान पढ़ा जाता है, जिसमें स्थिर पद भी है।'
+    lines.push(`सबसे ऊँचा अंक ${o(hi1)} में है। ${theme} यह भाग्यशाली स्थिति है।`)
+  } else if (hi1 === 6 || hi1 === 12) {
+    lines.push(`सबसे ऊँचा अंक ${o(hi1)} में है। वहाँ ऊँचा अंक लाभ नहीं पढ़ा जाता।`)
+  } else if (hi1 != null) {
+    lines.push(`सबसे ऊँचा अंक ${o(hi1)} में है। वह भाव बलवान पढ़ा जाता है।`)
+  }
+  if (lo1 === 5) {
+    lines.push('सबसे कम अंक पाँचवें भाव में है। शिक्षा और संतान दबाव वाला पक्ष हैं।')
+  } else if (lo1 === 1) {
+    lines.push('सबसे कम अंक लग्न में है। व्यक्ति का स्वास्थ्य दबाव वाला पक्ष है।')
+  } else if (lo1 === 7) {
+    lines.push('सबसे कम अंक सातवें भाव में है। विवाह और उस भाव से जुड़ा शरीर का अंग दबाव वाला पक्ष हैं।')
+  } else if (lo1 === 11) {
+    lines.push('सबसे कम अंक ग्यारहवें भाव में है। मेहनत बनी रहती है, और लाभ कम पढ़े जाते हैं।')
+  } else if (lo1 === 6 || lo1 === 12) {
+    lines.push(`सबसे कम अंक ${o(lo1)} में है। वहाँ कम अंक उस भाव से कम परेशानी के रूप में पढ़ा जाता है।`)
+  } else if (lo1 != null) {
+    lines.push(`सबसे कम अंक ${o(lo1)} में है। उस भाव के विषय दबाव वाला पक्ष हैं।`)
+  }
+  if (lo1 != null) {
+    const next = (lo1 === 12 ? 1 : lo1 + 1) as HouseNumber
+    const nextScore = houses.find((row) => row.house === next)?.score ?? 0
+    if (nextScore > lowest[0]!.score) {
+      lines.push(`${HOUSE_NOM_HI[next]} भाव ${o(lo1)} से अधिक अंक पाता है। जिन वर्षों में ये दोनों भाव चलते हैं, वे मोड़ के रूप में पढ़े जाते हैं।`)
+    }
+  }
+  if (input.runningHouse != null && hi1 != null && input.runningHouse === hi1) {
+    lines.push(`चल रहा वर्ष ${o(input.runningHouse)} को सक्रिय करता है, जिसका अंक सबसे ऊँचा है। वह वर्ष बलवान पढ़ा जाता है।`)
+  }
+  if (input.runningHouse != null && lo1 != null && input.runningHouse === lo1) {
+    lines.push(`चल रहा वर्ष ${o(input.runningHouse)} को सक्रिय करता है, जिसका अंक सबसे कम है। वह वर्ष कठिन पढ़ा जाता है।`)
+  }
+  return lines
+}
+
+function periodLines(input: WealthTimingInput, L: EngineLang): string[] {
   const lords = (input.dashaLords ?? []).slice(0, 3)
   if (lords.length === 0) return []
   const lines: string[] = []
@@ -179,7 +275,9 @@ function periodLines(input: WealthTimingInput): string[] {
   })
   if (vargottama.length > 0) {
     const names = joinList(vargottama.map((id) => GRAHA_NAMES[id]))
-    lines.push(`${names} ${vargottama.length === 1 ? 'is' : 'are'} vargottama and in the running period. That period is read as a strong money period.`)
+    lines.push(nSay(L,
+      `${names} ${vargottama.length === 1 ? 'is' : 'are'} vargottama and in the running period. That period is read as a strong money period.`,
+      `${nJoin(vargottama.map((id) => nG(id, 'hi')), 'hi')} वर्गोत्तम ${vargottama.length === 1 ? 'है' : 'हैं'} और चल रही दशा में ${vargottama.length === 1 ? 'है' : 'हैं'}। वह अवधि धन की प्रबल अवधि पढ़ी जाती है।`))
   }
   const ninth = lordOf(input.ascRashi, 9)
   if (lords.includes(ninth)) {
@@ -188,9 +286,9 @@ function periodLines(input: WealthTimingInput): string[] {
     const dignity = planet ? planet.dignity ?? getDignity(planet.id, planet.rashi, planet.degree ?? 15) : null
     const strong = dignity === 'exalted' || dignity === 'own' || dignity === 'moolatrikona'
     if (strong && !dusthana) {
-      lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and is strong. This period is read for money, luck, and travel.`)
+      lines.push(nSay(L, `${GRAHA_NAMES[ninth]} rules the 9th and is strong. This period is read for money, luck, and travel.`, `${nG(ninth, 'hi')} नवम भाव का स्वामी है और बलवान है। यह अवधि धन, भाग्य और यात्रा के लिए पढ़ी जाती है।`))
     } else if (dusthana) {
-      lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.`)
+      lines.push(nSay(L, `${GRAHA_NAMES[ninth]} rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.`, `${nG(ninth, 'hi')} नवम भाव का स्वामी है और एक दुःस्थान (कठिन भाव: 6, 8, 12) का भी। लाभ के साथ स्वास्थ्य या परिवार पर दबाव की भी जाँच की जाती है।`))
     }
   }
   const pressured = new Set<ClassicalGrahaId>()
@@ -202,26 +300,35 @@ function periodLines(input: WealthTimingInput): string[] {
   }
   const running = new Set(lords)
   if ([...running].some((id) => pressured.has(id))) {
-    lines.push('A lord of the Sun and Saturn exchange is in the running period. That period is not read as a money period.')
+    lines.push(nSay(L, 'A lord of the Sun and Saturn exchange is in the running period. That period is not read as a money period.', 'सूर्य और शनि के परिवर्तन योग का एक स्वामी चल रही दशा में है। वह अवधि धन की अवधि नहीं पढ़ी जाती।'))
   } else if ([...running].some((id) => supportive.has(id))) {
-    lines.push('A lord of the exchange is in the running period. That period is read as a strong money period.')
+    lines.push(nSay(L, 'A lord of the exchange is in the running period. That period is read as a strong money period.', 'परिवर्तन योग का एक स्वामी चल रही दशा में है। वह अवधि धन की प्रबल अवधि पढ़ी जाती है।'))
   }
   return lines
 }
 
-function binduFortune(input: WealthTimingInput): string[] {
+function binduFortune(input: WealthTimingInput, L: EngineLang): string[] {
   if (input.bhriguBindu == null || !Number.isFinite(input.bhriguBindu)) return []
   const sign = (Math.floor((((input.bhriguBindu % 360) + 360) % 360) / 30) + 1) as Rashi
-  return [`The Bhrigu Bindu falls in ${RASHI_NAMES[sign]}. The year Jupiter is in that sign is read as fortune. A trine of that sign is the lighter form.`]
+  return [nSay(L,
+    `The Bhrigu Bindu falls in ${RASHI_NAMES[sign]}. The year Jupiter is in that sign is read as fortune. A trine of that sign is the lighter form.`,
+    `भृगु बिंदु ${nR(sign, 'hi')} में पड़ता है। जिस वर्ष गुरु उस राशि में हो, वह भाग्य के रूप में पढ़ा जाता है। उस राशि का त्रिकोण इसका हल्का रूप है।`)]
 }
 
-function sampatLine(input: WealthTimingInput): string[] {
+function sampatLine(input: WealthTimingInput, L: EngineLang): string[] {
   const moon = input.moonNakshatra
   if (moon == null || moon < 0 || moon > 26) return []
   const sampat = (moon + 1) % 27
   const name = NAKSHATRA_NAMES[sampat] ?? 'that nakshatra'
   const sitting = (['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'] as const)
     .filter((id) => input.nakshatras?.[id] === sampat)
+  if (L === 'hi') {
+    const nameHi = NAKSHATRA_HI[sampat] ?? 'वह नक्षत्र'
+    const whoHi = sitting.length > 0
+      ? ` ${nJoin(sitting.map((id) => nG(id, 'hi')), 'hi')} वहाँ ${sitting.length === 1 ? 'है' : 'हैं'}, इसलिए उस ग्रह की दशा धन की अवधि पढ़ी जाती है।`
+      : ''
+    return [`धन वाला नक्षत्र ${nameHi} है।${whoHi} उस नक्षत्र में, या उससे नौवें या अठारहवें नक्षत्र में, गुरु धन की अवधि है।`]
+  }
   const who = sitting.length > 0
     ? ` ${joinList(sitting.map((id) => GRAHA_NAMES[id]))} ${sitting.length === 1 ? 'sits' : 'sit'} there, so that period is read as a money period.`
     : ''

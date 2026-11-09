@@ -6,6 +6,8 @@
 
 import type { GrahaId, Rashi } from '@/types/astrology'
 import type { JaiminiMethod } from './method'
+import { jLang, say, type EngineLang } from '../locale/jaiminiLang'
+import { ARGALA_MEANING_HI } from '../locale/jaiminiArgala.hi'
 
 export interface ArgalaGraha {
   id: GrahaId
@@ -165,7 +167,10 @@ export function readArgalaSources(
   grahas: ArgalaGraha[],
   strengthOf: (id: GrahaId) => number,
   method: JaiminiMethod,
+  lang: EngineLang = 'en',
 ): ArgalaSource[] {
+  const L = jLang(lang)
+  const n = (en: string, hi: string) => say(L, en, hi)
   return SOURCE_ORDER[method].map(scheme => {
     const aSign = signAt(sign, scheme.house)
     const vSign = signAt(sign, scheme.blockHouse)
@@ -186,19 +191,19 @@ export function readArgalaSources(
     }
 
     if (!sources.length) {
-      return { ...base, activeBlockers: [], blockStrength: 0, status: 'none' as const, note: 'No planet here, so no argala from this house.' }
+      return { ...base, activeBlockers: [], blockStrength: 0, status: 'none' as const, note: n('No planet here, so no argala from this house.', 'यहाँ कोई ग्रह नहीं, इसलिए इस भाव से अर्गला नहीं।') }
     }
 
     if (method === 'classical') {
       const blockStrength = sumStrength(blockerIds, strengthOf)
       if (!blockers.length) {
-        return { ...base, activeBlockers: [], blockStrength, status: 'open' as const, note: 'No planet obstructs this argala.' }
+        return { ...base, activeBlockers: [], blockStrength, status: 'open' as const, note: n('No planet obstructs this argala.', 'कोई ग्रह इस अर्गला को नहीं रोकता।') }
       }
       const blocked = blockers.length > sources.length
         || (blockers.length === sources.length && blockStrength >= sourceStrength)
       return blocked
-        ? { ...base, activeBlockers: blockerIds, blockStrength, status: 'blocked' as const, note: 'The obstructing house has more planets, or equal planets with more strength.' }
-        : { ...base, activeBlockers: [], blockStrength, status: 'open' as const, note: 'Obstruction is present but has fewer planets or less strength.' }
+        ? { ...base, activeBlockers: blockerIds, blockStrength, status: 'blocked' as const, note: n('The obstructing house has more planets, or equal planets with more strength.', 'रोकने वाले भाव में अधिक ग्रह हैं, या बराबर ग्रह अधिक बल के साथ।') }
+        : { ...base, activeBlockers: [], blockStrength, status: 'open' as const, note: n('Obstruction is present but has fewer planets or less strength.', 'रुकावट है, पर ग्रह कम हैं या बल कम है।') }
     }
 
     const quarterBlocked = sources.map(planet => {
@@ -214,16 +219,16 @@ export function readArgalaSources(
         blockStrength,
         status: 'open' as const,
         note: blockers.length
-          ? 'A planet sits in the obstructing house, but not in the opposite degree quarter, so argala runs at full power.'
-          : 'No planet obstructs this argala, so it runs at full power.',
+          ? n('A planet sits in the obstructing house, but not in the opposite degree quarter, so argala runs at full power.', 'रोकने वाले भाव में ग्रह है, पर विपरीत अंश-पाद में नहीं, इसलिए अर्गला पूरे बल से चलती है।')
+          : n('No planet obstructs this argala, so it runs at full power.', 'कोई ग्रह इस अर्गला को नहीं रोकता, इसलिए वह पूरे बल से चलती है।'),
       }
     }
     if (sourceStrength > blockStrength) {
-      return { ...base, activeBlockers, blockStrength, status: 'strong' as const, note: 'The degree quarters oppose, but the argala planets are stronger than the obstruction.' }
+      return { ...base, activeBlockers, blockStrength, status: 'strong' as const, note: n('The degree quarters oppose, but the argala planets are stronger than the obstruction.', 'अंश-पाद आमने-सामने हैं, पर अर्गला के ग्रह रुकावट से बलवान हैं।') }
     }
     return quarterBlocked.every(list => list.length > 0)
-      ? { ...base, activeBlockers, blockStrength, status: 'blocked' as const, note: 'Every argala planet is obstructed from the opposite degree quarter by stronger planets.' }
-      : { ...base, activeBlockers, blockStrength, status: 'partial' as const, note: 'Some argala planets are obstructed from the opposite degree quarter.' }
+      ? { ...base, activeBlockers, blockStrength, status: 'blocked' as const, note: n('Every argala planet is obstructed from the opposite degree quarter by stronger planets.', 'हर अर्गला ग्रह विपरीत अंश-पाद से बलवान ग्रहों द्वारा रुका है।') }
+      : { ...base, activeBlockers, blockStrength, status: 'partial' as const, note: n('Some argala planets are obstructed from the opposite degree quarter.', 'कुछ अर्गला ग्रह विपरीत अंश-पाद से रुके हैं।') }
   })
 }
 
@@ -233,11 +238,13 @@ export function readArgalaTable(
   grahas: ArgalaGraha[],
   strengthOf: (id: GrahaId) => number,
   method: JaiminiMethod,
+  lang: EngineLang = 'en',
 ): ArgalaHouseRow[] {
+  const L = jLang(lang)
   const rows: ArgalaHouseRow[] = []
   for (let house = 1; house <= 12; house++) {
     const sign = signAt(lagna, house)
-    const sources = readArgalaSources(sign, grahas, strengthOf, method)
+    const sources = readArgalaSources(sign, grahas, strengthOf, method, L)
     const occupants = grahas.filter(g => g.rashi === sign).map(g => g.id)
     const main = sources.filter(s => s.id !== '5th' && s.occupants.length > 0).length
     const coverage: ArgalaHouseRow['coverage'] = main === 0 ? 'none' : main === 3 ? 'full' : 'partial'
@@ -249,17 +256,31 @@ export function readArgalaTable(
 
     let summary: string
     if (selfDriven) {
-      summary = 'No outside argala falls here, but planets occupy the house. Results are self-driven: growth comes from your own effort, with less interference.'
+      summary = say(L, 'No outside argala falls here, but planets occupy the house. Results are self-driven: growth comes from your own effort, with less interference.', 'यहाँ बाहर की अर्गला नहीं पड़ती, पर भाव में ग्रह हैं। फल स्वयं से आते हैं: वृद्धि अपने प्रयास से होती है, कम हस्तक्षेप के साथ।')
     } else if (!anySource) {
-      summary = 'No argala and no occupant. This house follows its lord and the running dasha.'
+      summary = say(L, 'No argala and no occupant. This house follows its lord and the running dasha.', 'न अर्गला, न कोई ग्रह। यह भाव अपने स्वामी और चल रही दशा का अनुसरण करता है।')
     } else if (!working.length) {
-      summary = `Argala from ${blocked.map(s => s.id).join(', ')} is obstructed, so its result is held back.`
+      summary = say(L, `Argala from ${blocked.map(s => s.id).join(', ')} is obstructed, so its result is held back.`, `${blocked.map(s => s.id).join(', ')} से अर्गला रुकी है, इसलिए उसका फल रुका रहता है।`)
     } else {
-      summary = `Working argala from ${working.map(s => s.id).join(', ')}${blocked.length ? `. Obstructed from ${blocked.map(s => s.id).join(', ')}` : ''}.`
+      summary = say(
+        L,
+        `Working argala from ${working.map(s => s.id).join(', ')}${blocked.length ? `. Obstructed from ${blocked.map(s => s.id).join(', ')}` : ''}.`,
+        `${working.map(s => s.id).join(', ')} से अर्गला काम कर रही है${blocked.length ? `। ${blocked.map(s => s.id).join(', ')} से रुकी है` : ''}।`,
+      )
     }
-    if (reverse) summary += ' Three or more malefics in the 3rd form reverse argala here, which cannot be obstructed.'
+    if (reverse) summary += say(L, ' Three or more malefics in the 3rd form reverse argala here, which cannot be obstructed.', ' तीसरे भाव में तीन या अधिक पाप ग्रह यहाँ उलटी अर्गला बनाते हैं, जिसे रोका नहीं जा सकता।')
 
-    rows.push({ house, sign, occupants, sources, coverage, selfDriven, reverse, meaning: HOUSE_ARGALA_MEANING[house], summary })
+    rows.push({
+      house,
+      sign,
+      occupants,
+      sources,
+      coverage,
+      selfDriven,
+      reverse,
+      meaning: L === 'hi' ? ARGALA_MEANING_HI[house] : HOUSE_ARGALA_MEANING[house],
+      summary,
+    })
   }
   return rows
 }

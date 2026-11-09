@@ -7,21 +7,23 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { Gender, GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
 import {
   CHALDEAN_VALUES,
   CORE_NUMBERS,
-  KARMIC_DEBT,
   KUA_DIRECTIONS,
   LOSHU_LAYOUT,
-  LOSHU_PLANES,
-  MISSING_NUMBER_EFFECTS,
   NUMBER_GRAHA,
-  PERSONAL_YEAR_THEMES,
   PYTHAGOREAN_VALUES,
-  REPEAT_NUMBER_EFFECTS,
   VEDIC_LAYOUT,
   VOWELS,
   getCompoundMeaning,
+  karmicDebtText,
+  kuaDirectionSet,
+  loshuPlanes,
+  missingNumberEffect,
+  personalYearTheme,
+  repeatNumberEffect,
   type CompoundMeaning,
   type CoreNumber,
   type GridPlaneDef,
@@ -100,7 +102,7 @@ export interface NameNumberResult extends NumberResult {
   compoundMeaning: CompoundMeaning | null
 }
 
-export function getNameNumber(name: string, system: LetterSystem = 'chaldean'): NameNumberResult | null {
+export function getNameNumber(name: string, system: LetterSystem = 'chaldean', lang: EngineLang = 'en'): NameNumberResult | null {
   const table = system === 'chaldean' ? CHALDEAN_VALUES : PYTHAGOREAN_VALUES
   const letters: LetterValue[] = []
   const words: { word: string; total: number }[] = []
@@ -132,7 +134,7 @@ export function getNameNumber(name: string, system: LetterSystem = 'chaldean'): 
     words,
     soul: toResult(vowelSum),
     personality: toResult(consSum),
-    compoundMeaning: getCompoundMeaning(compound),
+    compoundMeaning: getCompoundMeaning(compound, lang),
   }
 }
 
@@ -154,6 +156,7 @@ export interface GridResult {
 export function buildNumerologyGrid(
   date: ParsedDate,
   opts: { moolank: CoreNumber; bhagyank: CoreNumber; kua?: CoreNumber | null },
+  lang: EngineLang = 'en',
 ): GridResult {
   const counts = Object.fromEntries(CORE_NUMBERS.map(n => [n, 0])) as Record<CoreNumber, number>
   const sources = Object.fromEntries(CORE_NUMBERS.map(n => [n, [] as GridSource[]])) as Record<CoreNumber, GridSource[]>
@@ -173,17 +176,17 @@ export function buildNumerologyGrid(
 
   const missing = CORE_NUMBERS
     .filter(n => counts[n] === 0)
-    .map(n => ({ number: n, ...MISSING_NUMBER_EFFECTS[n] }))
+    .map(n => ({ number: n, ...missingNumberEffect(n, lang) }))
 
   const repeated = CORE_NUMBERS
     .filter(n => counts[n] > 0)
     .map(n => ({
       number: n,
       count: counts[n],
-      effect: REPEAT_NUMBER_EFFECTS[n][Math.min(counts[n], 3) - 1]!,
+      effect: repeatNumberEffect(n, counts[n], lang),
     }))
 
-  const planes = LOSHU_PLANES.map(p => {
+  const planes = loshuPlanes(lang).map(p => {
     const present = p.numbers.filter(n => counts[n] > 0).length
     const status = present === 3 ? 'complete' : present === 0 ? 'empty' : 'partial'
     return { ...p, status } as GridPlaneDef & { status: 'complete' | 'partial' | 'empty' }
@@ -202,7 +205,7 @@ export interface KuaResult {
   directions: { success: string; health: string; love: string; growth: string }
 }
 
-export function getKuaNumber(date: ParsedDate, gender: Gender): KuaResult | null {
+export function getKuaNumber(date: ParsedDate, gender: Gender, lang: EngineLang = 'en'): KuaResult | null {
   if (gender !== 'male' && gender !== 'female') return null
   const beforeLichun = date.month < 2 || (date.month === 2 && date.day < 4)
   const solarYear = beforeLichun ? date.year - 1 : date.year
@@ -210,7 +213,7 @@ export function getKuaNumber(date: ParsedDate, gender: Gender): KuaResult | null
   let kua = gender === 'male' ? reduceToCore(11 - yr) : reduceToCore(4 + yr)
   if (kua === 5) kua = gender === 'male' ? 2 : 8
   const value = kua as CoreNumber
-  const d = KUA_DIRECTIONS[value]!
+  const d = (kuaDirectionSet(value, lang) ?? KUA_DIRECTIONS[value])!
   return {
     value,
     solarYear,
@@ -233,7 +236,7 @@ export interface PersonalCycles {
 }
 
 /** Personal year runs birthday-to-birthday (Indian Anka Jyotish convention). */
-export function getPersonalCycles(date: ParsedDate, moolank: CoreNumber, today: ParsedDate): PersonalCycles {
+export function getPersonalCycles(date: ParsedDate, moolank: CoreNumber, today: ParsedDate, lang: EngineLang = 'en'): PersonalCycles {
   const hadBirthday = today.month > date.month || (today.month === date.month && today.day >= date.day)
   const cycleYear = hadBirthday ? today.year : today.year - 1
   const personalYear = reduceToCore(sumDigits(date.day) + sumDigits(date.month) + sumDigits(cycleYear)) as CoreNumber
@@ -246,7 +249,7 @@ export function getPersonalCycles(date: ParsedDate, moolank: CoreNumber, today: 
     personalMonth,
     personalDay,
     universalDay,
-    yearTheme: PERSONAL_YEAR_THEMES[personalYear],
+    yearTheme: personalYearTheme(personalYear, lang),
     dayHarmony: numberHarmony(universalDay, moolank),
   }
 }
@@ -259,7 +262,7 @@ export interface YearForecast {
   harmony: Harmony
 }
 
-export function getUpcomingYears(date: ParsedDate, moolank: CoreNumber, fromYear: number, count = 9): YearForecast[] {
+export function getUpcomingYears(date: ParsedDate, moolank: CoreNumber, fromYear: number, count = 9, lang: EngineLang = 'en'): YearForecast[] {
   const out: YearForecast[] = []
   for (let y = fromYear; y < fromYear + count; y++) {
     const py = reduceToCore(sumDigits(date.day) + sumDigits(date.month) + sumDigits(y)) as CoreNumber
@@ -267,7 +270,7 @@ export function getUpcomingYears(date: ParsedDate, moolank: CoreNumber, fromYear
       year: y,
       age: y - date.year,
       personalYear: py,
-      theme: PERSONAL_YEAR_THEMES[py].theme,
+      theme: personalYearTheme(py, lang).theme,
       harmony: numberHarmony(py, moolank),
     })
   }
@@ -297,13 +300,14 @@ export interface KarmicDebtHit {
   lesson: string
 }
 
-export function findKarmicDebts(entries: { source: string; compound: number }[]): KarmicDebtHit[] {
+export function findKarmicDebts(entries: { source: string; compound: number }[], lang: EngineLang = 'en'): KarmicDebtHit[] {
   const hits: KarmicDebtHit[] = []
   for (const { source, compound } of entries) {
     let v = compound
     while (v > 9) {
-      if (KARMIC_DEBT[v]) {
-        hits.push({ number: v, source, lesson: KARMIC_DEBT[v]! })
+      const lesson = karmicDebtText(v, lang)
+      if (lesson) {
+        hits.push({ number: v, source, lesson })
         break
       }
       v = sumDigits(v)
@@ -323,11 +327,11 @@ export interface NameTarget {
 }
 
 /** Nearby Chaldean name totals that are fortunate and support Moolank + Bhagyank. */
-export function suggestNameTotals(current: number, moolank: CoreNumber, bhagyank: CoreNumber, range = 9): NameTarget[] {
+export function suggestNameTotals(current: number, moolank: CoreNumber, bhagyank: CoreNumber, range = 9, lang: EngineLang = 'en'): NameTarget[] {
   const out: NameTarget[] = []
   for (let t = Math.max(10, current - range); t <= current + range; t++) {
     const root = reduceToCore(t) as CoreNumber
-    const compound = getCompoundMeaning(t)
+    const compound = getCompoundMeaning(t, lang)
     const score = supportScore(root, moolank, bhagyank)
     if (score < 63) continue
     if (compound && compound.quality === 'warning') continue
@@ -451,6 +455,8 @@ export interface NumerologyInput {
   /** Local "today"; defaults to the current date. */
   today?: Date | ParsedDate
   system?: LetterSystem
+  /** Display language for baked-in prose. Defaults to English. */
+  lang?: EngineLang
 }
 
 function toParsedToday(today: NumerologyInput['today']): ParsedDate {
@@ -463,13 +469,14 @@ export function buildNumerologyCore(input: NumerologyInput): NumerologyCoreRepor
   const date = parseBirthDate(input.birthDate)
   if (!date) return null
   const today = toParsedToday(input.today)
+  const lang = input.lang ?? 'en'
 
   const moolank = getMoolank(date.day)
   const bhagyank = getBhagyank(date)
-  const name = input.name ? getNameNumber(input.name, input.system ?? 'chaldean') : null
-  const kua = input.gender ? getKuaNumber(date, input.gender) : null
-  const cycles = getPersonalCycles(date, moolank.value, today)
-  const grid = buildNumerologyGrid(date, { moolank: moolank.value, bhagyank: bhagyank.value, kua: kua?.value ?? null })
+  const name = input.name ? getNameNumber(input.name, input.system ?? 'chaldean', lang) : null
+  const kua = input.gender ? getKuaNumber(date, input.gender, lang) : null
+  const cycles = getPersonalCycles(date, moolank.value, today, lang)
+  const grid = buildNumerologyGrid(date, { moolank: moolank.value, bhagyank: bhagyank.value, kua: kua?.value ?? null }, lang)
   const coreHarmony = numberHarmony(moolank.value, bhagyank.value)
   const nameHarmony = name
     ? { moolank: numberHarmony(name.value, moolank.value), bhagyank: numberHarmony(name.value, bhagyank.value) }
@@ -480,7 +487,7 @@ export function buildNumerologyCore(input: NumerologyInput): NumerologyCoreRepor
     { source: 'Bhagyank total', compound: bhagyank.compound },
   ]
   if (name) debtSources.push({ source: 'Name total', compound: name.compound })
-  const karmicDebts = findKarmicDebts(debtSources)
+  const karmicDebts = findKarmicDebts(debtSources, lang)
 
   const ageNow = getAge(date, today)
 
@@ -494,16 +501,16 @@ export function buildNumerologyCore(input: NumerologyInput): NumerologyCoreRepor
     kua,
     grid,
     cycles,
-    upcomingYears: getUpcomingYears(date, moolank.value, today.year),
+    upcomingYears: getUpcomingYears(date, moolank.value, today.year, 9, lang),
     luckyDates: getLuckyDates(moolank.value, bhagyank.value),
     karmicDebts,
     coreHarmony,
     nameHarmony,
     timeline: {
       ageNow,
-      pinnacles: getPinnacles(date, ageNow),
-      lifePhases: getLifePhases(moolank.value, bhagyank.value, ageNow),
-      powerDays: getPowerDays(moolank.value, bhagyank.value),
+      pinnacles: getPinnacles(date, ageNow, lang),
+      lifePhases: getLifePhases(moolank.value, bhagyank.value, ageNow, lang),
+      powerDays: getPowerDays(moolank.value, bhagyank.value, lang),
     },
   }
 }

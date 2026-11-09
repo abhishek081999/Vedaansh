@@ -4,8 +4,10 @@ import { Link } from '@/i18n/navigation'
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
+import { useLocale, useTranslations } from 'next-intl'
 import { useChart } from '@/components/providers/ChartProvider'
-import type { UserPlan } from '@/types/astrology'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi, type UserPlan } from '@/types/astrology'
 
 const AstroVastuPanel = dynamic(
   () => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel),
@@ -17,19 +19,17 @@ const ChakraSelector = dynamic(
   { ssr: false }
 )
 
-// ── Graha abbreviations for key-stat display ─────────────────────
-const GRAHA_NAMES: Record<string, string> = {
-  Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury', Ju: 'Jupiter',
-  Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu', Ke: 'Ketu',
-}
-
-const RASHI_NAMES: Record<number, string> = {
-  1: 'Aries', 2: 'Taurus', 3: 'Gemini', 4: 'Cancer',
-  5: 'Leo', 6: 'Virgo', 7: 'Libra', 8: 'Scorpio',
-  9: 'Sagittarius', 10: 'Capricorn', 11: 'Aquarius', 12: 'Pisces',
-}
-
 export default function VastuPage() {
+  const t = useTranslations('vastu')
+  const hi = useLocale() === 'hi'
+  const gname = (id: string) => {
+    const g = id as GrahaId
+    return hi ? (GRAHA_HI[g] ?? GRAHA_NAMES[g] ?? id) : (GRAHA_NAMES[g] ?? id)
+  }
+  const rname = (n: number) => {
+    const r = n as Rashi
+    return hi ? (RASHI_HI[r] ?? String(n)) : (RASHI_NAMES[r] ?? String(n))
+  }
   const { chart } = useChart()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
@@ -53,39 +53,38 @@ export default function VastuPage() {
           </div>
 
           <div style={{ display: 'inline-block', padding: '4px 14px', background: 'var(--gold-faint)', color: 'var(--text-gold)', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', border: '1px solid var(--border-bright)', marginBottom: '1.25rem' }}>
-            Advanced Module
+            {t('page.badge')}
           </div>
 
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', color: 'var(--text-primary)', margin: '0 0 1rem', fontWeight: 300 }}>
-            Birth Chart Required
+            {t('page.emptyTitle')}
           </h2>
 
           <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.7, fontSize: '1rem' }}>
-            Astro-Vastu maps your natal planetary positions across the 16 cosmic directions of your living space using Mahavastu principles.
-            We need your birth details to generate your personalized spatial analysis.
+            {t('page.emptyBody')}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
             <Link href="/?new=true" className="btn btn-primary" style={{ padding: '0.85rem 2.5rem', textDecoration: 'none', fontSize: '1rem' }}>
-              Enter Birth Details
+              {t('page.enterBirth')}
             </Link>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Requires date, time, and place of birth for accurate analysis
+              {t('page.requires')}
             </p>
           </div>
 
           {/* Feature highlights */}
           <div style={{ marginTop: '3rem', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', textAlign: 'left' }}>
-            {[
-              { icon: '🧭', title: '16-Zone Compass', desc: 'Mahavastu directional mapping' },
-              { icon: '💠', title: '45 Deities Grid', desc: 'Ekashitipada mandala analysis' },
-              { icon: '🏠', title: 'Room Placement', desc: 'Personalized space optimization' },
-              { icon: '⚡', title: 'Remedy Engine', desc: 'Planetary correction protocols' },
-            ].map(f => (
-              <div key={f.title} style={{ padding: '0.9rem', background: 'var(--surface-1)', borderRadius: '10px', border: '1px solid var(--border-soft)' }}>
+            {([
+              { id: 'compass', icon: '🧭' },
+              { id: 'deities', icon: '💠' },
+              { id: 'rooms', icon: '🏠' },
+              { id: 'remedy', icon: '⚡' },
+            ] as const).map(f => (
+              <div key={f.id} style={{ padding: '0.9rem', background: 'var(--surface-1)', borderRadius: '10px', border: '1px solid var(--border-soft)' }}>
                 <div style={{ fontSize: '1.2rem', marginBottom: '0.35rem' }}>{f.icon}</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.15rem' }}>{f.title}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{f.desc}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.15rem' }}>{t(`page.features.${f.id}.title`)}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t(`page.features.${f.id}.desc`)}</div>
               </div>
             ))}
           </div>
@@ -96,10 +95,10 @@ export default function VastuPage() {
 
   // derive key chart stats for the header strip
   const lagnaRashi   = chart.lagnas.ascRashi as number
-  const lagnaName    = RASHI_NAMES[lagnaRashi] ?? '—'
+  const lagnaName    = rname(lagnaRashi)
   const atmakaraka   = chart.karakas?.AK ?? ''
   const moonGraha    = chart.grahas.find((g: { id: string }) => g.id === 'Mo')
-  const moonRashi    = moonGraha ? (RASHI_NAMES[moonGraha.rashi as number] ?? '—') : '—'
+  const moonRashi    = moonGraha ? rname(moonGraha.rashi as number) : '—'
   const moonNakIndex = chart.panchang?.nakshatra?.index ?? 0
   const tithiNumber  = chart.panchang?.tithi?.number ?? 1
   const varaNumber   = chart.panchang?.vara?.number  ?? 0
@@ -139,7 +138,7 @@ export default function VastuPage() {
             }}>☸</div>
             <div>
               <h2 style={{ margin: 0, fontSize: 'clamp(0.95rem, 2.5vw, 1.15rem)', fontWeight: 700, color: 'var(--text-gold)', fontFamily: 'var(--font-display)' }}>
-                {chart.meta.name || 'Lagna Kundali'}
+                {chart.meta.name || t('page.fallbackName')}
               </h2>
               <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                 {chart.meta.birthDate} · {chart.meta.birthTime} · {chart.meta.birthPlace}
@@ -150,9 +149,9 @@ export default function VastuPage() {
           {/* Key stat chips */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
             {[
-              { label: 'Lagna', value: lagnaName },
-              { label: 'Moon', value: moonRashi },
-              { label: 'AK', value: GRAHA_NAMES[atmakaraka] || atmakaraka },
+              { label: t('page.lagna'), value: lagnaName },
+              { label: t('page.moon'), value: moonRashi },
+              { label: t('page.ak'), value: gname(atmakaraka) || atmakaraka },
             ].filter(s => s.value && s.value !== '—').map(s => (
               <div key={s.label} style={{
                 display: 'flex', alignItems: 'center', gap: '0.25rem',
@@ -176,7 +175,7 @@ export default function VastuPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {chartExpanded ? '▲ Hide Chart' : '▼ Show Chart'}
+              {chartExpanded ? t('page.hideChart') : t('page.showChart')}
             </button>
           </div>
         </div>
@@ -213,7 +212,7 @@ export default function VastuPage() {
                   <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'var(--font-chart-planets)' }}>
                     {g.id}{g.isRetro ? 'ᴿ' : ''}
                   </span>
-                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[g.rashi] ?? g.rashi}</span>
+                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{rname(g.rashi)}</span>
                 </div>
               ))}
           </div>
@@ -231,13 +230,10 @@ export default function VastuPage() {
           border: '1px solid var(--border-soft)',
         }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text-gold)', marginBottom: '0.75rem', fontWeight: 400 }}>
-            Vedic Directional Wisdom
+            {t('page.footerTitle')}
           </h3>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.7, margin: 0 }}>
-            Astro-Vastu bridges the micro-cosmos (your horoscope) and the macro-cosmos (your environment).
-            By balancing the Pancha Bhutas based on your strongest and weakest planets, you create a
-            resonance that amplifies prosperity and well-being. The 45 Devatas of the Vastu Purusha Mandala
-            represent specific psychographic energies that can be harmonized through conscious spatial design.
+            {t('page.footerBody')}
           </p>
         </footer>
       )}

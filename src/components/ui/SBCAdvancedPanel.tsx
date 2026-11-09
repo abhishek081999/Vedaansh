@@ -13,6 +13,7 @@
  */
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { SBCCell, SBCGrahaInput, SBCAnalysisExtended, VedhaResult, TithiInfo } from '@/lib/engine/sarvatobhadra'
 import { SBC_NAK_POS, nakFromLon, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
 import { NAKSHATRA_NAMES } from '@/types/astrology'
@@ -576,6 +577,7 @@ function DirectionCompass({
 // ── Main Component ─────────────────────────────────────────────
 
 export function SBCAdvancedPanel({ grid, transitRaw, natalGrahas, analysis, tithi, transitDate, isMobile }: Props) {
+  const t = useTranslations('sbc.advanced')
   const [activeTab,     setActiveTab]     = useState<AdvTab>('directions')
   const [prashnaQuery,  setPrashnaQuery]  = useState('business')
   const [predictMode,   setPredictMode]   = useState<PredictMode>('lost')
@@ -595,11 +597,11 @@ export function SBCAdvancedPanel({ grid, transitRaw, natalGrahas, analysis, tith
   }, [transitRaw])
 
   const ADV_TABS: { id: AdvTab; icon: string; label: string }[] = [
-    { id:'directions', icon:'🧭', label:'8 Directions' },
-    { id:'prashna',    icon:'🔮', label:'Prashna'      },
-    { id:'fivefold',   icon:'🪔', label:'5-Fold Check' },
-    { id:'predict',    icon:'🔍', label:'Predict Mode' },
-    { id:'vedhamap',   icon:'📜', label:'Vedha Pairs'  },
+    { id:'directions', icon:'🧭', label: t('tabs.directions') },
+    { id:'prashna',    icon:'🔮', label: t('tabs.prashna') },
+    { id:'fivefold',   icon:'🪔', label: t('tabs.fivefold') },
+    { id:'predict',    icon:'🔍', label: t('tabs.predict') },
+    { id:'vedhamap',   icon:'📜', label: t('tabs.vedhamap') },
   ]
 
   return (
@@ -617,15 +619,15 @@ export function SBCAdvancedPanel({ grid, transitRaw, natalGrahas, analysis, tith
           <div style={{ width:44, height:44, borderRadius:'50%', background:'rgba(139,92,246,0.15)', border:'2px solid rgba(139,92,246,0.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.4rem' }}>🔭</div>
           <div>
             <h2 style={{ margin:0, fontFamily:'var(--font-display)', fontSize:'clamp(1rem,2.5vw,1.2rem)', fontWeight:800, color:'var(--text-primary)' }}>
-              Advanced SBC Analysis Engine
+              {t('title')}
             </h2>
             <p style={{ margin:'2px 0 0', fontSize:'0.72rem', color:'var(--text-muted)' }}>
-              Prashna · 5-Fold Muhurta · 8 Directions · Prediction Modes · Vedha Pairs
+              {t('lede')}
             </p>
           </div>
         </div>
         <div style={{ padding:'0.35rem 0.75rem', borderRadius:20, background:'rgba(139,92,246,0.12)', border:'1px solid rgba(139,92,246,0.28)', fontSize:'0.68rem', color:'#a78bfa', fontWeight:700, width:isMobile ? '100%' : 'auto', textAlign:isMobile ? 'center' : 'left' }}>
-          Natal planets: {natalGrahas.length || 0} · Transit planets: {transitRaw.length || 0}
+          {t('counts', { natal: natalGrahas.length || 0, transit: transitRaw.length || 0 })}
         </div>
         {analysis?.birthNakAffected && (
           <div style={{ padding:'0.4rem 0.875rem', borderRadius:20, background:'rgba(232,64,64,0.12)', border:'1px solid rgba(232,64,64,0.3)', fontSize:'0.72rem', color:'#e84040', fontWeight:700 }}>

@@ -6,6 +6,12 @@
 
 import type { ChartOutput, GrahaId, NodeMode, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { NADI_CAREER_WORK_HI, NADI_COLOR_HI, NADI_READ_HI, NADI_RELATIVE_HI } from '@/lib/engine/locale/nadiRead.hi'
+import { NADI_BHRIGU_NOTE_HI } from '@/lib/engine/locale/nadiBhrigu.hi'
+import { NADI_GEM_NOTE_HI } from '@/lib/engine/locale/nadiGems.hi'
+import { NADI_YOGA_THEME_HI } from '@/lib/engine/locale/nadiYogas.hi'
 import {
   RASHI_LORDS,
   getHouseTheme,
@@ -16,17 +22,20 @@ import {
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
 import { getNaturalKarakasForHouse } from '@/lib/engine/naturalHouseKarakas'
-import { getPlanetInSign, getRashiCoreSummary, getRashiInHouse, rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
+import { getRashiCoreSummary, rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
 import {
-  NADI_HOUSES,
+  nadiHouses,
+  nadiLinkReading,
+  nadiMaleficRule,
+  nadiPillars,
   NADI_LORD_LINKS,
-  NADI_MALEFIC_LIVING_RULE,
   NADI_PAPA_GRAHAS,
   NADI_PILLARS,
   type NadiHouseProfile,
   type NadiLordLink,
 } from '@/lib/engine/nadi/houses'
-import { NADI_GRAHAS, nadiAfflictedBy, type NadiGrahaProfile } from '@/lib/engine/nadi/grahas'
+import { NADI_GRAHAS, nadiAfflictedBy, nadiGrahas, type NadiGrahaProfile } from '@/lib/engine/nadi/grahas'
+import { getRashiInHouseInLang, getRashiProfileInLang, getPlanetInSignInLang } from '@/lib/engine/rashiGuideLang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import {
   NADI_KHAARAB_THEME,
@@ -41,6 +50,7 @@ import {
 import {
   findNadiCareer,
   NADI_CAREER_CONTEXT,
+  NADI_CAREER_CONTEXT_HI,
   type NadiCareerReading,
 } from '@/lib/engine/nadi/career'
 import {
@@ -52,51 +62,59 @@ import {
 import { readRetrograde } from '@/lib/engine/nadi/retrograde'
 import { readBcp, type BcpReading } from '@/lib/engine/nadi/bcp'
 import { NADI_GEM_NOTE, gemReference, gemstoneNotes, type NadiGemRow } from '@/lib/engine/nadi/gems'
-import { NADI_DEGREE_NOTE, degreeTimingNotes } from '@/lib/engine/nadi/degrees'
-import { NADI_DUSTHANA_NOTE, dusthanaReversalNotes } from '@/lib/engine/nadi/dusthana'
-import { NADI_NAVAMSHA_NOTE, navamshaPredictionNotes } from '@/lib/engine/nadi/navamsha'
+import { NADI_DEGREE_NOTE, NADI_DEGREE_NOTE_HI, degreeTimingNotes } from '@/lib/engine/nadi/degrees'
+import { NADI_DUSTHANA_NOTE, NADI_DUSTHANA_NOTE_HI, dusthanaReversalNotes } from '@/lib/engine/nadi/dusthana'
+import { NADI_NAVAMSHA_NOTE, NADI_NAVAMSHA_NOTE_HI, navamshaPredictionNotes } from '@/lib/engine/nadi/navamsha'
 import {
   dashamshaCareerNotes,
   NADI_DASHAMSHA_NOTE,
+  NADI_DASHAMSHA_NOTE_HI,
   NADI_NEIGHBORHOOD_NOTE,
+  NADI_NEIGHBORHOOD_NOTE_HI,
   neighborhoodNotes,
 } from '@/lib/engine/nadi/dashamsha'
-import { NADI_WEALTH_TIMING_NOTE, wealthTimingNotes } from '@/lib/engine/nadi/wealth'
-import { NADI_SPECIAL_NOTE, specialDegreeNotes } from '@/lib/engine/nadi/special'
+import { NADI_WEALTH_TIMING_NOTE, NADI_WEALTH_TIMING_NOTE_HI, wealthTimingNotes } from '@/lib/engine/nadi/wealth'
+import { NADI_SPECIAL_NOTE, NADI_SPECIAL_NOTE_HI, specialDegreeNotes } from '@/lib/engine/nadi/special'
 import { readPatel, type PatelReading } from '@/lib/engine/nadi/patel'
 import {
   NADI_PROPERTY_NOTE,
+  NADI_PROPERTY_NOTE_HI,
   NADI_VEHICLE_NOTE,
+  NADI_VEHICLE_NOTE_HI,
   nadiNodeNote,
   propertyNotes,
   vehicleNotes,
 } from '@/lib/engine/nadi/property'
-import { NADI_SHASHTIAMSA_NOTE, shashtiamsaNotes } from '@/lib/engine/nadi/shashtiamsa'
+import { NADI_SHASHTIAMSA_NOTE, NADI_SHASHTIAMSA_NOTE_HI, shashtiamsaNotes } from '@/lib/engine/nadi/shashtiamsa'
 import { NADI_BHRIGU_NOTE, bhriguBhavaNotes } from '@/lib/engine/nadi/bhrigu'
 import { readNadiLife, type NadiLifeReading } from '@/lib/engine/nadi/life'
 import {
-  NADI_PLACEMENT_NOTE,
+  nadiPlacementNote,
   nadiHouseLine,
   readNadiPlacements,
   type NadiPlacement,
 } from '@/lib/engine/nadi/placements'
 
 export type { NadiPlacement }
-import { NADI_MARRIAGE_RULE_NOTE, readChartLectures } from '@/lib/engine/nadi/marriageRules'
+import { NADI_MARRIAGE_RULE_NOTE, NADI_MARRIAGE_RULE_NOTE_HI, readChartLectures } from '@/lib/engine/nadi/marriageRules'
 import { readNadiFuture, type NadiDashaNode, type NadiFutureReading } from '@/lib/engine/nadi/future'
 import {
   NADI_NODE_TRANSIT,
   NADI_SATURN_TRANSIT,
   NADI_SLOW_TRANSIT_NOTE,
+  NADI_SLOW_TRANSIT_NOTE_HI,
   hardTransitNotes,
+  nadiNodeTransit,
+  nadiSaturnTransit,
   saturnTransitGroups,
   slowTransitNotes,
 } from '@/lib/engine/nadi/transits'
 import {
   NADI_CAREER_WORK,
   NADI_JUPITER_TRANSIT,
-  NADI_ROTATION_NOTE,
   deathIndicators,
+  nadiJupiterTransit,
+  nadiRotationNote,
   educationNotes,
   healthFlags,
   houseCountedFrom,
@@ -318,6 +336,22 @@ export { houseCountedFrom }
 
 const STRONG_DIGNITY = new Set(['exalted', 'own', 'moolatrikona'])
 
+function say(lang: EngineLang, en: string, hi: string): string {
+  return lang === 'hi' ? hi : en
+}
+
+function gName(id: ClassicalGrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? GRAHA_HI[id] : GRAHA_NAMES[id]
+}
+
+function sName(sign: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? RASHI_HI[sign] : RASHI_NAMES[sign]
+}
+
+function relLabel(rel: { id: string; label: string }, lang: EngineLang): string {
+  return lang === 'hi' ? (NADI_RELATIVE_HI[rel.id] ?? rel.label) : rel.label
+}
+
 function vargaGrahas(chart: ChartOutput, key: string): NadiGrahaPlacement[] {
   return (chart.vargas?.[key] ?? []).flatMap((g) => {
     if (!isClassicalGraha(g.id)) return []
@@ -331,7 +365,7 @@ function vargaGrahas(chart: ChartOutput, key: string): NadiGrahaPlacement[] {
   })
 }
 
-export function readNadiChart(chart: ChartOutput): NadiChartReading {
+export function readNadiChart(chart: ChartOutput, lang: EngineLang = 'en'): NadiChartReading {
   const navamsha: Partial<Record<ClassicalGrahaId, Rashi>> = {}
   for (const g of chart.vargas?.D9 ?? []) {
     if (isClassicalGraha(g.id)) navamsha[g.id] = g.rashi
@@ -387,10 +421,10 @@ export function readNadiChart(chart: ChartOutput): NadiChartReading {
     ) as Partial<Record<ClassicalGrahaId, number>>,
     gender: chart.meta.gender,
     dashaNodes: chart.dashas?.vimshottari,
-  })
+  }, lang)
 }
 
-export function readNadiHouses(input: NadiChartInput): NadiChartReading {
+export function readNadiHouses(input: NadiChartInput, lang: EngineLang = 'en'): NadiChartReading {
   const asc = input.ascRashi
   const grahas = input.grahas.filter((g) => isClassicalGraha(g.id))
 
@@ -408,7 +442,7 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     return houseOf(placed.rashi)
   }
 
-  const placements = readNadiPlacements({ ascRashi: asc, grahas })
+  const placements = readNadiPlacements({ ascRashi: asc, grahas, lang })
   const predictionOf = new Map(placements.map((row) => [row.id, row.prediction]))
   const houses = HOUSES.map((house) => readHouse(
     house,
@@ -416,11 +450,12 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     occupantsOf(house),
     lordHouseOf(house),
     predictionOf,
-    nadiHouseLine({ ascRashi: asc, house, lordHouse: lordHouseOf(house), placements }),
+    nadiHouseLine({ ascRashi: asc, house, lordHouse: lordHouseOf(house), placements, lang }),
+    lang,
   ))
 
   const links = NADI_LORD_LINKS.flatMap((link) => (
-    linkFires(link, lordHouseOf, occupantsOf) ? [{ id: link.id, reading: link.reading }] : []
+    linkFires(link, lordHouseOf, occupantsOf) ? [{ id: link.id, reading: nadiLinkReading(link, lang) }] : []
   ))
 
   const parivartana: { a: HouseNumber; b: HouseNumber }[] = []
@@ -430,25 +465,27 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     if (lordHouseOf(b) === a) parivartana.push({ a, b })
   }
 
-  const retrograde = readRetrograde({ ascRashi: asc, grahas, parivartana })
+  const retrograde = readRetrograde({ ascRashi: asc, grahas, parivartana, lang })
   const saturnRetroNote = retrograde.saturn
 
   const travel = lordsConnected(3, 12, lordHouseOf)
   const ninthJoins = lordsConnected(3, 9, lordHouseOf) || lordsConnected(9, 12, lordHouseOf)
   if (travel && ninthJoins) {
-    links.push({ id: '3-9-12-settle', reading: 'The 3rd, 9th, and 12th are linked: foreign settlement, not only a trip.' })
+    links.push({ id: '3-9-12-settle', reading: say(lang, 'The 3rd, 9th, and 12th are linked: foreign settlement, not only a trip.', NADI_READ_HI.link3912) })
   }
   if (occupantsOf(5).some((g) => g.id === 'Ra') || occupantsOf(9).some((g) => g.id === 'Ra')) {
-    links.push({ id: 'rahu-foreign-study', reading: 'Rahu in the 5th or 9th: foreign education is likely.' })
+    links.push({ id: 'rahu-foreign-study', reading: say(lang, 'Rahu in the 5th or 9th: foreign education is likely.', NADI_READ_HI.rahuForeign) })
   }
   const second = occupantsOf(2)
   if (second.some((g) => g.id === 'Sa') && second.some((g) => g.id === 'Ke')) {
-    links.push({ id: 'sa-ke-2', reading: 'Saturn with Ketu in the 2nd: the saved wealth is at risk, including a business that collapses into debt.' })
+    links.push({ id: 'sa-ke-2', reading: say(lang, 'Saturn with Ketu in the 2nd: the saved wealth is at risk, including a business that collapses into debt.', NADI_READ_HI.saKe2) })
   } else if (second.some((g) => g.id === 'Ke')) {
-    links.push({ id: 'ketu-2', reading: 'Ketu in the 2nd: a break in the family’s money. Selling gold, or using up what was saved, is the form checked.' })
+    links.push({ id: 'ketu-2', reading: say(lang, 'Ketu in the 2nd: a break in the family’s money. Selling gold, or using up what was saved, is the form checked.', NADI_READ_HI.ketu2) })
   }
 
-  const relatives = rotateRelatives(occupantsOf)
+  const relatives = rotateRelatives(occupantsOf, lang).map((rel) => (
+    lang === 'hi' ? { ...rel, label: relLabel(rel, lang) } : rel
+  ))
   const dasha = new Set(input.dashaLords ?? [])
   const timings: NadiTiming[] = relatives.flatMap((rel) => {
     const rows: { suffix: string; event: string; house: HouseNumber }[] = [
@@ -456,32 +493,37 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       { suffix: 'marriage', event: 'marriage', house: rel.marriageHouse },
     ]
     if (rel.id === 'mother') {
-      rows.push({ suffix: 'health', event: 'kidneys, blood sugar, or uterus', house: rel.marriageHouse })
+      rows.push({ suffix: 'health', event: say(lang, 'kidneys, blood sugar, or uterus', NADI_READ_HI.motherHealth), house: rel.marriageHouse })
     }
     return rows.map((row) => {
       const lord = lordOf(row.house)
+      const eventWord = row.suffix === 'career'
+        ? say(lang, 'career', NADI_READ_HI.career)
+        : row.suffix === 'marriage'
+          ? say(lang, 'marriage', NADI_READ_HI.marriage)
+          : row.event
       return {
         id: `${rel.id}-${row.suffix}`,
-        event: `${rel.label}: ${row.event}`,
+        event: `${rel.label}: ${eventWord}`,
         house: row.house,
-        lordName: GRAHA_NAMES[lord],
+        lordName: gName(lord, lang),
         running: dasha.has(lord),
       }
     })
   })
   timings.push({
     id: 'second-marriage',
-    event: 'Second marriage (9th house; a formal marriage)',
+    event: say(lang, 'Second marriage (9th house; a formal marriage)', NADI_READ_HI.secondMarriage),
     house: 9,
-    lordName: GRAHA_NAMES[lordOf(9)],
+    lordName: gName(lordOf(9), lang),
     running: dasha.has(lordOf(9)),
   })
   if (occupantsOf(2).some((g) => g.id === 'Ra')) {
     timings.push({
       id: 'children-foreign',
-      event: 'Children: foreign or technical career (Rahu in the 2nd)',
+      event: say(lang, 'Children: foreign or technical career (Rahu in the 2nd)', NADI_READ_HI.childrenForeign),
       house: 2,
-      lordName: 'Rahu',
+      lordName: gName('Ra', lang),
       running: dasha.has('Ra'),
     })
   }
@@ -494,28 +536,29 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
   }
 
   const yogas = [
-    ...findKhaarabYogas({ chart: 'D1', ascRashi: asc, grahas, dashaLords: input.dashaLords }),
+    ...findKhaarabYogas({ chart: 'D1', ascRashi: asc, grahas, dashaLords: input.dashaLords, lang }),
     ...(input.navamshaChart
       ? findKhaarabYogas({
         chart: 'D9',
         ascRashi: input.navamshaChart.ascRashi,
         grahas: input.navamshaChart.grahas,
         dashaLords: input.dashaLords,
+        lang,
       })
       : []),
   ]
   if (yogas.filter((yoga) => yoga.id.endsWith('-su-ra')).length >= 2) {
     for (const yoga of yogas) {
       if (yoga.id.endsWith('-su-ra')) {
-        yoga.effect += ' It is present in both the birth chart and Navamsha, so the downfall is read as severe.'
+        yoga.effect += say(lang, ' It is present in both the birth chart and Navamsha, so the downfall is read as severe.', NADI_READ_HI.yogaSevere)
       }
     }
   }
 
   const marriageYogas = [
-    ...findMarriageYogas({ chart: 'D1', ascRashi: asc, grahas }),
+    ...findMarriageYogas({ chart: 'D1', ascRashi: asc, grahas, lang }),
     ...(input.navamshaChart
-      ? findMarriageYogas({ chart: 'D9', ascRashi: input.navamshaChart.ascRashi, grahas: input.navamshaChart.grahas })
+      ? findMarriageYogas({ chart: 'D9', ascRashi: input.navamshaChart.ascRashi, grahas: input.navamshaChart.grahas, lang })
       : []),
   ]
   const bcp = readBcp({
@@ -524,108 +567,136 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     parivartana,
     birthDate: input.birthDate,
     asOf: input.asOf,
+    lang,
   })
-  const bhrigu = bhriguBhavaNotes({ ascRashi: asc, grahas, parivartana })
-  const lectures = readChartLectures({
+  const bhrigu = bhriguBhavaNotes({ ascRashi: asc, grahas, parivartana, lang })
+  const lectureInput = {
     ascRashi: asc,
     grahas,
     sav: input.sav,
     upapada: input.upapada,
     runningYear: bcp?.runningYear,
-  })
+  }
+  const lectures = readChartLectures({ ...lectureInput, lang })
+  // future.ts reads years from the English wording; Hindi is shown at the same index.
+  const lecturesEn = lang === 'hi' ? readChartLectures(lectureInput) : lectures
+  const wealthInput = {
+    ascRashi: asc,
+    grahas,
+    navamsha: input.navamsha,
+    sav: input.sav,
+    ninthArudha: input.ninthArudha,
+    runningHouse: bcp?.house,
+    arudhaLagna: input.arudhaLagna,
+    dashaLords: input.dashaLords,
+    parivartana,
+    bhriguBindu: input.bhriguBindu,
+    moonNakshatra: input.moonNakshatra,
+    nakshatras: input.nakshatras,
+  }
+  const wealthTiming = wealthTimingNotes({ ...wealthInput, lang })
+  const wealthTimingEn = lang === 'hi' ? wealthTimingNotes(wealthInput) : wealthTiming
+  const degreeInput = { ascRashi: asc, grahas, birthDate: input.birthDate }
+  const degreeNotes = degreeTimingNotes({ ...degreeInput, lang })
+  const degreeNotesEn = lang === 'hi' ? degreeTimingNotes(degreeInput) : degreeNotes
 
   return {
-    pillars: NADI_PILLARS,
-    maleficRule: NADI_MALEFIC_LIVING_RULE,
+    pillars: nadiPillars(lang) as unknown as typeof NADI_PILLARS,
+    maleficRule: nadiMaleficRule(lang),
     houses,
-    placementNote: NADI_PLACEMENT_NOTE,
+    placementNote: nadiPlacementNote(lang),
     placements,
     links,
     parivartana,
     relatives,
-    rotationNote: NADI_ROTATION_NOTE,
+    rotationNote: nadiRotationNote(lang),
     timings,
     deathIndicators: deathIndicators(
       relatives,
-      (house) => GRAHA_NAMES[lordOf(house)],
-      (house) => navamshaLabel(input.navamsha?.[lordOf(house)]),
+      (house) => gName(lordOf(house), lang),
+      (house) => navamshaLabel(input.navamsha?.[lordOf(house)], lang),
     ),
-    healthFlags: healthFlags(occupantsOf),
-    wealthNotes: parivartanaWealth(parivartana),
-    uniformNotes: uniformNotes(lordOf(10), occupantsOf(10).map((g) => g.id)),
-    colorNotes: colorNotes(grahas),
-    remedyNotes: remedyNotes(afflicted, grahas),
-    gemNote: NADI_GEM_NOTE,
-    gemReference: gemReference(),
-    gemNotes: gemstoneNotes({ ascRashi: asc, grahas, dashaLords: input.dashaLords }),
-    decisionNotes: decisionNotes(input.dashaLords ?? [], parivartana, lordOf),
-    degreeNote: NADI_DEGREE_NOTE,
-    degreeNotes: degreeTimingNotes({ ascRashi: asc, grahas, birthDate: input.birthDate }),
-    navamshaNote: NADI_NAVAMSHA_NOTE,
+    healthFlags: healthFlags(occupantsOf, lang),
+    wealthNotes: parivartanaWealth(parivartana, lang),
+    uniformNotes: uniformNotes(lordOf(10), occupantsOf(10).map((g) => g.id), lang),
+    colorNotes: colorNotes(grahas, lang),
+    remedyNotes: remedyNotes(afflicted, grahas, lang),
+    gemNote: say(lang, NADI_GEM_NOTE, NADI_GEM_NOTE_HI),
+    gemReference: gemReference(lang),
+    gemNotes: gemstoneNotes({ ascRashi: asc, grahas, dashaLords: input.dashaLords, lang }),
+    decisionNotes: decisionNotes(input.dashaLords ?? [], parivartana, lordOf, lang),
+    degreeNote: say(lang, NADI_DEGREE_NOTE, NADI_DEGREE_NOTE_HI),
+    degreeNotes,
+    navamshaNote: say(lang, NADI_NAVAMSHA_NOTE, NADI_NAVAMSHA_NOTE_HI),
     navamshaNotes: navamshaPredictionNotes({
       ascRashi: asc,
       grahas,
       navamshaLagna: input.navamshaChart?.ascRashi,
       navamshaGrahas: input.navamshaChart?.grahas,
       dashaLords: input.dashaLords,
+      lang,
     }),
-    dusthanaNote: NADI_DUSTHANA_NOTE,
-    dusthanaNotes: dusthanaReversalNotes({ ascRashi: asc, grahas, parivartana }),
-    dashamshaNote: NADI_DASHAMSHA_NOTE,
+    dusthanaNote: say(lang, NADI_DUSTHANA_NOTE, NADI_DUSTHANA_NOTE_HI),
+    dusthanaNotes: dusthanaReversalNotes({ ascRashi: asc, grahas, parivartana, lang }),
+    dashamshaNote: say(lang, NADI_DASHAMSHA_NOTE, NADI_DASHAMSHA_NOTE_HI),
     dashamshaNotes: dashamshaCareerNotes({
       dashamsha: input.dashamshaChart,
       dashaLords: input.dashaLords,
+      lang,
     }),
-    neighborhoodNote: NADI_NEIGHBORHOOD_NOTE,
-    neighborhoodNotes: neighborhoodNotes({ ascRashi: asc, grahas, parivartana }),
-    propertyNote: NADI_PROPERTY_NOTE,
+    neighborhoodNote: say(lang, NADI_NEIGHBORHOOD_NOTE, NADI_NEIGHBORHOOD_NOTE_HI),
+    neighborhoodNotes: neighborhoodNotes({ ascRashi: asc, grahas, parivartana, lang }),
+    propertyNote: say(lang, NADI_PROPERTY_NOTE, NADI_PROPERTY_NOTE_HI),
     propertyNotes: propertyNotes({
       chaturthamsha: input.chaturthamsha,
       dashaLords: input.dashaLords,
+      lang,
     }),
-    vehicleNote: NADI_VEHICLE_NOTE,
+    vehicleNote: say(lang, NADI_VEHICLE_NOTE, NADI_VEHICLE_NOTE_HI),
     vehicleNotes: vehicleNotes({
       shodashamsha: input.shodashamsha,
       dashaLords: input.dashaLords,
+      lang,
     }),
-    shashtiamsaNote: NADI_SHASHTIAMSA_NOTE,
-    shashtiamsaNotes: shashtiamsaNotes({ shashtiamsa: input.shashtiamsa }),
+    shashtiamsaNote: say(lang, NADI_SHASHTIAMSA_NOTE, NADI_SHASHTIAMSA_NOTE_HI),
+    shashtiamsaNotes: shashtiamsaNotes({ shashtiamsa: input.shashtiamsa, lang }),
     bhriguHouse: bhrigu.house,
-    bhriguNote: NADI_BHRIGU_NOTE,
+    bhriguNote: say(lang, NADI_BHRIGU_NOTE, NADI_BHRIGU_NOTE_HI),
     bhriguNotes: bhrigu.notes,
-    life: readNadiLife({ ascRashi: asc, grahas }),
-    marriageRuleNote: NADI_MARRIAGE_RULE_NOTE,
+    life: readNadiLife({ ascRashi: asc, grahas, lang }),
+    marriageRuleNote: say(lang, NADI_MARRIAGE_RULE_NOTE, NADI_MARRIAGE_RULE_NOTE_HI),
     marriageRuleNotes: lectures.marriage,
     afflictedNotes: lectures.afflicted,
     yearNotes: lectures.years,
     dhanNotes: lectures.wealth,
-    nodeNote: nadiNodeNote(input.nodeMode),
+    nodeNote: nadiNodeNote(input.nodeMode, lang),
     sunNote: sun && STRONG_DIGNITY.has(sun.dignity ?? '')
-      ? 'A strong Sun: the father has an established living, and the person may leave a course or a job because that setup is already there.'
+      ? say(lang, 'A strong Sun: the father has an established living, and the person may leave a course or a job because that setup is already there.', NADI_READ_HI.sunStrong)
       : null,
     saturnRetroNote,
     retrogradeNotes: retrograde.others,
-    pitruNote: ancestralNote(grahas),
+    pitruNote: ancestralNote(grahas, lang),
     marsSouthNote: input.dashaLords?.includes('Ma')
-      ? 'Mars is running: travel toward the south, or a temple in the south, is checked.'
+      ? say(lang, 'Mars is running: travel toward the south, or a temple in the south, is checked.', NADI_READ_HI.marsRunning)
       : null,
-    jupiterGroups: jupiterTransitGroups(grahas),
-    saturnTransit: NADI_SATURN_TRANSIT,
-    saturnGroups: saturnTransitGroups(grahas),
-    nodeTransit: NADI_NODE_TRANSIT,
-    slowTransitNote: NADI_SLOW_TRANSIT_NOTE,
+    jupiterGroups: jupiterTransitGroups(grahas, lang),
+    saturnTransit: nadiSaturnTransit(lang) as typeof NADI_SATURN_TRANSIT,
+    saturnGroups: saturnTransitGroups(grahas, lang),
+    nodeTransit: nadiNodeTransit(lang) as typeof NADI_NODE_TRANSIT,
+    slowTransitNote: say(lang, NADI_SLOW_TRANSIT_NOTE, NADI_SLOW_TRANSIT_NOTE_HI),
     slowTransitNotes: slowTransitNotes({
       ascRashi: asc,
       grahas,
       arudhaLagna: input.arudhaLagna,
       gender: input.gender,
+      lang,
     }),
     foreignSettlement: travel && ninthJoins,
-    jupiterTransit: NADI_JUPITER_TRANSIT,
-    khaarabTheme: NADI_KHAARAB_THEME,
+    jupiterTransit: nadiJupiterTransit(lang) as typeof NADI_JUPITER_TRANSIT,
+    khaarabTheme: say(lang, NADI_KHAARAB_THEME, NADI_YOGA_THEME_HI),
     yogas,
     marriageYogas,
-    marriageNote: marriageNote(marriageYogas),
+    marriageNote: marriageNote(marriageYogas, lang),
     career: findNadiCareer({
       ascRashi: asc,
       grahas,
@@ -633,43 +704,34 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       navamsha: input.navamsha,
       ninthArudhaInLagna: input.ninthArudhaInLagna,
       dashaLords: input.dashaLords,
+      lang,
     }),
-    careerContext: NADI_CAREER_CONTEXT,
+    careerContext: say(lang, NADI_CAREER_CONTEXT, NADI_CAREER_CONTEXT_HI),
     bcp,
     snapshots: findNadiSnapshots({
       ascRashi: asc,
       grahas,
       parivartana,
       dashaLords: input.dashaLords,
+      lang,
     }),
     wealthWindows: findWealthWindows({
       ascRashi: asc,
       grahas,
       parivartana,
       dashaLords: input.dashaLords,
+      lang,
     }),
-    wealthTimingNote: NADI_WEALTH_TIMING_NOTE,
-    wealthTiming: wealthTimingNotes({
-      ascRashi: asc,
-      grahas,
-      navamsha: input.navamsha,
-      sav: input.sav,
-      ninthArudha: input.ninthArudha,
-      runningHouse: bcp?.house,
-      arudhaLagna: input.arudhaLagna,
-      dashaLords: input.dashaLords,
-      parivartana,
-      bhriguBindu: input.bhriguBindu,
-      moonNakshatra: input.moonNakshatra,
-      nakshatras: input.nakshatras,
-    }),
+    wealthTimingNote: say(lang, NADI_WEALTH_TIMING_NOTE, NADI_WEALTH_TIMING_NOTE_HI),
+    wealthTiming,
     hardTransitNotes: hardTransitNotes({
       ascRashi: asc,
       grahas,
       navamsha: input.navamsha,
       navamshaLagna: input.navamshaChart?.ascRashi,
+      lang,
     }),
-    specialNote: NADI_SPECIAL_NOTE,
+    specialNote: say(lang, NADI_SPECIAL_NOTE, NADI_SPECIAL_NOTE_HI),
     specialNotes: specialDegreeNotes({
       ascRashi: asc,
       ascDegree: input.ascDegree,
@@ -678,6 +740,7 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       navamshaLagna: input.navamshaChart?.ascRashi,
       dashaLords: input.dashaLords,
       parivartana,
+      lang,
     }),
     patel: readPatel({
       ascRashi: asc,
@@ -688,6 +751,7 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       upapada: input.upapada,
       bhriguBindu: input.bhriguBindu,
       dashaLords: input.dashaLords,
+      lang,
     }),
     future: readNadiFuture({
       ascRashi: asc,
@@ -696,23 +760,17 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       birthDate: input.birthDate,
       asOf: input.asOf,
       runningYear: bcp?.runningYear ?? null,
-      yearNotes: lectures.years,
-      degreeNotes: degreeTimingNotes({ ascRashi: asc, grahas, birthDate: input.birthDate }),
-      afflictedNotes: lectures.afflicted,
-      wealthTiming: wealthTimingNotes({
-        ascRashi: asc,
-        grahas,
-        navamsha: input.navamsha,
-        sav: input.sav,
-        ninthArudha: input.ninthArudha,
-        runningHouse: bcp?.house,
-        arudhaLagna: input.arudhaLagna,
-        dashaLords: input.dashaLords,
-        parivartana,
-        bhriguBindu: input.bhriguBindu,
-        moonNakshatra: input.moonNakshatra,
-        nakshatras: input.nakshatras,
-      }),
+      yearNotes: lecturesEn.years,
+      degreeNotes: degreeNotesEn,
+      afflictedNotes: lecturesEn.afflicted,
+      wealthTiming: wealthTimingEn,
+      lang,
+      shown: {
+        yearNotes: lectures.years,
+        degreeNotes,
+        afflictedNotes: lectures.afflicted,
+        wealthTiming,
+      },
       sav: input.sav,
       ninthArudha: input.ninthArudha,
       navamsha: input.navamsha,
@@ -732,11 +790,12 @@ function decisionNotes(
   dashaLords: readonly ClassicalGrahaId[],
   parivartana: readonly { a: HouseNumber; b: HouseNumber }[],
   lordOf: (house: HouseNumber) => ClassicalGrahaId,
+  lang: EngineLang,
 ): string[] {
   const lines: string[] = []
   const sixth = lordOf(6)
   if ((dashaLords.includes('Ra') && dashaLords.includes('Sa')) || dashaLords.includes(sixth)) {
-    lines.push('This period is read as a poor time for a major decision, a deal, or a new project.')
+    lines.push(say(lang, 'This period is read as a poor time for a major decision, a deal, or a new project.', NADI_READ_HI.poorDecision))
   }
   const exchanging = new Set<ClassicalGrahaId>()
   for (const pair of parivartana) {
@@ -744,7 +803,7 @@ function decisionNotes(
     exchanging.add(lordOf(pair.b))
   }
   if (dashaLords.some((lord) => exchanging.has(lord))) {
-    lines.push('A planet of the exchange is running. A decision made in this period is read as supported.')
+    lines.push(say(lang, 'A planet of the exchange is running. A decision made in this period is read as supported.', NADI_READ_HI.exchangeDecision))
   }
   return lines
 }
@@ -756,49 +815,57 @@ function readHouse(
   lordHouse: HouseNumber | null,
   predictionOf: ReadonlyMap<ClassicalGrahaId, string>,
   prediction: string,
+  lang: EngineLang,
 ): NadiHouseReading {
   const sign = rashiForHouseFromLagna(asc, house)
-  const profile = NADI_HOUSES[house]
-  const theme = getHouseTheme(house)
+  const profile = nadiHouses(lang)[house]
+  const theme = getHouseTheme(house, lang)
   const lord = RASHI_LORDS.find((row) => row.number === sign)?.lord ?? 'Su'
   const ids = occupants.map((g) => g.id)
   const papaPresent = ids.some((id) => (NADI_PAPA_GRAHAS as readonly string[]).includes(id))
-  const natural = NADI_HOUSES[sign as HouseNumber]
+  const natural = nadiHouses(lang)[sign as HouseNumber]
 
   const activeRules = [...profile.rules]
-  if (papaPresent) activeRules.unshift(NADI_MALEFIC_LIVING_RULE)
+  if (papaPresent) activeRules.unshift(nadiMaleficRule(lang))
   if (house === 1 && !papaPresent && occupants.some((g) => NADI_GRAHAS[g.id].nature === 'benefic')) {
-    activeRules.unshift('Helpful planets in the lagna support health, fame, and the body.')
+    activeRules.unshift(say(lang, 'Helpful planets in the lagna support health, fame, and the body.', NADI_READ_HI.lagnaHelp))
   }
-  if (house === 5) activeRules.push(...educationNotes(ids))
+  if (house === 5) activeRules.push(...educationNotes(ids, lang))
   if (house === 2 || house === 7) {
     for (const id of ids) {
-      activeRules.push(`${GRAHA_NAMES[id]} in the ${house === 2 ? '2nd' : '7th'}: income through ${NADI_CAREER_WORK[id]}.`)
+      const ord = house === 2 ? '2nd' : '7th'
+      const en = `${GRAHA_NAMES[id]} in the ${ord}: income through ${NADI_CAREER_WORK[id]}.`
+      const hi = fill(NADI_READ_HI.income, {
+        graha: gName(id, 'hi'),
+        ord: house === 2 ? NADI_READ_HI.ord2 : NADI_READ_HI.ord7,
+        work: NADI_CAREER_WORK_HI[id],
+      })
+      activeRules.push(say(lang, en, hi))
     }
   }
   if (house === 4 && ids.includes('Su')) {
-    activeRules.push('Sun in the 4th: government quarters, or a government link for the father or the spouse.')
+    activeRules.push(say(lang, 'Sun in the 4th: government quarters, or a government link for the father or the spouse.', NADI_READ_HI.sunFourth))
   }
 
   return {
     house,
     name: profile.name,
     sign,
-    signName: RASHI_NAMES[sign],
-    signNature: getRashiCoreSummary(sign),
-    signInHouse: getRashiInHouse(sign, house),
+    signName: sName(sign, lang),
+    signNature: lang === 'hi' ? getRashiProfileInLang(sign, 'hi')?.coreSummary ?? null : getRashiCoreSummary(sign),
+    signInHouse: getRashiInHouseInLang(sign, house, lang),
     naturalHouse: sign as HouseNumber,
     naturalHouseLabel: natural.name,
     lord,
-    lordName: GRAHA_NAMES[lord],
+    lordName: gName(lord, lang),
     lordHouse,
     profile,
     classicalThemes: theme?.coreThemes ?? [],
     naturalKarakas: getNaturalKarakasForHouse(house),
-    occupants: occupants.map((g) => occupantReading(g, house, ids, predictionOf.get(g.id) ?? '')),
+    occupants: occupants.map((g) => occupantReading(g, house, ids, predictionOf.get(g.id) ?? '', lang)),
     papaPresent,
     activeRules,
-    roles: rolesOfHouse(house),
+    roles: rolesOfHouse(house, lang),
     prediction,
   }
 }
@@ -808,16 +875,17 @@ function occupantReading(
   house: HouseNumber,
   ids: ClassicalGrahaId[],
   prediction: string,
+  lang: EngineLang,
 ): NadiOccupantReading {
-  const graha: NadiGrahaProfile = NADI_GRAHAS[g.id]
+  const graha: NadiGrahaProfile = nadiGrahas(lang)[g.id]
   return {
     id: g.id,
-    name: GRAHA_NAMES[g.id],
+    name: gName(g.id, lang),
     retro: !!g.isRetro,
     dignity: g.dignity ?? null,
-    nadiNote: NADI_HOUSES[house].occupants[g.id] ?? null,
-    signNote: getPlanetInSign(g.id, g.rashi, 'summary'),
-    classicalHouseNote: getPlanetInHouse(g.id, house, 'summary'),
+    nadiNote: nadiHouses(lang)[house].occupants[g.id] ?? null,
+    signNote: getPlanetInSignInLang(g.id, g.rashi, 'summary', lang),
+    classicalHouseNote: getPlanetInHouse(g.id, house, 'summary', lang),
     professions: graha.professions.slice(0, 3),
     bodyParts: graha.bodyParts,
     afflictedBy: nadiAfflictedBy(g.id, ids),
@@ -825,17 +893,21 @@ function occupantReading(
   }
 }
 
-function colorNotes(grahas: NadiGrahaPlacement[]): string[] {
+function colorNotes(grahas: NadiGrahaPlacement[], lang: EngineLang): string[] {
   const lines: string[] = []
   for (const g of grahas) {
     if (g.dignity !== 'debilitated') continue
     const profile = NADI_GRAHAS[g.id]
-    lines.push(`${GRAHA_NAMES[g.id]} is weak: donate its items, and do not make ${profile.color.toLowerCase()} the main colour.`)
+    const en = `${GRAHA_NAMES[g.id]} is weak: donate its items, and do not make ${profile.color.toLowerCase()} the main colour.`
+    const hi = fill(NADI_READ_HI.colorWeak, { graha: gName(g.id, 'hi'), color: NADI_COLOR_HI[profile.color] ?? profile.color })
+    lines.push(say(lang, en, hi))
   }
   for (const g of grahas) {
     if (!STRONG_DIGNITY.has(g.dignity ?? '')) continue
     const profile = NADI_GRAHAS[g.id]
-    lines.push(`${GRAHA_NAMES[g.id]} is strong: keep ${profile.color.toLowerCase()} close.`)
+    const en = `${GRAHA_NAMES[g.id]} is strong: keep ${profile.color.toLowerCase()} close.`
+    const hi = fill(NADI_READ_HI.colorStrong, { graha: gName(g.id, 'hi'), color: NADI_COLOR_HI[profile.color] ?? profile.color })
+    lines.push(say(lang, en, hi))
   }
   return lines.slice(0, 4)
 }
@@ -843,30 +915,31 @@ function colorNotes(grahas: NadiGrahaPlacement[]): string[] {
 function remedyNotes(
   afflicted: (id: ClassicalGrahaId) => boolean,
   grahas: NadiGrahaPlacement[],
+  lang: EngineLang,
 ): string[] {
   const notes: string[] = []
   if (afflicted('Ma') && afflicted('Ve')) {
-    notes.push('Mars and Venus are both afflicted: this method asks for a visit to a dialysis centre, sponsoring treatment for someone who cannot pay.')
+    notes.push(say(lang, 'Mars and Venus are both afflicted: this method asks for a visit to a dialysis centre, sponsoring treatment for someone who cannot pay.', NADI_READ_HI.remedyDialysis))
   }
   const mars = grahas.find((g) => g.id === 'Ma')
   if (mars && STRONG_DIGNITY.has(mars.dignity ?? '')) {
-    notes.push('Mars is strong: physical training and meditation are the named outlets.')
+    notes.push(say(lang, 'Mars is strong: physical training and meditation are the named outlets.', NADI_READ_HI.remedyMars))
   }
   return notes
 }
 
-function ancestralNote(grahas: NadiGrahaPlacement[]): string | null {
+function ancestralNote(grahas: NadiGrahaPlacement[], lang: EngineLang): string | null {
   const saturn = grahas.find((g) => g.id === 'Sa')
   if (!saturn) return null
   const strong = saturn.rashi === 7 || saturn.rashi === 10 || saturn.rashi === 11
   const co = grahas.filter((g) => g.rashi === saturn.rashi).map((g) => g.id)
   const afflicted = saturn.rashi === 1 || nadiAfflictedBy('Sa', co).length > 0
   if (strong && afflicted) {
-    return 'Saturn is strong by sign and afflicted. Inherited comfort and an ancestral strain are both checked.'
+    return say(lang, 'Saturn is strong by sign and afflicted. Inherited comfort and an ancestral strain are both checked.', NADI_READ_HI.ancestralBoth)
   }
-  if (strong) return 'Saturn is strong. Ancestral work is read as already done, so early comfort is the form checked.'
-  if (afflicted) return 'Saturn is weak. Ancestral debt, or a family effort that was left unfinished, is the form checked.'
-  return 'Saturn is the ancestors. The sign is ordinary, so the family background is read as neither inherited comfort nor inherited debt.'
+  if (strong) return say(lang, 'Saturn is strong. Ancestral work is read as already done, so early comfort is the form checked.', NADI_READ_HI.ancestralStrong)
+  if (afflicted) return say(lang, 'Saturn is weak. Ancestral debt, or a family effort that was left unfinished, is the form checked.', NADI_READ_HI.ancestralWeak)
+  return say(lang, 'Saturn is the ancestors. The sign is ordinary, so the family background is read as neither inherited comfort nor inherited debt.', NADI_READ_HI.ancestralPlain)
 }
 
 function linkFires(
@@ -893,16 +966,21 @@ function lordsConnected(
   return ha === b || hb === a || ha === hb
 }
 
-export function rolesOfHouse(house: HouseNumber): string[] {
+export function rolesOfHouse(house: HouseNumber, lang: EngineLang = 'en'): string[] {
   const roles: string[] = []
-  if (house === 10) roles.push('Native’s career', 'Mother-in-law')
-  if (house === 7) roles.push('Native’s marriage')
-  if (house === 9) roles.push('Second marriage', 'Spouse’s younger siblings')
-  if (house === 12) roles.push('Paternal uncle / aunt')
+  if (house === 10) roles.push(say(lang, 'Native’s career', NADI_READ_HI.nativeCareer), say(lang, 'Mother-in-law', NADI_READ_HI.motherInLaw))
+  if (house === 7) roles.push(say(lang, 'Native’s marriage', NADI_READ_HI.nativeMarriage))
+  if (house === 9) roles.push(say(lang, 'Second marriage', NADI_READ_HI.secondMarriageRole), say(lang, 'Spouse’s younger siblings', NADI_READ_HI.spouseYounger))
+  if (house === 12) roles.push(say(lang, 'Paternal uncle / aunt', NADI_READ_HI.paternal))
   for (const rel of NADI_RELATIVES) {
-    if (houseCountedFrom(rel.house, 10) === house) roles.push(`${rel.label}’s career`)
-    if (houseCountedFrom(rel.house, 7) === house) roles.push(`${rel.label}’s marriage`)
-    if (house === rel.house) roles.push(rel.label)
+    const label = relLabel(rel, lang)
+    if (houseCountedFrom(rel.house, 10) === house) {
+      roles.push(say(lang, `${rel.label}’s career`, fill(NADI_READ_HI.careerOf, { rel: relLabel(rel, 'hi') })))
+    }
+    if (houseCountedFrom(rel.house, 7) === house) {
+      roles.push(say(lang, `${rel.label}’s marriage`, fill(NADI_READ_HI.marriageOf, { rel: relLabel(rel, 'hi') })))
+    }
+    if (house === rel.house) roles.push(label)
   }
   return [...new Set(roles)]
 }

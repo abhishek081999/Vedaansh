@@ -1,0 +1,527 @@
+{
+  "page": {
+    "title": "Jaimini Astrology",
+    "description": "Load or create a birth chart to explore Chara Karakas (natural indicator), Arudha Padas, Rashi Drishti (aspect), and Chara Dasha timelines.",
+    "openForm": "Open Birth Form"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "feature": "Jaimini Astrology"
+  },
+  "header": {
+    "title": "Jaimini Astrology",
+    "subtitle": "Chara Karakas · Arudha Padas · Rashi Drishti"
+  },
+  "fact": {
+    "name": "Name",
+    "dob": "DOB",
+    "swansha": "Swansha",
+    "lagna": "Lagna"
+  },
+  "tabs": {
+    "essence": {
+      "label": "Soul Architecture",
+      "short": "Soul"
+    },
+    "karakamsha": {
+      "label": "Karakamsha",
+      "short": "Swamsha"
+    },
+    "arudhas": {
+      "label": "Arudha Landscape",
+      "short": "Arudhas"
+    },
+    "argala": {
+      "label": "Argala",
+      "short": "Argala"
+    },
+    "yogas": {
+      "label": "Yogas",
+      "short": "Yogas"
+    },
+    "family": {
+      "label": "Family",
+      "short": "Family"
+    },
+    "marriage": {
+      "label": "Marriage & Relationship",
+      "short": "Marriage"
+    },
+    "lagnas": {
+      "label": "Special Lagnas",
+      "short": "Lagnas"
+    },
+    "houses": {
+      "label": "Houses",
+      "short": "Houses"
+    },
+    "dashas": {
+      "label": "Chara Dasha",
+      "short": "Dasha"
+    },
+    "transits": {
+      "label": "Transits",
+      "short": "Transit"
+    },
+    "board": {
+      "label": "All Dashas",
+      "short": "All"
+    },
+    "intelligence": {
+      "label": "Intelligence",
+      "short": "Intel"
+    },
+    "info": {
+      "label": "Info Reference",
+      "short": "Info"
+    },
+    "fallback": "Jaimini"
+  },
+  "arudhaCards": {
+    "AL": {
+      "label": "Arudha Lagna",
+      "desc": "Worldly persona & status"
+    },
+    "A2": {
+      "label": "Dhana Pada",
+      "desc": "Wealth & family sustainability"
+    },
+    "A3": {
+      "label": "Bhratru Pada",
+      "desc": "Talents & courage"
+    },
+    "A4": {
+      "label": "Matru Pada",
+      "desc": "Comforts & inner self"
+    },
+    "A5": {
+      "label": "Mantra Pada",
+      "desc": "Fame & creative power"
+    },
+    "A6": {
+      "label": "Shatru Pada",
+      "desc": "Service & competition"
+    },
+    "A7": {
+      "label": "Dara Pada",
+      "desc": "Partnerships & business"
+    },
+    "A8": {
+      "label": "Mrityu Pada",
+      "desc": "Crisis & longevity"
+    },
+    "A9": {
+      "label": "Bhagya Pada",
+      "desc": "Fortune & spiritual path"
+    },
+    "A10": {
+      "label": "Rajya Pada",
+      "desc": "Professional impact"
+    },
+    "A11": {
+      "label": "Labha Pada",
+      "desc": "Gains & social network"
+    },
+    "A12": {
+      "label": "Upapada Lagna",
+      "desc": "Marriage & devotion"
+    }
+  },
+  "karaka": {
+    "AK": "Atmakaraka",
+    "AmK": "Amatyakaraka",
+    "BK": "Bhratrukaraka",
+    "MK": "Matrukaraka",
+    "PK": "Pitrukaraka",
+    "GK": "Gnatikaraka",
+    "DK": "Darakaraka"
+  },
+  "method": {
+    "label": "Method",
+    "classical": {
+      "name": "Classical",
+      "topic": "Textbook rules. Argala is obstructed by number and strength of planets. Sthira starts from Brahma. Mandook uses the Scorpio and Aquarius co-lords. The 5th karaka keeps the chart label Pitrukaraka."
+    },
+    "practical": {
+      "name": "Practical",
+      "topic": "A practical reading. Argala is obstructed only from the opposite degree quarter, then compared by strength. Sthira starts from the stronger of Lagna and 7th. Mandook uses Mars and Saturn only. The 5th karaka is Putrakaraka."
+    }
+  },
+  "viz": {
+    "drishti": "Drishti",
+    "argala": "Argala",
+    "both": "Both"
+  },
+  "chart": {
+    "southAria": "Jaimini south Indian chart",
+    "northAria": "Jaimini north Indian chart",
+    "switchTo": "Switch to {style} Indian chart",
+    "north": "north",
+    "south": "south",
+    "arudha": "Arudha",
+    "bphs": "BPHS",
+    "bphsExceptions": "BPHS exceptions",
+    "settings": "Settings",
+    "settingsShort": "Set",
+    "close": "Close",
+    "configTitle": "Chart Configuration",
+    "lagnaReference": "Lagna Reference",
+    "vargaChart": "Varga Chart",
+    "referenceHouse": "Reference House",
+    "zoom": "Zoom",
+    "arudhaScale": "Arudha",
+    "planet": "Planet",
+    "rashi": "Rashi",
+    "navamsha": "Navamsha",
+    "dasamsha": "Dasamsha",
+    "d1Rashi": "D1 · Rashi",
+    "d9Navamsha": "D9 · Navamsha",
+    "bphsCorrected": "BPHS corrected",
+    "rawPada": "Raw pada",
+    "alIn": "AL in {sign}",
+    "padasDiffer": "{count} pada(s) differ with BPHS",
+    "arudhaHidden": "Arudha labels hidden",
+    "layer": "Layer: {mode}",
+    "rashiDrishti": "Rashi Drishti",
+    "argalaIntervention": "Argala Intervention",
+    "blockedBy": "blocked by {ids}",
+    "noInfluence": "No planetary influence",
+    "houseLine": "{house} House · {sign}",
+    "refNatal": "Janma",
+    "refNatalSub": "Birth",
+    "refArudha": "Arudha",
+    "refArudhaSub": "Social",
+    "refKarakamsha": "Karakamsha",
+    "refKarakamshaSub": "Soul",
+    "refDasha": "Dasha",
+    "refDashaSub": "Time",
+    "refHouse": "House {n}",
+    "refHouseSub": "Manual",
+    "mobileNav": "Jaimini sections"
+  },
+  "essence": {
+    "title": "Planetary & Special Lagnas",
+    "body": "Body",
+    "deg": "Deg ' \"",
+    "nak": "Nak",
+    "nakshatra": "Nakshatra",
+    "rashiD9": "Rashi·D9",
+    "rashiD9Short": "R·D9",
+    "lagna": "Lagna",
+    "pranapada": "Pranapada Lagna",
+    "indu": "Indu Lagna",
+    "bhrigu": "Bhrigu Bindu"
+  },
+  "yogas": {
+    "title": "Principal Rajayogas",
+    "empty": "No principal Jaimini rajayoga is formed in this chart.",
+    "fixedTitle": "Fixed Significators (Sthira Karakas)",
+    "house": "House",
+    "significator": "Significator",
+    "nthHouse": "{n} House",
+    "strength": {
+      "Exceptional": "Exceptional",
+      "Strong": "Strong",
+      "Present": "Present"
+    }
+  },
+  "fixed": {
+    "Su": "Sun (Surya)",
+    "Mo": "Moon (Chandra)",
+    "Ma": "Mars (Mangal)",
+    "Me": "Mercury (Budha)",
+    "Ju": "Jupiter (Guru)",
+    "Ve": "Venus (Shukra)",
+    "Sa": "Saturn (Shani)"
+  },
+  "arudhaPanel": {
+    "corrected": "BPHS corrected · D1 AL {d1} · D9 AL {d9}",
+    "raw": "Raw pada · D1 AL {d1} · D9 AL {d9}",
+    "hidden": "Arudha labels hidden on charts",
+    "matrix": "{varga} Arudha Matrix"
+  },
+  "argala": {
+    "matrix": "{sign} Intervention Matrix",
+    "lagna": "Lagna",
+    "house": "HOUSE",
+    "argala": "ARGALA",
+    "obstruction": "OBSTRUCTION",
+    "status": "STATUS",
+    "houseN": "{n} House",
+    "none": "None",
+    "success": "SUCCESS",
+    "blocked": "BLOCKED",
+    "empty": "EMPTY",
+    "courage": "Courage/Siblings",
+    "third": "3rd",
+    "unobstructable": "Unobstructable",
+    "reverse": "REVERSE ARGALA",
+    "noMalefic": "No Malefic Rule",
+    "selfDriven": "Self-driven"
+  },
+  "argalaTheme": {
+    "2nd": "Wealth",
+    "4th": "Happiness",
+    "11th": "Gains",
+    "5th": "Knowledge"
+  },
+  "status": {
+    "none": "None",
+    "open": "Open",
+    "strong": "Beats block",
+    "partial": "Partial",
+    "blocked": "Blocked"
+  },
+  "info": {
+    "title": "Planetary Strength (Graha Bala) in Jaimini",
+    "dignityTitle": "Planet's Dignity → Strength Units",
+    "exalted": "Exalted (Uchcha)",
+    "moolatrikona": "Moolatrikona",
+    "own": "Own Sign (Swakshetra)",
+    "friendly": "Friendly Sign",
+    "neutral": "Neutral Sign",
+    "enemy": "Enemy Sign",
+    "debilitated": "Debilitated",
+    "karakaTitle": "Chara Karaka Strength",
+    "atma": "Atma Karaka",
+    "amatya": "Amatya Karaka",
+    "bhratru": "Bhratru Karaka",
+    "matru": "Matru Karaka",
+    "putra": "Putra Karaka",
+    "gnati": "Gnati Karaka",
+    "dara": "Dara Karaka",
+    "signTitle": "Sign / Rashi Strength",
+    "dual": "Dual (Dvisbhava)",
+    "dualDesc": "Highest – adaptability + intelligence",
+    "fixed": "Fixed (Sthira)",
+    "fixedDesc": "Stability",
+    "movable": "Movable (Chara)",
+    "movableDesc": "Dynamic but unstable",
+    "houseTitle": "House Strength (Sthana Bala)",
+    "kendra": "Kendra (1, 4, 7, 10)",
+    "panapara": "Panapara (2, 5, 8, 11)",
+    "apoklima": "Apoklima (3, 6, 9, 12)",
+    "countTitle": "Number of Planets → Sthana Bala",
+    "onePlanet": "1 planet",
+    "twoPlanets": "2 planets",
+    "threePlanets": "3 planets",
+    "morePlanets": "More planets",
+    "units60": "60 units",
+    "units75": "75 units",
+    "units90": "90 units",
+    "evenHigher": "Even Higher",
+    "aspectTitle": "Aspect Strength",
+    "jupiterAspect": "Jupiter aspects a sign",
+    "mercuryAspect": "Mercury aspects a sign",
+    "lordAspect": "Sign Lord aspects",
+    "plus60": "+60 units",
+    "maxSynergy": "Maximum Synergy",
+    "units180": "180 units (All three together)",
+    "veryPowerful": "VERY POWERFUL",
+    "oddTitle": "Odd Sign (Vishama Rashi)",
+    "oddBody": "If an odd sign's lord is connected with a malefic, it gains Extra Strength.",
+    "reason": "Reason",
+    "oddReason": "Odd sign activates energy; malefic triggers action → Creates strength through struggle.",
+    "kartariTitle": "Kartari (Scissors Yoga)",
+    "kartariBody": "Planet is hemmed in between planets in 2nd and 12th from it.",
+    "oddKartari": "Odd Sign + Kartari",
+    "bonus60": "+60 Bonus Points",
+    "positive": "POSITIVE",
+    "positiveBody": "Growth under pressure",
+    "negative": "NEGATIVE",
+    "negativeBody": "Struggle and stress",
+    "kartariFoot": "Kartari shows what kind of pressure you face."
+  },
+  "intel": {
+    "brahma": "Brahma",
+    "creator": "Creator",
+    "events": "Events trigger",
+    "maheshwara": "Maheshwara",
+    "liberator": "Liberator",
+    "karmic": "Karmic completion",
+    "rudra": "Rudra",
+    "destroyer": "Destroyer",
+    "crisis": "Crisis / endings",
+    "activeNow": "active now",
+    "planet": "Planet",
+    "specialLagnas": "Special Lagnas",
+    "hora": "HORA (HL)",
+    "ghatika": "GHATIKA (GL)",
+    "varnada": "VARNADA (VL)",
+    "na": "n/a",
+    "gateways": "Gateways",
+    "dwara": "DWARA",
+    "bahya": "BAHYA",
+    "activePeriod": "Active {name}: {label}",
+    "noDasha": "No active dasha",
+    "balaTitle": "Strength Breakdown (Bala)",
+    "units": "Values in Jaimini Units",
+    "planetCol": "PLANET",
+    "dignityCol": "DIGNITY",
+    "karakaCol": "KARAKA",
+    "kartariCol": "KARTARI",
+    "kendraCol": "KENDRA",
+    "totalCol": "TOTAL",
+    "inSign": "{detail} in {sign}",
+    "active": "Active",
+    "noHems": "No Hems",
+    "fromAk": "From AK",
+    "none": "None",
+    "adhipati": "+ Adhipati (+60)",
+    "rashiBala": "Sign Strength (Rashi Bala)",
+    "rashiCol": "RASHI",
+    "typeCol": "TYPE",
+    "karakasCol": "KARAKAS",
+    "aspectsCol": "ASPECTS",
+    "fourthCol": "4TH",
+    "fourthTitle": "Odd sign whose lord is joined or aspected by a difficult planet",
+    "lordCol": "LORD",
+    "lordTitle": "Total strength of the sign's lord",
+    "houseClass": "House Class (Sthana)",
+    "kendra": "Kendra",
+    "panaphara": "Panaphara",
+    "apoklima": "Apoklima",
+    "houses": "Houses: {list}",
+    "tipTitle": "Quick Tip",
+    "tip": "Planets in Kendra (1,4,7,10) have the maximum power to manifest physical events in Jaimini."
+  },
+  "dignity": {
+    "Neutral": "Neutral",
+    "Exalted": "Exalted",
+    "Debilitated": "Debilitated",
+    "Moolatrikona": "Moolatrikona",
+    "Own Sign": "Own Sign",
+    "Friend Sign": "Friend Sign",
+    "Enemy Sign": "Enemy Sign"
+  },
+  "dasha": {
+    "aria": "Jaimini dasha calculation method",
+    "chara": "Chara Dasha (K.N. Rao)",
+    "charaFe": "Chara Dasha (Rangacharya FE)",
+    "mandookPractical": "Mandook Dasha (Practical)",
+    "mandookRao": "Mandook Dasha (K.N. Rao)",
+    "sthirPractical": "Sthir Dasha (Lagna or 7th)",
+    "sthirBrahma": "Sthir Dasha (from Brahma)",
+    "navamsha": "Navamsha Dasha (S.C. Mishra)",
+    "brahma": "Brahma Dasha",
+    "titleChara": "Chara Dasha Timeline",
+    "titleMandook": "Mandook Dasha Timeline",
+    "titleSthir": "Sthir Dasha Timeline",
+    "titleNavamsha": "Navamsha Dasha Timeline",
+    "titleBrahma": "Brahma Dasha Timeline",
+    "shortChara": "Chara Dasha",
+    "shortMandook": "Mandook Dasha",
+    "shortSthir": "Sthir Dasha",
+    "shortNavamsha": "Navamsha Dasha",
+    "shortBrahma": "Brahma Dasha",
+    "systemChara": "Chara (K.N. Rao)",
+    "systemCharaFe": "Chara (Rangacharya)",
+    "systemMandook": "Mandook",
+    "systemSthir": "Sthira",
+    "systemVimshottari": "Vimshottari",
+    "systemYogini": "Yogini"
+  },
+  "readings": {
+    "karakamshaTitle": "Karakamsha and Swamsha",
+    "karakamshaLead": "Karakamsha is {sign}, the navamsha of Atmakaraka {planet}, read in the birth chart.",
+    "swamshaFallback": "Navamsha placement of the Atmakaraka is missing, so the birth-chart sign is used.",
+    "house": "House",
+    "sign": "Sign",
+    "d1": "D1",
+    "d9": "D9",
+    "soulTitle": "Atmakaraka and Amatyakaraka",
+    "atmakaraka": "Atmakaraka",
+    "amatyakaraka": "Amatyakaraka",
+    "sagittarius": "Sagittarius",
+    "lifeTitle": "Karaka life story",
+    "familyTitle": "Family significators",
+    "relation": "Relation",
+    "rule": "Rule",
+    "planet": "Planet",
+    "dashaTitle": "Dasha reading",
+    "dashaNamed": "{sign} dasha reading",
+    "noSign": "No sign is running in this dasha."
+  },
+  "insights": {
+    "argalaTitle": "Argala on all 12 houses",
+    "argalaPractical": "Read in order of influence: 4th, then 2nd, then 11th, with the 5th as conditional argala. A planet obstructs only from the opposite degree quarter.",
+    "argalaClassical": "Each source is obstructed by the house opposite to it in the scheme: 12th for 2nd, 10th for 4th, 3rd for 11th, 9th for 5th. The side with more planets, then more strength, wins.",
+    "toll": "Argala works like a toll booth: effort comes first and results gather near the end. For the running dasha, that phase starts around {date}.",
+    "houseRow": "House {house} · {sign}",
+    "houseOccupants": "House {house} · {sign} · {planets}",
+    "sourceChip": "{id} {planets}: {status}",
+    "gatewayTitle": "Dwara and Bahya",
+    "lagnasTitle": "Ghatika, Varnada, and Hora Lagna",
+    "trinityTitle": "Brahma, Maheshwara, and Rudra timing",
+    "arudhaTitle": "Arudha: money and image",
+    "housesTitle": "Each house: chara karaka, lord, and fixed karaka",
+    "nakshatraTitle": "Atmakaraka nakshatra",
+    "nakshatraLead": "{planet} is in {nakshatra}, pada {pada}, ruled by {lord}. {nature}",
+    "pastLife": "Past-life picture: {story}",
+    "generalNature": "This is the general nature of the nakshatra.",
+    "transitTitle": "Transit triggers today",
+    "transitFailed": "Today's transits could not be loaded.",
+    "transitLoading": "Loading today's transits.",
+    "noSlow": "No slow planet touches this sign now.",
+    "eventCheck": "Event check: {count} of 4",
+    "factors": "Dasha yes · Karaka {karaka} · Argala {argala} · Transit {transit}",
+    "yes": "yes",
+    "no": "no"
+  },
+  "board": {
+    "title": "All dashas on one page",
+    "date": "Date",
+    "print": "Print",
+    "system": "System",
+    "maha": "Maha",
+    "antar": "Antar",
+    "pratyantar": "Pratyantar",
+    "to": "to",
+    "printTitle": "All Dashas",
+    "printHeading": "All Dashas for {date}",
+    "agreeHeading": "Where the systems agree",
+    "agreeTitle": "Where the systems agree",
+    "agreePractical": "Counts each system's Maha and Antar by house, by planet lordship, and by the karakas involved.",
+    "agreeClassical": "Counts each system's Maha and Antar by house and by planet lordship.",
+    "noShare": "No life area is shared by two systems on this date.",
+    "systemsCount": "{area} · {count} systems",
+    "checkTitle": "Check dashas against real events",
+    "checkBody": "Add dated events from this person's life to see which dasha system fits. The events are saved only in this browser.",
+    "eventType": "Event type",
+    "eventDate": "Event date",
+    "add": "Add event",
+    "best": "Best fit so far",
+    "scoreLine": "{name}: {average}% over {events} {unit}",
+    "event": "event",
+    "events": "events",
+    "signal": "This is a signal, not proof. Use several events, because a single match can happen by chance.",
+    "eventRow": "{name} · {date}",
+    "matchSummary": "{name}: {score}% · {periods}",
+    "baseline": "{baseline}% of signs count as a match for this event type, so scores near that mean little.",
+    "remove": "Remove"
+  },
+  "events": {
+    "marriage": "Marriage or partnership",
+    "career": "Job or career change",
+    "home": "Home or property",
+    "child": "Birth of a child",
+    "education": "Education",
+    "travel": "Foreign travel or move",
+    "money": "Big gain or loss of money",
+    "crisis": "Health or life crisis"
+  },
+  "areas": {
+    "self": "Self and body",
+    "wealth": "Money and family",
+    "courage": "Effort and siblings",
+    "home": "Home and mother",
+    "children": "Children and creation",
+    "conflict": "Debt, rivals, and health",
+    "marriage": "Marriage and partners",
+    "crisis": "Sudden change",
+    "fortune": "Fortune and long travel",
+    "career": "Career",
+    "gains": "Income and network",
+    "loss": "Expense and foreign places"
+  }
+}

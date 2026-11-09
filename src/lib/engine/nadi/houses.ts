@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { HouseNumber } from '@/lib/engine/houseInterpretations'
+import type { EngineLang } from '@/lib/engine/lang'
+import { NADI_HOUSES_HI, NADI_LORD_LINKS_HI, NADI_MALEFIC_LIVING_RULE_HI, NADI_PILLARS_HI } from '@/lib/engine/locale/nadiTables.hi'
 
 export const NADI_PILLARS = [
   { rank: 1, id: 'house', label: 'Houses', note: 'Highest priority. Prediction mixes this with the planet and the sign.' },
@@ -276,4 +278,31 @@ export const NADI_LORD_LINKS: NadiLordLink[] = [
 export function nadiHouse(house: number): NadiHouseProfile | null {
   if (house < 1 || house > 12) return null
   return NADI_HOUSES[house as HouseNumber]
+}
+
+let housesHi: Record<HouseNumber, NadiHouseProfile> | null = null
+
+/** House catalog in the requested language. Ids and house numbers stay the same. */
+export function nadiHouses(lang?: EngineLang): Record<HouseNumber, NadiHouseProfile> {
+  if (lang !== 'hi') return NADI_HOUSES
+  if (housesHi) return housesHi
+  const out = {} as Record<HouseNumber, NadiHouseProfile>
+  for (const key of Object.keys(NADI_HOUSES)) {
+    const house = Number(key) as HouseNumber
+    out[house] = { ...NADI_HOUSES[house], ...NADI_HOUSES_HI[house], house }
+  }
+  housesHi = out
+  return out
+}
+
+export function nadiPillars(lang?: EngineLang): { rank: number; id: string; label: string; note: string }[] {
+  return NADI_PILLARS.map((row) => (lang === 'hi' ? { ...row, ...NADI_PILLARS_HI[row.id] } : { ...row }))
+}
+
+export function nadiMaleficRule(lang?: EngineLang): string {
+  return lang === 'hi' ? NADI_MALEFIC_LIVING_RULE_HI : NADI_MALEFIC_LIVING_RULE
+}
+
+export function nadiLinkReading(link: NadiLordLink, lang?: EngineLang): string {
+  return lang === 'hi' ? NADI_LORD_LINKS_HI[link.id] ?? link.reading : link.reading
 }

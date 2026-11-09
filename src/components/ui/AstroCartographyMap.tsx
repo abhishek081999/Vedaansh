@@ -1,12 +1,15 @@
 'use client'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, ZoomControl, useMapEvents, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
-import { ACG_INTERPRETATIONS } from '@/lib/engine/astroInterpretation'
+import { getAcgInterpretation } from '@/lib/engine/astroInterpretation'
+import { grahaName, rashiName } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 
 const COLORS: Record<string, string> = {
   Su: '#FFD700', Mo: '#B8D4F0', Ma: '#FF4500', Me: '#00E56B',
@@ -19,18 +22,12 @@ const NAMES: Record<string, string> = {
   Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury',
   Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu',
 }
-const PLANET_THEMES: Record<string, string> = {
-  Su: 'Power & Visibility', Mo: 'Emotions & Home', Ma: 'Energy & Drive',
-  Me: 'Mind & Communication', Ju: 'Growth & Wisdom', Ve: 'Love & Beauty',
-  Sa: 'Discipline & Legacy', Ra: 'Transformation',
-}
-
 const THEMES = [
-  { id: 'all',    label: 'All',      icon: '🌌', planets: ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'] },
-  { id: 'wealth', label: 'Abundance', icon: '💰', planets: ['Ju', 'Ve', 'Me'] },
-  { id: 'love',   label: 'Love',     icon: '❤️',  planets: ['Ve', 'Mo'] },
-  { id: 'career', label: 'Career',   icon: '🏆', planets: ['Su', 'Ma', 'Ju'] },
-  { id: 'spirit', label: 'Spirit',   icon: '🧿', planets: ['Mo', 'Ju', 'Sa'] },
+  { id: 'all', icon: '🌌', planets: ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'] },
+  { id: 'wealth', icon: '💰', planets: ['Ju', 'Ve', 'Me'] },
+  { id: 'love', icon: '❤️', planets: ['Ve', 'Mo'] },
+  { id: 'career', icon: '🏆', planets: ['Su', 'Ma', 'Ju'] },
+  { id: 'spirit', icon: '🧿', planets: ['Mo', 'Ju', 'Sa'] },
 ]
 
 const ALL_PLANETS: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra']
@@ -50,6 +47,7 @@ interface Props {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function CitySearch({ onSelect, isDark, isMobile }: { onSelect: (lat: number, lng: number) => void; isDark: boolean; isMobile: boolean }) {
+  const tMap = useTranslations('acg.map')
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [open, setOpen] = useState(false)
@@ -81,7 +79,7 @@ function CitySearch({ onSelect, isDark, isMobile }: { onSelect: (lat: number, ln
           onChange={e => search(e.target.value)}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 180)}
-          placeholder="Search destinations…"
+          placeholder={tMap('searchPlaceholder')}
           style={{
             width: '100%', boxSizing: 'border-box',
             padding: '11px 36px 11px 38px', borderRadius: '14px',
@@ -146,6 +144,12 @@ const getGlyphIcon = (glyph: string, color: string) => L.divIcon({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisiblePlanetsChange }: Props) {
+  const { lang } = useLang()
+  const tMap = useTranslations('acg.map')
+  const tThemes = useTranslations('acg.themes')
+  const tPlanetThemes = useTranslations('acg.planetThemes')
+  const tCoords = useTranslations('acg.coords')
+  const planetLabel = (id: string) => grahaName(id as GrahaId, lang, NAMES[id] ?? id)
   const [natalData, setNatalData]     = useState<ACGLineData[]>([])
   const [transitData, setTransitData] = useState<ACGLineData[]>([])
   const [natalParans, setNatalParans] = useState<ACGParan[]>([])
@@ -271,9 +275,9 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
 
   const ascDeg    = relocationStats?.relocatedAsc ?? 0
   const rashiIdx  = ((Math.floor(ascDeg / 30) + 1) as Rashi)
-  const rashiName = RASHI_NAMES[rashiIdx] ?? '—'
+  const rashiLabel = rashiName(rashiIdx, lang, RASHI_NAMES[rashiIdx] ?? '—')
   const nearest   = relocationStats?.nearest
-  const nearestInterp = nearest ? ACG_INTERPRETATIONS[nearest.planet as GrahaId]?.[nearest.lineType] : null
+  const nearestInterp = nearest ? getAcgInterpretation(nearest.planet as GrahaId, nearest.lineType, lang) : null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
@@ -292,7 +296,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                 padding: '4px 12px', borderRadius: '7px', cursor: 'pointer', fontSize: '0.72rem',
                 fontWeight: 700, color: active ? '#000' : 'var(--text-muted)', transition: 'all 0.2s',
               }}>
-                {m === 'both' ? 'Overlay' : m.charAt(0).toUpperCase() + m.slice(1)}
+                {tMap(m === 'both' ? 'overlay' : m)}
               </button>
             )
           })}
@@ -300,17 +304,17 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
 
         {/* Quick-theme filters */}
         <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', flex: 1, justifyContent: 'center' }}>
-          {THEMES.map(t => {
-            const active = activeTheme === t.id
+          {THEMES.map(theme => {
+            const active = activeTheme === theme.id
             return (
-              <button key={t.id} onClick={() => applyTheme(t)} style={{
+              <button key={theme.id} onClick={() => applyTheme(theme)} style={{
                 padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700,
                 background: active ? 'var(--gold-faint)' : 'transparent',
                 border: `1px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
                 color: active ? 'var(--gold)' : 'var(--text-muted)',
                 cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', gap: '4px', alignItems: 'center', transition: 'all 0.2s',
               }}>
-                <span>{t.icon}</span><span>{t.label}</span>
+                <span>{theme.icon}</span><span>{tThemes(theme.id)}</span>
               </button>
             )
           })}
@@ -319,10 +323,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
         {/* Vivid / Subtle toggle */}
         <button
           onClick={() => setLineStyle(s => s === 'vivid' ? 'subtle' : 'vivid')}
-          title="Toggle line opacity"
+          title={tMap('lineOpacityTitle')}
           style={{ padding: '4px 11px', borderRadius: '8px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}
         >
-          {lineStyle === 'vivid' ? '◉ Vivid' : '○ Subtle'}
+          {lineStyle === 'vivid' ? tMap('vivid') : tMap('subtle')}
         </button>
       </div>
 
@@ -357,24 +361,24 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
         }}>
           {/* Header */}
           <div style={{ padding: '0.875rem 1rem 0.5rem', borderBottom: `1px solid ${panelBdr}` }}>
-            <div style={{ fontSize: '0.58rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Planetary Layers</div>
-            <div style={{ fontSize: '0.68rem', color: isDark ? '#777' : '#999', marginTop: '2px' }}>{visiblePlanets.size} of {ALL_PLANETS.length} active</div>
+            <div style={{ fontSize: '0.58rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{tMap('layersTitle')}</div>
+            <div style={{ fontSize: '0.68rem', color: isDark ? '#777' : '#999', marginTop: '2px' }}>{tMap('activeCount', { n: visiblePlanets.size, total: ALL_PLANETS.length })}</div>
           </div>
 
           {/* Line-type legend */}
           <div style={{ padding: '0.45rem 1rem', borderBottom: `1px solid ${panelBdr}`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 0' }}>
             {[
-              { type: 'MC', desc: 'Midheaven', dash: false },
-              { type: 'IC', desc: 'Nadir',     dash: true  },
-              { type: 'AS', desc: 'Ascendant', dash: false },
-              { type: 'DS', desc: 'Descendant',dash: true  },
+              { type: 'MC', desc: 'midheaven', dash: false },
+              { type: 'IC', desc: 'nadir', dash: true },
+              { type: 'AS', desc: 'ascendant', dash: false },
+              { type: 'DS', desc: 'descendant', dash: true },
             ].map(({ type, desc, dash }) => (
               <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.6rem', color: isDark ? '#777' : '#aaa' }}>
                 <svg width="18" height="6" viewBox="0 0 18 6" style={{ flexShrink: 0 }}>
                   <line x1="0" y1="3" x2="18" y2="3" stroke={isDark ? '#888' : '#bbb'} strokeWidth="1.5" strokeDasharray={dash ? '4 3' : undefined} />
                 </svg>
                 <span style={{ fontWeight: 700 }}>{type}</span>
-                <span style={{ opacity: 0.7 }}>{desc}</span>
+                <span style={{ opacity: 0.7 }}>{tMap(desc)}</span>
               </div>
             ))}
           </div>
@@ -401,8 +405,8 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                     {GLYPHS[id]}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 400 }}>{NAMES[id]}</div>
-                    {active && <div style={{ fontSize: '0.58rem', color: COLORS[id], opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{PLANET_THEMES[id]}</div>}
+                    <div style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 400 }}>{planetLabel(id)}</div>
+                    {active && <div style={{ fontSize: '0.58rem', color: COLORS[id], opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tPlanetThemes(id)}</div>}
                   </div>
                   {active && <div style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS[id], flexShrink: 0, boxShadow: `0 0 6px ${COLORS[id]}` }} />}
                 </button>
@@ -417,7 +421,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                 onClick={() => mapRef.current?.flyTo(birthCoords, 4, { animate: true, duration: 1.5 })}
                 style={{ width: '100%', padding: '8px', borderRadius: '10px', background: 'var(--gold-faint)', border: '1px solid var(--gold)', color: 'var(--gold)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
-                ⊕ Fly to Birth Location
+                {tMap('flyToBirth')}
               </button>
             </div>
           )}
@@ -451,10 +455,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                 </div>
               )}
               <div>
-                <div style={{ fontWeight: 800, fontSize: '0.975rem', color: isDark ? '#fff' : '#111' }}>{rashiName} Rising</div>
+                <div style={{ fontWeight: 800, fontSize: '0.975rem', color: isDark ? '#fff' : '#111' }}>{tMap('rising', { rashi: rashiLabel })}</div>
                 {nearest && (
                   <div style={{ fontSize: '0.68rem', color: COLORS[nearest.planet], fontWeight: 700, marginTop: '1px' }}>
-                    {NAMES[nearest.planet]} {nearest.lineType} · {nearest.dist.toFixed(1)}° away
+                    {tMap('nearest', { planet: planetLabel(nearest.planet), line: nearest.lineType, dist: nearest.dist.toFixed(1) })}
                   </div>
                 )}
               </div>
@@ -470,11 +474,11 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
             {/* Coordinates */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               {[
-                { label: 'Latitude',  val: `${Math.abs(relocatedPoint[0]).toFixed(3)}°${relocatedPoint[0] >= 0 ? 'N' : 'S'}` },
-                { label: 'Longitude', val: `${Math.abs(relocatedPoint[1]).toFixed(3)}°${relocatedPoint[1] >= 0 ? 'E' : 'W'}` },
-              ].map(({ label, val }) => (
-                <div key={label} style={{ padding: '0.45rem 0.625rem', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.55rem', color: isDark ? '#666' : '#aaa', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.08em' }}>{label}</div>
+                { key: 'latitude', val: `${Math.abs(relocatedPoint[0]).toFixed(3)}°${tCoords(relocatedPoint[0] >= 0 ? 'north' : 'south')}` },
+                { key: 'longitude', val: `${Math.abs(relocatedPoint[1]).toFixed(3)}°${tCoords(relocatedPoint[1] >= 0 ? 'east' : 'west')}` },
+              ].map(({ key, val }) => (
+                <div key={key} style={{ padding: '0.45rem 0.625rem', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.55rem', color: isDark ? '#666' : '#aaa', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.08em' }}>{tCoords(key)}</div>
                   <div style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#ddd' : '#333', fontFamily: 'monospace' }}>{val}</div>
                 </div>
               ))}
@@ -489,7 +493,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
             background: 'var(--surface-1)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           }}>
-            <VedaanshLoader size={48} message="Calculating Planetary Vectors…" />
+            <VedaanshLoader size={48} message={tMap('loading')} />
           </div>
         )}
 
@@ -519,22 +523,22 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
             <React.Fragment key={`n-${p.grahaId}`}>
               {/* MC — solid, primary weight */}
               <Polyline positions={[[-85, p.mcLine], [85, p.mcLine]]} pathOptions={{ color: COLORS[p.grahaId], weight: 2.5, opacity }}>
-                <Tooltip sticky className="acg-tt">{GLYPHS[p.grahaId]} {NAMES[p.grahaId]} MC — Midheaven · Career &amp; Fame</Tooltip>
+                <Tooltip sticky className="acg-tt">{tMap('tooltipMc', { glyph: GLYPHS[p.grahaId], planet: planetLabel(p.grahaId) })}</Tooltip>
               </Polyline>
               {/* IC — dashed, lighter */}
               <Polyline positions={[[-85, p.icLine], [85, p.icLine]]} pathOptions={{ color: COLORS[p.grahaId], weight: 1.5, opacity: opacity * 0.65, dashArray: '7 11' }}>
-                <Tooltip sticky className="acg-tt">{GLYPHS[p.grahaId]} {NAMES[p.grahaId]} IC — Nadir · Home &amp; Roots</Tooltip>
+                <Tooltip sticky className="acg-tt">{tMap('tooltipIc', { glyph: GLYPHS[p.grahaId], planet: planetLabel(p.grahaId) })}</Tooltip>
               </Polyline>
               {/* AS curves */}
               {p.asCurve.map((seg, i) => (
                 <Polyline key={`as-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight: 2.5, opacity }}>
-                  {i === 0 && <Tooltip sticky className="acg-tt">{GLYPHS[p.grahaId]} {NAMES[p.grahaId]} AS — Ascendant · Identity</Tooltip>}
+                  {i === 0 && <Tooltip sticky className="acg-tt">{tMap('tooltipAs', { glyph: GLYPHS[p.grahaId], planet: planetLabel(p.grahaId) })}</Tooltip>}
                 </Polyline>
               ))}
               {/* DS curves — lighter dashed */}
               {p.dsCurve.map((seg, i) => (
                 <Polyline key={`ds-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight: 1.5, opacity: opacity * 0.65, dashArray: '5 9' }}>
-                  {i === 0 && <Tooltip sticky className="acg-tt">{GLYPHS[p.grahaId]} {NAMES[p.grahaId]} DS — Descendant · Relationships</Tooltip>}
+                  {i === 0 && <Tooltip sticky className="acg-tt">{tMap('tooltipDs', { glyph: GLYPHS[p.grahaId], planet: planetLabel(p.grahaId) })}</Tooltip>}
                 </Polyline>
               ))}
               {/* Glyph label at top */}
@@ -546,11 +550,11 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           {(viewMode === 'transit' || viewMode === 'both') && transitData.filter(p => visiblePlanets.has(p.grahaId)).map(p => (
             <React.Fragment key={`t-${p.grahaId}`}>
               <Polyline positions={[[-85, p.mcLine], [85, p.mcLine]]} pathOptions={{ color: COLORS[p.grahaId], weight: 1.5, opacity: opacity * 0.55, dashArray: '10 16' }}>
-                <Tooltip sticky className="acg-tt">⟳ {NAMES[p.grahaId]} MC (Transit)</Tooltip>
+                <Tooltip sticky className="acg-tt">{tMap('transitMc', { planet: planetLabel(p.grahaId) })}</Tooltip>
               </Polyline>
               {p.asCurve.map((seg, i) => (
                 <Polyline key={`tas-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight: 1.5, opacity: opacity * 0.55, dashArray: '10 16' }}>
-                  {i === 0 && <Tooltip sticky className="acg-tt">⟳ {NAMES[p.grahaId]} AS (Transit)</Tooltip>}
+                  {i === 0 && <Tooltip sticky className="acg-tt">{tMap('transitAs', { planet: planetLabel(p.grahaId) })}</Tooltip>}
                 </Polyline>
               ))}
             </React.Fragment>
@@ -559,14 +563,14 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           {/* Birth location marker */}
           {birthCoords && (
             <CircleMarker center={birthCoords} radius={7} pathOptions={{ color: '#FFD700', fillColor: '#fff', fillOpacity: 1, weight: 2.5 }}>
-              <Tooltip direction="top" permanent className="acg-tt acg-tt-birth">Birth</Tooltip>
+              <Tooltip direction="top" permanent className="acg-tt acg-tt-birth">{tMap('birth')}</Tooltip>
             </CircleMarker>
           )}
 
           {/* Relocated point marker */}
           {relocatedPoint && (
             <CircleMarker center={relocatedPoint} radius={6} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.85, weight: 2 }}>
-              <Tooltip direction="top" permanent className="acg-tt acg-tt-sel">Selected</Tooltip>
+              <Tooltip direction="top" permanent className="acg-tt acg-tt-sel">{tMap('selected')}</Tooltip>
             </CircleMarker>
           )}
         </MapContainer>
@@ -587,16 +591,16 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           whiteSpace: 'nowrap',
         }}>
           {[
-            { label: 'MC · Career',    dash: false, w: 2.5 },
-            { label: 'IC · Home',      dash: true,  w: 1.5 },
-            { label: 'AS · Identity',  dash: false, w: 2.5 },
-            { label: 'DS · Relations', dash: true,  w: 1.5 },
-          ].map(({ label, dash, w }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            { key: 'legendMc', dash: false, w: 2.5 },
+            { key: 'legendIc', dash: true, w: 1.5 },
+            { key: 'legendAs', dash: false, w: 2.5 },
+            { key: 'legendDs', dash: true, w: 1.5 },
+          ].map(({ key, dash, w }) => (
+            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <svg width="18" height="8" viewBox="0 0 18 8">
                 <line x1="0" y1="4" x2="18" y2="4" stroke={isDark ? '#aaa' : '#777'} strokeWidth={w} strokeDasharray={dash ? '4 3' : undefined} />
               </svg>
-              <span>{label}</span>
+              <span>{tMap(key)}</span>
             </div>
           ))}
         </div>

@@ -6,8 +6,11 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import {
   argalaResultPhaseStart,
   readArgalaTable,
@@ -15,7 +18,6 @@ import {
 } from '@/lib/engine/jaimini/argala'
 import { calculateJaiminiBala } from '@/lib/engine/jaimini/bala'
 import {
-  BOARD_AREA_NAMES,
   LIFE_EVENT_TYPES,
   buildDashaBoard,
   matchLifeEvent,
@@ -64,22 +66,22 @@ function Row({ title, children, accent }: { title: string; children: React.React
   )
 }
 
-const STATUS_LABEL: Record<ArgalaStatus, { label: string; color: string }> = {
-  none: { label: 'None', color: 'var(--text-muted)' },
-  open: { label: 'Open', color: 'var(--teal)' },
-  strong: { label: 'Beats block', color: 'var(--gold)' },
-  partial: { label: 'Partial', color: 'var(--gold)' },
-  blocked: { label: 'Blocked', color: 'var(--combust)' },
+const STATUS_COLOR: Record<ArgalaStatus, string> = {
+  none: 'var(--text-muted)',
+  open: 'var(--teal)',
+  strong: 'var(--gold)',
+  partial: 'var(--gold)',
+  blocked: 'var(--combust)',
 }
 
 const BAND_COLOR = { strong: 'var(--teal)', middling: 'var(--gold)', weak: 'var(--combust)' } as const
 
-function formatDate(value: Date): string {
-  return value.toLocaleDateString(undefined, { year: 'numeric', month: 'short' })
+function formatDate(value: Date, tag: string): string {
+  return value.toLocaleDateString(tag, { year: 'numeric', month: 'short' })
 }
 
-function names(ids: GrahaId[]): string {
-  return ids.map(id => GRAHA_NAMES[id]).join(', ')
+function names(ids: GrahaId[], hi: boolean): string {
+  return ids.map(id => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])).join(', ')
 }
 
 export type JaiminiInsightSection =
@@ -109,9 +111,17 @@ export function JaiminiDeepReading({
   dwaraSign: Rashi | null
   section: JaiminiInsightSection
 }) {
+  const t = useTranslations('jaimini.insights')
+  const tRead = useTranslations('jaimini.readings')
+  const tStatus = useTranslations('jaimini.status')
+  const tArgala = useTranslations('jaimini.argala')
+  const tIntel = useTranslations('jaimini.intel')
+  const { lang, tag, hi } = useLang()
   const [transits, setTransits] = useState<TransitPosition[] | null>(null)
   const [transitFailed, setTransitFailed] = useState(false)
   const ascRashi = chart.lagnas.ascRashi
+  const rashiLabel = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const grahaLabel = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])
 
   useEffect(() => {
     if (section !== 'transits') return
@@ -138,7 +148,8 @@ export function JaiminiDeepReading({
     bala: calculateJaiminiBala({ grahas: chart.grahas, lagnas: chart.lagnas }),
     nodes,
     method,
-  }), [chart.grahas, chart.lagnas, karakas.roleOf, nodes, method])
+    lang,
+  }), [chart.grahas, chart.lagnas, karakas.roleOf, nodes, method, lang])
 
   const argala = useMemo(
     () => readArgalaTable(
@@ -146,8 +157,9 @@ export function JaiminiDeepReading({
       chart.grahas.filter(g => GRAHA_NAMES[g.id]).map(g => ({ id: g.id, rashi: g.rashi, degree: g.degree })),
       strengthOfBala(ctx.bala),
       method,
+      lang,
     ),
-    [ascRashi, chart.grahas, ctx.bala, method],
+    [ascRashi, chart.grahas, ctx.bala, method, lang],
   )
   const gateway = dwaraSign ? readGateway(ctx, dwaraSign) : null
   const special = useMemo(() => readSpecialLagnas(ctx), [ctx])
@@ -170,33 +182,33 @@ export function JaiminiDeepReading({
   return (
     <>
       {section === 'argala' && (
-      <Card title="Argala on all 12 houses">
+      <Card title={t('argalaTitle')}>
         <p style={muted}>
-          {method === 'practical'
-            ? 'Read in order of influence: 4th, then 2nd, then 11th, with the 5th as conditional argala. A planet obstructs only from the opposite degree quarter.'
-            : 'Each source is obstructed by the house opposite to it in the scheme: 12th for 2nd, 10th for 4th, 3rd for 11th, 9th for 5th. The side with more planets, then more strength, wins.'}
+          {method === 'practical' ? t('argalaPractical') : t('argalaClassical')}
         </p>
         {resultPhase && (
           <p style={text}>
-            Argala works like a toll booth: effort comes first and results gather near the end. For the running dasha, that phase starts around {formatDate(resultPhase)}.
+            {t('toll', { date: formatDate(resultPhase, tag) })}
           </p>
         )}
         {argala.map(row => (
-          <Row key={row.house} title={`House ${row.house} · ${RASHI_NAMES[row.sign]}${row.occupants.length ? ` · ${names(row.occupants)}` : ''}`}>
+          <Row key={row.house} title={row.occupants.length
+            ? t('houseOccupants', { house: row.house, sign: rashiLabel(row.sign), planets: names(row.occupants, hi) })
+            : t('houseRow', { house: row.house, sign: rashiLabel(row.sign) })}>
             <p style={text}>{row.summary}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', margin: '0.3rem 0' }}>
               {row.sources.filter(s => s.status !== 'none').map(s => (
                 <span
                   key={s.id}
                   title={s.note}
-                  style={{ fontSize: '0.64rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: 6, border: `1px solid ${STATUS_LABEL[s.status].color}`, color: STATUS_LABEL[s.status].color }}
+                  style={{ fontSize: '0.64rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: 6, border: `1px solid ${STATUS_COLOR[s.status]}`, color: STATUS_COLOR[s.status] }}
                 >
-                  {s.id} {names(s.occupants)}: {STATUS_LABEL[s.status].label}
+                  {t('sourceChip', { id: s.id, planets: names(s.occupants, hi), status: tStatus(s.status) })}
                 </span>
               ))}
               {row.selfDriven && (
                 <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: 6, border: '1px solid var(--teal)', color: 'var(--teal)' }}>
-                  Self-driven
+                  {tArgala('selfDriven')}
                 </span>
               )}
             </div>
@@ -207,7 +219,7 @@ export function JaiminiDeepReading({
       )}
 
       {section === 'gateway' && (
-      <Card title="Dwara and Bahya">
+      <Card title={t('gatewayTitle')}>
         {gateway ? (
           <>
             <p style={text}>{gateway.entry}</p>
@@ -215,15 +227,15 @@ export function JaiminiDeepReading({
             {gateway.useFor && <p style={muted}>{gateway.useFor}</p>}
           </>
         ) : (
-          <p style={muted}>No sign is running in this dasha.</p>
+          <p style={muted}>{tRead('noSign')}</p>
         )}
       </Card>
       )}
 
       {section === 'lagnas' && (
-      <Card title="Ghatika, Varnada, and Hora Lagna">
+      <Card title={t('lagnasTitle')}>
         {special.rows.map(row => (
-          <Row key={row.id} title={`${row.name} · ${RASHI_NAMES[row.sign]}`} accent={BAND_COLOR[row.band]}>
+          <Row key={row.id} title={`${row.name} · ${rashiLabel(row.sign)}`} accent={BAND_COLOR[row.band]}>
             <p style={text}>{row.reading}</p>
             <p style={muted}>{row.timing}</p>
           </Row>
@@ -233,9 +245,9 @@ export function JaiminiDeepReading({
       )}
 
       {section === 'trinity' && (
-      <Card title="Brahma, Maheshwara, and Rudra timing">
+      <Card title={t('trinityTitle')}>
         {trinity.map(row => (
-          <Row key={row.id} title={`${row.title}${row.active ? ' · active now' : ''}`} accent={row.active ? 'var(--gold)' : undefined}>
+          <Row key={row.id} title={`${row.title}${row.active ? ` · ${tIntel('activeNow')}` : ''}`} accent={row.active ? 'var(--gold)' : undefined}>
             <p style={text}>{row.theme}</p>
             <p style={muted}>{row.timing}</p>
           </Row>
@@ -244,7 +256,7 @@ export function JaiminiDeepReading({
       )}
 
       {section === 'arudha' && (
-      <Card title="Arudha: money and image">
+      <Card title={t('arudhaTitle')}>
         {arudhaInsights.map(row => (
           <Row key={row.id} title={row.title}>
             <p style={text}>{row.text}</p>
@@ -254,9 +266,9 @@ export function JaiminiDeepReading({
       )}
 
       {section === 'houses' && (
-      <Card title="Each house: chara karaka, lord, and fixed karaka">
+      <Card title={t('housesTitle')}>
         {triads.map(row => (
-          <Row key={row.house} title={`House ${row.house} · ${RASHI_NAMES[row.sign]}`}>
+          <Row key={row.house} title={t('houseRow', { house: row.house, sign: rashiLabel(row.sign) })}>
             <p style={text}>{row.reading}</p>
           </Row>
         ))}
@@ -264,32 +276,42 @@ export function JaiminiDeepReading({
       )}
 
       {section === 'nakshatra' && nakshatra && (
-        <Card title="Atmakaraka nakshatra">
+        <Card title={t('nakshatraTitle')}>
           <p style={text}>
-            {GRAHA_NAMES[nakshatra.planet]} is in {nakshatra.nakshatra}, pada {nakshatra.pada}, ruled by {GRAHA_NAMES[nakshatra.lord]}. {nakshatra.nature}
+            {t('nakshatraLead', {
+              planet: grahaLabel(nakshatra.planet),
+              nakshatra: hi ? termHi(nakshatra.nakshatra) : nakshatra.nakshatra,
+              pada: nakshatra.pada,
+              lord: grahaLabel(nakshatra.lord),
+              nature: nakshatra.nature,
+            })}
           </p>
-          {nakshatra.story && <p style={text}>Past-life picture: {nakshatra.story}</p>}
+          {nakshatra.story && <p style={text}>{t('pastLife', { story: nakshatra.story })}</p>}
           {nakshatra.cause && <p style={text}>{nakshatra.cause}</p>}
           {method === 'practical' && !nakshatra.detailed && (
-            <p style={muted}>This is the general nature of the nakshatra.</p>
+            <p style={muted}>{t('generalNature')}</p>
           )}
         </Card>
       )}
 
       {section === 'transits' && (
-      <Card title="Transit triggers today">
-        {transitFailed && <p style={muted}>Today&apos;s transits could not be loaded.</p>}
-        {!transitFailed && !trigger && <p style={muted}>Loading today&apos;s transits.</p>}
+      <Card title={t('transitTitle')}>
+        {transitFailed && <p style={muted}>{t('transitFailed')}</p>}
+        {!transitFailed && !trigger && <p style={muted}>{t('transitLoading')}</p>}
         {trigger?.rows.map(row => (
-          <Row key={row.target} title={`${row.target} · ${RASHI_NAMES[row.sign]}`}>
-            <p style={row.hits.length ? text : muted}>{row.hits.length ? `${row.hits.join('. ')}.` : 'No slow planet touches this sign now.'}</p>
+          <Row key={row.target} title={`${row.target} · ${rashiLabel(row.sign)}`}>
+            <p style={row.hits.length ? text : muted}>{row.hits.length ? `${row.hits.join('. ')}.` : t('noSlow')}</p>
           </Row>
         ))}
         {trigger?.confirmation && (
-          <Row title={`Event check: ${trigger.confirmation.count} of 4`} accent="var(--gold)">
+          <Row title={t('eventCheck', { count: trigger.confirmation.count })} accent="var(--gold)">
             <p style={text}>{trigger.confirmation.text}</p>
             <p style={muted}>
-              Dasha yes · Karaka {trigger.confirmation.karaka ? 'yes' : 'no'} · Argala {trigger.confirmation.argala ? 'yes' : 'no'} · Transit {trigger.confirmation.transit ? 'yes' : 'no'}
+              {t('factors', {
+                karaka: trigger.confirmation.karaka ? t('yes') : t('no'),
+                argala: trigger.confirmation.argala ? t('yes') : t('no'),
+                transit: trigger.confirmation.transit ? t('yes') : t('no'),
+              })}
             </p>
           </Row>
         )}
@@ -336,6 +358,10 @@ export function JaiminiAllDashas({
   systems: BoardSystem[]
   anchors: Omit<MatchAnchors, 'karakas'>
 }) {
+  const t = useTranslations('jaimini.board')
+  const tEvents = useTranslations('jaimini.events')
+  const tAreas = useTranslations('jaimini.areas')
+  const { tag, lang } = useLang()
   const [dateText, setDateText] = useState(() => new Date().toISOString().slice(0, 10))
   const chartKey = `${chart.meta.birthDate}|${chart.meta.birthTime}`
   const [events, setEvents] = useState<LifeEvent[]>([])
@@ -351,7 +377,8 @@ export function JaiminiAllDashas({
     lagna: chart.lagnas.ascRashi,
     roleOf: karakas.roleOf,
     method,
-  }), [chart.grahas, chart.lagnas.ascRashi, karakas.roleOf, method])
+    lang,
+  }), [chart.grahas, chart.lagnas.ascRashi, karakas.roleOf, method, lang])
 
   const board = useMemo(() => {
     const asOf = new Date(`${dateText}T12:00:00Z`)
@@ -384,14 +411,14 @@ export function JaiminiAllDashas({
     const rows = board.rows.map(row => `
       <tr><th>${escapeHtml(row.name)}</th>${[0, 1, 2].map(i => {
         const p = row.periods[i]
-        return `<td>${p ? `<b>${escapeHtml(p.label)}</b><br/>${escapeHtml(p.detail)}<br/><small>${escapeHtml(formatDate(p.start))} to ${escapeHtml(formatDate(p.end))}</small>` : ''}</td>`
+        return `<td>${p ? `<b>${escapeHtml(p.label)}</b><br/>${escapeHtml(p.detail)}<br/><small>${escapeHtml(formatDate(p.start, tag))} ${escapeHtml(t('to'))} ${escapeHtml(formatDate(p.end, tag))}</small>` : ''}</td>`
       }).join('')}</tr>`).join('')
-    const agree = board.agreements.map(a => `<li>${escapeHtml(a.name)}: ${escapeHtml(a.systems.join(', '))}</li>`).join('')
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"/><title>All Dashas</title>
+    const agree = board.agreements.map(a => `<li>${escapeHtml(tAreas(a.area))}: ${escapeHtml(a.systems.join(', '))}</li>`).join('')
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"/><title>${escapeHtml(t('printTitle'))}</title>
       <style>body{font:13px system-ui;margin:24px;color:#111}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:6px;text-align:left;vertical-align:top}small{color:#555}</style>
-      </head><body><h2>All Dashas for ${escapeHtml(dateText)}</h2>
-      <table><thead><tr><th>System</th><th>Maha</th><th>Antar</th><th>Pratyantar</th></tr></thead><tbody>${rows}</tbody></table>
-      ${agree ? `<h3>Where the systems agree</h3><ul>${agree}</ul>` : ''}</body></html>`)
+      </head><body><h2>${escapeHtml(t('printHeading', { date: dateText }))}</h2>
+      <table><thead><tr><th>${escapeHtml(t('system'))}</th><th>${escapeHtml(t('maha'))}</th><th>${escapeHtml(t('antar'))}</th><th>${escapeHtml(t('pratyantar'))}</th></tr></thead><tbody>${rows}</tbody></table>
+      ${agree ? `<h3>${escapeHtml(t('agreeHeading'))}</h3><ul>${agree}</ul>` : ''}</body></html>`)
     win.document.close()
     win.focus()
     win.print()
@@ -414,20 +441,25 @@ export function JaiminiAllDashas({
 
   return (
     <>
-      <Card title="All dashas on one page">
+      <Card title={t('title')}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
           <label style={{ fontSize: '0.72rem', fontWeight: 700 }}>
-            Date{' '}
+            {t('date')}{' '}
             <input type="date" value={dateText} onChange={e => setDateText(e.target.value)} style={fieldStyle} />
           </label>
-          <button type="button" onClick={print} style={buttonStyle}>Print</button>
+          <button type="button" onClick={print} style={buttonStyle}>{t('print')}</button>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', fontSize: '0.7rem' }}>
             <thead>
               <tr>
-                {['System', 'Maha', 'Antar', 'Pratyantar'].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '0.35rem', borderBottom: '1px solid var(--border-soft)', color: 'var(--text-muted)' }}>{h}</th>
+                {([
+                  ['system', t('system')],
+                  ['maha', t('maha')],
+                  ['antar', t('antar')],
+                  ['pratyantar', t('pratyantar')],
+                ] as const).map(([key, label]) => (
+                  <th key={key} style={{ textAlign: 'left', padding: '0.35rem', borderBottom: '1px solid var(--border-soft)', color: 'var(--text-muted)' }}>{label}</th>
                 ))}
               </tr>
             </thead>
@@ -443,7 +475,7 @@ export function JaiminiAllDashas({
                           <>
                             <div style={{ fontWeight: 700 }}>{p.label}</div>
                             <div style={{ color: 'var(--text-secondary)' }}>{p.detail}</div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.64rem' }}>{formatDate(p.start)} to {formatDate(p.end)}</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.64rem' }}>{formatDate(p.start, tag)} {t('to')} {formatDate(p.end, tag)}</div>
                           </>
                         ) : '—'}
                       </td>
@@ -456,56 +488,52 @@ export function JaiminiAllDashas({
         </div>
       </Card>
 
-      <Card title="Where the systems agree">
+      <Card title={t('agreeTitle')}>
         <p style={muted}>
-          {method === 'practical'
-            ? 'Counts each system\'s Maha and Antar by house, by planet lordship, and by the karakas involved.'
-            : 'Counts each system\'s Maha and Antar by house and by planet lordship.'}
+          {method === 'practical' ? t('agreePractical') : t('agreeClassical')}
         </p>
-        {board.agreements.length === 0 && <p style={muted}>No life area is shared by two systems on this date.</p>}
+        {board.agreements.length === 0 && <p style={muted}>{t('noShare')}</p>}
         {board.agreements.map(a => (
-          <Row key={a.area} title={`${BOARD_AREA_NAMES[a.area]} · ${a.systems.length} systems`} accent={a.strong ? 'var(--gold)' : undefined}>
+          <Row key={a.area} title={t('systemsCount', { area: tAreas(a.area), count: a.systems.length })} accent={a.strong ? 'var(--gold)' : undefined}>
             <p style={text}>{a.systems.join(', ')}</p>
           </Row>
         ))}
       </Card>
 
-      <Card title="Check dashas against real events">
-        <p style={muted}>
-          Add dated events from this person&apos;s life to see which dasha system fits. The events are saved only in this browser.
-        </p>
+      <Card title={t('checkTitle')}>
+        <p style={muted}>{t('checkBody')}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-          <select aria-label="Event type" value={newType} onChange={e => setNewType(e.target.value as LifeEventType)} style={fieldStyle}>
-            {LIFE_EVENT_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          <select aria-label={t('eventType')} value={newType} onChange={e => setNewType(e.target.value as LifeEventType)} style={fieldStyle}>
+            {LIFE_EVENT_TYPES.map(event => <option key={event.id} value={event.id}>{tEvents(event.id)}</option>)}
           </select>
-          <input aria-label="Event date" type="date" value={newDate} onChange={e => setNewDate(e.target.value)} style={fieldStyle} />
-          <button type="button" onClick={addEvent} disabled={!newDate} style={{ ...buttonStyle, opacity: newDate ? 1 : 0.5 }}>Add event</button>
+          <input aria-label={t('eventDate')} type="date" value={newDate} onChange={e => setNewDate(e.target.value)} style={fieldStyle} />
+          <button type="button" onClick={addEvent} disabled={!newDate} style={{ ...buttonStyle, opacity: newDate ? 1 : 0.5 }}>{t('add')}</button>
         </div>
 
         {ranking.length > 0 && (
-          <Row title="Best fit so far" accent="var(--gold)">
+          <Row title={t('best')} accent="var(--gold)">
             {ranking.map(r => (
-              <p key={r.id} style={text}>{r.name}: {r.average}% over {r.events} {r.events === 1 ? 'event' : 'events'}</p>
+              <p key={r.id} style={text}>{t('scoreLine', { name: r.name, average: r.average, events: r.events, unit: r.events === 1 ? t('event') : t('events') })}</p>
             ))}
-            <p style={muted}>This is a signal, not proof. Use several events, because a single match can happen by chance.</p>
+            <p style={muted}>{t('signal')}</p>
           </Row>
         )}
 
         {matches.map(match => (
-          <Row key={match.event.id} title={`${LIFE_EVENT_TYPES.find(t => t.id === match.event.type)?.name} · ${match.event.date}`}>
+          <Row key={match.event.id} title={t('eventRow', { name: tEvents(match.event.type), date: match.event.date })}>
             {match.systems.map(s => (
               <details key={s.id} style={{ fontSize: '0.72rem' }}>
-                <summary style={{ cursor: 'pointer' }}>{s.name}: {s.score}% · {s.periods}</summary>
+                <summary style={{ cursor: 'pointer' }}>{t('matchSummary', { name: s.name, score: s.score, periods: s.periods })}</summary>
                 {s.reasons.map(reason => <p key={reason} style={muted}>{reason}</p>)}
               </details>
             ))}
-            <p style={muted}>{match.baseline}% of signs count as a match for this event type, so scores near that mean little.</p>
+            <p style={muted}>{t('baseline', { baseline: match.baseline })}</p>
             <button
               type="button"
               onClick={() => updateEvents(events.filter(e => e.id !== match.event.id))}
               style={{ ...buttonStyle, marginTop: '0.3rem', color: 'var(--text-muted)' }}
             >
-              Remove
+              {t('remove')}
             </button>
           </Row>
         ))}
