@@ -7,6 +7,30 @@
 
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import {
+  ARIES_PADA_HI,
+  ASHWINI_PADA_HI,
+  COMBO_NOTES_HI,
+  COMBO_SKILL_HI,
+  GANA_TEXT_HI,
+  GROUP_TEXT_HI,
+  HOUSE_WHERE_HI,
+  INDICATOR_REVEALS_HI,
+  LORD_MEANING_HI,
+  NP_DIRECTION_HI,
+  NP_FIELD_HI,
+  NP_HIDDEN_POWER_HI,
+  NP_INDICATOR_LABEL_HI,
+  NP_PADA_STYLE_HI,
+  NP_SUMMARY_HI,
+  PADA_TEXT_HI,
+  PLANET_SKILL_TEXT_HI,
+  PROFESSION_PROSE_HI,
+  SKILL_FALLBACK_HI,
+  careerFieldsHi,
+} from '@/lib/engine/locale/nakshatraProfession.hi'
 
 export type CareerGana = 'Deva' | 'Manushya' | 'Rakshasa'
 export type CareerPriority = 'PRIMARY' | 'SECONDARY' | 'TERTIARY'
@@ -368,8 +392,33 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
   },
 ]
 
-export function getNakshatraProfession(index: number): NakshatraProfessionProfile {
-  return NAKSHATRA_PROFESSIONS[((index % 27) + 27) % 27]
+function signsHi(signs: string): string {
+  return signs.split('/').map(part => {
+    const t = part.trim()
+    if (t === 'Sag') return 'धनु'
+    if (t === 'Cap') return 'मकर'
+    return termHi(t)
+  }).join('/')
+}
+
+function localizeProfession(en: NakshatraProfessionProfile): NakshatraProfessionProfile {
+  const prose = PROFESSION_PROSE_HI[en.index]
+  return {
+    ...en,
+    name: NAKSHATRA_HI[en.index] ?? en.name,
+    signs: signsHi(en.signs),
+    coreMeaning: prose.coreMeaning,
+    workingStyle: prose.workingStyle,
+    hiddenPower: NP_HIDDEN_POWER_HI[en.index] ?? en.hiddenPower,
+    careerFields: careerFieldsHi(en.careerFields),
+    bottomLine: prose.bottomLine,
+    pitfall: prose.pitfall,
+  }
+}
+
+export function getNakshatraProfession(index: number, lang: EngineLang = 'en'): NakshatraProfessionProfile {
+  const en = NAKSHATRA_PROFESSIONS[((index % 27) + 27) % 27]
+  return lang === 'hi' ? localizeProfession(en) : en
 }
 
 // ── Functional groupings ──────────────────────────────────────
@@ -431,8 +480,46 @@ export const PROFESSION_FUNCTIONAL_GROUPS: ProfessionFunctionalGroup[] = [
   },
 ]
 
-export function getFunctionalGroupForNakshatra(index: number): ProfessionFunctionalGroup | undefined {
-  return PROFESSION_FUNCTIONAL_GROUPS.find(g => g.nakshatraIndices.includes(((index % 27) + 27) % 27))
+function localizeGroup(en: ProfessionFunctionalGroup): ProfessionFunctionalGroup {
+  const hi = GROUP_TEXT_HI[en.id]
+  return hi ? { ...en, ...hi } : en
+}
+
+export function getFunctionalGroupForNakshatra(index: number, lang: EngineLang = 'en'): ProfessionFunctionalGroup | undefined {
+  const en = PROFESSION_FUNCTIONAL_GROUPS.find(g => g.nakshatraIndices.includes(((index % 27) + 27) % 27))
+  if (!en || lang !== 'hi') return en
+  return localizeGroup(en)
+}
+
+export function listProfessionFunctionalGroups(lang: EngineLang = 'en'): ProfessionFunctionalGroup[] {
+  return lang === 'hi' ? PROFESSION_FUNCTIONAL_GROUPS.map(localizeGroup) : PROFESSION_FUNCTIONAL_GROUPS
+}
+
+export function ganaCareerInfo(gana: CareerGana, lang: EngineLang = 'en'): GanaCareerInfo {
+  const en = GANA_CAREER_INFO[gana]
+  if (lang !== 'hi') return en
+  return { ...en, ...GANA_TEXT_HI[gana], examples: en.examples.map(name => termHi(name)) }
+}
+
+export function padaCareerStyle(rashi: Rashi, lang: EngineLang = 'en'): PadaCareerStyle {
+  const en = PADA_CAREER_STYLES[rashi]
+  if (lang !== 'hi') return en
+  const hi = PADA_TEXT_HI[rashi]
+  return { ...en, energy: hi.energy, executionStyle: NP_PADA_STYLE_HI[rashi] ?? en.executionStyle, exampleProfessions: hi.exampleProfessions }
+}
+
+export function listAshwiniPadaDetails(lang: EngineLang = 'en') {
+  if (lang !== 'hi') return ASHWINI_PADA_DETAILS
+  return ASHWINI_PADA_DETAILS.map((row, i) => ({
+    ...row,
+    navamsa: termHi(row.navamsa),
+    ...ASHWINI_PADA_HI[i],
+  }))
+}
+
+export function listAriesPadaComparison(lang: EngineLang = 'en') {
+  if (lang !== 'hi') return ARIES_PADA_COMPARISON
+  return ARIES_PADA_COMPARISON.map(row => ({ ...row, ...ARIES_PADA_HI[row.nakshatraIndex] }))
 }
 
 // ── Gana career implications ──────────────────────────────────
@@ -516,8 +603,44 @@ export const PLANET_CAREER_SKILLS: PlanetCareerSkill[] = [
   { planet: 'Ke', skill: 'Detachment, Insight', positive: 'Research, spirituality, deep focus', ifWeak: 'Cannot let go; scattered depth' },
 ]
 
-export function getPlanetCareerSkill(id: GrahaId): PlanetCareerSkill | undefined {
-  return PLANET_CAREER_SKILLS.find(p => p.planet === id)
+export function getPlanetCareerSkill(id: GrahaId, lang: EngineLang = 'en'): PlanetCareerSkill | undefined {
+  const en = PLANET_CAREER_SKILLS.find(p => p.planet === id)
+  if (!en || lang !== 'hi') return en
+  const hi = PLANET_SKILL_TEXT_HI[id]
+  return hi?.skill ? { ...en, ...hi } : en
+}
+
+export function listPlanetCareerSkills(lang: EngineLang = 'en'): PlanetCareerSkill[] {
+  return lang === 'hi'
+    ? PLANET_CAREER_SKILLS.map(p => getPlanetCareerSkill(p.planet, 'hi') ?? p)
+    : PLANET_CAREER_SKILLS
+}
+
+function localizeCombo(en: PlanetNakshatraCareerCombo): PlanetNakshatraCareerCombo {
+  return {
+    ...en,
+    skill: COMBO_SKILL_HI[en.skill] ?? en.skill,
+    expression: NP_FIELD_HI[en.expression] ?? en.expression,
+    notes: COMBO_NOTES_HI[`${en.planet}:${en.nakshatraIndex}`] ?? en.notes,
+  }
+}
+
+export function listPlanetNakshatraCareerCombos(lang: EngineLang = 'en'): PlanetNakshatraCareerCombo[] {
+  return lang === 'hi' ? PLANET_NAKSHATRA_CAREER_COMBOS.map(localizeCombo) : PLANET_NAKSHATRA_CAREER_COMBOS
+}
+
+export function listCareerDiagnosis(lang: EngineLang = 'en'): CareerDiagnosisRow[] {
+  if (lang !== 'hi') return CAREER_DIAGNOSIS
+  return CAREER_DIAGNOSIS.map(row => ({
+    nakshatraIndex: row.nakshatraIndex,
+    behaviorStyle: PROFESSION_PROSE_HI[row.nakshatraIndex].workingStyle,
+    careerDirection: NP_DIRECTION_HI[row.nakshatraIndex] ?? row.careerDirection,
+  }))
+}
+
+export function listNakshatraLordChain(lang: EngineLang = 'en') {
+  if (lang !== 'hi') return NAKSHATRA_LORD_CHAIN
+  return NAKSHATRA_LORD_CHAIN.map(row => ({ ...row, meaning: LORD_MEANING_HI[row.lord] || row.meaning }))
 }
 
 // ── Planet + nakshatra career combinations ────────────────────
@@ -621,7 +744,8 @@ export const NAKSHATRA_LORD_CHAIN: { lord: GrahaId; nakshatraIndices: number[]; 
 
 // ── Chart-aware helpers ───────────────────────────────────────
 
-export function getCareerIndicators(chart: ChartOutput): CareerIndicatorResult[] {
+export function getCareerIndicators(chart: ChartOutput, lang: EngineLang = 'en'): CareerIndicatorResult[] {
+  const hi = lang === 'hi'
   const asc = chart.lagnas.ascRashi
   const tenthRashi = rashiOfHouse(10, asc)
   const tenthLordId = SIGN_LORD[tenthRashi]
@@ -638,13 +762,16 @@ export function getCareerIndicators(chart: ChartOutput): CareerIndicatorResult[]
     nakIdx: number,
     pada: number,
   ): CareerIndicatorResult => {
-    const profile = getNakshatraProfession(nakIdx)
+    const profile = getNakshatraProfession(nakIdx, lang)
     return {
-      key, label, priority, reveals,
+      key,
+      label: hi ? NP_INDICATOR_LABEL_HI[key] : label,
+      priority,
+      reveals: hi ? INDICATOR_REVEALS_HI[key] : reveals,
       planetId,
-      planetName: planetId ? GRAHA_NAMES[planetId] : '—',
+      planetName: planetId ? (hi ? GRAHA_HI[planetId] : GRAHA_NAMES[planetId]) : '—',
       nakshatraIndex: nakIdx,
-      nakshatraName: NAKSHATRA_NAMES[nakIdx] ?? profile.name,
+      nakshatraName: hi ? (NAKSHATRA_HI[nakIdx] ?? profile.name) : (NAKSHATRA_NAMES[nakIdx] ?? profile.name),
       pada,
       padaRashi: getPadaRashi(nakIdx, pada),
       profile,
@@ -682,20 +809,21 @@ export function getCareerIndicators(chart: ChartOutput): CareerIndicatorResult[]
   ]
 }
 
-export function buildCareerFormula(chart: ChartOutput): CareerFormulaResult {
-  const indicators = getCareerIndicators(chart)
+export function buildCareerFormula(chart: ChartOutput, lang: EngineLang = 'en'): CareerFormulaResult {
+  const hi = lang === 'hi'
+  const indicators = getCareerIndicators(chart, lang)
   const primary = indicators[0]
-  const skill = getPlanetCareerSkill(primary.planetId ?? 'Sa')
-  const padaStyle = PADA_CAREER_STYLES[primary.padaRashi]
-  const diagnosis = CAREER_DIAGNOSIS[primary.nakshatraIndex]
+  const skill = getPlanetCareerSkill(primary.planetId ?? 'Sa', lang)
+  const padaStyle = padaCareerStyle(primary.padaRashi, lang)
+  const diagnosis = (hi ? listCareerDiagnosis('hi') : CAREER_DIAGNOSIS)[primary.nakshatraIndex]
 
   const planetName = primary.planetName
-  const planetSkill = skill?.skill ?? 'Skill'
+  const planetSkill = skill?.skill ?? (hi ? SKILL_FALLBACK_HI : 'Skill')
   const nakshatraHow = primary.profile.hiddenPower
   const nakshatraName = primary.nakshatraName
-  const houseWhere = '10th House — public career domain'
+  const houseWhere = hi ? HOUSE_WHERE_HI : '10th House — public career domain'
   const padaExecution = padaStyle.executionStyle
-  const padaRashiName = RASHI_NAMES[primary.padaRashi]
+  const padaRashiName = hi ? RASHI_HI[primary.padaRashi] : RASHI_NAMES[primary.padaRashi]
 
   return {
     planetSkill,
@@ -705,14 +833,25 @@ export function buildCareerFormula(chart: ChartOutput): CareerFormulaResult {
     houseWhere,
     padaExecution,
     padaRashiName,
-    summary: `${planetName} (${planetSkill}) via ${nakshatraName} (${nakshatraHow}) in ${houseWhere}, executed ${padaExecution.toLowerCase()} (${padaRashiName} pada) → ${diagnosis.careerDirection}`,
+    summary: hi
+      ? fill(NP_SUMMARY_HI, {
+        planet: planetName,
+        skill: planetSkill,
+        nakshatra: nakshatraName,
+        how: nakshatraHow,
+        style: padaExecution,
+        pada: padaRashiName,
+        direction: diagnosis.careerDirection,
+      })
+      : `${planetName} (${planetSkill}) via ${nakshatraName} (${nakshatraHow}) in ${houseWhere}, executed ${padaExecution.toLowerCase()} (${padaRashiName} pada) → ${diagnosis.careerDirection}`,
   }
 }
 
-export function getMatchingCombosForChart(chart: ChartOutput): PlanetNakshatraCareerCombo[] {
+export function getMatchingCombosForChart(chart: ChartOutput, lang: EngineLang = 'en'): PlanetNakshatraCareerCombo[] {
   const grahas = chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
   return grahas.flatMap(g => {
     const hit = findPlanetNakshatraCombo(g.id, g.nakshatraIndex)
-    return hit ? [hit] : []
+    if (!hit) return []
+    return [lang === 'hi' ? localizeCombo(hit) : hit]
   })
 }

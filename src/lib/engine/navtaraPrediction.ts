@@ -6,8 +6,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NAKSHATRA_NAMES, NAKSHATRA_LORDS, GRAHA_NAMES } from '@/types/astrology'
-import type { EngineLang } from '@/lib/engine/lang'
-import { nakshatraName } from '@/i18n/jyotish'
+import { fill, overlay, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, nakshatraName as nakDisplay } from '@/i18n/jyotish'
+import { NAVTARA_TEXT_HI, TARA_PROFILE_HI } from '@/lib/engine/locale/navtaraPrediction.hi'
 import type { ChartOutput, DashaNode, GrahaData, GrahaId } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import {
@@ -203,25 +204,44 @@ function clampNak(index: number): number {
   return ((index % 27) + 27) % 27
 }
 
+function grahaLabel(id: GrahaId, lang: EngineLang, given?: string): string {
+  if (lang === 'hi') return GRAHA_HI[id] ?? given ?? GRAHA_NAMES[id] ?? id
+  return given ?? GRAHA_NAMES[id] ?? id
+}
+
+function starLabel(index: number, lang: EngineLang, given?: string): string {
+  const en = given ?? NAKSHATRA_NAMES[clampNak(index)]
+  return lang === 'hi' ? nakDisplay(clampNak(index), 'hi', en) : en
+}
+
+/** Hindi prose overlay for a tara decision profile. Ids, tone and isHard stay English. */
+export function localizeTaraProfile(profile: TaraDecisionProfile, lang: EngineLang = 'en'): TaraDecisionProfile {
+  return overlay(profile, lang === 'hi' ? TARA_PROFILE_HI[profile.name] : undefined, lang)
+}
+
 /** 0-based tara index (0=Janma … 8=Ati-Mitra) from birth nak to target nak. */
 export function getTaraIndexFromBirth(birthNakIndex: number, targetNakIndex: number): number {
   const diff = (clampNak(targetNakIndex) - clampNak(birthNakIndex) + 27) % 27
   return diff % 9
 }
 
-export function getTaraFromBirth(birthNakIndex: number, targetNakIndex: number): TaraDecisionProfile {
+export function getTaraFromBirth(
+  birthNakIndex: number,
+  targetNakIndex: number,
+  lang: EngineLang = 'en',
+): TaraDecisionProfile {
   const tara = TARA_NAMES[getTaraIndexFromBirth(birthNakIndex, targetNakIndex)]
-  return TARA_DECISION_PROFILES[tara]
+  return localizeTaraProfile(TARA_DECISION_PROFILES[tara], lang)
 }
 
-export function buildNavtaraSlots(birthNakIndex: number): NavtaraSlot[] {
+export function buildNavtaraSlots(birthNakIndex: number, lang: EngineLang = 'en'): NavtaraSlot[] {
   const birth = clampNak(birthNakIndex)
   return NAKSHATRA_NAMES.map((name, i) => {
     const taraNumber = getTaraIndexFromBirth(birth, i) + 1
     const tara = TARA_NAMES[taraNumber - 1]
     return {
       nakshatraIndex: i,
-      nakshatraName: name,
+      nakshatraName: starLabel(i, lang, name),
       tara,
       taraNumber,
       lord: NAKSHATRA_LORDS[i],
@@ -238,16 +258,17 @@ function resultCapacityFor(tone: TaraTone, isHard: boolean): NatalPlanetTara['re
 export function classifyNatalPlanets(
   birthNakIndex: number,
   grahas: GrahaData[],
+  lang: EngineLang = 'en',
 ): NatalPlanetTara[] {
   const birth = clampNak(birthNakIndex)
   const core = grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
   return core.map(g => {
-    const profile = getTaraFromBirth(birth, g.nakshatraIndex)
+    const profile = getTaraFromBirth(birth, g.nakshatraIndex, lang)
     return {
       grahaId: g.id,
-      grahaName: GRAHA_NAMES[g.id] ?? g.name,
+      grahaName: grahaLabel(g.id, lang, GRAHA_NAMES[g.id] ?? g.name),
       nakshatraIndex: g.nakshatraIndex,
-      nakshatraName: g.nakshatraName || NAKSHATRA_NAMES[g.nakshatraIndex],
+      nakshatraName: starLabel(g.nakshatraIndex, lang, g.nakshatraName || NAKSHATRA_NAMES[g.nakshatraIndex]),
       tara: profile.name,
       taraNumber: profile.taraNumber,
       profile,
@@ -260,16 +281,16 @@ export function classifyNatalPlanets(
  * Map Vimshottari lords to taras: birth mahadasha lord = Janma,
  * next = Sampat, … wrapping the 9-lord cycle (class teaching).
  */
-export function mapDashaLordsToTara(birthMahaLord: GrahaId): DashaLordTara[] {
+export function mapDashaLordsToTara(birthMahaLord: GrahaId, lang: EngineLang = 'en'): DashaLordTara[] {
   const start = VIMSHOTTARI_LORDS.indexOf(birthMahaLord)
   if (start < 0) return []
   return VIMSHOTTARI_LORDS.map((_, i) => {
     const lord = VIMSHOTTARI_LORDS[(start + i) % 9]
     const tara = TARA_NAMES[i]
-    const profile = TARA_DECISION_PROFILES[tara]
+    const profile = localizeTaraProfile(TARA_DECISION_PROFILES[tara], lang)
     return {
       lord,
-      lordName: GRAHA_NAMES[lord] ?? lord,
+      lordName: grahaLabel(lord, lang),
       tara,
       taraNumber: i + 1,
       profile,
@@ -288,15 +309,17 @@ function levelForDashaDepth(depth: number): DashaLordTara['level'] {
 export function dashaPathToTara(
   birthMahaLord: GrahaId,
   path: DashaNode[],
+  lang: EngineLang = 'en',
 ): DashaLordTara[] {
-  const table = mapDashaLordsToTara(birthMahaLord)
+  const table = mapDashaLordsToTara(birthMahaLord, lang)
   const byLord = new Map(table.map(t => [t.lord, t]))
   return path.map((node, depth) => {
     const base = byLord.get(node.lord as GrahaId)
-    const profile = base?.profile ?? TARA_DECISION_PROFILES.Janma
+    const profile = base?.profile ?? localizeTaraProfile(TARA_DECISION_PROFILES.Janma, lang)
+    const lord = node.lord as GrahaId
     return {
-      lord: node.lord as GrahaId,
-      lordName: GRAHA_NAMES[node.lord as GrahaId] ?? String(node.lord),
+      lord,
+      lordName: grahaLabel(lord, lang),
       tara: base?.tara ?? 'Janma',
       taraNumber: base?.taraNumber ?? 1,
       profile,
@@ -305,15 +328,21 @@ export function dashaPathToTara(
   })
 }
 
-function synthesizeExperience(maha?: DashaLordTara, antar?: DashaLordTara): {
+function synthesizeExperience(
+  maha: DashaLordTara | undefined,
+  antar: DashaLordTara | undefined,
+  lang: EngineLang,
+): {
   synthesis: string
   decisionAdvice: string
   experienceTone: TaraTone
 } {
+  const hi = lang === 'hi'
+  const H = NAVTARA_TEXT_HI.synth
   if (!maha) {
     return {
-      synthesis: 'Load a chart with Vimshottari dasha to read the current Navtara window.',
-      decisionAdvice: 'Practice on natal planets first: note which grahas sit in Vipat, Pratyari, and Vadha.',
+      synthesis: hi ? H.emptySynthesis : 'Load a chart with Vimshottari dasha to read the current Navtara window.',
+      decisionAdvice: hi ? H.emptyAdvice : 'Practice on natal planets first: note which grahas sit in Vipat, Pratyari, and Vadha.',
       experienceTone: 'neutral',
     }
   }
@@ -331,30 +360,42 @@ function synthesizeExperience(maha?: DashaLordTara, antar?: DashaLordTara): {
     else if (m.tone === 'supportive' || a.tone === 'supportive') experienceTone = 'supportive'
   }
 
-  const mahaLine = `Mahadasha ${maha.lordName} falls in ${m.name} (${m.hindi}) — ${m.shortLabel.toLowerCase()}.`
+  const mahaLine = hi
+    ? fill(H.maha, { lord: maha.lordName, tara: m.hindi, short: m.shortLabel })
+    : `Mahadasha ${maha.lordName} falls in ${m.name} (${m.hindi}) — ${m.shortLabel.toLowerCase()}.`
   const antarLine = a
-    ? ` Antardasha ${antar!.lordName} is ${a.name} — ${a.experience}`
+    ? hi
+      ? fill(H.antar, { lord: antar!.lordName, tara: a.hindi, experience: a.experience })
+      : ` Antardasha ${antar!.lordName} is ${a.name} — ${a.experience}`
     : ''
 
   let blend = ''
   if (a) {
     if (m.isHard && !a.isHard) {
-      blend = ` Hard MD softens under supportive AD: expect ${a.shortLabel.toLowerCase()} inside a ${m.shortLabel.toLowerCase()} era.`
+      blend = hi
+        ? fill(H.blendHardSoft, { aShort: a.shortLabel, mShort: m.shortLabel })
+        : ` Hard MD softens under supportive AD: expect ${a.shortLabel.toLowerCase()} inside a ${m.shortLabel.toLowerCase()} era.`
     } else if (!m.isHard && a.isHard) {
-      blend = ` Supportive MD with a hard AD: overall promise stays, but this sub-period can deliver a jolt (${a.shortLabel.toLowerCase()}).`
+      blend = hi
+        ? fill(H.blendSoftHard, { aShort: a.shortLabel })
+        : ` Supportive MD with a hard AD: overall promise stays, but this sub-period can deliver a jolt (${a.shortLabel.toLowerCase()}).`
     } else if (hardCount === 2) {
-      blend = ' Both periods are hard taras — keep decisions defensive and low-ego.'
+      blend = hi ? H.blendBothHard : ' Both periods are hard taras — keep decisions defensive and low-ego.'
     } else {
-      blend = ` Combined window: ${m.shortLabel.toLowerCase()} shaped by ${a.shortLabel.toLowerCase()}.`
+      blend = hi
+        ? fill(H.blendCombined, { mShort: m.shortLabel, aShort: a.shortLabel })
+        : ` Combined window: ${m.shortLabel.toLowerCase()} shaped by ${a.shortLabel.toLowerCase()}.`
     }
   }
 
-  const synthesis = `${mahaLine}${antarLine}${blend} Navtara shows experience nature — confirm events with dasha + gochara and natal placement.`
+  const synthesis = hi
+    ? `${mahaLine}${antarLine}${blend}${H.suffix}`
+    : `${mahaLine}${antarLine}${blend} Navtara shows experience nature — confirm events with dasha + gochara and natal placement.`
 
   const adviceParts = [m.decisionWindow]
   if (a?.isHard && a.decisionWindow !== m.decisionWindow) adviceParts.push(a.decisionWindow)
-  if (m.trap) adviceParts.push(`Watch: ${m.trap}`)
-  if (a?.trap) adviceParts.push(`AD watch: ${a.trap}`)
+  if (m.trap) adviceParts.push(hi ? fill(H.watch, { trap: m.trap }) : `Watch: ${m.trap}`)
+  if (a?.trap) adviceParts.push(hi ? fill(H.adWatch, { trap: a.trap }) : `AD watch: ${a.trap}`)
 
   return {
     synthesis,
@@ -370,11 +411,12 @@ function synthesizeExperience(maha?: DashaLordTara, antar?: DashaLordTara): {
 export function classifyTransitNakshatra(
   birthNakIndex: number,
   transitNakIndex: number,
+  lang: EngineLang = 'en',
 ): TaraDecisionProfile & { nakshatraName: string } {
-  const profile = getTaraFromBirth(birthNakIndex, transitNakIndex)
+  const profile = getTaraFromBirth(birthNakIndex, transitNakIndex, lang)
   return {
     ...profile,
-    nakshatraName: NAKSHATRA_NAMES[clampNak(transitNakIndex)],
+    nakshatraName: starLabel(transitNakIndex, lang),
   }
 }
 
@@ -419,18 +461,19 @@ export function classifyGocharaPlanets(
   birthNakIndex: number,
   transitGrahas: TransitNakInput[],
   activeDashaLords: GrahaId[] = [],
+  lang: EngineLang = 'en',
 ): GocharaPlanetTara[] {
   const active = new Set(activeDashaLords)
   return transitGrahas
     .filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
     .map(g => {
-      const profile = getTaraFromBirth(birthNakIndex, g.nakshatraIndex)
+      const profile = getTaraFromBirth(birthNakIndex, g.nakshatraIndex, lang)
       const dashaActive = active.has(g.id)
       return {
         grahaId: g.id,
-        grahaName: g.name ?? GRAHA_NAMES[g.id] ?? g.id,
+        grahaName: grahaLabel(g.id, lang, g.name),
         nakshatraIndex: g.nakshatraIndex,
-        nakshatraName: g.nakshatraName ?? NAKSHATRA_NAMES[clampNak(g.nakshatraIndex)],
+        nakshatraName: starLabel(g.nakshatraIndex, lang, g.nakshatraName),
         tara: profile.name,
         taraNumber: profile.taraNumber,
         profile,
@@ -446,27 +489,36 @@ export function buildGocharaNavtaraReport(
   transitGrahas: TransitNakInput[],
   activeDashaLords: GrahaId[] = [],
   asOfDate: string = new Date().toISOString().slice(0, 10),
+  lang: EngineLang = 'en',
 ): GocharaNavtaraReport {
-  const planets = classifyGocharaPlanets(birthNakIndex, transitGrahas, activeDashaLords)
+  const planets = classifyGocharaPlanets(birthNakIndex, transitGrahas, activeDashaLords, lang)
   const moonTara = planets.find(p => p.grahaId === 'Mo')
   const hardTransits = planets.filter(p => p.profile.isHard)
   const activeEventCandidates = planets.filter(p => p.eventLikelihood === 'active')
+  const hi = lang === 'hi'
+  const G = NAVTARA_TEXT_HI.gochara
 
   const parts: string[] = []
   if (moonTara) {
-    parts.push(`Transit Moon in ${moonTara.nakshatraName} → ${moonTara.tara} (${moonTara.profile.shortLabel}).`)
+    parts.push(hi
+      ? fill(G.moon, { nak: moonTara.nakshatraName, tara: moonTara.profile.hindi, short: moonTara.profile.shortLabel })
+      : `Transit Moon in ${moonTara.nakshatraName} → ${moonTara.tara} (${moonTara.profile.shortLabel}).`)
   }
   if (activeEventCandidates.length) {
-    parts.push(
-      `Dasha-matched gochara (event candidates): ${activeEventCandidates.map(p => `${p.grahaName}/${p.tara}`).join(', ')}.`,
-    )
+    const list = activeEventCandidates
+      .map(p => hi ? `${p.grahaName}/${p.profile.hindi}` : `${p.grahaName}/${p.tara}`)
+      .join(', ')
+    parts.push(hi
+      ? fill(G.matched, { list })
+      : `Dasha-matched gochara (event candidates): ${list}.`)
   } else {
-    parts.push('No dasha-matched transit lords today — gochara gives tone/energy, not a full event trigger.')
+    parts.push(hi ? G.none : 'No dasha-matched transit lords today — gochara gives tone/energy, not a full event trigger.')
   }
   if (hardTransits.length) {
-    parts.push(
-      `Hard tara transits: ${hardTransits.map(p => p.grahaName).join(', ')} — keep decisions low-ego.`,
-    )
+    const names = hardTransits.map(p => p.grahaName).join(', ')
+    parts.push(hi
+      ? fill(G.hard, { names })
+      : `Hard tara transits: ${names} — keep decisions low-ego.`)
   }
 
   return {
@@ -518,7 +570,7 @@ export function checkMuhurtaNavtara(
   activityLabel?: string,
   lang: EngineLang = 'en',
 ): MuhurtaNavtaraCheck {
-  const profile = getTaraFromBirth(birthNakIndex, dayMoonNakIndex)
+  const profile = getTaraFromBirth(birthNakIndex, dayMoonNakIndex, lang)
   const isHardTara = profile.isHard
   const verdict: MuhurtaBookingVerdict = isHardTara
     ? 'avoid'
@@ -531,13 +583,11 @@ export function checkMuhurtaNavtara(
   let advice: string
   if (lang === 'hi') {
     const tara = profile.hindi || profile.name
-    if (verdict === 'avoid') {
-      advice = `दिन का चंद्र ${tara} तारा में है — बुकिंग${activityBitHi} स्थगित करें।`
-    } else if (verdict === 'caution') {
-      advice = `जन्म तारा दिन${activityBitHi}: अनिवार्य हो तो संभव, किंतु कार्य को कोमल और स्वभाव-संगत रखें।`
-    } else {
-      advice = `${tara} तारा दिन बुकिंग${activityBitHi} के लिए अनुकूल है।`
-    }
+    const activity = activityBitHi
+    const M = NAVTARA_TEXT_HI.muhurta
+    if (verdict === 'avoid') advice = fill(M.avoid, { tara, activity })
+    else if (verdict === 'caution') advice = fill(M.caution, { activity })
+    else advice = fill(M.favourable, { tara, activity })
   } else if (verdict === 'avoid') {
     advice = `Day Moon is in ${profile.name} — postpone booking${activityBit}. ${profile.decisionWindow}`
   } else if (verdict === 'caution') {
@@ -550,10 +600,7 @@ export function checkMuhurtaNavtara(
 
   return {
     dayNakshatraIndex: dayIdx,
-    dayNakshatraName:
-      lang === 'hi'
-        ? nakshatraName(dayIdx, 'hi', NAKSHATRA_NAMES[dayIdx])
-        : NAKSHATRA_NAMES[dayIdx],
+    dayNakshatraName: starLabel(dayIdx, lang),
     tara: profile.name,
     taraNumber: profile.taraNumber,
     profile,
@@ -597,18 +644,23 @@ export function getRelationshipNavtara(
   nakB: number,
   labelA = 'You',
   labelB = 'Other',
+  lang: EngineLang = 'en',
 ): RelationshipNavtara {
   const a = clampNak(nakA)
   const b = clampNak(nakB)
-  const aProf = getTaraFromBirth(a, b)
-  const bProf = getTaraFromBirth(b, a)
+  const aProf = getTaraFromBirth(a, b, lang)
+  const bProf = getTaraFromBirth(b, a, lang)
+  const hi = lang === 'hi'
+  const R = NAVTARA_TEXT_HI.rel
+  const nameA = hi && labelA === 'You' ? R.you : labelA
+  const nameB = hi && labelB === 'Other' ? R.other : labelB
 
   const aToB: RelationshipNavtaraSide = {
     fromLabel: labelA,
     fromNakIndex: a,
-    fromNakName: NAKSHATRA_NAMES[a],
+    fromNakName: starLabel(a, lang),
     toNakIndex: b,
-    toNakName: NAKSHATRA_NAMES[b],
+    toNakName: starLabel(b, lang),
     tara: aProf.name,
     taraNumber: aProf.taraNumber,
     profile: aProf,
@@ -616,9 +668,9 @@ export function getRelationshipNavtara(
   const bToA: RelationshipNavtaraSide = {
     fromLabel: labelB,
     fromNakIndex: b,
-    fromNakName: NAKSHATRA_NAMES[b],
+    fromNakName: starLabel(b, lang),
     toNakIndex: a,
-    toNakName: NAKSHATRA_NAMES[a],
+    toNakName: starLabel(a, lang),
     tara: bProf.name,
     taraNumber: bProf.taraNumber,
     profile: bProf,
@@ -631,20 +683,36 @@ export function getRelationshipNavtara(
     aProf.name === 'Sampat' || bProf.name === 'Sampat' ||
     aProf.name === 'Sadhaka' || bProf.name === 'Sadhaka'
 
-  const summary =
-    `${labelA}'s star sees ${labelB} as ${aProf.name} (${aProf.shortLabel}); ` +
-    `${labelB}'s star sees ${labelA} as ${bProf.name} (${bProf.shortLabel}).`
+  const summary = hi
+    ? fill(R.summary, {
+        a: nameA,
+        b: nameB,
+        taraA: aProf.hindi,
+        shortA: aProf.shortLabel,
+        taraB: bProf.hindi,
+        shortB: bProf.shortLabel,
+      })
+    : `${labelA}'s star sees ${labelB} as ${aProf.name} (${aProf.shortLabel}); ` +
+      `${labelB}'s star sees ${labelA} as ${bProf.name} (${bProf.shortLabel}).`
 
   let advice: string
   if (mutualHard) {
-    advice = 'Mutual hard tara — expect friction both ways; keep contracts clear and egos low.'
+    advice = hi
+      ? R.mutual
+      : 'Mutual hard tara — expect friction both ways; keep contracts clear and egos low.'
   } else if (aProf.isHard || bProf.isHard) {
-    const hardSide = aProf.isHard ? labelA : labelB
-    advice = `${hardSide} experiences the other through a hard tara window — support without forcing proof or control.`
+    const hardSide = aProf.isHard ? (hi ? nameA : labelA) : (hi ? nameB : labelB)
+    advice = hi
+      ? fill(R.oneHard, { side: hardSide })
+      : `${hardSide} experiences the other through a hard tara window — support without forcing proof or control.`
   } else if (hasSupport) {
-    advice = 'Supportive tara link — good for alliance, learning, and shared ventures; still confirm with full matching.'
+    advice = hi
+      ? R.support
+      : 'Supportive tara link — good for alliance, learning, and shared ventures; still confirm with full matching.'
   } else {
-    advice = 'Neutral growth link — relationship tone follows chart dignity and dasha more than tara alone.'
+    advice = hi
+      ? R.neutral
+      : 'Neutral growth link — relationship tone follows chart dignity and dasha more than tara alone.'
   }
 
   return { aToB, bToA, mutualHard, hasSupport, summary, advice }
@@ -656,6 +724,7 @@ export function getRelationshipNavtara(
 export function getNavtaraPrediction(
   chart: Pick<ChartOutput, 'grahas' | 'dashas' | 'panchang'>,
   asOf: Date = new Date(),
+  lang: EngineLang = 'en',
 ): NavtaraPrediction {
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const birthNak =
@@ -663,18 +732,18 @@ export function getNavtaraPrediction(
     chart.panchang?.nakshatra?.index ??
     0
 
-  const chakra = buildNavtaraSlots(birthNak)
-  const natalPlanets = classifyNatalPlanets(birthNak, chart.grahas)
+  const chakra = buildNavtaraSlots(birthNak, lang)
+  const natalPlanets = classifyNatalPlanets(birthNak, chart.grahas, lang)
 
   const vim = chart.dashas?.vimshottari ?? []
   const birthMahaLord = (vim[0]?.lord as GrahaId) || NAKSHATRA_LORDS[birthNak]
-  const dashaSequence = mapDashaLordsToTara(birthMahaLord)
+  const dashaSequence = mapDashaLordsToTara(birthMahaLord, lang)
 
   const pathNodes = getDashaPathAt(vim, asOf.getTime())
-  const path = dashaPathToTara(birthMahaLord, pathNodes)
+  const path = dashaPathToTara(birthMahaLord, pathNodes, lang)
   const maha = path[0]
   const antar = path[1]
-  const { synthesis, decisionAdvice, experienceTone } = synthesizeExperience(maha, antar)
+  const { synthesis, decisionAdvice, experienceTone } = synthesizeExperience(maha, antar, lang)
 
   const reducedResultLords = natalPlanets
     .filter(p => p.resultCapacity === 'reduced')
@@ -685,7 +754,7 @@ export function getNavtaraPrediction(
 
   return {
     birthNakshatraIndex: birthNak,
-    birthNakshatraName: NAKSHATRA_NAMES[birthNak],
+    birthNakshatraName: starLabel(birthNak, lang),
     chakra,
     natalPlanets,
     dashaSequence,

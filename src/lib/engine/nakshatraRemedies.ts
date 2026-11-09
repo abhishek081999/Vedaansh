@@ -4,6 +4,16 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NAKSHATRA_NAMES } from '@/types/astrology'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
+import { overlay, type EngineLang } from '@/lib/engine/lang'
+import {
+  ACTIVITY_NOTES_HI,
+  AUSPICIOUS_ACTIVITIES_HI,
+  DAY_NAMES_HI,
+  DEFAULT_RATING_NOTES_HI,
+  REMEDIES_HI,
+  TARA_RECOMMENDATION_HI,
+} from '@/lib/engine/locale/nakshatraRemedies.hi'
 import {
   NAKSHATRA_NATURE,
   TARA_NAMES,
@@ -55,9 +65,11 @@ export function getMonthlyForecast(
   moonLonSiderealAtBirth: number,
   year: number,
   month: number,
+  lang: EngineLang = 'en',
 ): DayForecast[] {
   const days: DayForecast[] = []
   const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const dayNames = lang === 'hi' ? DAY_NAMES_HI : DAY_NAMES
   const daysInMonth = new Date(year, month, 0).getDate()
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -77,16 +89,16 @@ export function getMonthlyForecast(
     days.push({
       date,
       dayOfMonth: d,
-      dayName: DAY_NAMES[date.getDay()],
-      nakshatra: NAKSHATRA_NAMES[moonNakIndexOnDay],
+      dayName: dayNames[date.getDay()],
+      nakshatra: lang === 'hi' ? NAKSHATRA_HI[moonNakIndexOnDay] : NAKSHATRA_NAMES[moonNakIndexOnDay],
       nakshatraIndex: moonNakIndexOnDay,
       tara: taraName,
       taraNumber: taraIdx + 1,
       quality: q.quality,
       score,
       panchaka,
-      recommendation: q.recommendation,
-      activities: AUSPICIOUS_ACTIVITIES[taraName],
+      recommendation: lang === 'hi' ? TARA_RECOMMENDATION_HI[taraName] : q.recommendation,
+      activities: lang === 'hi' ? AUSPICIOUS_ACTIVITIES_HI[taraName] : AUSPICIOUS_ACTIVITIES[taraName],
     })
   }
   return days
@@ -156,16 +168,21 @@ const ACTIVITY_NAK_RATINGS: Partial<Record<ActivityType, Record<number, Activity
   },
 }
 
-export function getNakshatraMuhurtaRating(nakIndex: number, activity: ActivityType): ActivityRating {
+export function getNakshatraMuhurtaRating(nakIndex: number, activity: ActivityType, lang: EngineLang = 'en'): ActivityRating {
   const specific = ACTIVITY_NAK_RATINGS[activity]?.[nakIndex]
-  if (specific) return specific
+  if (specific) {
+    if (lang !== 'hi') return specific
+    const note = ACTIVITY_NOTES_HI[activity]?.[nakIndex]
+    return note ? { rating: specific.rating, note } : specific
+  }
   const nature = NAKSHATRA_NATURE[nakIndex] as string
-  if (nature === 'Sthira')      return { rating:'Good',    note:'Sthira (fixed) — stable for long-term matters' }
-  if (nature === 'Mridu')       return { rating:'Good',    note:'Mridu (soft) — auspicious for gentle activities' }
-  if (nature === 'Tikshna')     return { rating:'Neutral', note:'Tikshna (sharp) — mixed results' }
-  if (nature.includes('Mixed')) return { rating:'Neutral', note:'Misra (mixed) — moderate results' }
-  if (nature === 'Ugra')        return { rating:'Avoid',   note:'Ugra (fierce) — not recommended' }
-  return { rating:'Neutral', note:'General nakshatra energy' }
+  const hi = lang === 'hi'
+  if (nature === 'Sthira')      return { rating:'Good',    note: hi ? DEFAULT_RATING_NOTES_HI.sthira : 'Sthira (fixed) — stable for long-term matters' }
+  if (nature === 'Mridu')       return { rating:'Good',    note: hi ? DEFAULT_RATING_NOTES_HI.mridu : 'Mridu (soft) — auspicious for gentle activities' }
+  if (nature === 'Tikshna')     return { rating:'Neutral', note: hi ? DEFAULT_RATING_NOTES_HI.tikshna : 'Tikshna (sharp) — mixed results' }
+  if (nature.includes('Mixed')) return { rating:'Neutral', note: hi ? DEFAULT_RATING_NOTES_HI.misra : 'Misra (mixed) — moderate results' }
+  if (nature === 'Ugra')        return { rating:'Avoid',   note: hi ? DEFAULT_RATING_NOTES_HI.ugra : 'Ugra (fierce) — not recommended' }
+  return { rating:'Neutral', note: hi ? DEFAULT_RATING_NOTES_HI.general : 'General nakshatra energy' }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -187,6 +204,7 @@ export interface NakshatraRemedies {
   fasting:   string
 }
 
+/** English remedy table. Hindi callers should use getNakshatraRemedies(). */
 export const NAKSHATRA_REMEDIES: NakshatraRemedies[] = [
   { mantra:'Om Ashwinikumarebhyo Namah', beej:'Om Keem', gemstone:"Cat's Eye", metal:'Gold', color:'Red', flower:'Red Rose', tree:'Kuchala', deity:'Ashwini Kumars', upasana:'Chant mantra 108x on Sundays', dosha:'Head & brain', charity:'Donate medicines', fasting:'Sunday fast' },
   { mantra:'Om Yamaya Namah', beej:'Om Lim', gemstone:'Diamond', metal:'Silver', color:'Red', flower:'Red Lotus', tree:'Amla', deity:'Yama', upasana:'Offer water to ancestors', dosha:'Blood & reproduction', charity:'Donate food to priests', fasting:'Friday fast' },
@@ -216,3 +234,10 @@ export const NAKSHATRA_REMEDIES: NakshatraRemedies[] = [
   { mantra:'Om Ahirbudhnyaya Namah', beej:'Om Phreem', gemstone:'Blue Sapphire', metal:'Iron', color:'Purple', flower:'Blue Lotus', tree:'Neem', deity:'Ahirbudhnya', upasana:'Serpent worship on Saturdays', dosha:'Ribs & sides', charity:'Donate to orphanages', fasting:'Saturday fast' },
   { mantra:'Om Pushne Namah', beej:'Om Hreem Aim Shreem', gemstone:'Yellow Sapphire', metal:'Gold', color:'Brown', flower:'Jasmine', tree:'Mahua', deity:'Pusha', upasana:'Vishnu worship on Thursdays', dosha:'Feet & abdomen', charity:'Donate footwear to poor', fasting:'Thursday fast' },
 ]
+
+/** Remedy row for one nakshatra. English is the canonical object; Hindi overlays display strings only. */
+export function getNakshatraRemedies(index: number, lang: EngineLang = 'en'): NakshatraRemedies | undefined {
+  const en = NAKSHATRA_REMEDIES[index]
+  if (!en) return undefined
+  return overlay(en, REMEDIES_HI[index], lang)
+}

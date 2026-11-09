@@ -5,6 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { SHRAP_HI } from '@/lib/engine/locale/shrapDosha.hi'
+import { tx } from '@/lib/engine/shrap/helpers'
 import {
   analyzeMatruDosha,
   analyzePitruDosha,
@@ -60,16 +63,20 @@ export interface ShrapDoshaResult {
   prioritizedRemedies: string[]
 }
 
-export function analyzeShrapDosha(chart: ChartOutput, now = Date.now()): ShrapDoshaResult | null {
+export function analyzeShrapDosha(
+  chart: ChartOutput,
+  now = Date.now(),
+  lang: EngineLang = 'en',
+): ShrapDoshaResult | null {
   if (!chart.lagnas?.ascRashi || !chart.grahas?.length) return null
 
   const doshas: ShrapDoshaVerdict[] = [
-    analyzePitruDosha(chart),
-    analyzeMatruDosha(chart),
-    analyzeSarpaDosha(chart),
-    analyzeGuruDosha(chart),
-    analyzeBrahminDosha(chart),
-    analyzeStriKanyaDosha(chart),
+    analyzePitruDosha(chart, lang),
+    analyzeMatruDosha(chart, lang),
+    analyzeSarpaDosha(chart, lang),
+    analyzeGuruDosha(chart, lang),
+    analyzeBrahminDosha(chart, lang),
+    analyzeStriKanyaDosha(chart, lang),
   ]
 
   const summaryRows: ShrapSummaryRow[] = doshas.map(d => ({
@@ -86,10 +93,10 @@ export function analyzeShrapDosha(chart: ChartOutput, now = Date.now()): ShrapDo
   const presentCount = present.length
   const strong = present.filter(d => d.severity === 'strong')
 
-  const childrenFocus = analyzeChildrenFocus(chart, now)
-  const addiction = analyzeAddictionSignatures(chart, now)
-  const lending = analyzeLendingRisk(chart)
-  const jupiterRemedy = analyzeJupiterRemedyTiming(chart)
+  const childrenFocus = analyzeChildrenFocus(chart, now, lang)
+  const addiction = analyzeAddictionSignatures(chart, now, lang)
+  const lending = analyzeLendingRisk(chart, lang)
+  const jupiterRemedy = analyzeJupiterRemedyTiming(chart, lang)
 
   const prioritizedRemedies: string[] = []
   for (const d of present) {
@@ -97,35 +104,66 @@ export function analyzeShrapDosha(chart: ChartOutput, now = Date.now()): ShrapDo
       if (!prioritizedRemedies.includes(r)) prioritizedRemedies.push(r)
     }
   }
+  const O = SHRAP_HI.overview
+  const hi = lang === 'hi'
   if (jupiterRemedy) {
-    prioritizedRemedies.push(
-      `Run active remedies for about ${jupiterRemedy.recommendedDays} days (standard ${jupiterRemedy.standardDays}; Jupiter ${jupiterRemedy.dignity} in ${jupiterRemedy.jupiterSign}).`,
-    )
+    prioritizedRemedies.push(hi
+      ? fill(SHRAP_HI.priority.jupiter, {
+          days: jupiterRemedy.recommendedDays,
+          standard: jupiterRemedy.standardDays,
+          dignity: jupiterRemedy.dignity,
+          sign: jupiterRemedy.jupiterSign,
+        })
+      : `Run active remedies for about ${jupiterRemedy.recommendedDays} days (standard ${jupiterRemedy.standardDays}; Jupiter ${jupiterRemedy.dignity} in ${jupiterRemedy.jupiterSign}).`)
   }
   if (childrenFocus?.focusElsewhere) {
-    prioritizedRemedies.push('Neel Saraswati worship for study / focus — timed to a supportive dasha')
+    prioritizedRemedies.push(tx(
+      lang,
+      'Neel Saraswati worship for study / focus — timed to a supportive dasha',
+      SHRAP_HI.priority.children,
+    ))
   }
   if (addiction && addiction.severity !== 'clear') {
-    prioritizedRemedies.push('Rahu-aware habit discipline; match Bhairav / Shiva / Hanuman to the dasha lord')
+    prioritizedRemedies.push(tx(
+      lang,
+      'Rahu-aware habit discipline; match Bhairav / Shiva / Hanuman to the dasha lord',
+      SHRAP_HI.priority.addiction,
+    ))
   }
 
-  const headline =
-    presentCount === 0
-      ? 'No strong Shrap / Dosha flags from this rule set'
-      : strong.length
-        ? `${strong.length} strong dosha flag${strong.length > 1 ? 's' : ''} — review remedies carefully`
-        : `${presentCount} dosha watch flag${presentCount > 1 ? 's' : ''} — weigh with dasha and full chart`
+  const headline = presentCount === 0
+    ? tx(lang, 'No strong Shrap / Dosha flags from this rule set', O.noneHeadline)
+    : strong.length
+      ? tx(
+          lang,
+          `${strong.length} strong dosha flag${strong.length > 1 ? 's' : ''} — review remedies carefully`,
+          O.strongHeadline,
+          { n: strong.length },
+        )
+      : tx(
+          lang,
+          `${presentCount} dosha watch flag${presentCount > 1 ? 's' : ''} — weigh with dasha and full chart`,
+          O.watchHeadline,
+          { n: presentCount },
+        )
 
-  const overview =
-    presentCount === 0
-      ? 'Pitru, Matru, True Sarpa, Guru, Brahmin, and Stri/Kanya checks are clear or weak. Commercial Kal Sarp Yoga is not scored on this platform.'
-      : `Active: ${present.map(d => d.label).join(', ')}. These are karmic affliction indicators from classical and Nadi teaching — not automatic life verdicts.`
+  const overview = presentCount === 0
+    ? tx(lang, 'Pitru, Matru, True Sarpa, Guru, Brahmin, and Stri/Kanya checks are clear or weak. Commercial Kal Sarp Yoga is not scored on this platform.', O.noneBody)
+    : tx(
+        lang,
+        `Active: ${present.map(d => d.label).join(', ')}. These are karmic affliction indicators from classical and Nadi teaching — not automatic life verdicts.`,
+        O.activeBody,
+        { labels: present.map(d => d.label).join(', ') },
+      )
 
   return {
     headline,
     overview,
-    teachingNote:
+    teachingNote: tx(
+      lang,
       'Doshas (Shrap) are karmic afflictions. BPHS emphasises Pitru and Sarpa themes; Matru, Guru, Brahmin, and Stri/Kanya appear more in Nadi and specialized texts. Always confirm with dasha and divisional charts.',
+      O.teaching,
+    ),
     doshas,
     summaryRows,
     presentCount,

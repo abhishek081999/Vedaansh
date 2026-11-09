@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, ROADMAP_SEO } from './intro-content'
+import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, NAKSHATRA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, ROADMAP_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -207,4 +207,30 @@ export const ROADMAP_SEO_HI: SeoIntroProps = {
 
 export function transitIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? ROADMAP_SEO_HI : ROADMAP_SEO
+}
+
+export const NAKSHATRA_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'नक्षत्र विश्लेषण — Vedaansh',
+  h1: 'नक्षत्र विश्लेषण — जन्म तारा, अनुकूलता और उपाय',
+  paragraphs: [
+    'अपने जन्मनक्षत्र का पाद, अधिष्ठातृ देवता, ग्रह, गण, नाड़ी और प्रतीक सहित अन्वेषण करें। Vedaansh नवतारा फल (दशा निर्णय खिड़कियाँ, जन्म ग्रह तारा क्षमता), अनुकूलता अंक, व्यक्तिगत उपाय, गोचर सक्रियण और नक्षत्र-आधारित मुहूर्त मार्गदर्शन देता है।',
+    'सभी गणनाएँ स्विस एफ़ेमेरिस सायन देशांतर और लाहिरी अयनांश से होती हैं — शास्त्रीय ज्योतिष से मेल खाती सटीकता।',
+  ],
+  h2: 'नक्षत्र उपकरण',
+  bullets: [
+    { label: 'परिचय', desc: 'जन्म तारे का सार और प्रारंभिक फलादेश' },
+    { label: 'अनुकूलता', desc: 'नवतारा, रज्जु, वेध और संबंध अंक' },
+    { label: 'उपाय', desc: 'मंत्र, रत्न, रंग और देवता उपासना' },
+    { label: 'गोचर और मुहूर्त', desc: 'ग्रह सक्रियण और शुभ तारा समय' },
+  ],
+  relatedLinks: [
+    guideLink('chandra-bala-tara-bala', 'तारा बल और चंद्र बल'),
+    guideLink('vimshottari-dasha-explained', 'विंशोत्तरी दशा'),
+    guideLink('yogini-dasha-explained', 'योगिनी दशा'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function nakshatraIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? NAKSHATRA_SEO_HI : NAKSHATRA_SEO
 }

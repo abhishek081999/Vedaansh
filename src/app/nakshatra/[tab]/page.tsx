@@ -24,7 +24,7 @@ export default function NakshatraTabPage() {
       <div className="main-responsive-padding fade-up" style={{ minWidth: 0, padding: 'clamp(1rem, 3vw, 2rem)' }}>
         <NakshatraEmpty
           onOpenBirthForm={openBirthForm}
-          detail="Load a birth chart to open this nakshatra section."
+          detailKey="emptyTabDetail"
         />
       </div>
     )

@@ -5,7 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import {
@@ -16,25 +18,12 @@ import {
 
 type View = 'overview' | 'doshas' | 'children' | 'addiction' | 'lending' | 'remedies'
 
-const VIEWS: { id: View; label: string; hint: string }[] = [
-  { id: 'overview', label: 'Overview', hint: 'Active flags, summary table, teaching note' },
-  { id: 'doshas', label: 'Shrap / Doshas', hint: 'Pitru, Matru, Sarpa, Guru, Brahmin, Stri/Kanya' },
-  { id: 'children', label: 'Children & Focus', hint: 'Study focus and dasha house pull' },
-  { id: 'addiction', label: 'Addiction', hint: 'House and planet signatures — not a diagnosis' },
-  { id: 'lending', label: 'Lending', hint: '6th-house money recovery risk' },
-  { id: 'remedies', label: 'Remedies & Jupiter', hint: 'Prioritized upay and remedy duration' },
-]
+const VIEW_IDS: View[] = ['overview', 'doshas', 'children', 'addiction', 'lending', 'remedies']
 
 const SEV_COLOR: Record<ShrapSeverity, string> = {
   clear: 'var(--teal)',
   watch: 'var(--text-gold)',
   strong: 'var(--rose)',
-}
-
-const SEV_WORD: Record<ShrapSeverity, string> = {
-  clear: 'Clear',
-  watch: 'Watch',
-  strong: 'Strong',
 }
 
 interface Props {
@@ -51,6 +40,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 function SeverityPill({ severity }: { severity: ShrapSeverity }) {
+  const t = useTranslations('dosha.severity')
   return (
     <span
       style={{
@@ -64,12 +54,13 @@ function SeverityPill({ severity }: { severity: ShrapSeverity }) {
         padding: '0.12rem 0.55rem',
       }}
     >
-      {SEV_WORD[severity]}
+      {t(severity)}
     </span>
   )
 }
 
 function DoshaCard({ d }: { d: ShrapDoshaVerdict }) {
+  const t = useTranslations('dosha.labels')
   return (
     <article
       style={{
@@ -88,11 +79,11 @@ function DoshaCard({ d }: { d: ShrapDoshaVerdict }) {
       </div>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{d.summary}</p>
       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-        {d.primaryPlanet} · House {d.primaryHouse} · Key: {d.keyRemedy}
+        {t('metaLine', { planet: d.primaryPlanet, house: d.primaryHouse, remedy: d.keyRemedy })}
       </div>
       {d.indicators.length > 0 && (
         <div>
-          <SectionLabel>Indicators</SectionLabel>
+          <SectionLabel>{t('indicators')}</SectionLabel>
           <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {d.indicators.map(i => (
               <li key={i.id}>{i.text}</li>
@@ -103,7 +94,7 @@ function DoshaCard({ d }: { d: ShrapDoshaVerdict }) {
       {d.present && (
         <>
           <div>
-            <SectionLabel>Typical effects</SectionLabel>
+            <SectionLabel>{t('typicalEffects')}</SectionLabel>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {d.effects.map(e => (
                 <li key={e}>{e}</li>
@@ -111,7 +102,7 @@ function DoshaCard({ d }: { d: ShrapDoshaVerdict }) {
             </ul>
           </div>
           <div>
-            <SectionLabel>Remedies</SectionLabel>
+            <SectionLabel>{t('remedies')}</SectionLabel>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {d.remedies.map(r => (
                 <li key={r}>{r}</li>
@@ -125,24 +116,27 @@ function DoshaCard({ d }: { d: ShrapDoshaVerdict }) {
 }
 
 export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
+  const tPanel = useTranslations('dosha.panel')
+  const tViews = useTranslations('dosha.views')
+  const tLabels = useTranslations('dosha.labels')
+  const tTable = useTranslations('dosha.table')
+  const { lang } = useLang()
   const full = planMeetsUiGate(userPlan, 'gold')
-  const data = useMemo(() => analyzeShrapDosha(chart), [chart])
+  const data = useMemo(() => analyzeShrapDosha(chart, Date.now(), lang), [chart, lang])
   const [view, setView] = useState<View>('overview')
 
   if (!data) {
     return (
       <div style={{ padding: '1.25rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        This chart has no ascendant, so Shrap / Dosha analysis cannot be read yet.
+        {tPanel('noAscendant')}
       </div>
     )
   }
 
-  const active = VIEWS.find(v => v.id === view) ?? VIEWS[0]
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', padding: '0.85rem' }}>
       <header>
-        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 6 }}>Shrap · Dosha &amp; Upay</div>
+        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 6 }}>{tPanel('eyebrow')}</div>
         <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 650 }}>{data.headline}</h2>
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 780 }}>
           {data.overview}
@@ -170,11 +164,11 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
       </div>
 
       {!full && (
-        <PlanGate userPlan={userPlan} required="gold" featureName="Dosha and Upay (Shrap)">
+        <PlanGate userPlan={userPlan} required="gold" featureName={tPanel('featureName')}>
           <div style={{ minHeight: 112, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 6 }}>Full Shrap desk is on Gold</div>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>{tPanel('gateTitle')}</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Indicators, effects, remedies, children focus, addiction signatures, lending risk, and Jupiter remedy timing.
+              {tPanel('gateBody')}
             </div>
           </div>
         </PlanGate>
@@ -182,14 +176,14 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
 
       {full && (
         <>
-          <nav aria-label="Shrap desk sections" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-            {VIEWS.map(v => {
-              const on = v.id === view
+          <nav aria-label={tPanel('navAria')} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            {VIEW_IDS.map(id => {
+              const on = id === view
               return (
                 <button
-                  key={v.id}
+                  key={id}
                   type="button"
-                  onClick={() => setView(v.id)}
+                  onClick={() => setView(id)}
                   style={{
                     height: 30,
                     padding: '0 0.75rem',
@@ -202,12 +196,12 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                     cursor: 'pointer',
                   }}
                 >
-                  {v.label}
+                  {tViews(`${id}.label`)}
                 </button>
               )
             })}
           </nav>
-          <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>{active.hint}</p>
+          <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>{tViews(`${view}.hint`)}</p>
 
           {view === 'overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -215,11 +209,11 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', color: 'var(--text-muted)' }}>
-                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>Dosha</th>
-                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>Planet</th>
-                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>House</th>
-                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>Key remedy</th>
-                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>Status</th>
+                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>{tTable('dosha')}</th>
+                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>{tTable('planet')}</th>
+                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>{tTable('house')}</th>
+                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>{tTable('keyRemedy')}</th>
+                      <th style={{ padding: '0.4rem 0.5rem', borderBottom: '1px solid var(--border)' }}>{tTable('status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -239,7 +233,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
               </div>
               {data.prioritizedRemedies.length > 0 && (
                 <div>
-                  <SectionLabel>Priority remedies</SectionLabel>
+                  <SectionLabel>{tLabels('priorityRemedies')}</SectionLabel>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                     {data.prioritizedRemedies.map(r => (
                       <li key={r}>{r}</li>
@@ -275,7 +269,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                 </ul>
               )}
               <div>
-                <SectionLabel>Remedies</SectionLabel>
+                <SectionLabel>{tLabels('remedies')}</SectionLabel>
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.childrenFocus.remedies.map(r => (
                     <li key={r}>{r}</li>
@@ -299,8 +293,8 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.5rem' }}>
                 {data.addiction.primaryHouses.map(h => (
                   <div key={h.house} style={{ padding: '0.7rem 0.8rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>House {h.house}</SectionLabel>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 4 }}>{h.hit ? 'Flagged' : 'Quiet'}</div>
+                    <SectionLabel>{tLabels('houseN', { n: h.house })}</SectionLabel>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 4 }}>{h.hit ? tLabels('flagged') : tLabels('quiet')}</div>
                     <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{h.role}</p>
                     <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{h.detail}</p>
                   </div>
@@ -308,7 +302,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
               </div>
               {data.addiction.combinations.length > 0 && (
                 <div>
-                  <SectionLabel>Combinations</SectionLabel>
+                  <SectionLabel>{tLabels('combinations')}</SectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     {data.addiction.combinations.map(c => (
                       <article key={c.id} style={{ padding: '0.7rem 0.85rem', borderLeft: `3px solid ${SEV_COLOR[c.severity]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
@@ -321,7 +315,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
               )}
               {data.addiction.planetSignatures.length > 0 && (
                 <div>
-                  <SectionLabel>Planet signatures</SectionLabel>
+                  <SectionLabel>{tLabels('planetSignatures')}</SectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     {data.addiction.planetSignatures.map(p => (
                       <article key={p.id} style={{ padding: '0.7rem 0.85rem', borderLeft: `3px solid ${SEV_COLOR[p.severity]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
@@ -333,7 +327,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                 </div>
               )}
               <div>
-                <SectionLabel>Remedies</SectionLabel>
+                <SectionLabel>{tLabels('remedies')}</SectionLabel>
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.addiction.remedies.map(r => (
                     <li key={r}>{r}</li>
@@ -351,7 +345,11 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                   <SeverityPill severity={data.lending.severity} />
                 </div>
                 <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                  6th occupants: {data.lending.sixthOccupants.length ? data.lending.sixthOccupants.join(', ') : 'none'}
+                  {tLabels('sixthOccupants', {
+                    list: data.lending.sixthOccupants.length
+                      ? data.lending.sixthOccupants.join(', ')
+                      : tLabels('none'),
+                  })}
                 </div>
               </article>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
@@ -360,7 +358,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                 ))}
               </ul>
               <div>
-                <SectionLabel>Before you lend</SectionLabel>
+                <SectionLabel>{tLabels('beforeLend')}</SectionLabel>
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.lending.checkList.map(c => (
                     <li key={c}>{c}</li>
@@ -379,7 +377,11 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                     <SeverityPill severity={data.jupiterRemedy.severity} />
                   </div>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    Recommended duration: <strong>{data.jupiterRemedy.recommendedDays} days</strong> (standard {data.jupiterRemedy.standardDays})
+                    {tLabels.rich('duration', {
+                      days: data.jupiterRemedy.recommendedDays,
+                      standard: data.jupiterRemedy.standardDays,
+                      b: (c) => <strong>{c}</strong>,
+                    })}
                   </p>
                   <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                     {data.jupiterRemedy.notes.map(n => (
@@ -390,9 +392,9 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
                       <thead>
                         <tr style={{ textAlign: 'left', color: 'var(--text-muted)' }}>
-                          <th style={{ padding: '0.35rem 0.4rem', borderBottom: '1px solid var(--border)' }}>Jupiter condition</th>
-                          <th style={{ padding: '0.35rem 0.4rem', borderBottom: '1px solid var(--border)' }}>Effect on remedies</th>
-                          <th style={{ padding: '0.35rem 0.4rem', borderBottom: '1px solid var(--border)' }}>Now</th>
+                          <th style={{ padding: '0.35rem 0.4rem', borderBottom: '1px solid var(--border)' }}>{tTable('jupiterCondition')}</th>
+                          <th style={{ padding: '0.35rem 0.4rem', borderBottom: '1px solid var(--border)' }}>{tTable('effectOnRemedies')}</th>
+                          <th style={{ padding: '0.35rem 0.4rem', borderBottom: '1px solid var(--border)' }}>{tTable('now')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -401,7 +403,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                             <td style={{ padding: '0.4rem', borderBottom: '1px solid var(--border-soft)' }}>{row.condition}</td>
                             <td style={{ padding: '0.4rem', borderBottom: '1px solid var(--border-soft)', color: 'var(--text-secondary)' }}>{row.effect}</td>
                             <td style={{ padding: '0.4rem', borderBottom: '1px solid var(--border-soft)', color: row.active ? 'var(--text-gold)' : 'var(--text-muted)' }}>
-                              {row.active ? 'Active' : '—'}
+                              {row.active ? tLabels('active') : '—'}
                             </td>
                           </tr>
                         ))}
@@ -411,7 +413,7 @@ export function ShrapDoshaPanel({ chart, userPlan = 'free' }: Props) {
                 </article>
               )}
               <div>
-                <SectionLabel>Prioritized stack</SectionLabel>
+                <SectionLabel>{tLabels('prioritizedStack')}</SectionLabel>
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                   {data.prioritizedRemedies.map(r => (
                     <li key={r}>{r}</li>

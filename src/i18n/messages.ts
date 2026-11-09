@@ -18,6 +18,9 @@ export const NAMESPACES = [
   'compare',
   'muhurta',
   'transit',
+  'nakshatra',
+  'dosha',
+  'auth',
 ] as const
 export type Namespace = (typeof NAMESPACES)[number]
 

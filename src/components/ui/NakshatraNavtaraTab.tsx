@@ -6,7 +6,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { termHi } from '@/i18n/jyotish'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import {
   getNavtaraChakra,
@@ -19,6 +22,7 @@ import {
   checkMuhurtaNavtara,
   getNavtaraPrediction,
   getRelationshipNavtara,
+  localizeTaraProfile,
   TARA_DECISION_PROFILES,
   type GocharaNavtaraReport,
   type TaraTone,
@@ -33,10 +37,19 @@ const TONE_COL: Record<TaraTone, { text: string; border: string; bg: string }> =
   transformative: { text: 'var(--gold)',  border: 'rgba(201,168,76,.4)',   bg: 'rgba(201,168,76,.1)' },
 }
 
-const CAP_LABEL: Record<string, string> = {
-  full: 'Full promise',
-  reduced: 'Reduced delivery',
-  mixed: 'Mixed / identity',
+const SIGN_ABBR: Record<string, string> = { Sag: 'Sagittarius', Cap: 'Capricorn' }
+
+function useNm() {
+  const { hi } = useLang()
+  return (en: string) => {
+    if (!hi || !en) return en
+    const one = (part: string) => termHi(SIGN_ABBR[part.trim()] ?? part.trim())
+    return en.includes('/') ? en.split('/').map(one).join('/') : one(en)
+  }
+}
+
+function taraKey(tara: string) {
+  return tara === 'Ati-Mitra' ? 'AtiMitra' : tara
 }
 
 export function NakshatraNavtaraTab({
@@ -46,8 +59,12 @@ export function NakshatraNavtaraTab({
   chart: ChartOutput
   birthNakIdx: number
 }) {
-  const navtara = useMemo(() => getNavtaraChakra(birthNakIdx), [birthNakIdx])
-  const prediction = useMemo(() => getNavtaraPrediction(chart), [chart])
+  const t = useTranslations('nakshatra.navtara')
+  const { lang } = useLang()
+  const nm = useNm()
+  const short = (tara: string) => t(`shortLabels.${taraKey(tara)}`)
+  const navtara = useMemo(() => getNavtaraChakra(birthNakIdx, lang), [birthNakIdx, lang])
+  const prediction = useMemo(() => getNavtaraPrediction(chart, new Date(), lang), [chart, lang])
 
   const [transitDate, setTransitDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [gochara, setGochara] = useState<GocharaNavtaraReport | null>(null)
@@ -72,7 +89,7 @@ export function NakshatraNavtaraTab({
         const qs = new URLSearchParams({ date: transitDate, ayanamsha: String(ayanamsha) })
         const res = await fetch(`/api/transits/planets?${qs}`)
         const json = await res.json()
-        if (!res.ok || !json.success) throw new Error(json.error || 'Transit fetch failed')
+        if (!res.ok || !json.success) throw new Error(json.error || 'FETCH_FAILED')
         const grahas = (json.grahas as TransitPlanetRow[]).map(g => ({
           id: g.id as GrahaId,
           name: g.name,
@@ -81,12 +98,12 @@ export function NakshatraNavtaraTab({
           isRetro: g.isRetro,
         }))
         if (!cancelled) {
-          setGochara(buildGocharaNavtaraReport(birthNakIdx, grahas, activeDashaLords, transitDate))
+          setGochara(buildGocharaNavtaraReport(birthNakIdx, grahas, activeDashaLords, transitDate, lang))
         }
       } catch (err) {
         if (!cancelled) {
           setGochara(null)
-          setGocharaError(err instanceof Error ? err.message : 'Could not load transits')
+          setGocharaError(err instanceof Error ? err.message : 'LOAD_FAILED')
         }
       } finally {
         if (!cancelled) setGocharaLoading(false)
@@ -94,16 +111,17 @@ export function NakshatraNavtaraTab({
     }
     load()
     return () => { cancelled = true }
-  }, [transitDate, birthNakIdx, ayanamsha, activeDashaKey])
+  }, [transitDate, birthNakIdx, ayanamsha, activeDashaKey, lang])
 
+  const activityLabel = lang === 'hi' ? 'बुकिंग / समझौता' : 'booking / agreement'
   const muhurtaCheck = useMemo(
-    () => checkMuhurtaNavtara(birthNakIdx, muhurtaDayNak, 'booking / agreement'),
-    [birthNakIdx, muhurtaDayNak],
+    () => checkMuhurtaNavtara(birthNakIdx, muhurtaDayNak, activityLabel, lang),
+    [birthNakIdx, muhurtaDayNak, activityLabel, lang],
   )
 
   const relationship = useMemo(
-    () => getRelationshipNavtara(birthNakIdx, partnerNak, 'You', 'Other'),
-    [birthNakIdx, partnerNak],
+    () => getRelationshipNavtara(birthNakIdx, partnerNak, 'You', 'Other', lang),
+    [birthNakIdx, partnerNak, lang],
   )
 
   const groups = useMemo(() => {
@@ -134,11 +152,9 @@ export function NakshatraNavtaraTab({
           lineHeight: 1.55,
         }}
       >
-        <strong style={{ color: 'var(--text-gold)' }}>How to use Navtara</strong>
+        <strong style={{ color: 'var(--text-gold)' }}>{t('howTitle')}</strong>
         {' — '}
-        Confirm <em>what</em> happens with dasha + gochara and natal placement.
-        Use Navtara for the <em>nature</em> of the experience and your decision window
-        (Vipat / Pratyari / Vadha = extra caution). Gochara without matching dasha = energy only.
+        {t.rich('howBody', { em: c => <em>{c}</em> })}
       </div>
 
       {/* Current prediction window */}
@@ -156,11 +172,11 @@ export function NakshatraNavtaraTab({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
           <div>
             <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 4 }}>
-              Current Navtara window
+              {t('currentWindow')}
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 600, color: tone.text }}>
-              {maha ? `${maha.tara} · ${maha.lordName} MD` : 'Dasha unavailable'}
-              {antar ? ` / ${antar.tara} · ${antar.lordName} AD` : ''}
+              {maha ? `${nm(maha.tara)} · ${nm(maha.lordName)} ${t('md')}` : t('dashaUnavailable')}
+              {antar ? ` / ${nm(antar.tara)} · ${nm(antar.lordName)} ${t('ad')}` : ''}
             </div>
           </div>
           <span
@@ -176,7 +192,7 @@ export function NakshatraNavtaraTab({
               color: tone.text,
             }}
           >
-            {prediction.current.experienceTone}
+            {t(`tones.${prediction.current.experienceTone}`)}
           </span>
         </div>
 
@@ -184,27 +200,27 @@ export function NakshatraNavtaraTab({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '0.5rem' }}>
             {maha && (
               <PeriodChip
-                label="Mahadasha"
-                lord={maha.lordName}
-                tara={maha.tara}
+                label={t('periods.mahadasha')}
+                lord={nm(maha.lordName)}
+                tara={nm(maha.tara)}
                 hindi={maha.profile.hindi}
                 hard={maha.profile.isHard}
               />
             )}
             {antar && (
               <PeriodChip
-                label="Antardasha"
-                lord={antar.lordName}
-                tara={antar.tara}
+                label={t('periods.antardasha')}
+                lord={nm(antar.lordName)}
+                tara={nm(antar.tara)}
                 hindi={antar.profile.hindi}
                 hard={antar.profile.isHard}
               />
             )}
             {prediction.current.path[2] && (
               <PeriodChip
-                label="Pratyantar"
-                lord={prediction.current.path[2].lordName}
-                tara={prediction.current.path[2].tara}
+                label={t('periods.pratyantar')}
+                lord={nm(prediction.current.path[2].lordName)}
+                tara={nm(prediction.current.path[2].tara)}
                 hindi={prediction.current.path[2].profile.hindi}
                 hard={prediction.current.path[2].profile.isHard}
               />
@@ -226,7 +242,7 @@ export function NakshatraNavtaraTab({
             lineHeight: 1.5,
           }}
         >
-          <strong style={{ color: 'var(--text-gold)' }}>Decision window:</strong>{' '}
+          <strong style={{ color: 'var(--text-gold)' }}>{t('decisionWindow')}</strong>{' '}
           {prediction.current.decisionAdvice}
         </div>
       </section>
@@ -235,7 +251,7 @@ export function NakshatraNavtaraTab({
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>
-            Live gochara Navtara
+            {t('liveGochara')}
           </div>
           <input
             type="date"
@@ -252,13 +268,15 @@ export function NakshatraNavtaraTab({
           />
         </div>
         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Transit stars vs your Janma nakshatra. Event candidates need dasha match (MD/AD/PD lord).
+          {t('gocharaLead')}
         </p>
         {gocharaLoading && (
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Loading transits…</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('loadingTransits')}</div>
         )}
         {gocharaError && (
-          <div style={{ fontSize: '0.75rem', color: 'var(--rose)' }}>{gocharaError}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--rose)' }}>
+            {gocharaError === 'FETCH_FAILED' ? t('transitFetchFailed') : gocharaError === 'LOAD_FAILED' ? t('transitLoadFailed') : gocharaError}
+          </div>
         )}
         {gochara && !gocharaLoading && (
           <>
@@ -275,15 +293,15 @@ export function NakshatraNavtaraTab({
                   fontSize: '0.75rem',
                 }}
               >
-                <strong style={{ color: 'var(--text-gold)' }}>Moon:</strong>{' '}
-                {gochara.moonTara.nakshatraName} → {gochara.moonTara.tara} · {gochara.moonTara.profile.shortLabel}
+                <strong style={{ color: 'var(--text-gold)' }}>{t('moon')}</strong>{' '}
+                {nm(gochara.moonTara.nakshatraName)} → {nm(gochara.moonTara.tara)} · {short(gochara.moonTara.tara)}
               </div>
             )}
             <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
                 <thead>
                   <tr>
-                    {['Planet', 'Nak', 'Tara', 'Event'].map(h => (
+                    {(['planet', 'nak', 'tara', 'event'] as const).map(h => (
                       <th
                         key={h}
                         style={{
@@ -296,7 +314,7 @@ export function NakshatraNavtaraTab({
                           borderBottom: '1px solid var(--border)',
                         }}
                       >
-                        {h}
+                        {t(`gocharaHeaders.${h}`)}
                       </th>
                     ))}
                   </tr>
@@ -307,16 +325,16 @@ export function NakshatraNavtaraTab({
                     return (
                       <tr key={p.grahaId}>
                         <td style={{ padding: '0.4rem 0.55rem', borderBottom: '1px solid var(--border-soft)', fontWeight: 600 }}>
-                          {p.grahaName}{p.isRetro ? ' ℞' : ''}
+                          {nm(p.grahaName)}{p.isRetro ? ' ℞' : ''}
                         </td>
                         <td style={{ padding: '0.4rem 0.55rem', borderBottom: '1px solid var(--border-soft)', color: 'var(--text-secondary)' }}>
-                          {p.nakshatraName}
+                          {nm(p.nakshatraName)}
                         </td>
                         <td style={{ padding: '0.4rem 0.55rem', borderBottom: '1px solid var(--border-soft)', color: c.text, fontWeight: 600 }}>
-                          {p.tara}
+                          {nm(p.tara)}
                         </td>
                         <td style={{ padding: '0.4rem 0.55rem', borderBottom: '1px solid var(--border-soft)', color: p.eventLikelihood === 'active' ? 'var(--teal)' : 'var(--text-muted)' }}>
-                          {p.eventLikelihood === 'active' ? 'Active' : 'Energy'}
+                          {p.eventLikelihood === 'active' ? t('eventActive') : t('eventEnergy')}
                         </td>
                       </tr>
                     )
@@ -331,11 +349,10 @@ export function NakshatraNavtaraTab({
       {/* Muhurta booking gate */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>
-          Muhurta booking gate
+          {t('muhurtaGate')}
         </div>
         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Pick the day&apos;s Moon nakshatra before booking vehicle delivery, renovation start, or agreements.
-          Vipat / Pratyari / Vadha → avoid.
+          {t('muhurtaLead')}
         </p>
         <select
           value={muhurtaDayNak}
@@ -351,7 +368,7 @@ export function NakshatraNavtaraTab({
           }}
         >
           {NAKSHATRA_NAMES.map((n, i) => (
-            <option key={i} value={i}>{n}</option>
+            <option key={i} value={i}>{nm(n)}</option>
           ))}
         </select>
         <div
@@ -375,7 +392,7 @@ export function NakshatraNavtaraTab({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', marginBottom: 6 }}>
             <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-              {muhurtaCheck.tara} · score {muhurtaCheck.score}
+              {t('scoreLine', { tara: nm(muhurtaCheck.tara), score: muhurtaCheck.score })}
             </span>
             <span
               style={{
@@ -391,7 +408,7 @@ export function NakshatraNavtaraTab({
                       : 'var(--teal)',
               }}
             >
-              {muhurtaCheck.verdict}
+              {t(`verdicts.${muhurtaCheck.verdict}`)}
             </span>
           </div>
           <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -403,10 +420,10 @@ export function NakshatraNavtaraTab({
       {/* Relationship tara */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>
-          Relationship Navtara
+          {t('relationship')}
         </div>
         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          How your birth star experiences theirs, and theirs yours — support vs hard-window friction.
+          {t('relationshipLead')}
         </p>
         <select
           value={partnerNak}
@@ -422,7 +439,7 @@ export function NakshatraNavtaraTab({
           }}
         >
           {NAKSHATRA_NAMES.map((n, i) => (
-            <option key={i} value={i}>Other: {n}</option>
+            <option key={i} value={i}>{t('otherOption', { name: nm(n) })}</option>
           ))}
         </select>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '0.5rem' }}>
@@ -439,13 +456,13 @@ export function NakshatraNavtaraTab({
                 }}
               >
                 <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)' }}>
-                  {side.fromLabel} → {side.toNakName}
+                  {(side.fromLabel === 'You' ? t('you') : side.fromLabel === 'Other' ? t('other') : side.fromLabel)} → {nm(side.toNakName)}
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '0.9rem', color: c.text, marginTop: 4 }}>
-                  {side.tara}
+                  {nm(side.tara)}
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                  {side.profile.shortLabel}
+                  {short(side.tara)}
                 </div>
               </div>
             )
@@ -462,17 +479,16 @@ export function NakshatraNavtaraTab({
       {/* Natal planet result capacity */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>
-          Natal planets by Navtara
+          {t('natalPlanets')}
         </div>
         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          From {prediction.birthNakshatraName}. Planets in Vipat / Pratyari / Vadha often cannot deliver
-          100% of their chart promise; Mitra / Ati-Mitra lords tend to leave a benefit trail even through challenges.
+          {t('natalLead', { name: nm(prediction.birthNakshatraName) })}
         </p>
         <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
             <thead>
               <tr>
-                {['Planet', 'Nakshatra', 'Tara', 'Capacity'].map(h => (
+                {(['planet', 'nakshatra', 'tara', 'capacity'] as const).map(h => (
                   <th
                     key={h}
                     style={{
@@ -486,7 +502,7 @@ export function NakshatraNavtaraTab({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {h}
+                    {t(`natalHeaders.${h}`)}
                   </th>
                 ))}
               </tr>
@@ -497,18 +513,18 @@ export function NakshatraNavtaraTab({
                 return (
                   <tr key={p.grahaId}>
                     <td style={{ padding: '0.45rem 0.6rem', borderBottom: '1px solid var(--border-soft)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {p.grahaName}
+                      {nm(p.grahaName)}
                     </td>
                     <td style={{ padding: '0.45rem 0.6rem', borderBottom: '1px solid var(--border-soft)', color: 'var(--text-secondary)' }}>
-                      {p.nakshatraName}
+                      {nm(p.nakshatraName)}
                     </td>
                     <td style={{ padding: '0.45rem 0.6rem', borderBottom: '1px solid var(--border-soft)' }}>
                       <span style={{ color: c.text, fontWeight: 600 }}>
-                        {p.taraNumber}. {p.tara}
+                        {p.taraNumber}. {nm(p.tara)}
                       </span>
                     </td>
                     <td style={{ padding: '0.45rem 0.6rem', borderBottom: '1px solid var(--border-soft)', color: 'var(--text-muted)' }}>
-                      {CAP_LABEL[p.resultCapacity]}
+                      {t(`capacity.${p.resultCapacity}`)}
                     </td>
                   </tr>
                 )
@@ -520,12 +536,12 @@ export function NakshatraNavtaraTab({
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.7rem' }}>
             {prediction.reducedResultLords.length > 0 && (
               <span style={{ color: 'var(--rose)' }}>
-                Reduced: {prediction.reducedResultLords.map(id => GRAHA_NAMES[id]).join(', ')}
+                {t('reduced')} {prediction.reducedResultLords.map(id => nm(GRAHA_NAMES[id])).join(', ')}
               </span>
             )}
             {prediction.supportiveLords.length > 0 && (
               <span style={{ color: 'var(--teal)' }}>
-                Supportive: {prediction.supportiveLords.map(id => GRAHA_NAMES[id]).join(', ')}
+                {t('supportive')} {prediction.supportiveLords.map(id => nm(GRAHA_NAMES[id])).join(', ')}
               </span>
             )}
           </div>
@@ -535,10 +551,10 @@ export function NakshatraNavtaraTab({
       {/* Dasha lord → tara map */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>
-          Vimshottari MD → Navtara map
+          {t('dashaMap')}
         </div>
         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Birth mahadasha lord = Janma; each next lord in Vimshottari order advances one tara.
+          {t('dashaMapLead')}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(100px,1fr))', gap: '0.4rem' }}>
           {prediction.dashaSequence.map(d => {
@@ -556,13 +572,13 @@ export function NakshatraNavtaraTab({
                 }}
               >
                 <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                  {d.taraNumber}. {d.tara}
+                  {d.taraNumber}. {nm(d.tara)}
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '0.82rem', color: active ? c.text : 'var(--text-primary)', marginTop: 2 }}>
-                  {d.lordName}
+                  {nm(d.lordName)}
                 </div>
                 {d.profile.isHard && (
-                  <div style={{ fontSize: '0.52rem', color: 'var(--rose)', fontWeight: 600, marginTop: 2 }}>HARD</div>
+                  <div style={{ fontSize: '0.52rem', color: 'var(--rose)', fontWeight: 600, marginTop: 2 }}>{t('hard')}</div>
                 )}
               </div>
             )
@@ -573,12 +589,12 @@ export function NakshatraNavtaraTab({
       {/* Nine tara groups with decision profiles */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>
-          Nine Tara groups from {prediction.birthNakshatraName}
+          {t('nineGroups', { name: nm(prediction.birthNakshatraName) })}
         </div>
         {(TARA_NAMES as TaraName[]).map((tara, idx) => {
           const group = groups[tara] || []
           const q = TARA_QUALITIES[tara]
-          const profile = TARA_DECISION_PROFILES[tara]
+          const profile = localizeTaraProfile(TARA_DECISION_PROFILES[tara], lang)
           const c = QC[q.quality]
           return (
             <div
@@ -613,7 +629,7 @@ export function NakshatraNavtaraTab({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', flexWrap: 'wrap', gap: '0.3rem' }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: c.text }}>
-                    {tara} Tara{' '}
+                    {nm(tara)} {t('taraWord')}{' '}
                     <span style={{ fontSize: '0.7rem', fontWeight: 500, color: 'var(--text-muted)' }}>({profile.hindi})</span>
                   </span>
                   <span
@@ -628,7 +644,7 @@ export function NakshatraNavtaraTab({
                       fontWeight: 700,
                     }}
                   >
-                    {profile.shortLabel}
+                    {short(tara)}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
@@ -646,7 +662,7 @@ export function NakshatraNavtaraTab({
                       }}
                     >
                       {n.nakshatraIndex === birthNakIdx && '★ '}
-                      {n.nakshatraName}
+                      {nm(n.nakshatraName)}
                     </span>
                   ))}
                 </div>
@@ -654,8 +670,8 @@ export function NakshatraNavtaraTab({
                   {profile.experience}
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--text-secondary)' }}>Decide:</strong> {profile.decisionWindow}
-                  {profile.trap ? ` · Trap: ${profile.trap}` : ''}
+                  <strong style={{ color: 'var(--text-secondary)' }}>{t('decide')}</strong> {profile.decisionWindow}
+                  {profile.trap ? ` · ${t('trap')} ${profile.trap}` : ''}
                 </div>
               </div>
             </div>
