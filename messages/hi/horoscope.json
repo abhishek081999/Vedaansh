@@ -1,0 +1,179 @@
+{
+  "aria": {
+    "section": "चंद्र राशि के अनुसार दैनिक राशिफल",
+    "chakra": "अपनी चंद्र राशि चुनें",
+    "chakraSign": "{sanskrit} ({english}) — {tone}, 100 में {score}",
+    "moonToday": "आज चंद्र · {nakshatra}",
+    "diamonds": "5 में {rating}",
+    "dayTabs": "दिन",
+    "taalikaBar": "{sanskrit} ({english}) 100 में {score}{chandrashtama}",
+    "chandrashtamaSuffix": ", चंद्राष्टम",
+    "weekChart": "अगले सात दिनों के लिए स्कोर",
+    "deepDive": "{english} — विस्तृत राशिफल"
+  },
+  "landing": {
+    "kicker": "दैनिक राशिफल",
+    "title": "हर राशि का आज का राशिफल"
+  },
+  "page": {
+    "kicker": "दैनिक राशिफल",
+    "title": "{english} का आज का राशिफल",
+    "titleRashi": "{sanskrit} राशि"
+  },
+  "intro": "अपनी जन्म राशि (चंद्र राशि) से पढ़ें, जैसा वैदिक ज्योतिष करता है: सजीव ग्रह, शास्त्रीय गोचर तालिकाएँ और आज का पंचांग।",
+  "tabs": {
+    "today": "आज · Today",
+    "tomorrow": "कल · Tomorrow"
+  },
+  "toolbar": {
+    "readAtSunrise": "{date}, सूर्योदय पर पढ़ा गया",
+    "readingSky": "आकाश पढ़ा जा रहा है…",
+    "share": "साझा करें",
+    "linkCopied": "लिंक कॉपी हुआ",
+    "shareTitle": "Vedaansh दैनिक राशिफल",
+    "shareText": "आज {english} ({sanskrit}): {headline}"
+  },
+  "strip": {
+    "vara": "वार",
+    "tithi": "तिथि",
+    "chandra": "चंद्र",
+    "yoga": "योग",
+    "karana": "करण",
+    "pakshaShukla": "शुक्ल",
+    "pakshaKrishna": "कृष्ण"
+  },
+  "card": {
+    "kicker": "{sanskrit} राशि · {english} चंद्र राशि",
+    "meta": "{date} · {element} राशि, स्वामी {lord}",
+    "later": "{time} से चंद्र आपके {house} में प्रवेश करेगा: {theme}",
+    "phala": "फल",
+    "phalaEm": "· दिन के क्षेत्र",
+    "shubhRang": "शुभ रंग",
+    "shubhAnk": "शुभ अंक",
+    "disha": "दिशा",
+    "shubhSamay": "शुभ समय",
+    "shubhSamayEm": "· अच्छे घंटे, {place} समय",
+    "horaLine": "{glyph} {planet} होरा",
+    "karya": "कार्य",
+    "karyaEm": "· बढ़ चढ़कर",
+    "varjya": "वर्ज्य",
+    "varjyaEm": "· संयम से",
+    "upaya": "उपाय · ",
+    "gochara": "गोचर",
+    "gocharaEm": "· चंद्र राशि से ग्रह",
+    "gocharaLine": "{planet}{retro} · {house}",
+    "retrograde": " (वक्री)",
+    "dirgha": "दीर्घ",
+    "dirghaEm": "· व्यापक चित्र",
+    "savdhani": "सावधानी",
+    "savdhaniEm": "· सावधानी के बिंदु",
+    "scoreOf": "/100"
+  },
+  "tone": {
+    "excellent": "उत्तम",
+    "good": "अच्छा",
+    "mixed": "मिश्रित",
+    "challenging": "सावधान रहें"
+  },
+  "planets": {
+    "Su": "सूर्य",
+    "Mo": "चंद्र",
+    "Ma": "मंगल",
+    "Me": "बुध",
+    "Ju": "गुरु",
+    "Ve": "शुक्र",
+    "Sa": "शनि",
+    "Ra": "राहु",
+    "Ke": "केतु"
+  },
+  "ordinal": {
+    "1": "1ला",
+    "2": "2रा",
+    "3": "3रा",
+    "4": "4था",
+    "5": "5वां",
+    "6": "6ठा",
+    "7": "7वां",
+    "8": "8वां",
+    "9": "9वां",
+    "10": "10वां",
+    "11": "11वां",
+    "12": "12वां"
+  },
+  "hint": {
+    "line1": "चक्र पर अपनी चंद्र राशि टैप करें।",
+    "line2": "पता नहीं कौन सी है?",
+    "line3": "यह आपकी पश्चिमी सूर्य राशि नहीं है; एक बार जन्म विवरण दें और हम दिखाएँगे।"
+  },
+  "actions": {
+    "findMoonSign": "मेरी चंद्र राशि जानें",
+    "allTwelve": "सभी बारह राशियाँ",
+    "fullReading": "पूरा {sanskrit} राशिफल"
+  },
+  "taalika": {
+    "title": "राशि तालिका",
+    "titleEm": "· आज सभी बारह राशियाँ",
+    "strongest": "आज सबसे मजबूत: {sanskrit} ({score})",
+    "chandrashtama": "चंद्राष्टम: {sanskrit} — चंद्र 8वें में; नई शुरुआत से बचें"
+  },
+  "method": {
+    "lead": "चंद्र राशि से शास्त्रीय गोचर · Swiss Ephemeris · Lahiri अयनांश · ",
+    "personalLink": "अपनी जन्म कुंडली से व्यक्तिगत बनाएँ"
+  },
+  "deepDive": {
+    "weekTitle": "साप्ताहिक",
+    "weekTitleEm": "· {sanskrit} का आगे का सप्ताह",
+    "weekCaptionBest": "सर्वोत्तम दिन: {day} ({score}) — {headline}.",
+    "weekCaptionTail": "छायांकित दिन चंद्राष्टम हैं। ☽ {sanskrit} से चंद्र का भाव दिखाता है।",
+    "chandraTitle": "चंद्राष्टम",
+    "chandraTitleNow": "अभी चल रहा है",
+    "chandraTitleNext": "अगली अवधि",
+    "chandraNow": "अभी",
+    "chandraWhen": "{start} → {end}",
+    "chandraText": "चंद्र {transitRashi} में, {sanskrit} से 8वीं राशि में, गुजरता है। इन ~2½ दिनों में नियमित कार्य रखें: लॉन्च, बड़ी खरीद, लंबी यात्रा और विवाद से बचें।",
+    "swabhavTitle": "राशि स्वभाव",
+    "swabhavTitleEm": "· {sanskrit} की प्रकृति",
+    "lordLine": "राशि स्वामी · {lord} ({lordHindi})",
+    "upayaFor": "{sanskrit} के लिए उपाय",
+    "weekDayToday": "आज",
+    "weekDayTomorrow": "कल"
+  },
+  "signGrid": {
+    "title": "आज सभी बारह चंद्र राशियाँ"
+  },
+  "faq": {
+    "title": "दैनिक राशिफल के बारे में",
+    "note": "यह सामान्य पढ़ाई है जो {name} चंद्र वाले सभी के लिए एक जैसी है।",
+    "noteLink": "आज की पढ़ाई",
+    "items": [
+      {
+        "q": "क्या यह राशिफल सूर्य या चंद्र राशि पर आधारित है?",
+        "a": "वैदिक ज्योतिष दैनिक राशिफल चंद्र राशि से पढ़ता है — जन्म समय पर चंद्र की साइडेरियल राशि। यह अक्सर पश्चिमी सूर्य राशि से भिन्न होती है।"
+      },
+      {
+        "q": "आज का राशिफल कैसे निकाला जाता है?",
+        "a": "हम Swiss Ephemeris (Lahiri अयनांश) से आज के वास्तविक ग्रह स्थान लेते हैं और आपकी चंद्र राशि से गिनती कर, BPHS और फलदीपिका की शास्त्रीय गोचर तालिकाएँ और वेध लागू करते हैं। एक दिन के लिए चंद्र की चाल सबसे अधिक महत्व रखती है।"
+      },
+      {
+        "q": "अपनी चंद्र राशि कैसे जानूँ?",
+        "a": "मुफ्त Vedaansh जन्म कुंडली में जन्म तिथि, समय और स्थान दर्ज करें। आपकी चंद्र राशि (चंद्र राशि) कुंडली सारांश में दिखती है।"
+      }
+    ]
+  },
+  "breadcrumb": {
+    "home": "होम",
+    "dailyHoroscope": "दैनिक राशिफल",
+    "signToday": "{name} का आज का राशिफल"
+  },
+  "meta": {
+    "fallbackTitle": "दैनिक राशिफल",
+    "title": "{name} ({sanskrit}) आज का राशिफल — वैदिक दैनिक राशिफल",
+    "description": "{name} चंद्र राशि ({sanskrit}) के लिए आज का वैदिक राशिफल: करियर, प्रेम, धन और स्वास्थ्य स्कोर, शुभ रंग, अंक और उपाय।",
+    "keywords": ["{name} आज का राशिफल", "{sanskrit} राशिफल", "दैनिक राशिफल", "वैदिक राशिफल", "चंद्र राशि राशिफल", "गोचर"],
+    "ogTitleSuffix": " | Vedaansh",
+    "hiTitle": "{name} ({sanskrit}) आज का राशिफल — वैदिक दैनिक राशिफल",
+    "hiDescription": "{name} चंद्र राशि ({sanskrit}) के लिए आज का वैदिक राशिफल: करियर, प्रेम, धन और स्वास्थ्य स्कोर, शुभ रंग, अंक और उपाय।",
+    "hiKeywords": ["{name} आज का राशिफल", "{sanskrit} राशिफल", "दैनिक राशिफल", "वैदिक राशिफल", "चंद्र राशि राशिफल", "गोचर"]
+  },
+  "placeDefault": "उज्जैन"
+}

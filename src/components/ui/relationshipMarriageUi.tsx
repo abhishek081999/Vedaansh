@@ -7,6 +7,9 @@
 
 import { Link } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import { RadarChart, VizCard } from '@/components/ui/viz'
 import {
   Briefcase,
@@ -60,6 +63,7 @@ function scoreTone(score: number): LifeTone {
 }
 
 function OverallRing({ score }: { score: number }) {
+  const t = useTranslations('relationshipMarriage.hero')
   const clamped = Math.max(0, Math.min(10, score))
   const offset = RING_CIRCUMFERENCE * (1 - clamped / 10)
   const ringVars = {
@@ -70,7 +74,7 @@ function OverallRing({ score }: { score: number }) {
     <div
       className={`${s.ring} ${toneClass(scoreTone(score))}`}
       role="img"
-      aria-label={`Overall outlook ${score.toFixed(1)} out of 10, the average of five factors`}
+      aria-label={t('overallAria', { score: score.toFixed(1) })}
     >
       <svg className={s.ringSvg} viewBox="0 0 120 120" aria-hidden>
         <circle className={s.ringTrack} cx="60" cy="60" r={RING_RADIUS} fill="none" strokeWidth="8" />
@@ -88,8 +92,8 @@ function OverallRing({ score }: { score: number }) {
       </svg>
       <div className={s.ringCenter}>
         <span className={s.ringNumber}>{score.toFixed(1)}</span>
-        <span className={s.ringOutOf}>of 10</span>
-        <span className={s.ringCaption}>Overall</span>
+        <span className={s.ringOutOf}>{t('of10')}</span>
+        <span className={s.ringCaption}>{t('overall')}</span>
       </div>
     </div>
   )
@@ -104,32 +108,37 @@ export function MarriageHero({
   chart: ChartOutput
   embedded: boolean
 }) {
+  const t = useTranslations('relationshipMarriage.hero')
+  const { hi } = useLang()
   const { seventh } = data
   const average = data.dimensions.length
     ? data.dimensions.reduce((sum, d) => sum + d.score, 0) / data.dimensions.length
     : 0
   const venusCard = data.significators.find(x => x.id === 'venus')
   const d9Asc = chart.vargaLagnas?.D9
+  const seventhValue = seventh.occupants.length
+    ? `${seventh.signName}${t('with', { names: seventh.occupants.join(', ') })}`
+    : `${seventh.signName}${t('empty')}`
   const chips: { key: string; value: string }[] = [
-    {
-      key: '7th house',
-      value: `${seventh.signName}${seventh.occupants.length ? ` with ${seventh.occupants.join(', ')}` : ', empty'}`,
-    },
-    { key: '7th lord', value: `${seventh.lordName} in house ${seventh.lordHouse}` },
+    { key: t('chip7th'), value: seventhValue },
+    { key: t('chip7thLord'), value: t('lordInHouse', { lord: seventh.lordName, house: seventh.lordHouse }) },
   ]
-  if (venusCard && venusCard.placement !== 'Unavailable') chips.push({ key: 'Venus', value: venusCard.placement })
-  if (d9Asc) chips.push({ key: 'Navamsha lagna', value: RASHI_NAMES[d9Asc] })
+  if (venusCard && venusCard.placement !== 'Unavailable') chips.push({ key: t('chipVenus'), value: venusCard.placement })
+  if (d9Asc) {
+    const sign = hi ? termHi(RASHI_NAMES[d9Asc]) : RASHI_NAMES[d9Asc]
+    chips.push({ key: t('chipD9'), value: sign })
+  }
 
   return (
     <header className={s.hero}>
       <div className={s.heroBody}>
         <p className={s.eyebrow}>
           <Heart size={13} aria-hidden />
-          Relationship and marriage
+          {t('eyebrow')}
         </p>
         <h2 className={s.headline}>{data.headline}</h2>
         <p className={s.lede}>{data.summary}</p>
-        <ul className={s.chips} aria-label="Key placements">
+        <ul className={s.chips} aria-label={t('chipsAria')}>
           {chips.map(c => (
             <li key={c.key} className={s.chip}>
               <span className={s.chipKey}>{c.key}</span>
@@ -139,8 +148,9 @@ export function MarriageHero({
         </ul>
         {embedded ? null : (
           <p className={s.handoff}>
-            Solo reading for this chart.{' '}
-            <Link href="/compare">Match with a partner chart</Link> for Kundali Milan.
+            {t.rich('handoff', {
+              link: chunks => <Link href="/compare">{chunks}</Link>,
+            })}
           </p>
         )}
       </div>
@@ -164,6 +174,7 @@ export function MarriageTabs({
   onClientSafe: (value: boolean) => void
   panelId: string
 }) {
+  const t = useTranslations('relationshipMarriage.tabs')
   const refs = useRef<Record<string, HTMLButtonElement | null>>({})
   const listRef = useRef<HTMLDivElement | null>(null)
   const [fade, setFade] = useState({ left: false, right: false })
@@ -212,7 +223,7 @@ export function MarriageTabs({
         onScroll={measure}
         className={`${s.tabs} ${fade.left ? s.fadeLeft : ''} ${fade.right ? s.fadeRight : ''}`}
         role="tablist"
-        aria-label="Relationship reading sections"
+        aria-label={t('aria')}
       >
         {views.map((v, i) => {
           const Icon = VIEW_ICONS[v.id]
@@ -251,7 +262,7 @@ export function MarriageTabs({
           onChange={e => onClientSafe(e.target.checked)}
         />
         <span className={s.switchTrack} aria-hidden />
-        Gentle wording
+        {t('gentleWording')}
       </label>
     </div>
   )
@@ -274,19 +285,20 @@ function HouseCard({ icon: Icon, title, tone, reading }: { icon: LucideIcon; tit
 }
 
 export function MarriageOverviewDetails({ data, gender }: { data: MarriedLifeAnalysis; gender?: string }) {
+  const t = useTranslations('relationshipMarriage.overview')
   return (
     <>
       {data.dimensions.length >= 3 && (
-        <VizCard title="Marriage dimensions" caption="Flavor, passion, continuity, blessing and fruit — each scored out of 10">
+        <VizCard title={t('dimensionsTitle')} caption={t('dimensionsCaption')}>
           <RadarChart
             axes={data.dimensions.map(d => d.label)}
             max={10}
             size={200}
-            series={[{ label: 'This chart', values: data.dimensions.map(d => d.score), color: 'var(--gold)' }]}
+            series={[{ label: t('thisChart'), values: data.dimensions.map(d => d.score), color: 'var(--gold)' }]}
           />
         </VizCard>
       )}
-      <SectionLabel>Four questions</SectionLabel>
+      <SectionLabel>{t('fourQuestions')}</SectionLabel>
       <div className={`${s.grid} ${s.gridWide}`}>
         {data.significators.map(sig => {
           const Icon = SIGNIFICATOR_ICONS[sig.id]
@@ -306,11 +318,11 @@ export function MarriageOverviewDetails({ data, gender }: { data: MarriedLifeAna
 
       <article className={s.proposal}>
         <div className={s.houseMark} aria-hidden>
-          <span className={s.houseMarkLabel}>House</span>
+          <span className={s.houseMarkLabel}>{t('houseMark')}</span>
           <span className={s.houseMarkNumber}>{data.proposal.house}</span>
         </div>
         <div className={s.proposalBody}>
-          <SectionLabel>Who brings the proposal</SectionLabel>
+          <SectionLabel>{t('proposal')}</SectionLabel>
           <h4 className={s.proposalTitle}>{data.proposal.relative}</h4>
           <p className={s.proposalText}>{data.proposal.detail}</p>
           <p className={s.bondStyle}>{data.bondStyle}</p>
@@ -318,10 +330,10 @@ export function MarriageOverviewDetails({ data, gender }: { data: MarriedLifeAna
       </article>
 
       <div className={`${s.grid} ${s.gridWide}`}>
-        <HouseCard icon={Home} title="4th house — home" tone={data.fourth.tone} reading={data.fourth.reading} />
+        <HouseCard icon={Home} title={t('house4')} tone={data.fourth.tone} reading={data.fourth.reading} />
         <HouseCard
           icon={Briefcase}
-          title={`10th house — work${gender === 'female' ? ' and mother-in-law' : ''}`}
+          title={gender === 'female' ? t('house10Female') : t('house10')}
           tone={data.tenth.tone}
           reading={data.tenth.reading}
         />
@@ -331,14 +343,13 @@ export function MarriageOverviewDetails({ data, gender }: { data: MarriedLifeAna
 }
 
 export function MarriageLockedCard() {
+  const t = useTranslations('relationshipMarriage.locked')
   return (
     <div className={s.locked}>
       <span className={s.lockedIcon}><Lock size={16} aria-hidden /></span>
       <div>
-        <h4 className={s.lockedTitle}>Full reading is on Gold</h4>
-        <p className={s.lockedText}>
-          Every divisional chart, the four questions, D1 and D9, Venus and Jupiter, the marriage method, the partner, separation, houses, timing, and remedies.
-        </p>
+        <h4 className={s.lockedTitle}>{t('title')}</h4>
+        <p className={s.lockedText}>{t('text')}</p>
       </div>
     </div>
   )

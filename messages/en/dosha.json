@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "Dosha & Upay — Shrap Analysis",
+    "description": "Pitru, Matru, Sarpa, Guru and related Shrap flags, children focus, lending risk, and remedy timing from your Vedic birth chart."
+  },
+  "page": {
+    "loader": "Reading Shrap and Dosha…",
+    "chartRequiredTitle": "Dosha & Upay",
+    "chartRequiredDescription": "Load or create your birth chart to read Pitru, Matru, Sarpa, Guru, and related Shrap flags, plus children focus, lending risk, and remedy timing."
+  },
+  "panel": {
+    "eyebrow": "Shrap · Dosha & Upay",
+    "noAscendant": "This chart has no ascendant, so Shrap / Dosha analysis cannot be read yet.",
+    "navAria": "Shrap desk sections",
+    "featureName": "Dosha and Upay (Shrap)",
+    "gateTitle": "Full Shrap desk is on Gold",
+    "gateBody": "Indicators, effects, remedies, children focus, addiction signatures, lending risk, and Jupiter remedy timing."
+  },
+  "views": {
+    "overview": { "label": "Overview", "hint": "Active flags, summary table, teaching note" },
+    "doshas": { "label": "Shrap / Doshas", "hint": "Pitru, Matru, Sarpa, Guru, Brahmin, Stri/Kanya" },
+    "children": { "label": "Children & Focus", "hint": "Study focus and dasha house pull" },
+    "addiction": { "label": "Addiction", "hint": "House and planet signatures — not a diagnosis" },
+    "lending": { "label": "Lending", "hint": "6th-house money recovery risk" },
+    "remedies": { "label": "Remedies & Jupiter", "hint": "Prioritized upay and remedy duration" }
+  },
+  "severity": {
+    "clear": "Clear",
+    "watch": "Watch",
+    "strong": "Strong"
+  },
+  "labels": {
+    "indicators": "Indicators",
+    "typicalEffects": "Typical effects",
+    "remedies": "Remedies",
+    "priorityRemedies": "Priority remedies",
+    "combinations": "Combinations",
+    "planetSignatures": "Planet signatures",
+    "beforeLend": "Before you lend",
+    "prioritizedStack": "Prioritized stack",
+    "houseN": "House {n}",
+    "flagged": "Flagged",
+    "quiet": "Quiet",
+    "active": "Active",
+    "none": "none",
+    "metaLine": "{planet} · House {house} · Key: {remedy}",
+    "sixthOccupants": "6th occupants: {list}",
+    "duration": "Recommended duration: <b>{days} days</b> (standard {standard})"
+  },
+  "table": {
+    "dosha": "Dosha",
+    "planet": "Planet",
+    "house": "House",
+    "keyRemedy": "Key remedy",
+    "status": "Status",
+    "jupiterCondition": "Jupiter condition",
+    "effectOnRemedies": "Effect on remedies",
+    "now": "Now"
+  }
+}

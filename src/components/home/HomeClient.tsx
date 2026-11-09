@@ -1296,19 +1296,30 @@ function HomeContent() {
       router.push('/?new=true')
       return
     }
+    const fallbackParams = new URLSearchParams({
+      name: String(defaultChart.name ?? ''),
+      birthDate: String(defaultChart.birthDate ?? ''),
+      birthTime: String(defaultChart.birthTime ?? ''),
+      birthPlace: String(defaultChart.birthPlace ?? ''),
+      lat: String(defaultChart.latitude ?? ''),
+      lng: String(defaultChart.longitude ?? ''),
+      tz: String(defaultChart.timezone ?? ''),
+    })
+    if (defaultChart.chartId) fallbackParams.set('chartId', String(defaultChart.chartId))
+
     setLoading(true)
     try {
       const res = await fetch('/api/chart/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...defaultChart,
-            settings: { ...userPrefs, ...defaultChart.settings },
-            _t: Date.now(), // Cache buster
-          }),
+        body: JSON.stringify({
+          ...defaultChart,
+          settings: { ...userPrefs, ...defaultChart.settings },
+          _t: Date.now(), // Cache buster
+        }),
       })
-      const json = await res.json()
-      if (json.success) {
+      const json = await res.json().catch(() => null)
+      if (res.ok && json?.success) {
         setChart(json.data)
         setFreshNewChart(false)
         if (Array.isArray(defaultChart?.tags)) {
@@ -1326,9 +1337,14 @@ function HomeContent() {
         })
         if (defaultChart.chartId) params.set('chartId', String(defaultChart.chartId))
         router.push(`/?${params.toString()}`)
+        return
       }
+      console.error('Default chart load failed', res.status, json?.error ?? json)
+      // Birth data is already known — open the workspace from URL params instead.
+      router.push(`/?${fallbackParams.toString()}`)
     } catch (error) {
       console.error('Default chart load failed', error)
+      router.push(`/?${fallbackParams.toString()}`)
     } finally {
       setLoading(false)
     }

@@ -1,14 +1,22 @@
 import type { Metadata } from 'next'
+import { IntlScope } from '@/components/providers/IntlScope'
+import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { SITE_URL } from '@/lib/seo/site'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
-
-export const metadata: Metadata = {
-  title:       'Forgot Password — Vedaansh',
+const metadataEn: Metadata = {
+  title: 'Forgot Password — Vedaansh',
   description: 'Reset your Vedaansh account password.',
-  alternates:  { canonical: `${BASE_URL}/forgot` },
-  robots:      { index: false, follow: false },
+  alternates: { canonical: `${SITE_URL}/forgot` },
+  robots: { index: false, follow: false },
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return localizeMetadata('/forgot', await pageLocale(), metadataEn, {
+    title: 'पासवर्ड भूल गए — Vedaansh',
+    description: 'अपने Vedaansh खाते का पासवर्ड रीसेट करें।',
+  })
 }
 
 export default function ForgotLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <IntlScope namespaces={['auth']}>{children}</IntlScope>
 }

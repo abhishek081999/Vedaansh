@@ -5,8 +5,19 @@ import React, { useState } from 'react'
 import { signIn, getSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { useTranslations } from 'next-intl'
 import { Alert, Button, Card, Field } from '@/components/ui/primitives'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
+
+function loginErrorFromParam(
+  errorParam: string,
+  t: ReturnType<typeof useTranslations<'auth.login'>>,
+): string {
+  if (errorParam === 'CredentialsSignin') return t('errors.invalid')
+  if (errorParam === 'OAuthAccountNotLinked') return t('errors.oauthLinked')
+  if (errorParam === 'OAuthCallback' || errorParam === 'OAuthSignin') return t('errors.oauthFailed')
+  return t('errors.failed')
+}
 
 function LoginContent() {
   const router = useRouter()
@@ -14,20 +25,16 @@ function LoginContent() {
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const errorParam = searchParams.get('error')
 
+  const t = useTranslations('auth.login')
+  const tShared = useTranslations('auth.shared')
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(() => {
-    if (errorParam === 'CredentialsSignin') return 'Invalid email or password'
-    if (errorParam === 'OAuthAccountNotLinked') {
-      return 'This email already has a password account. Sign in with email and password, or use the same Google account that matches that email.'
-    }
-    if (errorParam === 'OAuthCallback' || errorParam === 'OAuthSignin') {
-      return 'Google sign-in failed. Please try again.'
-    }
-    if (errorParam) return 'Sign in failed. Please try again.'
-    return null
-  })
+  const [error, setError] = useState<string | null>(null)
+
+  const paramError = errorParam ? loginErrorFromParam(errorParam, t) : null
+  const displayError = error ?? paramError
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -44,11 +51,11 @@ function LoginContent() {
 
       if (!result?.ok || result?.error) {
         if (result?.error === 'CredentialsSignin') {
-          setError('Invalid email or password')
+          setError(t('errors.invalid'))
         } else if (result?.error === 'MissingCSRF') {
-          setError('Session expired. Refresh the page and try again.')
+          setError(t('errors.csrf'))
         } else {
-          setError(result?.error ?? 'Sign in failed. Please try again.')
+          setError(result?.error ?? t('errors.failed'))
         }
       } else {
         await getSession()
@@ -56,7 +63,7 @@ function LoginContent() {
         router.refresh()
       }
     } catch {
-      setError('An unexpected error occurred')
+      setError(tShared('unexpected'))
     } finally {
       setLoading(false)
     }
@@ -66,21 +73,19 @@ function LoginContent() {
     <div className="fade-up" style={{ width: '100%', maxWidth: 420 }}>
       <Card padding="2.5rem 2rem">
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Welcome Back</h1>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-            Sign in to access your saved charts and cosmic insights.
-          </p>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{t('title')}</h1>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>{t('subtitle')}</p>
         </div>
 
-        {error ? <Alert style={{ marginBottom: '1.5rem' }}>{error}</Alert> : null}
+        {displayError ? <Alert style={{ marginBottom: '1.5rem' }}>{displayError}</Alert> : null}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <Field
-            label="Email Address"
+            label={tShared('email')}
             id="login-email"
             type="email"
             required
-            placeholder="name@example.com"
+            placeholder={tShared('emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
@@ -88,9 +93,11 @@ function LoginContent() {
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <label className="field-label" htmlFor="login-password">Password</label>
+              <label className="field-label" htmlFor="login-password">
+                {tShared('password')}
+              </label>
               <Link href="/forgot" style={{ fontSize: '0.72rem', color: 'var(--gold)', textDecoration: 'none' }}>
-                Forgot?
+                {t('forgot')}
               </Link>
             </div>
             <input
@@ -112,7 +119,7 @@ function LoginContent() {
             fullWidth
             style={{ marginTop: '0.5rem' }}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? t('submitting') : t('submit')}
           </Button>
         </form>
 
@@ -130,13 +137,13 @@ function LoginContent() {
             <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
             <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
-          Continue with Google
+          {tShared('continueGoogle')}
         </button>
 
         <p style={{ textAlign: 'center', fontSize: '0.82rem', marginTop: '1.5rem', color: 'var(--text-muted)' }}>
-          Don&apos;t have an account?{' '}
+          {t('noAccount')}{' '}
           <Link href="/signup" style={{ color: 'var(--gold)', fontWeight: 600, textDecoration: 'none' }}>
-            Sign Up
+            {tShared('signUp')}
           </Link>
         </p>
       </Card>

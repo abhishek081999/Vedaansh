@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { generateMuhurtaHTML } from '@/lib/pdf/muhurtaHtml'
 import type { MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis'
 import { MUHURTA_ACTIVITIES } from '@/lib/engine/muhurtaAnalysis'
+import type { EngineLang } from '@/lib/engine/lang'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,7 @@ const bodySchema = z.object({
     .max(60)
     .optional(),
   personalNote: z.string().max(500).optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -65,10 +67,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const lang: EngineLang = parsed.data.lang === 'hi' ? 'hi' : 'en'
     const html = generateMuhurtaHTML({
       activity: parsed.data.activity,
       locationName: parsed.data.locationName,
-      generatedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      generatedAt: new Date().toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN', {
+        timeZone: 'Asia/Kolkata',
+      }),
+      lang,
       peak: parsed.data.peak
         ? {
             time: parsed.data.peak.time,

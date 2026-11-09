@@ -22,7 +22,7 @@ export const QUALITY_COLOR: Record<CompoundQuality, string> = {
   warning: 'var(--rose)',
 }
 
-export function HarmonyPill({ harmony }: { harmony: Harmony }) {
+export function HarmonyPill({ harmony, label }: { harmony: Harmony; label?: string }) {
   const color = HARMONY_COLOR[harmony]
   return (
     <span style={{
@@ -30,7 +30,7 @@ export function HarmonyPill({ harmony }: { harmony: Harmony }) {
       border: `1px solid ${color}`, color, letterSpacing: '0.05em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
-      {HARMONY_LABEL[harmony]}
+      {label ?? HARMONY_LABEL[harmony]}
     </span>
   )
 }

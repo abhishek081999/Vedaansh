@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import React, { useCallback, useEffect, useState } from 'react'
 
 interface MilanCardData {
@@ -23,15 +25,21 @@ interface Pagination {
   pages: number
 }
 
-function fmtDate(iso: string): string {
+function fmtDate(iso: string, hi: boolean): string {
   const d = new Date(`${iso.slice(0, 10)}T12:00:00Z`)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   if (Number.isNaN(d.getTime())) return iso
-  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  return d.toLocaleDateString(hi ? 'hi-IN' : 'en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 }
 
 export function SavedMilanLibrary() {
   const router = useRouter()
+  const { hi } = useLang()
+  const t = useTranslations('compare.saved')
   const [milans, setMilans] = useState<MilanCardData[]>([])
   const [pag, setPag] = useState<Pagination | null>(null)
   const [page, setPage] = useState(1)
@@ -53,15 +61,15 @@ export function SavedMilanLibrary() {
         router.push('/login?callbackUrl=/my/charts')
         return
       }
-      if (!json.success) throw new Error(json.error || 'Could not load your saved matches. Please try again.')
+      if (!json.success) throw new Error(json.error || t('loadFailed'))
       setMilans((json.milans ?? []).map((m: MilanCardData) => ({ ...m, _id: String(m._id) })))
       setPag(json.pagination)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Could not load your saved matches. Please try again.')
+      setError(e instanceof Error ? e.message : t('loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [router, t])
 
   useEffect(() => {
     const handle = window.setTimeout(() => { void load(page, search) }, search ? 300 : 0)
@@ -81,26 +89,26 @@ export function SavedMilanLibrary() {
       <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
         <input
           className="input"
-          placeholder="Search saved matches…"
+          placeholder={t('searchPlaceholder')}
           value={search}
           onChange={e => { setPage(1); setSearch(e.target.value) }}
           style={{ flex: 1, minWidth: 220, height: 46, borderRadius: 'var(--r-lg)' }}
         />
         <Link href="/compare" className="btn btn-primary" style={{ height: 40, padding: '0 1.25rem', display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 800 }}>
-          + New match
+          {t('newMatch')}
         </Link>
       </div>
 
       {pag && (
         <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '1rem' }}>
-          {pag.total} match{pag.total === 1 ? '' : 'es'} saved
+          {t(pag.total === 1 ? 'countOne' : 'countMany', { count: pag.total })}
         </div>
       )}
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
           <div className="spin-loader" style={{ width: 32, height: 32, margin: '0 auto 1rem', border: '3px solid var(--border)', borderTopColor: 'var(--gold)' }} />
-          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Loading your saved matches…</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>{t('loading')}</div>
         </div>
       )}
 
@@ -113,9 +121,9 @@ export function SavedMilanLibrary() {
       {!loading && !error && milans.length === 0 && (
         <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-            {search ? 'No matches with that name' : 'No saved matches yet'}
+            {search ? t('emptySearch') : t('emptyNone')}
           </p>
-          <Link href="/compare" className="btn btn-primary" style={{ marginTop: '1rem' }}>Match two charts</Link>
+          <Link href="/compare" className="btn btn-primary" style={{ marginTop: '1rem' }}>{t('matchTwoCharts')}</Link>
         </div>
       )}
 
@@ -128,10 +136,10 @@ export function SavedMilanLibrary() {
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-gold)', fontWeight: 700 }}>{milan.gunaTotal}/36</span>
               </div>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {milan.personA.name} · {fmtDate(milan.personA.birthDate)} · {milan.personA.birthPlace}
+                {milan.personA.name} · {fmtDate(milan.personA.birthDate, hi)} · {milan.personA.birthPlace}
               </p>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {milan.personB.name} · {fmtDate(milan.personB.birthDate)} · {milan.personB.birthPlace}
+                {milan.personB.name} · {fmtDate(milan.personB.birthDate, hi)} · {milan.personB.birthPlace}
               </p>
               <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.25rem' }}>
                 <button
@@ -140,12 +148,12 @@ export function SavedMilanLibrary() {
                   disabled={openingId === milan._id}
                   onClick={() => { setOpeningId(milan._id); router.push(`/compare?milanId=${milan._id}`) }}
                 >
-                  {openingId === milan._id ? 'Opening…' : 'Open'}
+                  {openingId === milan._id ? t('opening') : t('open')}
                 </button>
                 {confirmId === milan._id ? (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void handleDelete(milan._id)}>Yes, delete</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void handleDelete(milan._id)}>{t('yesDelete')}</button>
                 ) : (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmId(milan._id)}>Remove</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmId(milan._id)}>{t('remove')}</button>
                 )}
               </div>
             </article>

@@ -3,6 +3,8 @@
 // Complements North-Indian Ashtakoot — pure engine.
 
 import { getGanaName, getLord, getVashyaName, getYoniName } from '@/lib/engine/ashtakoot'
+import type { EngineLang } from '@/lib/engine/lang'
+import { POR_HI } from '@/lib/engine/locale/porutham.hi'
 
 export interface PoruthamItem {
   name: string
@@ -74,6 +76,7 @@ export function calculatePorutham(
   boySign: number,
   girlNak: number,
   girlSign: number,
+  lang: EngineLang = 'en',
 ): PoruthamResult {
   const items: PoruthamItem[] = []
 
@@ -84,8 +87,8 @@ export function calculatePorutham(
     sanskrit: 'தினம் / दिन',
     matched: dina,
     detail: dina
-      ? 'Bride→Groom Tara is Shubh (not Vipat/Pratyari/Vadha).'
-      : 'Bride→Groom Tara falls in Vipat / Pratyari / Vadha — traditionally refused.',
+      ? (lang === 'en' ? 'Bride→Groom Tara is Shubh (not Vipat/Pratyari/Vadha).' : POR_HI.items.Dina.ok)
+      : (lang === 'en' ? 'Bride→Groom Tara falls in Vipat / Pratyari / Vadha — traditionally refused.' : POR_HI.items.Dina.bad),
     weight: 'important',
   })
 
@@ -106,7 +109,9 @@ export function calculatePorutham(
     name: 'Gana',
     sanskrit: 'கணம் / गण',
     matched: ganaOk,
-    detail: `${gB} (groom) × ${gG} (bride) — ${ganaOk ? 'acceptable temperament' : 'Gana mismatch'}.`,
+    detail: lang === 'en'
+      ? `${gB} (groom) × ${gG} (bride) — ${ganaOk ? 'acceptable temperament' : 'Gana mismatch'}.`
+      : POR_HI.items.Gana(gB, gG, ganaOk),
     weight: 'important',
   })
 
@@ -117,7 +122,9 @@ export function calculatePorutham(
     name: 'Mahendra',
     sanskrit: 'மகேந்திரம்',
     matched: mahendra,
-    detail: `Count bride→groom = ${mahCount}. Mahendra wants 4/7/10/13/16/19/22/25 — progeny & longevity favour.`,
+    detail: lang === 'en'
+      ? `Count bride→groom = ${mahCount}. Mahendra wants 4/7/10/13/16/19/22/25 — progeny & longevity favour.`
+      : POR_HI.items.Mahendra(mahCount, mahendra),
     weight: 'supportive',
   })
 
@@ -127,9 +134,11 @@ export function calculatePorutham(
     name: 'Stree Deergha',
     sanskrit: 'ஸ்த்ரீ தீர்க்கம்',
     matched: stree,
-    detail: stree
-      ? `Distance ${mahCount} ≥ 13 — bride’s prosperity / long married life favoured.`
-      : `Distance ${mahCount} < 13 — Stree Deergha weak in strict schools.`,
+    detail: lang === 'en'
+      ? (stree
+        ? `Distance ${mahCount} ≥ 13 — bride’s prosperity / long married life favoured.`
+        : `Distance ${mahCount} < 13 — Stree Deergha weak in strict schools.`)
+      : POR_HI.items['Stree Deergha'](mahCount, stree),
     weight: 'supportive',
   })
 
@@ -139,7 +148,9 @@ export function calculatePorutham(
     name: 'Yoni',
     sanskrit: 'யோனி',
     matched: yp >= 2,
-    detail: `${getYoniName(boyNak)} × ${getYoniName(girlNak)} (${yp}/4). Enemy yoni fails Porutham.`,
+    detail: lang === 'en'
+      ? `${getYoniName(boyNak)} × ${getYoniName(girlNak)} (${yp}/4). Enemy yoni fails Porutham.`
+      : POR_HI.items.Yoni(getYoniName(boyNak), getYoniName(girlNak), yp),
     weight: 'critical',
   })
 
@@ -150,7 +161,9 @@ export function calculatePorutham(
     name: 'Rasi',
     sanskrit: 'ராசி',
     matched: rasiOk,
-    detail: `Groom Moon is ${boyFromGirl}th from bride Moon — ${rasiOk ? 'acceptable' : '6/8 Rasi dosha'}.`,
+    detail: lang === 'en'
+      ? `Groom Moon is ${boyFromGirl}th from bride Moon — ${rasiOk ? 'acceptable' : '6/8 Rasi dosha'}.`
+      : POR_HI.items.Rasi(boyFromGirl, rasiOk),
     weight: 'critical',
   })
 
@@ -168,7 +181,9 @@ export function calculatePorutham(
     name: 'Rasyadhipati',
     sanskrit: 'ராசியதிபதி',
     matched: rasyadhi,
-    detail: `Moon lords ${lB} × ${lG} — ${rasyadhi ? 'friendly / same' : 'not mutual friends'}.`,
+    detail: lang === 'en'
+      ? `Moon lords ${lB} × ${lG} — ${rasyadhi ? 'friendly / same' : 'not mutual friends'}.`
+      : POR_HI.items.Rasyadhipati(lB, lG, rasyadhi),
     weight: 'important',
   })
 
@@ -180,7 +195,9 @@ export function calculatePorutham(
     name: 'Vasya',
     sanskrit: 'வசியம்',
     matched: vasya,
-    detail: `${vB} × ${vG} — mutual influence ${vasya ? 'workable' : 'harsh'}.`,
+    detail: lang === 'en'
+      ? `${vB} × ${vG} — mutual influence ${vasya ? 'workable' : 'harsh'}.`
+      : POR_HI.items.Vasya(vB, vG, vasya),
     weight: 'supportive',
   })
 
@@ -192,9 +209,11 @@ export function calculatePorutham(
     name: 'Rajju',
     sanskrit: 'ரஜ்ஜு',
     matched: rajju,
-    detail: rajju
-      ? `${rB} × ${rG} — different rajju (good).`
-      : `Same ${rB} rajju — traditionally avoided (body-region difficult influence).`,
+    detail: lang === 'en'
+      ? (rajju
+        ? `${rB} × ${rG} — different rajju (good).`
+        : `Same ${rB} rajju — traditionally avoided (body-region difficult influence).`)
+      : POR_HI.items.Rajju(rB, rG, rajju),
     weight: 'critical',
   })
 
@@ -207,8 +226,8 @@ export function calculatePorutham(
     sanskrit: 'வேதை',
     matched: !vedha,
     detail: vedha
-      ? 'Nakshatras form classical Vedha pair — obstruction to harmony.'
-      : 'No Vedha between birth stars.',
+      ? (lang === 'en' ? 'Nakshatras form classical Vedha pair — obstruction to harmony.' : POR_HI.items.Vedha.bad)
+      : (lang === 'en' ? 'No Vedha between birth stars.' : POR_HI.items.Vedha.ok),
     weight: 'critical',
   })
 
@@ -220,11 +239,14 @@ export function calculatePorutham(
   else if (matchedCount >= 5) scoreLabel = 'Average'
   else scoreLabel = 'Challenging'
 
+  const hiLabel = POR_HI.score[scoreLabel] ?? scoreLabel
   return {
     items,
     matchedCount,
     total: 10,
-    scoreLabel,
-    summary: `${matchedCount}/10 Poruthams matched (${scoreLabel}). Critical fails: ${criticalFail}. South-Indian school — compare with North Ashtakoot side-by-side.`,
+    scoreLabel: lang === 'en' ? scoreLabel : hiLabel,
+    summary: lang === 'en'
+      ? `${matchedCount}/10 Poruthams matched (${scoreLabel}). Critical fails: ${criticalFail}. South-Indian school — compare with North Ashtakoot side-by-side.`
+      : POR_HI.summary(matchedCount, hiLabel, criticalFail),
   }
 }

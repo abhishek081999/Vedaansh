@@ -78,6 +78,13 @@ describe('MUHURTA_ACTIVITIES', () => {
 })
 
 describe('analyzeMuhurta', () => {
+  it('keeps English output byte-identical when lang=en', () => {
+    const p = basePanchang()
+    const implicit = analyzeMuhurta('GENERAL', p, natal)
+    const explicit = analyzeMuhurta('GENERAL', p, natal, 'en')
+    expect(JSON.stringify(explicit)).toBe(JSON.stringify(implicit))
+  })
+
   it('applies Yamaganda penalty', () => {
     const base = analyzeMuhurta('GENERAL', basePanchang(), natal)
     const withYama = analyzeMuhurta('GENERAL', basePanchang({ isYamaganda: true }), natal)

@@ -7,6 +7,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { ArrowRight, Share2 } from 'lucide-react'
 import type {
@@ -21,20 +23,15 @@ import styles from './DailyHoroscope.module.css'
 
 const STORAGE_KEY = 'vedaansh:horoscope-sign'
 
-const PLANET_NAMES: Record<string, string> = {
-  Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury', Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu', Ke: 'Ketu',
-}
 const PLANET_GLYPHS: Record<string, string> = {
   Su: '☉', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋',
-}
-const TONE_LABEL: Record<HoroscopeTone, string> = {
-  excellent: 'Excellent', good: 'Good', mixed: 'Mixed', challenging: 'Take care',
 }
 const COLOR_SWATCH: Record<string, string> = {
   Saffron: '#f4a03a', 'Pearl white': '#efe9dc', 'Coral red': '#e0604e', 'Emerald green': '#2f9e6b',
   'Turmeric yellow': '#e6b422', 'Diamond white': '#f4f1ea', 'Indigo blue': '#3f4fc4', 'Smoky grey': '#8a8f9c', 'Ash brown': '#9c7b62',
 }
-const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']
+
+type HoroscopeCopy = ReturnType<typeof useTranslations<'horoscope'>>
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -44,16 +41,28 @@ function addDays(date: string, n: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-function fmtDate(date: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtDate(date: string, tag: string): string {
+  return new Intl.DateTimeFormat(tag, {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
   }).format(new Date(`${date}T12:00:00Z`))
 }
 
-function fmtTime(iso: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtTime(iso: string, tag: string): string {
+  return new Intl.DateTimeFormat(tag, {
     hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
   }).format(new Date(iso))
+}
+
+function ordinalHouse(t: HoroscopeCopy, house: number): string {
+  return t(`ordinal.${house}` as 'ordinal.1')
+}
+
+function toneLabel(t: HoroscopeCopy, tone: HoroscopeTone): string {
+  return t(`tone.${tone}`)
+}
+
+function planetName(t: HoroscopeCopy, id: string): string {
+  return t(`planets.${id}` as 'planets.Su')
 }
 
 function readStoredSign(): Rashi | null {
@@ -105,10 +114,12 @@ function Chakra({
   report,
   selected,
   onSelect,
+  t,
 }: {
   report: DailyHoroscopeReport
   selected: RashiHoroscope
   onSelect: (r: Rashi) => void
+  t: HoroscopeCopy
 }) {
   const circ = 2 * Math.PI * R_SCORE
   // Mesha spans -15°..15°; the sidereal Moon is drawn on that same frame.
@@ -128,7 +139,7 @@ function Chakra({
   }
 
   return (
-    <svg className={styles.chakra} viewBox="0 0 400 400" role="radiogroup" aria-label="Choose your Moon sign">
+    <svg className={styles.chakra} viewBox="0 0 400 400" role="radiogroup" aria-label={t('aria.chakra')}>
       <defs>
         <radialGradient id="hz-disc" cx="50%" cy="42%" r="60%">
           <stop offset="0%" className={styles.discHi} />
@@ -148,7 +159,12 @@ function Chakra({
             key={s.rashi}
             role="radio"
             aria-checked={active}
-            aria-label={`${s.sanskrit} (${s.english}) — ${TONE_LABEL[s.tone]}, ${s.score} of 100`}
+            aria-label={t('aria.chakraSign', {
+              sanskrit: s.sanskrit,
+              english: s.english,
+              tone: toneLabel(t, s.tone),
+              score: s.score,
+            })}
             tabIndex={active ? 0 : -1}
             className={`${styles.seg} ${active ? styles.segActive : ''}`}
             onClick={() => onSelect(s.rashi)}
@@ -198,23 +214,23 @@ function Chakra({
       </text>
       <text x={C} y={240} className={styles.hubScore} data-tone={selected.tone}>
         {selected.score}
-        <tspan className={styles.hubOf}>/100</tspan>
+        <tspan className={styles.hubOf}>{t('card.scoreOf')}</tspan>
       </text>
       <text x={C} y={258} className={styles.hubTone} data-tone={selected.tone}>
-        {TONE_LABEL[selected.tone].toUpperCase()}
+        {toneLabel(t, selected.tone).toUpperCase()}
       </text>
 
       <g className={styles.moonMark} aria-hidden>
-        <title>{`Moon today · ${report.moonNakshatra.name}`}</title>
+        <title>{t('aria.moonToday', { nakshatra: report.moonNakshatra.name })}</title>
         <circle cx={moon.x} cy={moon.y} r={7} />
       </g>
     </svg>
   )
 }
 
-function Diamonds({ rating, tone }: { rating: number; tone: HoroscopeTone }) {
+function Diamonds({ rating, tone, t }: { rating: number; tone: HoroscopeTone; t: HoroscopeCopy }) {
   return (
-    <span className={styles.diamonds} data-tone={tone} aria-label={`${rating} of 5`}>
+    <span className={styles.diamonds} data-tone={tone} aria-label={t('aria.diamonds', { rating })}>
       {Array.from({ length: 5 }, (_, i) => (
         <span key={i} className={i < rating ? styles.dOn : styles.dOff} aria-hidden>
           {i < rating ? '◆' : '◇'}
@@ -229,11 +245,17 @@ function Card({
   date,
   place,
   detailed,
+  tag,
+  lang,
+  t,
 }: {
   sign: RashiHoroscope
   date: string
   place: string
   detailed: boolean
+  tag: string
+  lang: string
+  t: HoroscopeCopy
 }) {
   const [first, ...rest] = sign.summary
   return (
@@ -241,11 +263,15 @@ function Card({
       <span className={styles.cornerTl} aria-hidden />
       <span className={styles.cornerBr} aria-hidden />
       <p className={styles.kicker}>
-        {sign.sanskrit} Rashi · {sign.english} Moon sign
+        {t('card.kicker', { sanskrit: sign.sanskrit, english: sign.english })}
       </p>
       <h3 className={styles.headline}>{sign.headline}</h3>
       <p className={styles.meta}>
-        {fmtDate(date)} · {sign.element} sign ruled by {PLANET_NAMES[sign.lord]}
+        {t('card.meta', {
+          date: fmtDate(date, tag),
+          element: sign.element,
+          lord: planetName(t, sign.lord),
+        })}
       </p>
       <div className={styles.ornament} aria-hidden>
         <span />◈<span />
@@ -257,13 +283,16 @@ function Card({
       </p>
       {sign.moon.later ? (
         <p className={styles.later}>
-          From {fmtTime(sign.moon.later.at)} the Moon moves into your {ORD[sign.moon.later.house]}:{' '}
-          {sign.moon.later.theme}
+          {t('card.later', {
+            time: fmtTime(sign.moon.later.at, tag),
+            house: ordinalHouse(t, sign.moon.later.house),
+            theme: sign.moon.later.theme,
+          })}
         </p>
       ) : null}
 
       <h4 className={styles.label}>
-        Phala <em>· the day by area</em>
+        {t('card.phala')} <em>{t('card.phalaEm')}</em>
       </h4>
       <ul className={styles.phala}>
         {sign.areas.map((a) => (
@@ -272,25 +301,25 @@ function Card({
               {a.label} <em>{a.sanskrit}</em>
             </span>
             <span className={styles.leader} aria-hidden />
-            <Diamonds rating={a.rating} tone={a.tone} />
+            <Diamonds rating={a.rating} tone={a.tone} t={t} />
           </li>
         ))}
       </ul>
 
       <dl className={styles.shubh}>
         <div>
-          <dt>Shubh rang</dt>
+          <dt>{t('card.shubhRang')}</dt>
           <dd>
             <span className={styles.swatch} style={{ background: COLOR_SWATCH[sign.lucky.color] ?? 'var(--gold)' }} aria-hidden />
             {sign.lucky.color}
           </dd>
         </div>
         <div>
-          <dt>Shubh ank</dt>
+          <dt>{t('card.shubhAnk')}</dt>
           <dd className={styles.ank}>{sign.lucky.number}</dd>
         </div>
         <div>
-          <dt>Disha</dt>
+          <dt>{t('card.disha')}</dt>
           <dd>{sign.lucky.direction}</dd>
         </div>
       </dl>
@@ -298,16 +327,16 @@ function Card({
       {sign.shubhSamay?.length ? (
         <div className={styles.samay}>
           <h4 className={styles.label}>
-            Shubh samay <em>· good hours, {place} time</em>
+            {t('card.shubhSamay')} <em>{t('card.shubhSamayEm', { place })}</em>
           </h4>
           <ul>
             {sign.shubhSamay.map((w) => (
               <li key={w.start}>
                 <span className={styles.samayTime}>
-                  {fmtTime(w.start)} – {fmtTime(w.end)}
+                  {fmtTime(w.start, tag)} – {fmtTime(w.end, tag)}
                 </span>
                 <span className={styles.samayLord}>
-                  {PLANET_GLYPHS[w.lord]} {PLANET_NAMES[w.lord]} hora
+                  {t('card.horaLine', { glyph: PLANET_GLYPHS[w.lord], planet: planetName(t, w.lord) })}
                 </span>
               </li>
             ))}
@@ -318,13 +347,13 @@ function Card({
       <div className={styles.kv}>
         <div>
           <h4 className={styles.label}>
-            Karya <em>· lean into</em>
+            {t('card.karya')} <em>{t('card.karyaEm')}</em>
           </h4>
           <ul>{sign.karya.map((k) => <li key={k}>{k}</li>)}</ul>
         </div>
         <div>
           <h4 className={`${styles.label} ${styles.labelCare}`}>
-            Varjya <em>· go easy on</em>
+            {t('card.varjya')} <em>{t('card.varjyaEm')}</em>
           </h4>
           <ul>{sign.varjya.map((k) => <li key={k}>{k}</li>)}</ul>
         </div>
@@ -333,7 +362,7 @@ function Card({
       <p className={styles.upaya}>
         <span className={styles.upayaMark} aria-hidden>ॐ</span>
         <span>
-          <strong>Upaya · </strong>
+          <strong>{t('card.upaya')}</strong>
           {sign.remedy}
         </span>
       </p>
@@ -341,30 +370,33 @@ function Card({
       {detailed && (
         <>
           <h4 className={styles.label}>
-            Gochara <em>· planets from your Moon sign</em>
+            {t('card.gochara')} <em>{t('card.gocharaEm')}</em>
           </h4>
           <ul className={styles.gochara}>
-            {sign.transits.map((t) => (
-              <li key={t.planet} data-status={t.status}>
-                <span className={styles.gGlyph} aria-hidden>{PLANET_GLYPHS[t.planet]}</span>
+            {sign.transits.map((tr) => (
+              <li key={tr.planet} data-status={tr.status}>
+                <span className={styles.gGlyph} aria-hidden>{PLANET_GLYPHS[tr.planet]}</span>
                 <span>
                   <strong>
-                    {PLANET_NAMES[t.planet]}
-                    {t.retro ? ' (R)' : ''} · {ORD[t.house]}
+                    {t('card.gocharaLine', {
+                      planet: planetName(t, tr.planet),
+                      retro: tr.retro ? t('card.retrograde') : '',
+                      house: ordinalHouse(t, tr.house),
+                    })}
                   </strong>{' '}
-                  {t.note.replace(/^\S+ in your \S+ /, '')}
+                  {lang === 'en' ? tr.note.replace(/^\S+ in your \S+ /, '') : tr.note}
                 </span>
               </li>
             ))}
           </ul>
           <h4 className={styles.label}>
-            Dirgha <em>· the bigger picture</em>
+            {t('card.dirgha')} <em>{t('card.dirghaEm')}</em>
           </h4>
           <ul className={styles.plain}>{sign.longTerm.map((l) => <li key={l}>{l}</li>)}</ul>
           {sign.cautions.length > 0 && (
             <>
               <h4 className={`${styles.label} ${styles.labelCare}`}>
-                Savdhani <em>· notes of care</em>
+                {t('card.savdhani')} <em>{t('card.savdhaniEm')}</em>
               </h4>
               <ul className={styles.plain}>{sign.cautions.map((l) => <li key={l}>{l}</li>)}</ul>
             </>
@@ -380,10 +412,12 @@ function Taalika({
   report,
   selected,
   onSelect,
+  t,
 }: {
   report: DailyHoroscopeReport
   selected: Rashi
   onSelect: (r: Rashi) => void
+  t: HoroscopeCopy
 }) {
   // The sign whose 8th house the Moon occupies today.
   const chandrashtama = (((report.moonRashi + 4) % 12) + 1) as Rashi
@@ -393,7 +427,7 @@ function Taalika({
   return (
     <div className={styles.taalika}>
       <h4 className={styles.label}>
-        Rashi taalika <em>· all twelve rashis today</em>
+        {t('taalika.title')} <em>{t('taalika.titleEm')}</em>
       </h4>
       <ol className={styles.bars}>
         {report.signs.map((s) => (
@@ -404,7 +438,12 @@ function Taalika({
               data-tone={s.tone}
               data-care={s.rashi === chandrashtama || undefined}
               aria-pressed={s.rashi === selected}
-              aria-label={`${s.sanskrit} (${s.english}) ${s.score} of 100${s.rashi === chandrashtama ? ', Chandrashtama' : ''}`}
+              aria-label={t('aria.taalikaBar', {
+                sanskrit: s.sanskrit,
+                english: s.english,
+                score: s.score,
+                chandrashtama: s.rashi === chandrashtama ? t('aria.chandrashtamaSuffix') : '',
+              })}
               onClick={() => onSelect(s.rashi)}
             >
               <span className={styles.barScore}>
@@ -422,11 +461,10 @@ function Taalika({
       </ol>
       <p className={styles.taalikaNote}>
         <span>
-          <b className={styles.noteStar}>★</b> Strongest today: <strong>{top.sanskrit}</strong> ({top.score})
+          <b className={styles.noteStar}>★</b> {t('taalika.strongest', { sanskrit: top.sanskrit, score: top.score })}
         </span>
         <span>
-          <b className={styles.noteCare}>◆</b> Chandrashtama: <strong>{ch.sanskrit}</strong> — the Moon transits its
-          8th; avoid new starts
+          <b className={styles.noteCare}>◆</b> {t('taalika.chandrashtama', { sanskrit: ch.sanskrit })}
         </span>
       </p>
     </div>
@@ -456,6 +494,8 @@ export function DailyHoroscope({
   onFindMoonSign,
 }: DailyHoroscopeProps) {
   const router = useRouter()
+  const t = useTranslations('horoscope')
+  const { lang, tag } = useLang()
   const isPage = variant === 'page'
   const [reports, setReports] = useState<Partial<Record<Day, DailyHoroscopeReport>>>(
     initialReport ? { today: initialReport } : {},
@@ -466,12 +506,14 @@ export function DailyHoroscope({
   const [shared, setShared] = useState(false)
 
   const load = useCallback(async (which: Day, date?: string, signal?: AbortSignal) => {
-    const qs = date ? `?date=${date}` : ''
-    const res = await fetch(`/api/horoscope/daily${qs}`, { signal })
+    const qs = new URLSearchParams()
+    if (date) qs.set('date', date)
+    qs.set('lang', lang)
+    const res = await fetch(`/api/horoscope/daily?${qs}`, { signal })
     const json = (await res.json()) as { success: boolean; data?: DailyHoroscopeReport }
     if (!json.success || !json.data) throw new Error('horoscope unavailable')
     setReports((prev) => ({ ...prev, [which]: json.data }))
-  }, [])
+  }, [lang])
 
   useEffect(() => {
     if (reports.today) return
@@ -517,9 +559,13 @@ export function DailyHoroscope({
   const share = async () => {
     if (!current) return
     const url = `${window.location.origin}/horoscope/${current.slug}`
-    const text = `${current.english} (${current.sanskrit}) today: ${current.headline}`
+    const text = t('toolbar.shareText', {
+      english: current.english,
+      sanskrit: current.sanskrit,
+      headline: current.headline,
+    })
     try {
-      if (navigator.share) await navigator.share({ title: 'Vedaansh Dainik Rashifal', text, url })
+      if (navigator.share) await navigator.share({ title: t('toolbar.shareTitle'), text, url })
       else {
         await navigator.clipboard.writeText(`${text} — ${url}`)
         setShared(true)
@@ -534,28 +580,22 @@ export function DailyHoroscope({
   const p = report?.panchang
 
   return (
-    <section className={`${styles.shell} ${isPage ? styles.shellPage : ''}`} aria-label="Daily horoscope by Moon sign">
+    <section className={`${styles.shell} ${isPage ? styles.shellPage : ''}`} aria-label={t('aria.section')}>
       {isPage && current ? (
         <header className={styles.pageHead}>
-          <p className={styles.pageKicker}>Dainik Rashifal</p>
+          <p className={styles.pageKicker}>{t('page.kicker')}</p>
           <h1 className={styles.pageTitle}>
-            {current.english} horoscope today <span>{current.sanskrit} Rashi</span>
+            {t('page.title', { english: current.english })}{' '}
+            <span>{t('page.titleRashi', { sanskrit: current.sanskrit })}</span>
           </h1>
         </header>
       ) : !isPage ? (
-        <VedicSectionHeader
-          kicker="Dainik Rashifal"
-          title="Today’s horoscope for every rashi"
-          theme="gold"
-        />
+        <VedicSectionHeader kicker={t('landing.kicker')} title={t('landing.title')} theme="gold" />
       ) : null}
-      <p className={styles.intro}>
-        Read from your Moon sign (Janma Rashi), the way Vedic astrology does it: live grahas, the classical gochar
-        tables and today&rsquo;s panchang.
-      </p>
+      <p className={styles.intro}>{t('intro')}</p>
 
       <div className={styles.toolbar}>
-        <div className={styles.tabs} role="tablist" aria-label="Day">
+        <div className={styles.tabs} role="tablist" aria-label={t('aria.dayTabs')}>
           {(['today', 'tomorrow'] as Day[]).map((d) => (
             <button
               key={d}
@@ -565,32 +605,40 @@ export function DailyHoroscope({
               className={`${styles.tab} ${day === d ? styles.tabActive : ''}`}
               onClick={() => setDay(d)}
             >
-              {d === 'today' ? 'Aaj · Today' : 'Kal · Tomorrow'}
+              {t(`tabs.${d}`)}
             </button>
           ))}
         </div>
         <span className={styles.readAt}>
-          {report ? `${fmtDate(report.date)}, read at sunrise` : 'Reading the sky…'}
+          {report ? t('toolbar.readAtSunrise', { date: fmtDate(report.date, tag) }) : t('toolbar.readingSky')}
         </span>
         <button type="button" className={styles.share} onClick={share} disabled={!current}>
           <Share2 size={13} aria-hidden />
-          {shared ? 'Link copied' : 'Share'}
+          {shared ? t('toolbar.linkCopied') : t('toolbar.share')}
         </button>
       </div>
 
-      {p && report && isPage ? (        <dl className={styles.strip}>
-          <div><dt>Vara</dt><dd>{p.vara.name}</dd></div>
-          <div><dt>Tithi</dt><dd className={styles.good}>{p.tithi.name.includes(' ') ? p.tithi.name : `${p.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} ${p.tithi.name}`}</dd></div>
+      {p && report && isPage ? (
+        <dl className={styles.strip}>
+          <div><dt>{t('strip.vara')}</dt><dd>{p.vara.name}</dd></div>
           <div>
-            <dt>Chandra</dt>
+            <dt>{t('strip.tithi')}</dt>
+            <dd className={styles.good}>
+              {p.tithi.name.includes(' ')
+                ? p.tithi.name
+                : `${p.tithi.paksha === 'shukla' ? t('strip.pakshaShukla') : t('strip.pakshaKrishna')} ${p.tithi.name}`}
+            </dd>
+          </div>
+          <div>
+            <dt>{t('strip.chandra')}</dt>
             <dd>{report.signs[report.moonRashi - 1].english} · {report.moonNakshatra.name}</dd>
           </div>
           <div>
-            <dt>Yoga</dt>
+            <dt>{t('strip.yoga')}</dt>
             <dd className={p.yoga.quality === 'inauspicious' ? styles.care : styles.good}>{p.yoga.name}</dd>
           </div>
           <div>
-            <dt>Karana</dt>
+            <dt>{t('strip.karana')}</dt>
             <dd className={p.karana.isBhadra ? styles.care : undefined}>{p.karana.name}</dd>
           </div>
         </dl>
@@ -599,10 +647,9 @@ export function DailyHoroscope({
       {report && current ? (
         <div className={styles.layout}>
           <div className={styles.wheelCol}>
-            <Chakra report={report} selected={current} onSelect={pick} />
+            <Chakra report={report} selected={current} onSelect={pick} t={t} />
             <p className={styles.hint}>
-              <em>Tap your Moon sign on the chakra.</em> <strong>Not sure which it is?</strong>{' '}
-              <em>It is not your Western Sun sign; enter your birth details once and we will show it.</em>
+              <em>{t('hint.line1')}</em> <strong>{t('hint.line2')}</strong> <em>{t('hint.line3')}</em>
             </p>
             <div className={styles.wheelActions}>
               {onFindMoonSign ? (
@@ -614,11 +661,11 @@ export function DailyHoroscope({
                     onFindMoonSign()
                   }}
                 >
-                  Find my Moon sign <ArrowRight size={14} aria-hidden />
+                  {t('actions.findMoonSign')} <ArrowRight size={14} aria-hidden />
                 </button>
               ) : (
                 <Link href="/" className={styles.cta} onClick={() => onNavigate?.('horoscope_find_moon_sign')}>
-                  Find my Moon sign <ArrowRight size={14} aria-hidden />
+                  {t('actions.findMoonSign')} <ArrowRight size={14} aria-hidden />
                 </Link>
               )}
               <Link
@@ -626,11 +673,19 @@ export function DailyHoroscope({
                 className={styles.textLink}
                 onClick={() => onNavigate?.('horoscope_full')}
               >
-                {isPage ? 'All twelve rashis' : `Full ${current.sanskrit} reading`}
+                {isPage ? t('actions.allTwelve') : t('actions.fullReading', { sanskrit: current.sanskrit })}
               </Link>
             </div>
           </div>
-          <Card sign={current} date={report.date} place={report.timings?.place ?? 'Ujjain'} detailed={isPage} />
+          <Card
+            sign={current}
+            date={report.date}
+            place={report.timings?.place ?? t('placeDefault')}
+            detailed={isPage}
+            tag={tag}
+            lang={lang}
+            t={t}
+          />
         </div>
       ) : (
         <div className={styles.layout} aria-hidden>
@@ -639,12 +694,12 @@ export function DailyHoroscope({
         </div>
       )}
 
-      {report && current ? <Taalika report={report} selected={current.rashi} onSelect={pick} /> : null}
+      {report && current ? <Taalika report={report} selected={current.rashi} onSelect={pick} t={t} /> : null}
 
       <p className={styles.method}>
-        Classical gochara from the Moon sign · Swiss Ephemeris · Lahiri ayanamsha ·{' '}
+        {t('method.lead')}
         <Link href="/today" onClick={() => onNavigate?.('horoscope_personal')}>
-          make it personal with your birth chart
+          {t('method.personalLink')}
         </Link>
       </p>
     </section>

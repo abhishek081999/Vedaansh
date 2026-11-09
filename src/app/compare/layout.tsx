@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { JsonLd } from '@/components/seo/JsonLd'
+import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
-import { COMPARE_SEO } from '@/lib/seo/intro-content'
+import { compareIntro } from '@/lib/seo/intro-content.hi'
+import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
-export const metadata: Metadata = {
+const metadataEn: Metadata = {
   title:       'Free Kundali Matching — Ashtakoot Guna Milan',
   description: 'Free Kundali matching with 36-point Ashtakoot Guna Milan, dosha exceptions, Venus–Mars chemistry, house-difficult influence matching, and Mangal Dosha checks. No login required.',
   alternates:  { canonical: `${SITE_URL}/compare` },
@@ -24,17 +27,27 @@ export const metadata: Metadata = {
   },
 }
 
-const jsonLd = breadcrumbJsonLd([
-  { name: 'Home', path: '/' },
-  { name: 'Kundali Matching', path: '/compare' },
-])
+export async function generateMetadata(): Promise<Metadata> {
+  return localizeMetadata('/compare', await pageLocale(), metadataEn, {
+    title: 'निःशुल्क कुंडली मिलान — अष्टकूट गुण मिलान',
+    description: '36-गुण अष्टकूट गुण मिलान, दोष-अपवाद, शुक्र–मंगल रसायन और मंगल दोष जाँच — निःशुल्क, बिना लॉगिन।',
+    ogTitle: 'निःशुल्क कुंडली मिलान — Vedaansh',
+    keywords: ['कुंडली मिलान', 'निःशुल्क कुंडली मिलान', 'अष्टकूट', 'गुण मिलान', 'विवाह मिलान', 'मंगल दोष', 'वैदिक मेल'],
+  })
+}
 
 export default async function CompareLayout({ children }: { children: React.ReactNode }) {
+  const locale = await pageLocale()
+  const t = await getTranslations('compare')
+  const jsonLd = breadcrumbJsonLd([
+    { name: t('breadcrumb.home'), path: '/' },
+    { name: t('breadcrumb.matching'), path: '/compare' },
+  ])
   return (
-    <>
+    <IntlScope namespaces={['relationshipMarriage', 'compare']}>
       <JsonLd data={jsonLd} />
       {children}
-      <SeoIntro {...COMPARE_SEO} />
-    </>
+      <SeoIntro {...compareIntro(locale)} />
+    </IntlScope>
   )
 }

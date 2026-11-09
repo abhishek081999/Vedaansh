@@ -4,6 +4,9 @@
 //  so client components can import them.
 // ─────────────────────────────────────────────────────────────
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { FORECAST_AREA_LABELS_HI } from '@/lib/engine/locale/transitForecast.hi'
+
 export type ForecastAreaId = 'career' | 'wealth' | 'relationships' | 'home' | 'health' | 'growth'
 
 export interface ForecastAreaDef {
@@ -23,3 +26,9 @@ export const FORECAST_AREAS: readonly ForecastAreaDef[] = [
   { id: 'health', label: 'Health & Vitality', primary: [1], secondary: [6, 8] },
   { id: 'growth', label: 'Learning & Spirit', primary: [9], secondary: [5, 12] },
 ]
+
+/** Display label for a life area; English labels stay byte-identical when lang is omitted/`en`. */
+export function forecastAreaLabel(id: ForecastAreaId, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return FORECAST_AREA_LABELS_HI[id]
+  return FORECAST_AREAS.find(a => a.id === id)?.label ?? id
+}

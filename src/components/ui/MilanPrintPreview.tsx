@@ -6,6 +6,7 @@
 
 import type { ChartOutput } from '@/types/astrology'
 import type { AshtakootResult } from '@/lib/engine/ashtakoot'
+import type { EngineLang } from '@/lib/engine/lang'
 import type { MilanRole } from '@/lib/engine/milanSuite'
 import {
   buildMilanReportInput,
@@ -20,6 +21,7 @@ export interface OpenMilanPrintArgs {
   ashtakoot?: AshtakootResult | null
   roleA?: MilanRole
   roleB?: MilanRole
+  lang?: EngineLang
 }
 
 /** Build report input and open the chart-style print preview page. */
@@ -31,12 +33,13 @@ export function openMilanPrintPage(args: OpenMilanPrintArgs): boolean {
     ashtakoot,
     roleA = 'boy',
     roleB = 'girl',
+    lang = 'en',
   } = args
 
   const input =
     report ??
     (chartA && chartB && ashtakoot
-      ? buildMilanReportInput(chartA, chartB, ashtakoot, roleA, roleB)
+      ? buildMilanReportInput(chartA, chartB, ashtakoot, roleA, roleB, lang)
       : null)
 
   if (!input) return false

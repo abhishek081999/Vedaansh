@@ -23,13 +23,26 @@ import {
   type GocharPlanet,
   type GocharStatus,
 } from '@/lib/engine/gocharRules'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { TRANSIT_FORECAST_HI } from '@/lib/engine/locale/transitForecast.hi'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
-import { FORECAST_AREAS, type ForecastAreaDef, type ForecastAreaId } from '@/lib/engine/transitForecastAreas'
+import {
+  FORECAST_AREAS,
+  forecastAreaLabel,
+  type ForecastAreaDef,
+  type ForecastAreaId,
+} from '@/lib/engine/transitForecastAreas'
 import { buildForecastPredictions, type ForecastPredictions } from '@/lib/engine/transitPredictions'
 
 // ── Public types ─────────────────────────────────────────────
 
-export { FORECAST_AREAS, type ForecastAreaDef, type ForecastAreaId } from '@/lib/engine/transitForecastAreas'
+export {
+  FORECAST_AREAS,
+  forecastAreaLabel,
+  type ForecastAreaDef,
+  type ForecastAreaId,
+} from '@/lib/engine/transitForecastAreas'
 
 export interface ForecastDashaSpan {
   md: GrahaId
@@ -188,10 +201,19 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v))
 }
 
-function ordinal(n: number): string {
+function ordinal(n: number, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return TRANSIT_FORECAST_HI.ordinal[n] ?? String(n)
   const s = ['th', 'st', 'nd', 'rd']
   const v = n % 100
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`
+}
+
+function planetLabel(id: GrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? gName(id, 'hi') : GRAHA_NAMES[id]
+}
+
+function signLabel(rashi: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? rName(rashi, 'hi') : RASHI_NAMES[rashi]
 }
 
 export function signOfHouse(ascRashi: Rashi, house: number): Rashi {
@@ -235,7 +257,15 @@ export function gocharValue(p: GocharPlanet, status: GocharStatus, houseFromMoon
   return severe ? -0.9 : -0.45
 }
 
-function statusLabel(s: GocharStatus, vedhaBy?: GocharPlanet): string {
+function statusLabel(s: GocharStatus, lang: EngineLang = 'en', vedhaBy?: GocharPlanet): string {
+  if (lang === 'hi') {
+    const H = TRANSIT_FORECAST_HI.status
+    if (s === 'favourable') return H.favourable
+    if (s === 'vedha') {
+      return fill(H.vedha, { planet: vedhaBy ? planetLabel(vedhaBy, lang) : H.vedhaFallback })
+    }
+    return H.challenging
+  }
   if (s === 'favourable') return 'favourable'
   if (s === 'vedha') return `blocked by ${vedhaBy ? GRAHA_NAMES[vedhaBy] : 'Vedha'}`
   return 'challenging'
@@ -249,8 +279,14 @@ function statusLabel(s: GocharStatus, vedhaBy?: GocharPlanet): string {
  * amplified for the running MD/AD lords. Areas: Ju/Sa/nodes/Mars influence
  * on the area's houses from Lagna, SAV baseline and house-lord dasha.
  */
-export function scoreForecastSample(natal: ForecastNatal, sample: ForecastSampleInput): ForecastSampleResult {
+export function scoreForecastSample(
+  natal: ForecastNatal,
+  sample: ForecastSampleInput,
+  lang: EngineLang = 'en',
+): ForecastSampleResult {
   const { signs, md, ad } = sample
+  const hi = lang === 'hi'
+  const H = TRANSIT_FORECAST_HI
 
   const housesFromMoon: Partial<Record<GocharPlanet, number>> = {}
   for (const p of FORECAST_GRAHAS) {
@@ -275,17 +311,37 @@ export function scoreForecastSample(natal: ForecastNatal, sample: ForecastSample
     num += wm * v
     den += wm
 
-    const parts = [
-      `${GRAHA_NAMES[p]} in ${RASHI_NAMES[sign]} — ${ordinal(ev.houseFromMoon)} from Moon (${statusLabel(ev.status, ev.vedhaBy)})`,
-    ]
-    if (bindus != null) parts.push(`${bindus} BAV bindus${bindus >= 5 ? ' (strong)' : bindus <= 3 ? ' (weak)' : ''}`)
-    if (role) parts.push(`${role} lord — results amplified`)
+    const pName = planetLabel(p, lang)
+    const sName = signLabel(sign, lang)
+    const parts = hi
+      ? [
+          fill(H.driver.line, {
+            planet: pName,
+            sign: sName,
+            house: ordinal(ev.houseFromMoon, lang),
+            status: statusLabel(ev.status, lang, ev.vedhaBy),
+          }),
+        ]
+      : [
+          `${GRAHA_NAMES[p]} in ${RASHI_NAMES[sign]} — ${ordinal(ev.houseFromMoon)} from Moon (${statusLabel(ev.status, 'en', ev.vedhaBy)})`,
+        ]
+    if (bindus != null) {
+      if (hi) {
+        const qual = bindus >= 5 ? H.driver.strong : bindus <= 3 ? H.driver.weak : ''
+        parts.push(fill(H.driver.bindus, { n: bindus, qual }))
+      } else {
+        parts.push(`${bindus} BAV bindus${bindus >= 5 ? ' (strong)' : bindus <= 3 ? ' (weak)' : ''}`)
+      }
+    }
+    if (role) {
+      parts.push(hi ? fill(H.driver.dashaAmp, { role }) : `${role} lord — results amplified`)
+    }
 
     raw.push({
       planet: p,
-      planetName: GRAHA_NAMES[p],
+      planetName: pName,
       sign,
-      signName: RASHI_NAMES[sign],
+      signName: sName,
       houseFromMoon: ev.houseFromMoon,
       houseFromLagna: houseFrom(sign, natal.ascRashi),
       status: ev.status,
@@ -303,7 +359,7 @@ export function scoreForecastSample(natal: ForecastNatal, sample: ForecastSample
     .map(({ contrib, ...d }) => ({ ...d, impact: den > 0 ? Math.round((contrib / den) * 1000) / 1000 : 0 }))
     .sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact))
 
-  const areas = FORECAST_AREAS.map(def => scoreArea(def, natal, signs, overallRaw, md, ad))
+  const areas = FORECAST_AREAS.map(def => scoreArea(def, natal, signs, overallRaw, md, ad, lang))
   return { overall, drivers, areas }
 }
 
@@ -314,12 +370,15 @@ function scoreArea(
   overallRaw: number,
   md?: GrahaId,
   ad?: GrahaId,
+  lang: EngineLang = 'en',
 ): AreaReading {
   let actSum = 0
   let toneSum = 0
   let wtSum = 0
   let doubleTransit = false
   const notes: string[] = []
+  const hi = lang === 'hi'
+  const N = TRANSIT_FORECAST_HI.notes
 
   const houses = [
     ...def.primary.map(h => ({ h, wt: 1, primary: true })),
@@ -338,25 +397,58 @@ function scoreArea(
     if (ju) {
       act += ju === 'conjunction' ? 1 : 0.8
       tone += ju === 'conjunction' ? 1 : 0.8
-      if (primary) notes.push(`Jupiter ${ju === 'conjunction' ? 'transits' : 'aspects'} the ${ordinal(h)} (${RASHI_NAMES[hs]})`)
+      if (primary) {
+        notes.push(
+          hi
+            ? fill(ju === 'conjunction' ? N.juTransit : N.juAspect, {
+                house: ordinal(h, lang),
+                sign: signLabel(hs, lang),
+              })
+            : `Jupiter ${ju === 'conjunction' ? 'transits' : 'aspects'} the ${ordinal(h)} (${RASHI_NAMES[hs]})`,
+        )
+      }
     }
     if (sa) {
       act += sa === 'conjunction' ? 1 : 0.7
       tone += upachaya ? (sa === 'conjunction' ? 0.4 : 0.3) : (sa === 'conjunction' ? -0.7 : -0.5)
       if (primary) {
-        notes.push(`Saturn ${sa === 'conjunction' ? 'transits' : 'aspects'} the ${ordinal(h)} — ${upachaya ? 'slow, earned growth' : 'pressure and restructuring'}`)
+        const effect = upachaya
+          ? (hi ? N.saUpachaya : 'slow, earned growth')
+          : (hi ? N.saPressure : 'pressure and restructuring')
+        notes.push(
+          hi
+            ? fill(sa === 'conjunction' ? N.saTransit : N.saAspect, {
+                house: ordinal(h, lang),
+                effect,
+              })
+            : `Saturn ${sa === 'conjunction' ? 'transits' : 'aspects'} the ${ordinal(h)} — ${effect}`,
+        )
       }
     }
     if (ju && sa && primary) {
       doubleTransit = true
       act += 0.6
-      notes.push(`Double transit (Jupiter + Saturn) on the ${ordinal(h)} — event-ready`)
+      notes.push(
+        hi
+          ? fill(N.double, { house: ordinal(h, lang) })
+          : `Double transit (Jupiter + Saturn) on the ${ordinal(h)} — event-ready`,
+      )
     }
     for (const node of ['Ra', 'Ke'] as const) {
       if (signs[node] === hs) {
         act += 0.6
         tone += upachaya ? 0.3 : -0.5
-        if (primary) notes.push(`${GRAHA_NAMES[node]} over the ${ordinal(h)} — ${node === 'Ra' ? 'amplified, restless' : 'detaching, karmic'}`)
+        if (primary) {
+          notes.push(
+            hi
+              ? fill(N.node, {
+                  planet: planetLabel(node, lang),
+                  house: ordinal(h, lang),
+                  effect: node === 'Ra' ? N.raEffect : N.keEffect,
+                })
+              : `${GRAHA_NAMES[node]} over the ${ordinal(h)} — ${node === 'Ra' ? 'amplified, restless' : 'detaching, karmic'}`,
+          )
+        }
       }
     }
     const ma = signs.Ma ? transitRelationToSign(signs.Ma, 'Ma', hs) : null
@@ -372,11 +464,23 @@ function scoreArea(
     if (md === lord) {
       act += 0.6
       tone += 0.15
-      if (primary) notes.push(`${ordinal(h)} lord ${GRAHA_NAMES[lord]} runs the Mahadasha`)
+      if (primary) {
+        notes.push(
+          hi
+            ? fill(N.mdLord, { house: ordinal(h, lang), planet: planetLabel(lord, lang) })
+            : `${ordinal(h)} lord ${GRAHA_NAMES[lord]} runs the Mahadasha`,
+        )
+      }
     } else if (ad === lord) {
       act += 0.4
       tone += 0.1
-      if (primary) notes.push(`${ordinal(h)} lord ${GRAHA_NAMES[lord]} runs the Antardasha`)
+      if (primary) {
+        notes.push(
+          hi
+            ? fill(N.adLord, { house: ordinal(h, lang), planet: planetLabel(lord, lang) })
+            : `${ordinal(h)} lord ${GRAHA_NAMES[lord]} runs the Antardasha`,
+        )
+      }
     }
 
     actSum += wt * act
@@ -388,7 +492,14 @@ function scoreArea(
   const score = Math.round(clamp(50 + 50 * Math.tanh(toneAvg + 0.35 * overallRaw), 0, 100))
   const activation = Math.round(clamp((actSum / Math.max(wtSum, 1)) / 1.6 * 100 + (doubleTransit ? 15 : 0), 0, 100))
 
-  return { id: def.id, label: def.label, score, activation, doubleTransit, notes }
+  return {
+    id: def.id,
+    label: forecastAreaLabel(def.id, lang),
+    score,
+    activation,
+    doubleTransit,
+    notes,
+  }
 }
 
 // ── Ephemeris sampling ───────────────────────────────────────
@@ -477,10 +588,12 @@ export interface BuildTransitForecastInput {
   natal: ForecastNatal
   asOf?: Date
   months?: number
+  lang?: EngineLang
 }
 
 export function buildTransitForecast(input: BuildTransitForecastInput): TransitForecastReport {
   const { natal } = input
+  const lang = input.lang ?? 'en'
   const months = clamp(Math.round(input.months ?? 12), 1, 24)
   const stepDays = months <= 6 ? 2 : months <= 12 ? 3 : 5
   const start = utcNoon(input.asOf ?? new Date())
@@ -488,6 +601,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
   end.setUTCMonth(end.getUTCMonth() + months)
   const startJd = dateToJD(start)
   const endJd = dateToJD(end)
+  const H = TRANSIT_FORECAST_HI
 
   const points: ForecastPoint[] = []
   const snaps: Array<{ jd: number; iso: string; snap: Snapshot }> = []
@@ -498,7 +612,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
     const iso = toIsoDate(jdToDate(jd))
     const snap = snapshotAt(jd)
     const dasha = dashaAt(natal.dashas, iso)
-    const res = scoreForecastSample(natal, { signs: snap.signs, ...dasha })
+    const res = scoreForecastSample(natal, { signs: snap.signs, ...dasha }, lang)
     if (!nowResult) {
       nowResult = res
       nowDasha = dasha
@@ -528,10 +642,10 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
         const from = prev.snap.signs[p]
         const jd = bisectJd(prev.jd, cur.jd, x => positionAt(p, x).sign === from)
         const to = cur.snap.signs[p]
-        events.push(ingressEvent(p, jd, to, natal, cur.snap.signs))
+        events.push(ingressEvent(p, jd, to, natal, cur.snap.signs, lang))
         if (p === 'Ra') {
           const keTo = cur.snap.signs.Ke
-          events.push(ingressEvent('Ke', jd, keTo, natal, cur.snap.signs))
+          events.push(ingressEvent('Ke', jd, keTo, natal, cur.snap.signs, lang))
         }
       }
     }
@@ -541,14 +655,27 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
         const jd = bisectJd(prev.jd, cur.jd, x => positionAt(p, x).retro === wasRetro)
         const sign = positionAt(p, jd).sign
         const hL = houseFrom(sign, natal.ascRashi)
+        const pName = planetLabel(p, lang)
+        const sName = signLabel(sign, lang)
+        const houseOrd = ordinal(hL, lang)
         events.push({
           dateIso: toIsoDate(jdToDate(jd)),
           planet: p,
           kind: wasRetro ? 'direct' : 'retrograde',
-          label: `${GRAHA_NAMES[p]} stations ${wasRetro ? 'direct' : 'retrograde'}`,
-          detail: wasRetro
-            ? `${GRAHA_NAMES[p]} resumes forward motion in ${RASHI_NAMES[sign]} (${ordinal(hL)} house) — delayed ${ordinal(hL)}-house matters start moving.`
-            : `${GRAHA_NAMES[p]} turns retrograde in ${RASHI_NAMES[sign]} (${ordinal(hL)} house) — review, revisit and avoid forcing ${ordinal(hL)}-house decisions.`,
+          label:
+            lang === 'hi'
+              ? fill(wasRetro ? H.station.labelDirect : H.station.labelRetro, { planet: pName })
+              : `${GRAHA_NAMES[p]} stations ${wasRetro ? 'direct' : 'retrograde'}`,
+          detail:
+            lang === 'hi'
+              ? fill(wasRetro ? H.station.detailDirect : H.station.detailRetro, {
+                  planet: pName,
+                  sign: sName,
+                  house: houseOrd,
+                })
+              : wasRetro
+                ? `${GRAHA_NAMES[p]} resumes forward motion in ${RASHI_NAMES[sign]} (${ordinal(hL)} house) — delayed ${ordinal(hL)}-house matters start moving.`
+                : `${GRAHA_NAMES[p]} turns retrograde in ${RASHI_NAMES[sign]} (${ordinal(hL)} house) — review, revisit and avoid forcing ${ordinal(hL)}-house decisions.`,
           tone: wasRetro ? 'supportive' : 'mixed',
         })
       }
@@ -559,12 +686,20 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
     const b = points[i]
     if (b.ad && (a.ad !== b.ad || a.md !== b.md)) {
       const span = natal.dashas?.find(s => s.md === b.md && s.ad === b.ad && s.startIso <= b.dateIso && b.dateIso < s.endIso)
+      const mdName = planetLabel((b.md as GrahaId) ?? b.ad, lang)
+      const adName = planetLabel(b.ad, lang)
       events.push({
         dateIso: span?.startIso.slice(0, 10) ?? b.dateIso,
         planet: b.ad,
         kind: 'dasha',
-        label: `${GRAHA_NAMES[b.md as GrahaId] ?? b.md} / ${GRAHA_NAMES[b.ad] ?? b.ad} begins`,
-        detail: `Vimshottari Antardasha of ${GRAHA_NAMES[b.ad] ?? b.ad} under ${GRAHA_NAMES[b.md as GrahaId] ?? b.md} Mahadasha — transits of these two lords now carry the most weight.`,
+        label:
+          lang === 'hi'
+            ? fill(H.dasha.label, { md: mdName, ad: adName })
+            : `${GRAHA_NAMES[b.md as GrahaId] ?? b.md} / ${GRAHA_NAMES[b.ad] ?? b.ad} begins`,
+        detail:
+          lang === 'hi'
+            ? fill(H.dasha.detail, { md: mdName, ad: adName })
+            : `Vimshottari Antardasha of ${GRAHA_NAMES[b.ad] ?? b.ad} under ${GRAHA_NAMES[b.md as GrahaId] ?? b.md} Mahadasha — transits of these two lords now carry the most weight.`,
         tone: 'mixed',
       })
     }
@@ -586,7 +721,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
       tracks.push({
         planet: p,
         rashi,
-        signName: RASHI_NAMES[rashi],
+        signName: signLabel(rashi, lang),
         startIso: bounds[i],
         endIso: bounds[i + 1],
         houseFromLagna: houseFrom(rashi, natal.ascRashi),
@@ -600,8 +735,8 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
   // ── Windows on the smoothed overall curve ──
   const overall = smooth(points.map(p => p.overall))
   const sorted = [...overall].sort((a, b) => a - b)
-  const hi = Math.max(55, percentile(sorted, 0.75))
-  const lo = Math.min(45, percentile(sorted, 0.25))
+  const hiThr = Math.max(55, percentile(sorted, 0.75))
+  const loThr = Math.min(45, percentile(sorted, 0.25))
   const minLen = Math.max(2, Math.round(10 / stepDays))
 
   const buildWindow = (kind: ForecastWindowKind, run: Run): ForecastWindow => {
@@ -617,15 +752,30 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
       v: slice.reduce((s, p) => s + p.areas[def.id].score, 0) / slice.length,
     })).sort((a, b) => (kind === 'favourable' ? b.v - a.v : a.v - b.v))
     const lead = areaAvg[0].def
+    const leadLabel = forecastAreaLabel(lead.id, lang)
     const peakSnap = snaps[peakIdx].snap
-    const peakScore = scoreForecastSample(natal, { signs: peakSnap.signs, md: peakPoint.md, ad: peakPoint.ad })
+    const peakScore = scoreForecastSample(
+      natal,
+      { signs: peakSnap.signs, md: peakPoint.md, ad: peakPoint.ad },
+      lang,
+    )
     const drivers = peakScore.drivers
       .filter(d => (kind === 'favourable' ? d.impact > 0 : d.impact < 0))
       .slice(0, 3)
-      .map(d => `${d.planetName} ${ordinal(d.houseFromMoon)} from Moon`)
-    const summary = kind === 'favourable'
-      ? `Supportive stretch led by ${drivers.join(', ') || 'balanced transits'}; ${lead.label.toLowerCase()} benefits most.`
-      : `Pressure stretch from ${drivers.join(', ') || 'mixed transits'}; go slow on ${lead.label.toLowerCase()} decisions.`
+      .map(d =>
+        lang === 'hi'
+          ? fill(H.driverShort, { planet: d.planetName, house: ordinal(d.houseFromMoon, lang) })
+          : `${d.planetName} ${ordinal(d.houseFromMoon)} from Moon`,
+      )
+    const summary =
+      lang === 'hi'
+        ? fill(kind === 'favourable' ? H.window.fav : H.window.caution, {
+            drivers: drivers.join(', ') || (kind === 'favourable' ? H.window.balanced : H.window.mixed),
+            area: leadLabel,
+          })
+        : kind === 'favourable'
+          ? `Supportive stretch led by ${drivers.join(', ') || 'balanced transits'}; ${lead.label.toLowerCase()} benefits most.`
+          : `Pressure stretch from ${drivers.join(', ') || 'mixed transits'}; go slow on ${lead.label.toLowerCase()} decisions.`
     return {
       kind,
       startIso: points[run.start].dateIso,
@@ -633,17 +783,17 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
       peak: peakPoint.overall,
       avg: Math.round(avg),
       leadArea: lead.id,
-      leadAreaLabel: lead.label,
+      leadAreaLabel: leadLabel,
       drivers,
       summary,
     }
   }
 
-  const fav = runsWhere(overall, v => v >= hi, minLen)
+  const fav = runsWhere(overall, v => v >= hiThr, minLen)
     .sort((a, b) => avgOf(overall, b) - avgOf(overall, a))
     .slice(0, 4)
     .map(r => buildWindow('favourable', r))
-  const caution = runsWhere(overall, v => v <= lo, minLen)
+  const caution = runsWhere(overall, v => v <= loThr, minLen)
     .sort((a, b) => avgOf(overall, a) - avgOf(overall, b))
     .slice(0, 4)
     .map(r => buildWindow('caution', r))
@@ -662,7 +812,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
     const dt = points.find(p => p.dateIso > points[0].dateIso && p.areas[def.id].doubleTransit)
     return {
       id: def.id,
-      label: def.label,
+      label: forecastAreaLabel(def.id, lang),
       now: nowArea.score,
       avg: Math.round(avg),
       trend: delta >= 3 ? 'rising' : delta <= -3 ? 'falling' : 'steady',
@@ -675,7 +825,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
   })
 
   const trend30 = points[idx30].overall - points[0].overall
-  const headline = buildHeadline(now, trend30, windows, areaOutlooks, toIsoDate(start))
+  const headline = buildHeadline(now, trend30, windows, areaOutlooks, toIsoDate(start), lang)
 
   const core: Omit<TransitForecastReport, 'predictions'> = {
     asOfIso: toIsoDate(start),
@@ -689,7 +839,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
     tracks,
     events: events.slice(0, 80),
     headline,
-    method: [
+    method: lang === 'hi' ? [...H.method] : [
       'Gochara from the natal Moon with classical Vedha (BPHS / Phaladeepika tables).',
       'Each transit blended with the planet’s Bhinnashtakavarga bindus in the transited sign (≥5 strong, ≤3 weak).',
       'Running Vimshottari Mahadasha / Antardasha lords weigh 1.35–1.8× — transits deliver what dashas promise.',
@@ -697,7 +847,7 @@ export function buildTransitForecast(input: BuildTransitForecastInput): TransitF
       'Saturn, nodes and Mars count as growth in upachaya houses (3, 6, 10, 11) and as pressure elsewhere.',
     ],
   }
-  return { ...core, predictions: buildForecastPredictions(core) }
+  return { ...core, predictions: buildForecastPredictions(core, lang) }
 }
 
 function ingressEvent(
@@ -706,6 +856,7 @@ function ingressEvent(
   to: Rashi,
   natal: ForecastNatal,
   signs: Partial<Record<GocharPlanet, Rashi>>,
+  lang: EngineLang = 'en',
 ): ForecastEvent {
   const hM = houseFrom(to, natal.moonRashi)
   const hL = houseFrom(to, natal.ascRashi)
@@ -714,12 +865,26 @@ function ingressEvent(
   ), [p]: hM })
   const status = ev?.status ?? 'unfavourable'
   const bindus = natal.bav?.[p]?.[to - 1]
+  const H = TRANSIT_FORECAST_HI.ingress
+  const pName = planetLabel(p, lang)
+  const sName = signLabel(to, lang)
   return {
     dateIso: toIsoDate(jdToDate(jd)),
     planet: p,
     kind: 'ingress',
-    label: `${GRAHA_NAMES[p]} enters ${RASHI_NAMES[to]}`,
-    detail: `${ordinal(hL)} house from Lagna, ${ordinal(hM)} from Moon — ${statusLabel(status, ev?.vedhaBy)}${bindus != null ? `, ${bindus} bindus` : ''}.`,
+    label:
+      lang === 'hi'
+        ? fill(H.label, { planet: pName, sign: sName })
+        : `${GRAHA_NAMES[p]} enters ${RASHI_NAMES[to]}`,
+    detail:
+      lang === 'hi'
+        ? fill(H.detail, {
+            hL: ordinal(hL, lang),
+            hM: ordinal(hM, lang),
+            status: statusLabel(status, lang, ev?.vedhaBy),
+            bindus: bindus != null ? fill(H.bindus, { n: bindus }) : '',
+          })
+        : `${ordinal(hL)} house from Lagna, ${ordinal(hM)} from Moon — ${statusLabel(status, 'en', ev?.vedhaBy)}${bindus != null ? `, ${bindus} bindus` : ''}.`,
     tone: status === 'favourable' ? 'supportive' : status === 'vedha' ? 'mixed' : 'caution',
   }
 }
@@ -730,7 +895,41 @@ function buildHeadline(
   windows: ForecastWindow[],
   outlooks: AreaOutlook[],
   asOfIso: string,
+  lang: EngineLang = 'en',
 ): string {
+  if (lang === 'hi') {
+    const HL = TRANSIT_FORECAST_HI.headline
+    const mood =
+      now.overall >= 62 ? HL.mood.supportive
+        : now.overall >= 54 ? HL.mood.mild
+          : now.overall > 46 ? HL.mood.balanced
+            : now.overall > 38 ? HL.mood.testing
+              : HL.mood.pressure
+    const lead = now.drivers[0]
+    const leadText = lead
+      ? fill(lead.impact >= 0 ? HL.leadPos : HL.leadNeg, {
+          planet: lead.planetName,
+          house: ordinal(lead.houseFromMoon, lang),
+        })
+      : HL.leadNone
+    const dir = trend30 >= 4 ? HL.dirUp : trend30 <= -4 ? HL.dirDown : HL.dirSteady
+    const nextFav = windows.find(w => w.kind === 'favourable' && w.endIso >= asOfIso)
+    const bestArea = [...outlooks].sort((a, b) => (b.bestWindow?.avg ?? 0) - (a.bestWindow?.avg ?? 0))[0]
+    let tail = ''
+    if (nextFav) {
+      tail = nextFav.startIso <= asOfIso
+        ? fill(HL.strongRunning, { end: nextFav.endIso })
+        : fill(HL.strongNext, { start: nextFav.startIso, end: nextFav.endIso })
+    } else if (bestArea?.bestWindow) {
+      tail = fill(HL.bestArea, {
+        area: bestArea.label,
+        start: bestArea.bestWindow.startIso,
+        end: bestArea.bestWindow.endIso,
+      })
+    }
+    return fill(HL.core, { mood, score: now.overall, lead: leadText, dir, tail })
+  }
+
   const mood = now.overall >= 62 ? 'Supportive phase' : now.overall >= 54 ? 'Mildly supportive phase'
     : now.overall > 46 ? 'Balanced phase' : now.overall > 38 ? 'Testing phase' : 'High-pressure phase'
   const lead = now.drivers[0]

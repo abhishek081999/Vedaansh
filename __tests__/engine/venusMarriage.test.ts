@@ -116,4 +116,16 @@ describe('Venus in marriage', () => {
   it('returns nothing without an ascendant', () => {
     expect(analyzeVenusMarriage({ grahas: [], lagnas: {} } as unknown as ChartOutput)).toBeNull()
   })
+
+  it('keeps English byte-stable and returns Hindi notes', () => {
+    const fixture = chart({
+      asc: 1,
+      grahas: [g('Ve', 12, 'exalted'), g('Ju', 5, 'friend'), g('Ma', 1), g('Sa', 10), g('Mo', 4)],
+    })
+    const en = analyzeVenusMarriage(fixture, 'en')!
+    expect(en.venus.find(n => n.id === 'venus-showpiece')?.title).toBe('Venus is intense, and the marriage is a showpiece')
+    const hi = analyzeVenusMarriage(fixture, 'hi')!
+    expect(hi.venus[0]?.title).toMatch(/[\u0900-\u097F]/)
+    expect(hi.venus[0]?.detail).toMatch(/[\u0900-\u097F]/)
+  })
 })

@@ -5,7 +5,12 @@
 
 import { NextResponse } from 'next/server'
 import { calculatePersonalTransits, getCurrentTransitPositions } from '@/lib/engine/transits'
+import type { EngineLang } from '@/lib/engine/lang'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+
+function parseEngineLang(raw: string | null): EngineLang {
+  return raw === 'hi' ? 'hi' : 'en'
+}
 
 export async function GET(request: Request) {
   const blocked = await guardRoute(request, routeSecurityPresets.publicEphemeris())
@@ -14,6 +19,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const ascRashi = parseInt(searchParams.get('ascRashi') || '1')
   const months   = parseInt(searchParams.get('months') || '12')
+  const lang = parseEngineLang(searchParams.get('lang'))
   const startRaw = searchParams.get('startDate')
   const startDate =
     startRaw && /^\d{4}-\d{2}-\d{2}$/.test(startRaw)
@@ -21,7 +27,7 @@ export async function GET(request: Request) {
       : new Date()
 
   try {
-    const transits = calculatePersonalTransits(ascRashi, startDate, months)
+    const transits = calculatePersonalTransits(ascRashi, startDate, months, lang)
     const currentPositions = getCurrentTransitPositions(ascRashi, startDate)
     
     return NextResponse.json({

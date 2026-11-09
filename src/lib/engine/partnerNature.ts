@@ -9,6 +9,15 @@ import type { ChartOutput, Dignity, Gender, GrahaData, GrahaId, Rashi } from '@/
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 import { DK_PLANET_PROFILES } from '@/lib/engine/jaiminiMarriageAnalysis'
+import { dignityText, fill, pick, gName, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  APPEARANCE_BY_SIGN_HI,
+  DIRECTION_BY_LORD_HOUSE_HI,
+  FAMILY_BY_LORD_HOUSE_HI,
+  PARTNER_NATURE_PRINCIPLES_HI,
+  PN_TEXT_HI,
+  WORK_HI,
+} from '@/lib/engine/locale/partnerNature.hi'
 
 export type PartnerPlanet = 'Mo' | 'Ve' | 'Ju' | 'Sa' | 'Ra' | 'Ke' | 'Ma'
 
@@ -128,8 +137,14 @@ function signOf(asc: number, house: number): Rashi {
   return ((((asc - 1 + house - 1) % 12) + 1) as Rashi)
 }
 
-function gn(id: GrahaId | string): string {
-  return GRAHA_NAMES[id as GrahaId] ?? id
+function gn(id: GrahaId | string, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id as GrahaId] ?? id
+  return gName(id as GrahaId, lang)
+}
+
+function rn(r: Rashi, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return RASHI_NAMES[r] ?? `R${r}`
+  return rName(r, lang)
 }
 
 function find(list: GrahaData[], id: GrahaId): GrahaData | undefined {
@@ -140,7 +155,12 @@ function note(id: string, title: string, detail: string, tone: LifeTone): Marrie
   return { id, title, detail, tone }
 }
 
-function spouse(gender: Gender | undefined): string {
+function spouse(gender: Gender | undefined, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    if (gender === 'female') return PN_TEXT_HI.spouse.female
+    if (gender === 'male') return PN_TEXT_HI.spouse.male
+    return PN_TEXT_HI.spouse.other
+  }
   if (gender === 'female') return 'husband'
   if (gender === 'male') return 'wife'
   return 'partner'
@@ -183,14 +203,19 @@ function weak(g: GrahaData | undefined, asc: number, grahas: GrahaData[]): boole
   return false
 }
 
-export function analyzePartnerNature(chart: ChartOutput | null | undefined): PartnerNatureReading | null {
+export function analyzePartnerNature(chart: ChartOutput | null | undefined, lang: EngineLang = 'en'): PartnerNatureReading | null {
   const asc = chart?.lagnas?.ascRashi
   if (!chart || !asc) return null
 
   const grahas = chart.grahas ?? []
   const seventh = signOf(asc, 7)
   const lord = find(grahas, LORDS[seventh])
-  const who = spouse(chart.meta?.gender)
+  const who = spouse(chart.meta?.gender, lang)
+  const appearance = pick(APPEARANCE_BY_SIGN, APPEARANCE_BY_SIGN_HI, lang)
+  const familyByLord = pick(FAMILY_BY_LORD_HOUSE, FAMILY_BY_LORD_HOUSE_HI, lang)
+  const directionByLord = pick(DIRECTION_BY_LORD_HOUSE, DIRECTION_BY_LORD_HOUSE_HI, lang)
+  const work = pick(WORK, WORK_HI, lang)
+  const T = lang === 'hi' ? PN_TEXT_HI : null
   const moon = find(grahas, 'Mo')
   const venus = find(grahas, 'Ve')
   const incomplete = weak(moon, asc, grahas) && weak(venus, asc, grahas)
@@ -209,69 +234,104 @@ export function analyzePartnerNature(chart: ChartOutput | null | undefined): Par
     if (!occupies && !isLord && !joined && !sees) continue
     contacts.push(id)
     if ((id === 'Sa' || id === 'Ke') && (occupies || joined)) cold = true
-    const how = [
-      occupies ? 'occupies the 7th' : '',
-      isLord ? 'is the 7th lord' : '',
-      joined ? `sits with the 7th lord, ${gn(lord!.id)}` : '',
-      sees ? 'aspects the 7th' : '',
-    ].filter(Boolean).join(', and ')
+    const how = lang === 'en'
+      ? [
+          occupies ? 'occupies the 7th' : '',
+          isLord ? 'is the 7th lord' : '',
+          joined ? `sits with the 7th lord, ${gn(lord!.id, lang)}` : '',
+          sees ? 'aspects the 7th' : '',
+        ].filter(Boolean).join(', and ')
+      : [
+          occupies ? T!.planetHow.occupies : '',
+          isLord ? T!.planetHow.isLord : '',
+          joined ? fill(T!.planetHow.joined, { lord: gn(lord!.id, lang) }) : '',
+          sees ? T!.planetHow.aspects : '',
+        ].filter(Boolean).join(`, ${T!.planetHow.joinedPrefix}`)
     const thin = (id === 'Sa' || id === 'Ke') && (occupies || joined)
-      ? ` The ${who} this chart draws can be present and still emotionally unavailable. That reading is already here.`
+      ? lang === 'en'
+        ? ` The ${who} this chart draws can be present and still emotionally unavailable. That reading is already here.`
+        : fill(T!.coldThin, { who })
       : ''
     planets.push(note(
       `partner-${id.toLowerCase()}`,
-      WORK[id].title,
-      `${gn(id)} ${how}. ${WORK[id].work}${thin}`,
+      work[id].title,
+      `${gn(id, lang)} ${how}. ${work[id].work}${thin}`,
       thin ? 'caution' : 'mixed',
     ))
   }
 
   const occupants = grahas.filter(g => g.rashi === seventh && g.id !== lord?.id)
-  const sitting = occupants.length
-    ? `${occupants.map(g => gn(g.id)).join(' and ')} ${occupants.length === 1 ? 'sits' : 'sit'} in the 7th.`
+  const sittingEn = occupants.length
+    ? `${occupants.map(g => gn(g.id, lang)).join(' and ')} ${occupants.length === 1 ? 'sits' : 'sit'} in the 7th.`
     : 'The 7th is empty of planets.'
+  const sittingHi = occupants.length
+    ? fill(
+        occupants.length === 1 ? PN_TEXT_HI.sittingOne : PN_TEXT_HI.sittingMany,
+        { names: occupants.map(g => gn(g.id, lang)).join(lang === 'hi' ? ' और ' : ' and ') },
+      )
+    : PN_TEXT_HI.empty7
+  const sittingLine = lang === 'en' ? sittingEn : sittingHi
   const lordLine = lord
-    ? `The 7th lord, ${gn(lord.id)}, is in ${RASHI_NAMES[lord.rashi]}, house ${houseOf(lord.rashi, asc)}${lord.dignity ? `, ${lord.dignity}` : ''}${lord.isCombust ? ', combust' : ''}.`
-    : 'The 7th lord is not on this chart.'
+    ? lang === 'en'
+      ? `The 7th lord, ${gn(lord.id, lang)}, is in ${RASHI_NAMES[lord.rashi]}, house ${houseOf(lord.rashi, asc)}${lord.dignity ? `, ${lord.dignity}` : ''}${lord.isCombust ? ', combust' : ''}.`
+      : fill(PN_TEXT_HI.lordLine, {
+          lord: gn(lord.id, lang),
+          sign: rn(lord.rashi, lang),
+          house: houseOf(lord.rashi, asc),
+          dignity: lord.dignity ? `${PN_TEXT_HI.dignityPrefix}${dignityText(lord.dignity, lang)}` : '',
+          combust: lord.isCombust ? PN_TEXT_HI.combust : '',
+        })
+    : lang === 'en' ? 'The 7th lord is not on this chart.' : PN_TEXT_HI.lordMissing
 
   const portrait: MarriedLifeNote[] = [note(
     'partner-seventh',
-    'The 7th is the person and the partner',
-    `The 7th is ${RASHI_NAMES[seventh]}. ${sitting} ${lordLine} This house is how this person behaves inside a marriage, and it is the ${who} the chart draws. The other chart confirms whose behavior is the one to work with.`,
+    lang === 'en' ? 'The 7th is the person and the partner' : PN_TEXT_HI.portraitTitle,
+    lang === 'en'
+      ? `The 7th is ${RASHI_NAMES[seventh]}. ${sittingLine} ${lordLine} This house is how this person behaves inside a marriage, and it is the ${who} the chart draws. The other chart confirms whose behavior is the one to work with.`
+      : fill(PN_TEXT_HI.portraitLead, {
+          sign: rn(seventh, lang),
+          sitting: sittingLine,
+          lordLine,
+          who,
+        }),
     'mixed',
   )]
 
   if (incomplete) {
     portrait.push(note(
       'partner-incomplete',
-      'The love stays incomplete',
-      `The Moon and Venus are both weak. Incompleteness of love is visible from this chart alone. The ${who} who would give a complete love is not the ${who} this 7th draws. The feeling stays empty. What is expressed is not met. What was expected to be understood in a particular way is not understood.`,
+      lang === 'en' ? 'The love stays incomplete' : PN_TEXT_HI.incompleteTitle,
+      lang === 'en'
+        ? `The Moon and Venus are both weak. Incompleteness of love is visible from this chart alone. The ${who} who would give a complete love is not the ${who} this 7th draws. The feeling stays empty. What is expressed is not met. What was expected to be understood in a particular way is not understood.`
+        : fill(PN_TEXT_HI.incompleteDetail, { who }),
       'caution',
     ))
   }
 
   const classical: MarriedLifeNote[] = []
-  const appear = APPEARANCE_BY_SIGN[seventh]
+  const appear = appearance[seventh]
   if (appear) {
     classical.push(note('partner-appear', appear.title, appear.detail, 'mixed'))
   }
 
   if (lord) {
     const lordHouse = houseOf(lord.rashi, asc)
-    const family = FAMILY_BY_LORD_HOUSE[lordHouse]
+    const family = familyByLord[lordHouse]
     if (family) {
       const dignityBit = dignified(lord.dignity)
-        ? ' The 7th lord is dignified, which steadies that family reading.'
+        ? lang === 'en' ? ' The 7th lord is dignified, which steadies that family reading.' : PN_TEXT_HI.familyDignified
         : lord.dignity === 'debilitated' || lord.isCombust
-          ? ' The 7th lord is under strain, so the family fruit is harder to hold than the house alone suggests.'
+          ? lang === 'en' ? ' The 7th lord is under strain, so the family fruit is harder to hold than the house alone suggests.' : PN_TEXT_HI.familyStrain
           : ''
       classical.push(note('partner-family', family.title, `${family.detail}${dignityBit}`, family.tone))
     }
     classical.push(note(
       'partner-direction',
-      `Direction of the marriage — 7th lord in house ${lordHouse}`,
-      DIRECTION_BY_LORD_HOUSE[lordHouse] ?? 'The 7th lord’s house sets where the partnership tends to move.',
-      lordHouse === 12 || lordHouse === 9 ? 'mixed' : 'mixed',
+      lang === 'en'
+        ? `Direction of the marriage — 7th lord in house ${lordHouse}`
+        : fill(PN_TEXT_HI.directionTitle, { house: lordHouse }),
+      directionByLord[lordHouse] ?? (lang === 'en' ? 'The 7th lord’s house sets where the partnership tends to move.' : PN_TEXT_HI.directionFallback),
+      'mixed',
     ))
   }
 
@@ -280,26 +340,41 @@ export function analyzePartnerNature(chart: ChartOutput | null | undefined): Par
     const profile = DK_PLANET_PROFILES[dkId]
     classical.push(note(
       'partner-dk',
-      `Darakaraka — ${gn(dkId)}`,
-      `The marriage significator planet is ${gn(dkId)}. Nature: ${profile.nature}. Watch: ${profile.hiddenChallenge}. Work: ${profile.karmicLesson}`,
+      lang === 'en' ? `Darakaraka — ${gn(dkId, lang)}` : fill(PN_TEXT_HI.dkTitle, { lord: gn(dkId, lang) }),
+      lang === 'en'
+        ? `The marriage significator planet is ${gn(dkId, lang)}. Nature: ${profile.nature}. Watch: ${profile.hiddenChallenge}. Work: ${profile.karmicLesson}`
+        : fill(PN_TEXT_HI.dkDetail, {
+            lord: gn(dkId, lang),
+            nature: profile.nature,
+            challenge: profile.hiddenChallenge,
+            lesson: profile.karmicLesson,
+          }),
       'mixed',
     ))
   }
 
   const headline = incomplete
-    ? 'This chart already shows a love that stays incomplete'
+    ? lang === 'en' ? 'This chart already shows a love that stays incomplete' : PN_TEXT_HI.headlines.incomplete
     : cold
-      ? `The marriage house draws a ${who} who can be present and still hard to feel`
-      : `The marriage house describes the ${who} from this chart alone`
+      ? lang === 'en'
+        ? `The marriage house draws a ${who} who can be present and still hard to feel`
+        : fill(PN_TEXT_HI.headlines.cold, { who })
+      : lang === 'en'
+        ? `The marriage house describes the ${who} from this chart alone`
+        : fill(PN_TEXT_HI.headlines.default, { who })
 
   const summary = contacts.length
-    ? `${PLANETS.filter(id => contacts.includes(id)).map(gn).join(', ')} touch the marriage house (7th).`
-    : 'None of Moon, Venus, Jupiter, Saturn, Rahu, Ketu, or Mars touches the marriage house (7th). The house itself still describes the partner.'
+    ? lang === 'en'
+      ? `${PLANETS.filter(id => contacts.includes(id)).map(id => gn(id, lang)).join(', ')} touch the marriage house (7th).`
+      : fill(PN_TEXT_HI.summaryTouch, { names: PLANETS.filter(id => contacts.includes(id)).map(id => gn(id, lang)).join(', ') })
+    : lang === 'en'
+      ? 'None of Moon, Venus, Jupiter, Saturn, Rahu, Ketu, or Mars touches the marriage house (7th). The house itself still describes the partner.'
+      : PN_TEXT_HI.summaryNone
 
   return {
     headline,
     summary,
-    principles: PARTNER_NATURE_PRINCIPLES,
+    principles: pick(PARTNER_NATURE_PRINCIPLES, PARTNER_NATURE_PRINCIPLES_HI, lang),
     portrait,
     classical,
     planets,
@@ -312,13 +387,16 @@ export function comparePartnerNature(
   b: PartnerNatureReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
   const notes: MarriedLifeNote[] = []
   if (a.flags.incomplete && b.flags.incomplete) {
     notes.push(note(
       'partner-pair-both',
-      'Both charts carry an incomplete love',
-      `${nameA} and ${nameB} each show a Moon and a Venus too weak to draw a completing love. The gap is in both people. Cross-reading still asks whose behavior is being lived in a given season.`,
+      lang === 'en' ? 'Both charts carry an incomplete love' : PN_TEXT_HI.pairBothTitle,
+      lang === 'en'
+        ? `${nameA} and ${nameB} each show a Moon and a Venus too weak to draw a completing love. The gap is in both people. Cross-reading still asks whose behavior is being lived in a given season.`
+        : fill(PN_TEXT_HI.pairBothDetail, { nameA, nameB }),
       'caution',
     ))
   } else if (a.flags.incomplete || b.flags.incomplete) {
@@ -326,8 +404,10 @@ export function comparePartnerNature(
     const other = a.flags.incomplete ? nameB : nameA
     notes.push(note(
       'partner-pair-one',
-      `${who}’s chart already shows the incomplete love`,
-      `The pattern is in ${who}’s 7th. ${other}’s chart is the confirmation: it shows whether the behavior being lived belongs there. The discovery did not require the second chart.`,
+      lang === 'en' ? `${who}’s chart already shows the incomplete love` : fill(PN_TEXT_HI.pairOneTitle, { who }),
+      lang === 'en'
+        ? `The pattern is in ${who}’s 7th. ${other}’s chart is the confirmation: it shows whether the behavior being lived belongs there. The discovery did not require the second chart.`
+        : fill(PN_TEXT_HI.pairOneDetail, { who, other }),
       'caution',
     ))
   }
@@ -336,8 +416,10 @@ export function comparePartnerNature(
     const other = a.flags.cold ? nameB : nameA
     notes.push(note(
       'partner-pair-cold',
-      `${who}’s 7th describes the thinner feeling`,
-      `${who} has Saturn or Ketu on the marriage, so the emotionally unavailable partner is already described there. ${other}’s chart is where that behavior is confirmed or found to belong to the other person.`,
+      lang === 'en' ? `${who}’s 7th describes the thinner feeling` : fill(PN_TEXT_HI.pairColdTitle, { who }),
+      lang === 'en'
+        ? `${who} has Saturn or Ketu on the marriage, so the emotionally unavailable partner is already described there. ${other}’s chart is where that behavior is confirmed or found to belong to the other person.`
+        : fill(PN_TEXT_HI.pairColdDetail, { who, other }),
       'mixed',
     ))
   }

@@ -5,7 +5,10 @@
 
 import type { ChartOutput, Dignity, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { hasParasharaAspect } from '@/lib/engine/aspects'
+import { DIGNITY_HI } from '@/lib/engine/divisionalLang'
+import { fill, type EngineLang } from '@/lib/engine/lang'
 import { SIGN_LORD_BY_RASHI } from '@/lib/engine/lordshipInterpretations'
 
 export type ShrapSeverity = 'clear' | 'watch' | 'strong'
@@ -32,12 +35,43 @@ export interface ShrapDoshaVerdict {
 export const MALEFICS: readonly GrahaId[] = ['Sa', 'Ra', 'Ke', 'Ma', 'Su'] as const
 export const NODE_AXIS: readonly GrahaId[] = ['Ra', 'Ke'] as const
 
-export function gn(id: GrahaId): string {
+export function gn(id: GrahaId, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return GRAHA_HI[id] ?? GRAHA_NAMES[id] ?? id
   return GRAHA_NAMES[id] ?? id
 }
 
-export function rn(rashi: Rashi): string {
+export function rn(rashi: Rashi, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return RASHI_HI[rashi] ?? RASHI_NAMES[rashi] ?? String(rashi)
   return RASHI_NAMES[rashi] ?? String(rashi)
+}
+
+export function gnList(ids: readonly GrahaId[], lang: EngineLang = 'en'): string {
+  return ids.map(id => gn(id, lang)).join(', ')
+}
+
+/** English stays the literal. Hindi fills `{slots}` when they are passed. */
+export function tx(
+  lang: EngineLang,
+  en: string,
+  hi: string,
+  slots?: Record<string, string | number>,
+): string {
+  if (lang !== 'hi') return en
+  return slots ? fill(hi, slots) : hi
+}
+
+export function txList(lang: EngineLang, en: readonly string[], hi: readonly string[]): string[] {
+  return lang === 'hi' ? [...hi] : [...en]
+}
+
+/** Dignity as display text. Missing dignity uses `missing` ('weak' or 'unknown'). */
+export function dignityWord(
+  d: Dignity | undefined,
+  lang: EngineLang = 'en',
+  missing: 'weak' | 'unknown' = 'weak',
+): string {
+  if (!d) return tx(lang, missing, missing === 'unknown' ? 'अज्ञात' : 'कमज़ोर')
+  return lang === 'hi' ? (DIGNITY_HI[d] ?? d) : d.replace(/_/g, ' ')
 }
 
 export function wholeSignHouse(planetRashi: number, ascRashi: number): number {

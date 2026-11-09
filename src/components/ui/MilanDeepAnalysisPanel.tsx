@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo } from 'react'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
 import type { AshtakootResult } from '@/lib/engine/ashtakoot'
 import { analyzeMilanDeep } from '@/lib/engine/milanDeepAnalysis'
@@ -23,7 +25,9 @@ interface Props {
 }
 
 export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
-  const deep = useMemo(() => analyzeMilanDeep(chartA, chartB), [chartA, chartB])
+  const { lang } = useLang()
+  const t = useTranslations('relationshipMarriage.compareMil.deep')
+  const deep = useMemo(() => analyzeMilanDeep(chartA, chartB, lang), [chartA, chartB, lang])
 
   const kootas = [
     { key: 'Varna', s: ashtakoot.varna },
@@ -50,7 +54,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
         }}
       >
         <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: '0.35rem' }}>
-          Stage 1 (Ashtakoot) · usual range 18–32 · above 32 is read with care
+          {t('stage1Caps')}
         </div>
         <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.35rem' }}>
           {ashtakoot.eligibility.label}
@@ -71,9 +75,9 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       {/* Three layers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.75rem' }}>
         {([
-          ['Psychology', ashtakoot.layers.psychology],
-          ['Energy', ashtakoot.layers.energy],
-          ['Shared path', ashtakoot.layers.karma],
+          [t('psychology'), ashtakoot.layers.psychology],
+          [t('energy'), ashtakoot.layers.energy],
+          [t('sharedPath'), ashtakoot.layers.karma],
         ] as const).map(([t, d]) => (
           <div key={t} className="card" style={{ padding: '1rem' }}>
             <div className="label-caps" style={{ fontSize: '0.6rem', color: 'var(--text-gold)' }}>{t}</div>
@@ -85,7 +89,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       {/* Per-koota insight */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
-          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.72rem' }}>What each koota looks at</h3>
+          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.72rem' }}>{t('kootaTitle')}</h3>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {kootas.map(({ key, s }, i) => (
@@ -119,7 +123,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
 
       {/* Stage 2–3 overall */}
       <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
-        <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>Beyond Ashtakoot</div>
+        <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-gold)' }}>{t('beyond')}</div>
         <h3 style={{ margin: '0.25rem 0 0.5rem', fontSize: '1.15rem' }}>{deep.overall.stageLabel}</h3>
         <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{deep.overall.summary}</p>
         <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
@@ -127,7 +131,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
             padding: '0.25rem 0.65rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 800,
             background: 'rgba(201,168,76,0.12)', color: 'var(--text-gold)', border: '1px solid rgba(201,168,76,0.25)',
           }}>
-            Chemistry {deep.stage3.chemistryScore}/10 · {deep.stage3.chemistryLabel}
+            {t('chemistry', { score: deep.stage3.chemistryScore, label: deep.stage3.chemistryLabel })}
           </span>
         </div>
       </div>
@@ -136,7 +140,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
 
       {/* Stage 3 Venus–Mars */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 1rem', fontSize: '0.72rem' }}>Stage 3 · Venus–Mars chemistry</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 1rem', fontSize: '0.72rem' }}>{t('stage3Title')}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
           {deep.stage3.venusMars.map((l, i) => (
             <div
@@ -167,7 +171,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
 
       {/* Stage 2 houses + rotation */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Stage 2 · D1 / D9 charts and house strain</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>{t('stage2Title')}</h3>
         <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deep.stage2.d1Summary}</p>
         {deep.stage2.d9Summary && (
           <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deep.stage2.d9Summary}</p>
@@ -176,10 +180,10 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
-                <th style={{ padding: '0.65rem', color: 'var(--text-muted)' }}>HOUSE</th>
+                <th style={{ padding: '0.65rem', color: 'var(--text-muted)' }}>{t('house')}</th>
                 <th style={{ padding: '0.65rem', color: 'var(--text-gold)' }}>{chartA.meta.name}</th>
                 <th style={{ padding: '0.65rem', color: 'var(--accent)' }}>{chartB.meta.name}</th>
-                <th style={{ padding: '0.65rem', color: 'var(--text-muted)' }}>MATCH</th>
+                <th style={{ padding: '0.65rem', color: 'var(--text-muted)' }}>{t('match')}</th>
               </tr>
             </thead>
             <tbody>
@@ -190,13 +194,13 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{h.name}</div>
                   </td>
                   <td style={{ padding: '0.65rem', color: h.personAAfflicted ? 'var(--rose)' : 'var(--teal)' }}>
-                    {h.personAAfflicted ? 'Strained' : 'Clear'}
+                    {h.personAAfflicted ? t('strained') : t('clear')}
                   </td>
                   <td style={{ padding: '0.65rem', color: h.personBAfflicted ? 'var(--rose)' : 'var(--teal)' }}>
-                    {h.personBAfflicted ? 'Strained' : 'Clear'}
+                    {h.personBAfflicted ? t('strained') : t('clear')}
                   </td>
                   <td style={{ padding: '0.65rem', color: h.matched ? 'var(--teal)' : 'var(--text-gold)' }}>
-                    {h.matched ? 'Aligned' : 'Uneven'}
+                    {h.matched ? t('aligned') : t('uneven')}
                   </td>
                 </tr>
               ))}
@@ -216,8 +220,8 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.75rem' }}>
         {deep.stage2.seventhRotation.map(r => (
           <div key={r.person} className="card" style={{ padding: '1.1rem' }}>
-            <div className="label-caps" style={{ fontSize: '0.6rem' }}>Partner’s viewpoint (7th house as lagna) · {r.person}</div>
-            <div style={{ fontWeight: 800, margin: '0.35rem 0' }}>Lagna from this view: {r.newLagnaName}</div>
+            <div className="label-caps" style={{ fontSize: '0.6rem' }}>{t('partnerView', { person: r.person })}</div>
+            <div style={{ fontWeight: 800, margin: '0.35rem 0' }}>{t('lagnaFromView', { sign: r.newLagnaName })}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
               {r.notes.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -228,13 +232,13 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       {/* Partner longevity and wellbeing yogas (Vaidhavya / Vidhur) */}
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${TONE[deep.longevityYogas.tone]}` }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>
-          Partner longevity and wellbeing yogas (Vaidhavya / Vidhur)
+          {t('vaidhavyaTitle')}
           {deep.longevityYogas.cancelled && (
-            <span style={{ marginLeft: '0.5rem', color: 'var(--teal)', fontWeight: 800 }}>· Similar strength</span>
+            <span style={{ marginLeft: '0.5rem', color: 'var(--teal)', fontWeight: 800 }}>{t('similarStrength')}</span>
           )}
         </h3>
         <p style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Classical cues for the wellbeing and long life of each partner. They are a tendency to be read with the whole chart, not a prediction of loss.
+          {t('vaidhavyaLead')}
         </p>
         <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           {deep.longevityYogas.summary}
@@ -243,11 +247,11 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           {[deep.longevityYogas.personA, deep.longevityYogas.personB].map(y => (
             <div key={`${y.person}-${y.role}`} style={{ padding: '0.9rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {y.role === 'vaidhavya' ? 'Vaidhavya cues (bride’s chart)' : 'Vidhur cues (groom’s chart)'}
+                {y.role === 'vaidhavya' ? t('vaidhavyaBride') : t('vidhurGroom')}
               </div>
               <div style={{ fontWeight: 800, marginTop: 4 }}>{y.person}</div>
               <div style={{ fontSize: '0.85rem', marginTop: 6 }}>
-                Strength of cues <strong style={{ color: y.band === 'high' ? 'var(--rose)' : y.band === 'none' ? 'var(--teal)' : 'var(--text-gold)' }}>{y.intensity}/10</strong>
+                {t('cueStrength')} <strong style={{ color: y.band === 'high' ? 'var(--rose)' : y.band === 'none' ? 'var(--teal)' : 'var(--text-gold)' }}>{y.intensity}/10</strong>
                 <span style={{ color: 'var(--text-muted)' }}> · {y.band}</span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
@@ -263,18 +267,18 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
 
       {/* Dasha pair */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Dasha pairing (current and upcoming periods)</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>{t('dashaTitle')}</h3>
         <p style={{ margin: '0 0 0.85rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deep.dashaPair.summary}</p>
         {(deep.dashaPair.currentA || deep.dashaPair.currentB) && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.85rem', fontSize: '0.75rem' }}>
             {deep.dashaPair.currentA && (
               <span style={{ padding: '0.25rem 0.6rem', borderRadius: 6, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: 'var(--text-gold)' }}>
-                {chartA.meta.name}: {deep.dashaPair.currentA.lord} Mahadasha until {deep.dashaPair.currentA.end}
+                {t('mahaUntil', { name: chartA.meta.name, lord: deep.dashaPair.currentA.lord, end: deep.dashaPair.currentA.end })}
               </span>
             )}
             {deep.dashaPair.currentB && (
               <span style={{ padding: '0.25rem 0.6rem', borderRadius: 6, background: 'rgba(120,160,200,0.12)', border: '1px solid rgba(120,160,200,0.3)', color: 'var(--accent)' }}>
-                {chartB.meta.name}: {deep.dashaPair.currentB.lord} Mahadasha until {deep.dashaPair.currentB.end}
+                {t('mahaUntil', { name: chartB.meta.name, lord: deep.dashaPair.currentB.lord, end: deep.dashaPair.currentB.end })}
               </span>
             )}
           </div>
@@ -293,33 +297,33 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
             ))}
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>No overlapping Mahadasha windows could be shown. Both charts need Vimshottari dasha data.</p>
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('noDashaOverlap')}</p>
         )}
       </div>
 
       {/* Varnamala */}
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${TONE[deep.varnamala.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Birth-name Varnamala (Janma-naam)</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>{t('varnamalaTitle')}</h3>
         <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{deep.varnamala.summary}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.75rem' }}>
           {[deep.varnamala.personA, deep.varnamala.personB].map(p => (
             <div key={p.person} style={{ padding: '0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
               <div style={{ fontWeight: 800 }}>{p.person}</div>
               <div style={{ fontSize: '0.78rem', marginTop: 4 }}>
-                Syllable <strong style={{ color: 'var(--text-gold)' }}>{p.janmaSyllable}</strong>
+                {t('syllable')} <strong style={{ color: 'var(--text-gold)' }}>{p.janmaSyllable}</strong>
                 {p.group && <> · {p.group.animalSa} ({p.group.animal})</>}
               </div>
               {p.group && (
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                  Letters: {p.group.letters}
-                  {p.enemyGroup && <> · Opposing group: {p.enemyGroup.animalSa}</>}
+                  {t('letters')}: {p.group.letters}
+                  {p.enemyGroup && <> · {t('opposingGroup')}: {p.enemyGroup.animalSa}</>}
                 </div>
               )}
             </div>
           ))}
         </div>
         <p style={{ margin: '0.75rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-          Based on the Moon nakshatra pada sound (Janma-naam), not the everyday name. The 5th letter-group is the classical opposing group.
+          {t('varnamalaFoot')}
         </p>
       </div>
 
@@ -334,7 +338,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           color: 'var(--text-muted)',
         }}
       >
-        <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Points worth looking at together</div>
+        <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{t('prioritiesTitle')}</div>
         <ol style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.5 }}>
           {deep.overall.priorities.map(p => <li key={p}>{p}</li>)}
         </ol>

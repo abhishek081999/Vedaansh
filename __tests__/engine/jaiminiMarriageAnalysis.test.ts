@@ -266,4 +266,43 @@ describe('analyzeJaiminiMarriage', () => {
     expect(result!.redFlags.find(f => f.id === 'dk_d9_dusthana')!.active).toBe(true)
     expect(result!.activeRedFlagCount).toBeGreaterThanOrEqual(2)
   })
+
+  it('keeps English summary byte-stable and returns Hindi checklist when lang is hi', () => {
+    const asc = 4 as Rashi
+    const grahas = [
+      stubGraha({ id: 'Su', rashi: 6, degree: 28, charaKaraka: 'AK' }),
+      stubGraha({ id: 'Mo', rashi: 11, degree: 18 }),
+      stubGraha({ id: 'Ma', rashi: 6, degree: 22 }),
+      stubGraha({ id: 'Me', rashi: 6, degree: 2.5, charaKaraka: 'DK', dignity: 'own' }),
+      stubGraha({ id: 'Ju', rashi: 12, degree: 14, dignity: 'own' }),
+      stubGraha({ id: 'Ve', rashi: 7, degree: 16 }),
+      stubGraha({ id: 'Sa', rashi: 11, degree: 12 }),
+      stubGraha({ id: 'Ra', rashi: 3, degree: 8 }),
+      stubGraha({ id: 'Ke', rashi: 9, degree: 8 }),
+    ]
+    const d9 = grahas.map(g => stubGraha({ id: g.id, rashi: g.rashi, degree: g.degree }))
+    const chart = {
+      grahas,
+      lagnas: { ascRashi: asc, ascDegree: 5 },
+      arudhas: { A12: 7, AL: 1, A2: 2, A3: 3, A4: 4, A5: 5, A6: 6, A7: 7, A8: 8, A9: 9, A10: 10, A11: 11, grahaArudhas: {}, suryaArudhas: {}, chandraArudhas: {} },
+      vargas: { D9: d9 },
+      vargaLagnas: { D9: 5 as Rashi },
+      dashas: { chara: [], vimshottari: [] },
+    } as unknown as ChartOutput
+    const en = analyzeJaiminiMarriage(chart, 'en')!
+    const enDefault = analyzeJaiminiMarriage(chart)!
+    expect(enDefault.summary).toBe(en.summary)
+    expect(en.checklist[0]).toMatch(/Identify Darakaraka/)
+    const hi = analyzeJaiminiMarriage(chart, 'hi')!
+    expect(hi.checklist[0]).toMatch(/[\u0900-\u097F]/)
+    expect(hi.dkUlScenarioLabel).toMatch(/[\u0900-\u097F]/)
+    expect(hi.darakaraka.profile.nature).toMatch(/[\u0900-\u097F]/)
+    expect(hi.qualitySummary).toMatch(/[\u0900-\u097F]/)
+    expect(hi.marriagePath.label).toMatch(/[\u0900-\u097F]/)
+    expect(hi.darakaraka.notes[0]).toMatch(/[\u0900-\u097F]/)
+    expect(hi.upapada.notes[0]).toMatch(/[\u0900-\u097F]/)
+    expect(hi.seventh.notes.every(n => /[\u0900-\u097F]/.test(n))).toBe(true)
+    expect(hi.timing[0].label).toMatch(/[\u0900-\u097F]/)
+    expect(hi.redFlags[0].label).toMatch(/[\u0900-\u097F]/)
+  })
 })

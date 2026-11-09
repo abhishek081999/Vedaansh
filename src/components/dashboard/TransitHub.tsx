@@ -6,9 +6,10 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 import { useChart } from '@/components/providers/ChartProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
@@ -51,60 +52,15 @@ export type TransitHubTab = 'roadmap' | 'forecast' | 'scrubber' | 'moon' | 'sade
 
 const GOLD_TABS = new Set<TransitHubTab>(['forecast', 'sade-sati', 'aspects', 'biwheel', 'calendar'])
 
-const TABS: Array<{ id: TransitHubTab; label: string; href: string; blurb: string; gold?: boolean }> = [
-  {
-    id: 'scrubber',
-    label: 'Live Transit',
-    href: '/transit/scrubber',
-    blurb: 'Scrub date & time against your natal chart',
-  },
-  {
-    id: 'forecast',
-    label: 'Forecast',
-    href: '/transit/forecast',
-    blurb: 'Predictive transit weather — life areas, windows & drivers (gochar + BAV + dasha)',
-    gold: true,
-  },
-  {
-    id: 'moon',
-    label: 'Moon Passages',
-    href: '/transit/moon',
-    blurb: 'Moon over natal grahas, lagnas & upagrahas — 72h + 27-day cycle',
-  },
-  {
-    id: 'roadmap',
-    label: 'Cosmic Roadmap',
-    href: '/transit/roadmap',
-    blurb: '12-month ingresses with Vimshottari MD/AD overlay',
-  },
-  {
-    id: 'sade-sati',
-    label: 'Sade Sati',
-    href: '/transit/sade-sati',
-    blurb: 'Saturn vs Moon — Sade Sati, Kantaka/Dhaiya, Ashtama',
-    gold: true,
-  },
-  {
-    id: 'aspects',
-    label: 'Aspects',
-    href: '/transit/aspects',
-    blurb: 'Gochara aspects + double/triple transit windows',
-    gold: true,
-  },
-  {
-    id: 'biwheel',
-    label: 'Bi-wheel',
-    href: '/transit/biwheel',
-    blurb: 'Natal/transit wheel + Moorthy + D9 gochar',
-    gold: true,
-  },
-  {
-    id: 'calendar',
-    label: 'Calendar',
-    href: '/transit/calendar',
-    blurb: 'Personal monthly gochar calendar + printable HTML',
-    gold: true,
-  },
+const TAB_CONFIG: Array<{ id: TransitHubTab; href: string; gold?: boolean }> = [
+  { id: 'scrubber', href: '/transit/scrubber' },
+  { id: 'forecast', href: '/transit/forecast', gold: true },
+  { id: 'moon', href: '/transit/moon' },
+  { id: 'roadmap', href: '/transit/roadmap' },
+  { id: 'sade-sati', href: '/transit/sade-sati', gold: true },
+  { id: 'aspects', href: '/transit/aspects', gold: true },
+  { id: 'biwheel', href: '/transit/biwheel', gold: true },
+  { id: 'calendar', href: '/transit/calendar', gold: true },
 ]
 
 interface TransitHubProps {
@@ -120,11 +76,22 @@ function wrapGold(userPlan: UserPlan, featureName: string, children: React.React
 }
 
 export function TransitHub({ tab }: TransitHubProps) {
+  const t = useTranslations('transit.hub')
   const { chart, openBirthForm } = useChart()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const [, setTransitGrahas] = useState<GrahaData[] | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+
+  const tabs = useMemo(
+    () =>
+      TAB_CONFIG.map(row => ({
+        ...row,
+        label: t(`tabs.${row.id}.label`),
+        blurb: t(`tabs.${row.id}.blurb`),
+      })),
+    [t],
+  )
 
   React.useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -138,10 +105,10 @@ export function TransitHub({ tab }: TransitHubProps) {
       <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem' }}>
         <div className="card" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '3rem' }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text-gold)', marginBottom: '1rem' }}>
-            Birth Data Required
+            {t('emptyTitle')}
           </h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
-            Transit tools use your Ascendant, Moon, and Vimshottari dashas. Enter birth details to open the hub.
+            {t('emptyBody')}
           </p>
           <button
             type="button"
@@ -149,11 +116,11 @@ export function TransitHub({ tab }: TransitHubProps) {
             style={{ padding: '0.75rem 2rem' }}
             onClick={openBirthForm}
           >
-            Enter Birth Details
+            {t('enterBirth')}
           </button>
           <div style={{ marginTop: '1rem' }}>
             <Link href="/?new=true" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Or open the birth form on the home page
+              {t('orHome')}
             </Link>
           </div>
         </div>
@@ -161,7 +128,7 @@ export function TransitHub({ tab }: TransitHubProps) {
     )
   }
 
-  const active = TABS.find(t => t.id === tab) ?? TABS[0]
+  const active = tabs.find(row => row.id === tab) ?? tabs[0]
   const wide = tab === 'forecast' || tab === 'scrubber' || tab === 'moon' || tab === 'biwheel' || tab === 'calendar'
 
   let body: React.ReactNode = null
@@ -175,7 +142,7 @@ export function TransitHub({ tab }: TransitHubProps) {
       </div>
     )
   } else if (tab === 'forecast') {
-    body = wrapGold(userPlan, 'Transit forecast', (
+    body = wrapGold(userPlan, t('gates.forecast'), (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
         <TransitForecastPanel chart={chart} />
       </div>
@@ -189,25 +156,25 @@ export function TransitHub({ tab }: TransitHubProps) {
       </div>
     )
   } else if (tab === 'sade-sati') {
-    body = wrapGold(userPlan, 'Sade Sati tracker', (
+    body = wrapGold(userPlan, t('gates.sadeSati'), (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
         <SadeSatiPanel chart={chart} />
       </div>
     ))
   } else if (tab === 'aspects') {
-    body = wrapGold(userPlan, 'Transit aspects', (
+    body = wrapGold(userPlan, t('gates.aspects'), (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
         <TransitAspectsPanel chart={chart} />
       </div>
     ))
   } else if (tab === 'biwheel') {
-    body = wrapGold(userPlan, 'Bi-wheel & Moorthy', (
+    body = wrapGold(userPlan, t('gates.biwheel'), (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
         <TransitBiWheelPanel chart={chart} />
       </div>
     ))
   } else if (tab === 'calendar') {
-    body = wrapGold(userPlan, 'Transit calendar', (
+    body = wrapGold(userPlan, t('gates.calendar'), (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
         <TransitCalendarPanel chart={chart} />
       </div>
@@ -239,16 +206,16 @@ export function TransitHub({ tab }: TransitHubProps) {
               color: 'var(--text-primary)',
             }}
           >
-            Transit
+            {t('title')}
           </h1>
           <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>
             {active.blurb}
-            {GOLD_TABS.has(tab) ? ' · Gold' : ''}
+            {GOLD_TABS.has(tab) ? t('goldSuffix') : ''}
           </p>
         </div>
 
         <nav
-          aria-label="Transit sections"
+          aria-label={t('navAriaLabel')}
           style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -261,12 +228,12 @@ export function TransitHub({ tab }: TransitHubProps) {
             maxWidth: '100%',
           }}
         >
-          {TABS.map(t => {
-            const selected = t.id === tab
+          {tabs.map(row => {
+            const selected = row.id === tab
             return (
               <Link
-                key={t.id}
-                href={t.href}
+                key={row.id}
+                href={row.href}
                 style={{
                   padding: isMobile ? '0.45rem 0.75rem' : '0.5rem 1rem',
                   borderRadius: 8,
@@ -278,7 +245,7 @@ export function TransitHub({ tab }: TransitHubProps) {
                   fontWeight: 700,
                 }}
               >
-                {t.label}{t.gold ? ' ✦' : ''}
+                {row.label}{row.gold ? ' ✦' : ''}
               </Link>
             )
           })}

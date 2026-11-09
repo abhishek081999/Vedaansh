@@ -6,9 +6,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, DashaNode, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
-import { FORECAST_AREAS, type ForecastAreaId } from '@/lib/engine/transitForecastAreas'
+import { useLang } from '@/i18n/useLang'
+import { FORECAST_AREAS, forecastAreaLabel, type ForecastAreaId } from '@/lib/engine/transitForecastAreas'
 import type {
   AreaOutlook,
   ForecastDashaSpan,
@@ -26,6 +28,7 @@ import type {
   PredictionTone,
   WindowPrediction,
 } from '@/lib/engine/transitPredictions'
+import type { EngineLang } from '@/lib/engine/lang'
 import styles from './transit-forecast.module.css'
 
 interface TransitForecastPanelProps {
@@ -64,7 +67,7 @@ function flattenDashas(nodes: DashaNode[] | undefined, from: Date, to: Date): Fo
   return out.slice(0, 60)
 }
 
-function buildBody(chart: ChartOutput, months: Horizon) {
+function buildBody(chart: ChartOutput, months: Horizon, lang: EngineLang) {
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const av = chart.ashtakavarga
   const bav: Partial<Record<(typeof BAV_IDS)[number], number[]>> = {}
@@ -82,26 +85,35 @@ function buildBody(chart: ChartOutput, months: Horizon) {
     dashas: flattenDashas(chart.dashas?.vimshottari, now, end),
     asOf: isoOf(now),
     months,
+    lang,
   }
 }
 
 // ── Formatting ───────────────────────────────────────────────
 
-function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }): string {
-  return new Intl.DateTimeFormat('en-IN', { ...opts, timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
+function dateLocale(lang: EngineLang): string {
+  return lang === 'hi' ? 'hi-IN' : 'en-IN'
 }
 
-function fmtRange(a: string, b: string): string {
-  return `${fmtDate(a, { day: 'numeric', month: 'short' })} – ${fmtDate(b, { day: 'numeric', month: 'short', year: 'numeric' })}`
+function fmtDate(
+  iso: string,
+  lang: EngineLang,
+  opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' },
+): string {
+  return new Intl.DateTimeFormat(dateLocale(lang), { ...opts, timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
+}
+
+function fmtRange(a: string, b: string, lang: EngineLang): string {
+  return `${fmtDate(a, lang, { day: 'numeric', month: 'short' })} – ${fmtDate(b, lang, { day: 'numeric', month: 'short', year: 'numeric' })}`
 }
 
 /** Mirrors the engine headline bands. */
-function moodOf(score: number): string {
-  if (score >= 62) return 'Supportive'
-  if (score >= 54) return 'Mildly supportive'
-  if (score > 46) return 'Balanced'
-  if (score > 38) return 'Testing'
-  return 'High pressure'
+function moodKey(score: number): 'supportive' | 'mild' | 'balanced' | 'testing' | 'pressure' {
+  if (score >= 62) return 'supportive'
+  if (score >= 54) return 'mild'
+  if (score > 46) return 'balanced'
+  if (score > 38) return 'testing'
+  return 'pressure'
 }
 
 function toneClassOf(score: number): string {
@@ -120,7 +132,7 @@ function scoreFill(score: number, strength = 1): string {
 
 // ── Gauge ────────────────────────────────────────────────────
 
-function Gauge({ score }: { score: number }) {
+function Gauge({ score, aria }: { score: number; aria: string }) {
   const r = 46
   const cx = 60
   const cy = 58
@@ -133,7 +145,7 @@ function Gauge({ score }: { score: number }) {
     return `M ${cx + r * Math.cos(a0)} ${cy - r * Math.sin(a0)} A ${r} ${r} 0 0 1 ${cx + r * Math.cos(a1)} ${cy - r * Math.sin(a1)}`
   }
   return (
-    <svg viewBox="0 0 120 72" className={styles.gauge} role="img" aria-label={`Transit weather ${score} of 100`}>
+    <svg viewBox="0 0 120 72" className={styles.gauge} role="img" aria-label={aria}>
       <path d={arc(0, 38)} className={styles.gaugeBad} />
       <path d={arc(38, 62)} className={styles.gaugeMid} />
       <path d={arc(62, 100)} className={styles.gaugeGood} />
@@ -173,7 +185,12 @@ function monthTicks(report: TransitForecastReport): string[] {
   return out
 }
 
-function ForecastCurve({ report, focusArea }: { report: TransitForecastReport; focusArea: ForecastAreaId | null }) {
+function ForecastCurve({ report, focusArea, lang }: {
+  report: TransitForecastReport
+  focusArea: ForecastAreaId | null
+  lang: EngineLang
+}) {
+  const t = useTranslations('transit.forecast')
   const x = useXScale(report)
   const [hover, setHover] = useState<number | null>(null)
   const series = report.points.map(p => (focusArea ? p.areas[focusArea].score : p.overall))
@@ -217,7 +234,9 @@ function ForecastCurve({ report, focusArea }: { report: TransitForecastReport; f
     <div className={styles.curveWrap}>
       <div className={styles.curveInner}>
         <svg viewBox={`0 0 ${W} ${CURVE_H}`} className={styles.curve} role="img"
-          aria-label={`${focusArea ? 'Area' : 'Overall'} transit score over the next ${report.points.length} samples`}>
+          aria-label={focusArea
+            ? t('curveAriaArea', { n: report.points.length })
+            : t('curveAriaOverall', { n: report.points.length })}>
           <defs>
             <clipPath id="tf-above"><rect x={0} y={0} width={W} height={y(50)} /></clipPath>
             <clipPath id="tf-below"><rect x={0} y={y(50)} width={W} height={CURVE_H} /></clipPath>
@@ -236,11 +255,11 @@ function ForecastCurve({ report, focusArea }: { report: TransitForecastReport; f
             </g>
           ))}
 
-          {ticks.map(t => (
-            <g key={t}>
-              <line x1={x(t)} x2={x(t)} y1={CURVE_H - PAD.b} y2={CURVE_H - PAD.b + 4} className={styles.gridLine} />
-              <text x={x(t)} y={CURVE_H - 8} textAnchor="middle" className={styles.axisText}>
-                {fmtDate(t, { month: 'short' })}{t.slice(5, 7) === '01' ? ` ’${t.slice(2, 4)}` : ''}
+          {ticks.map(tick => (
+            <g key={tick}>
+              <line x1={x(tick)} x2={x(tick)} y1={CURVE_H - PAD.b} y2={CURVE_H - PAD.b + 4} className={styles.gridLine} />
+              <text x={x(tick)} y={CURVE_H - 8} textAnchor="middle" className={styles.axisText}>
+                {fmtDate(tick, lang, { month: 'short' })}{tick.slice(5, 7) === '01' ? ` ’${tick.slice(2, 4)}` : ''}
               </text>
             </g>
           ))}
@@ -264,7 +283,7 @@ function ForecastCurve({ report, focusArea }: { report: TransitForecastReport; f
           ))}
 
           <line x1={first} x2={first} y1={PAD.t - 8} y2={CURVE_H - PAD.b} className={styles.todayLine} />
-          <text x={first + 4} y={PAD.t - 12} className={styles.todayText}>Today</text>
+          <text x={first + 4} y={PAD.t - 12} className={styles.todayText}>{t('today')}</text>
 
           {hp && (
             <g pointerEvents="none">
@@ -280,14 +299,14 @@ function ForecastCurve({ report, focusArea }: { report: TransitForecastReport; f
         {hp && (
           <div className={styles.tooltip} style={{ left: `${(hx / W) * 100}%`, transform: `translateX(${hx > W * 0.66 ? '-100%' : hx < W * 0.2 ? '0' : '-50%'})` }}>
             <div className={styles.ttHead}>
-              <span>{fmtDate(hp.dateIso)}</span>
+              <span>{fmtDate(hp.dateIso, lang)}</span>
               <strong className={toneClassOf(series[hover as number])}>{series[hover as number]}</strong>
             </div>
             {hp.md && <div className={styles.ttDasha}>{GRAHA_NAMES[hp.md]} / {hp.ad ? GRAHA_NAMES[hp.ad] : '—'}</div>}
             <div className={styles.ttAreas}>
               {topAreas.map(({ a, v }) => (
                 <div key={a.id} className={styles.ttArea}>
-                  <span>{a.label}{v.doubleTransit ? ' ★' : ''}</span>
+                  <span>{forecastAreaLabel(a.id, lang)}{v.doubleTransit ? ' ★' : ''}</span>
                   <span className={styles.ttBar}><i style={{ width: `${v.score}%`, background: scoreFill(v.score) }} /></span>
                   <b>{v.score}</b>
                 </div>
@@ -314,11 +333,12 @@ function bucketize(points: ForecastPoint[], count: number): Bucket[] {
   return out
 }
 
-function AreaHeatmap({ report, months, focusArea, onFocus }: {
+function AreaHeatmap({ report, months, focusArea, onFocus, lang }: {
   report: TransitForecastReport
   months: Horizon
   focusArea: ForecastAreaId | null
   onFocus: (id: ForecastAreaId | null) => void
+  lang: EngineLang
 }) {
   const buckets = useMemo(() => bucketize(report.points, Math.min(48, months * 2)), [report.points, months])
   const labels = useMemo(() => {
@@ -329,10 +349,10 @@ function AreaHeatmap({ report, months, focusArea, onFocus }: {
       const changed = i === 0 || b.startIso.slice(0, 7) !== buckets[i - 1].startIso.slice(0, 7)
       if (!changed || i - last < minGap) return ''
       last = i
-      const label = fmtDate(b.startIso, { month: 'short' })
+      const label = fmtDate(b.startIso, lang, { month: 'short' })
       return b.startIso.slice(5, 7) === '01' ? `${label} ’${b.startIso.slice(2, 4)}` : label
     })
-  }, [buckets, months])
+  }, [buckets, months, lang])
   return (
     <div className={styles.heatmap} style={{ gridTemplateColumns: `minmax(7.5rem, auto) repeat(${buckets.length}, minmax(0, 1fr))` }}>
       <span />
@@ -343,16 +363,17 @@ function AreaHeatmap({ report, months, focusArea, onFocus }: {
         <React.Fragment key={a.id}>
           <button type="button" className={`${styles.heatLabel} ${focusArea === a.id ? styles.heatLabelOn : ''}`}
             onClick={() => onFocus(focusArea === a.id ? null : a.id)} aria-pressed={focusArea === a.id}>
-            {a.label}
+            {forecastAreaLabel(a.id, lang)}
           </button>
           {buckets.map(b => {
             const score = Math.round(b.points.reduce((s, p) => s + p.areas[a.id].score, 0) / b.points.length)
             const act = b.points.reduce((s, p) => s + p.areas[a.id].activation, 0) / b.points.length / 100
             const dt = b.points.some(p => p.areas[a.id].doubleTransit)
+            const areaLabel = forecastAreaLabel(a.id, lang)
             return (
               <span key={b.startIso} className={styles.heatCell}
                 style={{ background: scoreFill(score, act) }}
-                title={`${a.label} · ${fmtRange(b.startIso, b.endIso)} · ${score}/100 · activation ${Math.round(act * 100)}%${dt ? ' · Ju+Sa double transit' : ''}`}>
+                title={`${areaLabel} · ${fmtRange(b.startIso, b.endIso, lang)} · ${score}/100 · ${Math.round(act * 100)}%${dt ? ' · ★' : ''}`}>
                 {dt ? '★' : ''}
               </span>
             )
@@ -365,26 +386,27 @@ function AreaHeatmap({ report, months, focusArea, onFocus }: {
 
 // ── Slow-planet ribbon ───────────────────────────────────────
 
-function PlanetRibbon({ report }: { report: TransitForecastReport }) {
+function PlanetRibbon({ report, lang }: { report: TransitForecastReport; lang: EngineLang }) {
+  const t = useTranslations('transit.forecast')
   const x = useXScale(report)
   const rowH = 26
   const h = RIBBON_ORDER.length * rowH + 6
   return (
-    <svg viewBox={`0 0 ${W} ${h}`} className={styles.ribbon} role="img" aria-label="Slow planet sign transits">
+    <svg viewBox={`0 0 ${W} ${h}`} className={styles.ribbon} role="img" aria-label={t('ribbonAria')}>
       {RIBBON_ORDER.map((pid, row) => (
         <g key={pid} transform={`translate(0 ${row * rowH + 3})`}>
           <text x={PAD.l - 6} y={rowH / 2 + 1} textAnchor="end" className={styles.ribbonPlanet}>{pid}</text>
-          {report.tracks.filter(t => t.planet === pid).map(t => {
-            const x0 = x(t.startIso)
-            const wd = Math.max(1, x(t.endIso) - x0)
+          {report.tracks.filter(tr => tr.planet === pid).map(tr => {
+            const x0 = x(tr.startIso)
+            const wd = Math.max(1, x(tr.endIso) - x0)
             return (
-              <g key={`${pid}-${t.startIso}`}>
-                <title>{`${GRAHA_NAMES[pid]} in ${t.signName} · ${fmtRange(t.startIso, t.endIso)} · H${t.houseFromLagna} from Lagna · ${t.houseFromMoon} from Moon${t.bindus != null ? ` · ${t.bindus} bindus` : ''}`}</title>
+              <g key={`${pid}-${tr.startIso}`}>
+                <title>{`${GRAHA_NAMES[pid]} · ${tr.signName} · ${fmtRange(tr.startIso, tr.endIso, lang)} · H${tr.houseFromLagna} · M${tr.houseFromMoon}${tr.bindus != null ? ` · ${tr.bindus}b` : ''}`}</title>
                 <rect x={x0 + 1} y={2} width={Math.max(1, wd - 2)} height={rowH - 6} rx={5}
-                  className={t.favourable ? styles.segGood : styles.segBad} />
+                  className={tr.favourable ? styles.segGood : styles.segBad} />
                 {(() => {
-                  const full = `${RASHI_SHORT[t.rashi]} · H${t.houseFromLagna} · M${t.houseFromMoon}${t.bindus != null ? ` · ${t.bindus}b` : ''}`
-                  const label = wd - 14 >= full.length * 6.4 ? full : wd - 14 >= 2 * 7 ? RASHI_SHORT[t.rashi] : ''
+                  const full = `${RASHI_SHORT[tr.rashi]} · H${tr.houseFromLagna} · M${tr.houseFromMoon}${tr.bindus != null ? ` · ${tr.bindus}b` : ''}`
+                  const label = wd - 14 >= full.length * 6.4 ? full : wd - 14 >= 2 * 7 ? RASHI_SHORT[tr.rashi] : ''
                   return label ? <text x={x0 + 8} y={rowH / 2 + 1} className={styles.segText}>{label}</text> : null
                 })()}
               </g>
@@ -410,7 +432,14 @@ function Sparkline({ values }: { values: number[] }) {
   )
 }
 
-function OutlookCard({ o, series, active, onClick }: { o: AreaOutlook; series: number[]; active: boolean; onClick: () => void }) {
+function OutlookCard({ o, series, active, onClick, lang }: {
+  o: AreaOutlook
+  series: number[]
+  active: boolean
+  onClick: () => void
+  lang: EngineLang
+}) {
+  const t = useTranslations('transit.forecast')
   const arrow = o.trend === 'rising' ? '↗' : o.trend === 'falling' ? '↘' : '→'
   return (
     <button type="button" className={`${styles.outlook} ${active ? styles.outlookOn : ''}`} onClick={onClick} aria-pressed={active}>
@@ -420,8 +449,8 @@ function OutlookCard({ o, series, active, onClick }: { o: AreaOutlook; series: n
       </div>
       <Sparkline values={series} />
       <dl className={styles.outlookMeta}>
-        {o.bestWindow && (<><dt>Best window</dt><dd>{fmtRange(o.bestWindow.startIso, o.bestWindow.endIso)}</dd></>)}
-        {o.nextDoubleTransitIso && (<><dt>Double transit</dt><dd>★ {fmtDate(o.nextDoubleTransitIso)}</dd></>)}
+        {o.bestWindow && (<><dt>{t('bestWindow')}</dt><dd>{fmtRange(o.bestWindow.startIso, o.bestWindow.endIso, lang)}</dd></>)}
+        {o.nextDoubleTransitIso && (<><dt>{t('doubleTransit')}</dt><dd>★ {fmtDate(o.nextDoubleTransitIso, lang)}</dd></>)}
       </dl>
       {o.notes.length > 0 && (
         <ul className={styles.outlookNotes}>
@@ -433,64 +462,74 @@ function OutlookCard({ o, series, active, onClick }: { o: AreaOutlook; series: n
 }
 
 function DoAvoid({ doList, avoidList }: { doList: string[]; avoidList: string[] }) {
+  const t = useTranslations('transit.forecast')
   return (
     <div className={styles.doAvoid}>
       <div>
-        <span className={`${styles.doAvoidHead} ${styles.good}`}>Do</span>
+        <span className={`${styles.doAvoidHead} ${styles.good}`}>{t('do')}</span>
         <ul>{doList.map(x => <li key={x}>{x}</li>)}</ul>
       </div>
       <div>
-        <span className={`${styles.doAvoidHead} ${styles.bad}`}>Avoid</span>
+        <span className={`${styles.doAvoidHead} ${styles.bad}`}>{t('avoid')}</span>
         <ul>{avoidList.map(x => <li key={x}>{x}</li>)}</ul>
       </div>
     </div>
   )
 }
 
-function WindowCard({ w, p }: { w: ForecastWindow; p?: WindowPrediction }) {
+function WindowCard({ w, p, lang }: { w: ForecastWindow; p?: WindowPrediction; lang: EngineLang }) {
+  const t = useTranslations('transit.forecast')
   return (
     <div className={`${styles.window} ${w.kind === 'favourable' ? styles.windowGood : styles.windowBad}`}>
       <div className={styles.windowHead}>
-        <strong>{w.kind === 'favourable' ? 'Favourable' : 'Caution'} · {w.leadAreaLabel}</strong>
-        <span className={styles.mono}>{fmtRange(w.startIso, w.endIso)}</span>
+        <strong>{w.kind === 'favourable' ? t('favourable') : t('caution')} · {w.leadAreaLabel}</strong>
+        <span className={styles.mono}>{fmtRange(w.startIso, w.endIso, lang)}</span>
       </div>
       <p>{p?.expect ?? w.summary}</p>
       {p && <DoAvoid doList={p.doList} avoidList={p.avoidList} />}
-      <span className={styles.windowStat}>avg {w.avg} · {w.kind === 'favourable' ? 'peak' : 'low'} {w.peak}</span>
+      <span className={styles.windowStat}>
+        {t('avgPeak', {
+          avg: w.avg,
+          kind: w.kind === 'favourable' ? t('peak') : t('low'),
+          peak: w.peak,
+        })}
+      </span>
     </div>
   )
 }
 
 // ── Written predictions ──────────────────────────────────────
 
-function toneLabel(t: PredictionTone): string {
-  return t === 'supportive' ? 'Supportive' : t === 'pressure' ? 'Challenging' : 'Mixed'
+function toneLabel(tone: PredictionTone, t: ReturnType<typeof useTranslations<'transit.forecast'>>): string {
+  return tone === 'supportive' ? t('tone.supportive') : tone === 'pressure' ? t('tone.challenging') : t('tone.mixed')
 }
 
-function tonePill(t: PredictionTone): string {
-  return t === 'supportive' ? styles.pillGood : t === 'pressure' ? styles.pillBad : styles.pillMid
+function tonePill(tone: PredictionTone): string {
+  return tone === 'supportive' ? styles.pillGood : tone === 'pressure' ? styles.pillBad : styles.pillMid
 }
 
 function AreaPredictionCard({ a, onPlot }: { a: AreaPrediction; onPlot: () => void }) {
+  const t = useTranslations('transit.forecast')
   return (
     <article className={styles.predCard}>
       <header className={styles.predHead}>
         <h4>{a.label}</h4>
-        <span className={`${styles.pill} ${tonePill(a.tone)}`}>{toneLabel(a.tone)}</span>
+        <span className={`${styles.pill} ${tonePill(a.tone)}`}>{toneLabel(a.tone, t)}</span>
       </header>
       <p className={styles.predVerdict}>{a.verdict}</p>
       <p>{a.now}</p>
-      <p><b>Ahead:</b> {a.ahead}</p>
+      <p><b>{t('ahead')}</b> {a.ahead}</p>
       {a.themes.length > 0 && (
-        <ul className={styles.predThemes}>{a.themes.map(t => <li key={t}>{t}</li>)}</ul>
+        <ul className={styles.predThemes}>{a.themes.map(theme => <li key={theme}>{theme}</li>)}</ul>
       )}
       <DoAvoid doList={a.doList} avoidList={a.avoidList} />
-      <button type="button" className={styles.linkBtn} onClick={onPlot}>Plot on curve ↑</button>
+      <button type="button" className={styles.linkBtn} onClick={onPlot}>{t('plotCurve')}</button>
     </article>
   )
 }
 
 function MonthCard({ m }: { m: MonthPrediction }) {
+  const t = useTranslations('transit.forecast')
   return (
     <article className={`${styles.predCard} ${styles.monthCard}`}>
       <header className={styles.predHead}>
@@ -504,7 +543,7 @@ function MonthCard({ m }: { m: MonthPrediction }) {
       </div>
       {m.events.length > 0 && (
         <details className={styles.monthEvents}>
-          <summary>{m.events.length} sky event{m.events.length > 1 ? 's' : ''}</summary>
+          <summary>{m.events.length === 1 ? t('skyEvents', { n: 1 }) : t('skyEventsPlural', { n: m.events.length })}</summary>
           <ul>{m.events.map(e => <li key={e}>{e}</li>)}</ul>
         </details>
       )}
@@ -513,22 +552,23 @@ function MonthCard({ m }: { m: MonthPrediction }) {
 }
 
 function PredictionsSection({ p, onPlot }: { p: ForecastPredictions; onPlot: (id: ForecastAreaId) => void }) {
+  const t = useTranslations('transit.forecast')
   const [view, setView] = useState<'areas' | 'months'>('areas')
   return (
     <section className={styles.section}>
       <div className={styles.sectionHead}>
-        <h3>Predictions</h3>
-        <div className={styles.chips} role="tablist" aria-label="Prediction view">
+        <h3>{t('predictions')}</h3>
+        <div className={styles.chips} role="tablist" aria-label={t('predictionViewAria')}>
           {(['areas', 'months'] as const).map(v => (
             <button key={v} type="button" role="tab" aria-selected={view === v}
               className={`${styles.chip} ${view === v ? styles.chipOn : ''}`} onClick={() => setView(v)}>
-              {v === 'areas' ? 'By life area' : 'Month by month'}
+              {v === 'areas' ? t('byArea') : t('byMonth')}
             </button>
           ))}
         </div>
       </div>
       <div className={styles.overview}>
-        {p.overview.map(t => <p key={t}>{t}</p>)}
+        {p.overview.map(text => <p key={text}>{text}</p>)}
       </div>
       {view === 'areas' ? (
         <div className={styles.predGrid}>
@@ -561,15 +601,15 @@ function DriverRow({ d }: { d: ForecastDriver }) {
   )
 }
 
-const EVENT_FILTERS: Array<{ id: 'all' | ForecastEventKind | 'stations'; label: string }> = [
-  { id: 'all', label: 'All' },
-  { id: 'ingress', label: 'Ingress' },
-  { id: 'stations', label: 'Stations' },
-  { id: 'dasha', label: 'Dasha' },
-]
-
-function EventTimeline({ events }: { events: ForecastEvent[] }) {
-  const [filter, setFilter] = useState<(typeof EVENT_FILTERS)[number]['id']>('all')
+function EventTimeline({ events, lang }: { events: ForecastEvent[]; lang: EngineLang }) {
+  const t = useTranslations('transit.forecast')
+  const filters: Array<{ id: 'all' | ForecastEventKind | 'stations'; label: string }> = [
+    { id: 'all', label: t('filterAll') },
+    { id: 'ingress', label: t('filterIngress') },
+    { id: 'stations', label: t('filterStations') },
+    { id: 'dasha', label: t('filterDasha') },
+  ]
+  const [filter, setFilter] = useState<(typeof filters)[number]['id']>('all')
   const shown = events.filter(e => filter === 'all'
     || (filter === 'stations' ? e.kind === 'retrograde' || e.kind === 'direct' : e.kind === filter))
   const byMonth = new Map<string, ForecastEvent[]>()
@@ -579,24 +619,24 @@ function EventTimeline({ events }: { events: ForecastEvent[] }) {
   }
   return (
     <div>
-      <div className={styles.chips} role="tablist" aria-label="Event type">
-        {EVENT_FILTERS.map(f => (
+      <div className={styles.chips} role="tablist" aria-label={t('eventTypeAria')}>
+        {filters.map(f => (
           <button key={f.id} type="button" role="tab" aria-selected={filter === f.id}
             className={`${styles.chip} ${filter === f.id ? styles.chipOn : ''}`} onClick={() => setFilter(f.id)}>
             {f.label}
           </button>
         ))}
       </div>
-      {shown.length === 0 ? <p className={styles.muted}>No events of this type in the window.</p> : (
+      {shown.length === 0 ? <p className={styles.muted}>{t('noEvents')}</p> : (
         <ol className={styles.timeline}>
           {[...byMonth.entries()].map(([month, list]) => (
             <li key={month}>
-              <div className={styles.timelineMonth}>{fmtDate(`${month}-01`, { month: 'long', year: 'numeric' })}</div>
+              <div className={styles.timelineMonth}>{fmtDate(`${month}-01`, lang, { month: 'long', year: 'numeric' })}</div>
               <ul>
                 {list.map(e => (
                   <li key={`${e.kind}-${e.planet}-${e.dateIso}`} className={styles.event}>
                     <span className={`${styles.eventDot} ${e.tone === 'supportive' ? styles.dotGood : e.tone === 'caution' ? styles.dotBad : styles.dotMid}`} />
-                    <span className={styles.eventDate}>{fmtDate(e.dateIso, { day: 'numeric', month: 'short' })}</span>
+                    <span className={styles.eventDate}>{fmtDate(e.dateIso, lang, { day: 'numeric', month: 'short' })}</span>
                     <div>
                       <strong>{e.label}</strong>
                       <p>{e.detail}</p>
@@ -615,6 +655,8 @@ function EventTimeline({ events }: { events: ForecastEvent[] }) {
 // ── Panel ────────────────────────────────────────────────────
 
 export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
+  const t = useTranslations('transit.forecast')
+  const { lang } = useLang()
   const [months, setMonths] = useState<Horizon>(12)
   const [report, setReport] = useState<TransitForecastReport | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -630,23 +672,23 @@ export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
         const res = await fetch('/api/transit/forecast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(buildBody(chart, months)),
+          body: JSON.stringify(buildBody(chart, months, lang)),
         })
         const json = await res.json()
         if (cancelled) return
         if (!res.ok || !json.success) {
-          setError(json.error ?? 'Could not load forecast')
+          setError(json.error ?? t('loadFailed'))
           return
         }
         setReport(json.data as TransitForecastReport)
       } catch {
-        if (!cancelled) setError('Network error while loading forecast')
+        if (!cancelled) setError(t('networkError'))
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [chart, months])
+  }, [chart, months, lang, t])
 
   const areaSeries = useMemo(() => {
     const out = {} as Record<ForecastAreaId, number[]>
@@ -656,15 +698,15 @@ export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
 
   const controls = (
     <div className={styles.toolbar}>
-      <div className={styles.segmented} role="tablist" aria-label="Forecast horizon">
+      <div className={styles.segmented} role="tablist" aria-label={t('horizonAria')}>
         {HORIZONS.map(h => (
           <button key={h} type="button" role="tab" aria-selected={months === h}
             className={months === h ? styles.segOn : ''} onClick={() => setMonths(h)}>
-            {h} months
+            {t('months', { n: h })}
           </button>
         ))}
       </div>
-      {loading && report && <span className={styles.muted}>Updating…</span>}
+      {loading && report && <span className={styles.muted}>{t('updating')}</span>}
     </div>
   )
 
@@ -675,7 +717,7 @@ export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
     return (
       <div className={styles.root}>
         {controls}
-        <div className={styles.skeleton} aria-busy="true">Reading the sky ahead…</div>
+        <div className={styles.skeleton} aria-busy="true">{t('loading')}</div>
       </div>
     )
   }
@@ -683,25 +725,25 @@ export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
   const now = report.now
   const favCount = report.windows.filter(w => w.kind === 'favourable').length
   const cautionCount = report.windows.length - favCount
-  const focusLabel = focusArea ? FORECAST_AREAS.find(a => a.id === focusArea)?.label : null
+  const focusLabel = focusArea ? forecastAreaLabel(focusArea, lang) : null
 
   return (
     <div className={styles.root} style={{ opacity: loading ? 0.6 : 1 }}>
       {controls}
 
       <section className={styles.hero}>
-        <Gauge score={now.overall} />
+        <Gauge score={now.overall} aria={t('gaugeAria', { score: now.overall })} />
         <div className={styles.heroMeta}>
           <div className={styles.eyebrow}>
-            <span>Transit weather · {fmtDate(report.asOfIso)}</span>
+            <span>{t('weather', { date: fmtDate(report.asOfIso, lang) })}</span>
             {now.md && <span className={styles.dashaChip}>{GRAHA_NAMES[now.md]} MD / {now.ad ? GRAHA_NAMES[now.ad] : '—'} AD</span>}
           </div>
-          <h2 className={`${styles.mood} ${toneClassOf(now.overall)}`}>{moodOf(now.overall)}</h2>
+          <h2 className={`${styles.mood} ${toneClassOf(now.overall)}`}>{t(`mood.${moodKey(now.overall)}`)}</h2>
           <p className={styles.headline}>{report.headline}</p>
           <div className={styles.stats}>
-            <span><b className={report.trend30 >= 0 ? styles.good : styles.bad}>{report.trend30 >= 0 ? '+' : ''}{report.trend30}</b> next 30 days</span>
-            <span><b className={styles.good}>{favCount}</b> favourable windows</span>
-            <span><b className={styles.bad}>{cautionCount}</b> caution windows</span>
+            <span><b className={report.trend30 >= 0 ? styles.good : styles.bad}>{report.trend30 >= 0 ? '+' : ''}{report.trend30}</b> {t('next30')}</span>
+            <span><b className={styles.good}>{favCount}</b> {t('favWindows')}</span>
+            <span><b className={styles.bad}>{cautionCount}</b> {t('cautionWindows')}</span>
           </div>
         </div>
       </section>
@@ -715,44 +757,44 @@ export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
 
       <section className={styles.section} id="tf-curve">
         <div className={styles.sectionHead}>
-          <h3>{focusLabel ? `${focusLabel} forecast` : 'Forecast curve'}</h3>
+          <h3>{focusLabel ? t('areaForecast', { area: focusLabel }) : t('curveTitle')}</h3>
           <span className={styles.muted}>
-            {focusLabel ? <button type="button" className={styles.linkBtn} onClick={() => setFocusArea(null)}>Show overall</button>
-              : 'Shaded bands = favourable / caution windows · pins = Ju/Sa/Ra ingress · dashed = Antardasha change'}
+            {focusLabel ? <button type="button" className={styles.linkBtn} onClick={() => setFocusArea(null)}>{t('showOverall')}</button>
+              : t('curveLegend')}
           </span>
         </div>
-        <ForecastCurve report={report} focusArea={focusArea} />
+        <ForecastCurve report={report} focusArea={focusArea} lang={lang} />
       </section>
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h3>Life areas</h3>
-          <span className={styles.muted}>Colour = tone · intensity = activation · ★ = Jupiter + Saturn double transit. Click a row to plot it.</span>
+          <h3>{t('lifeAreas')}</h3>
+          <span className={styles.muted}>{t('lifeAreasLegend')}</span>
         </div>
         <div className={styles.scrollX}>
-          <AreaHeatmap report={report} months={months} focusArea={focusArea} onFocus={setFocusArea} />
+          <AreaHeatmap report={report} months={months} focusArea={focusArea} onFocus={setFocusArea} lang={lang} />
         </div>
         <div className={styles.outlookGrid}>
           {report.areaOutlooks.map(o => (
             <OutlookCard key={o.id} o={o} series={areaSeries[o.id]} active={focusArea === o.id}
-              onClick={() => setFocusArea(focusArea === o.id ? null : o.id)} />
+              onClick={() => setFocusArea(focusArea === o.id ? null : o.id)} lang={lang} />
           ))}
         </div>
       </section>
 
       <div className={styles.split}>
         <section className={styles.section}>
-          <div className={styles.sectionHead}><h3>What drives today</h3></div>
+          <div className={styles.sectionHead}><h3>{t('drivers')}</h3></div>
           <ul className={styles.drivers}>
             {now.drivers.map(d => <DriverRow key={d.planet} d={d} />)}
           </ul>
         </section>
         <section className={styles.section}>
-          <div className={styles.sectionHead}><h3>Key windows</h3></div>
+          <div className={styles.sectionHead}><h3>{t('keyWindows')}</h3></div>
           {report.windows.length === 0
-            ? <p className={styles.muted}>No sharply favourable or difficult stretches — an even period.</p>
+            ? <p className={styles.muted}>{t('noWindows')}</p>
             : <div className={styles.windows}>{report.windows.map(w => (
-                <WindowCard key={`${w.kind}-${w.startIso}`} w={w}
+                <WindowCard key={`${w.kind}-${w.startIso}`} w={w} lang={lang}
                   p={report.predictions?.windows.find(x => x.kind === w.kind && x.startIso === w.startIso)} />
               ))}</div>}
         </section>
@@ -760,21 +802,21 @@ export function TransitForecastPanel({ chart }: TransitForecastPanelProps) {
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h3>Slow-planet ribbon</h3>
-          <span className={styles.muted}>Sign · H = house from Lagna · M = house from Moon · b = BAV bindus. Teal = favourable gochar from Moon.</span>
+          <h3>{t('ribbon')}</h3>
+          <span className={styles.muted}>{t('ribbonLegend')}</span>
         </div>
         <div className={styles.scrollX}>
-          <PlanetRibbon report={report} />
+          <PlanetRibbon report={report} lang={lang} />
         </div>
       </section>
 
       <section className={styles.section}>
-        <div className={styles.sectionHead}><h3>Event timeline</h3></div>
-        <EventTimeline events={report.events} />
+        <div className={styles.sectionHead}><h3>{t('events')}</h3></div>
+        <EventTimeline events={report.events} lang={lang} />
       </section>
 
       <details className={styles.method}>
-        <summary>How this forecast is computed</summary>
+        <summary>{t('methodSummary')}</summary>
         <ul>{report.method.map(m => <li key={m}>{m}</li>)}</ul>
       </details>
     </div>

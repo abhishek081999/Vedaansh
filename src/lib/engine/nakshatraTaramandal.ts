@@ -8,6 +8,9 @@
 
 import type { ChartOutput, GrahaData, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
+import { fill, overlay, type EngineLang } from '@/lib/engine/lang'
+import { TARAMANDAL_INSIGHT_HI, TARAMANDAL_TEXT_HI } from '@/lib/engine/locale/nakshatraTaramandal.hi'
 
 /** Canonical mandal ids (10 taught + 2 forthcoming stubs). */
 export type TaramandalId =
@@ -440,10 +443,48 @@ function planetNoteFor(
   return mandal.planetNotes.find(n => n.grahaId === grahaId) ?? null
 }
 
+function localizeMandal(src: TaramandalDefinition): TaramandalDefinition {
+  const hi = TARAMANDAL_TEXT_HI[src.id]
+  const base = overlay(src, {
+    name: hi.name,
+    sanskrit: hi.sanskrit,
+    aka: hi.aka,
+    kingWhy: hi.kingWhy,
+    theme: hi.theme,
+    pendingNote: hi.pendingNote,
+  }, 'hi')
+  return {
+    ...base,
+    functions: hi.functions,
+    works: hi.works,
+    planetNotes: src.planetNotes.map(n => {
+      const note = hi.notes[n.grahaId]
+      return note ? { grahaId: n.grahaId, summary: note.summary, details: note.details } : n
+    }),
+  }
+}
+
+function membershipsFrom(mandals: TaramandalDefinition[], nakshatraIndex: number): NakshatraMandalMembership[] {
+  const out: NakshatraMandalMembership[] = []
+  for (const t of mandals) {
+    const mem = t.members.find(mem => mem.nakshatraIndex === nakshatraIndex)
+    if (!mem) continue
+    out.push({
+      mandalId: t.id,
+      mandalName: t.name,
+      role: mem.role,
+      isKing: t.kingIndex === nakshatraIndex,
+    })
+  }
+  return out
+}
+
 function hitsForMandal(
   mandal: TaramandalDefinition,
   grahas: GrahaData[],
+  lang: EngineLang = 'en',
 ): TaramandalPlanetHit[] {
+  const hi = lang === 'hi'
   const byNak = new Map(mandal.members.map(mem => [mem.nakshatraIndex, mem]))
   const hits: TaramandalPlanetHit[] = []
   for (const g of grahas) {
@@ -452,9 +493,11 @@ function hitsForMandal(
     if (!mem) continue
     hits.push({
       grahaId: g.id,
-      grahaName: GRAHA_NAMES[g.id] ?? g.id,
+      grahaName: hi ? (GRAHA_HI[g.id] ?? g.id) : (GRAHA_NAMES[g.id] ?? g.id),
       nakshatraIndex: g.nakshatraIndex,
-      nakshatraName: NAKSHATRA_NAMES[g.nakshatraIndex] ?? g.nakshatraName,
+      nakshatraName: hi
+        ? (NAKSHATRA_HI[g.nakshatraIndex] ?? g.nakshatraName)
+        : (NAKSHATRA_NAMES[g.nakshatraIndex] ?? g.nakshatraName),
       pada: g.pada,
       role: mem.role,
       isKing: mandal.kingIndex === g.nakshatraIndex,
@@ -467,18 +510,24 @@ function hitsForMandal(
 /**
  * Map a chart onto all Taramandals: birth-star memberships + planets in each mandal.
  */
-export function analyzeTaramandalChart(chart: ChartOutput): TaramandalChartAnalysis {
+export function analyzeTaramandalChart(chart: ChartOutput, lang: EngineLang = 'en'): TaramandalChartAnalysis {
+  const hi = lang === 'hi'
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const birthNakshatraIndex = moon?.nakshatraIndex ?? 0
-  const birthNakshatraName = NAKSHATRA_NAMES[birthNakshatraIndex] ?? 'Unknown'
-  const birthMemberships = getMandalsForNakshatra(birthNakshatraIndex)
+  const birthNakshatraName = hi
+    ? (NAKSHATRA_HI[birthNakshatraIndex] ?? 'अज्ञात')
+    : (NAKSHATRA_NAMES[birthNakshatraIndex] ?? 'Unknown')
+  const catalog = hi ? TARAMANDALS.map(localizeMandal) : TARAMANDALS
+  const birthMemberships = hi
+    ? membershipsFrom(catalog, birthNakshatraIndex)
+    : getMandalsForNakshatra(birthNakshatraIndex)
   const lagNak = lagnaNakshatraIndex(chart)
 
-  const mandals: TaramandalChartView[] = TARAMANDALS.map(mandal => {
-    const memberIdx = new Set(mandal.members.map(m => m.nakshatraIndex))
+  const mandals: TaramandalChartView[] = catalog.map(mandal => {
+    const memberIdx = new Set(mandal.members.map(mem => mem.nakshatraIndex))
     return {
       mandal,
-      planetHits: hitsForMandal(mandal, chart.grahas),
+      planetHits: hitsForMandal(mandal, chart.grahas, lang),
       moonInMandal: memberIdx.has(birthNakshatraIndex),
       lagnaInMandal: memberIdx.has(lagNak),
     }
@@ -486,7 +535,21 @@ export function analyzeTaramandalChart(chart: ChartOutput): TaramandalChartAnaly
 
   const activeComplete = mandals.filter(v => v.mandal.complete && v.planetHits.length > 0)
   const insightParts: string[] = []
-  if (birthMemberships.length > 0) {
+  if (hi) {
+    const copy = TARAMANDAL_INSIGHT_HI
+    if (birthMemberships.length > 0) {
+      const places = birthMemberships
+        .map(m => `${m.mandalName}${m.isKing ? copy.king : m.role === 'partial' ? copy.partial : ''}`)
+        .join(', ')
+      insightParts.push(fill(copy.sits, { name: birthNakshatraName, places }))
+    } else {
+      insightParts.push(fill(copy.unplaced, { name: birthNakshatraName }))
+    }
+    if (activeComplete.length > 0) {
+      const tpl = activeComplete.length === 1 ? copy.activeOne : copy.activeMany
+      insightParts.push(fill(tpl, { count: activeComplete.length }))
+    }
+  } else if (birthMemberships.length > 0) {
     const names = birthMemberships
       .map(m => `${m.mandalName}${m.isKing ? ' (king)' : m.role === 'partial' ? ' (partial)' : ''}`)
       .join(', ')
@@ -496,7 +559,7 @@ export function analyzeTaramandalChart(chart: ChartOutput): TaramandalChartAnaly
       `Janma nakshatra ${birthNakshatraName} is not yet placed in a complete Taramandal — teaching coverage still open for Mula’s full Mrityu Karma / Gyan groups.`,
     )
   }
-  if (activeComplete.length > 0) {
+  if (!hi && activeComplete.length > 0) {
     insightParts.push(
       `${activeComplete.length} complete mandal${activeComplete.length === 1 ? '' : 's'} hold natal planet(s) — planetary signification shifts toward each mandal’s cosmic work.`,
     )
@@ -509,7 +572,7 @@ export function analyzeTaramandalChart(chart: ChartOutput): TaramandalChartAnaly
     mandals,
     uncoveredNakshatras: UNCOVERED_NAKSHATRA_INDICES.map(i => ({
       index: i,
-      name: NAKSHATRA_NAMES[i],
+      name: hi ? NAKSHATRA_HI[i] : NAKSHATRA_NAMES[i],
     })),
     insight: insightParts.join(' '),
   }

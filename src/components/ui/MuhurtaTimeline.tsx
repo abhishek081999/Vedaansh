@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import {
   Briefcase,
   Plane,
@@ -19,10 +20,10 @@ import { MuhurtaDiagnostics } from './MuhurtaDiagnostics'
 import { ClockDial, type DialWindow } from '@/components/ui/viz'
 import {
   MUHURTA_ACTIVITIES,
-  MUHURTA_ACTIVITY_LABELS,
   type MuhurtaActivity,
   type MuhurtaScore,
 } from '@/lib/engine/muhurtaAnalysis'
+import { useLang } from '@/i18n/useLang'
 
 interface TimelineDataPoint {
   time: string
@@ -49,18 +50,6 @@ const ACTIVITY_ICONS: Record<MuhurtaActivity, typeof Briefcase> = {
   GENERAL: Zap,
 }
 
-const activities = MUHURTA_ACTIVITIES.map(id => ({
-  id,
-  label: MUHURTA_ACTIVITY_LABELS[id],
-  icon: ACTIVITY_ICONS[id],
-}))
-
-const EMPTY_SCORE: MuhurtaScore = {
-  score: 0,
-  label: 'Avoid',
-  factors: ['No score for this activity'],
-}
-
 function hourOf(ms: number): number {
   const d = new Date(ms)
   return d.getHours() + d.getMinutes() / 60
@@ -72,6 +61,8 @@ function fmtHour(h: number): string {
 }
 
 export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
+  const t = useTranslations('muhurta')
+  const { tag } = useLang()
   const loading = props.loading || false
   const [internalActivity, setInternalActivity] = useState<MuhurtaActivity>('BUSINESS')
   const selectedActivity = props.activity ?? internalActivity
@@ -80,6 +71,12 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
     props.onActivityChange?.(id)
   }
   const [isMobile, setIsMobile] = useState(false)
+
+  const emptyScore: MuhurtaScore = useMemo(() => ({
+    score: 0,
+    label: t('scoreLabels.Avoid') as MuhurtaScore['label'],
+    factors: [t('timeline.emptyScoreFactor')],
+  }), [t])
 
   React.useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -94,11 +91,11 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
       const info = point.scores?.[selectedActivity]
       return {
         time: point.time,
-        info: info && typeof info.score === 'number' ? info : EMPTY_SCORE,
+        info: info && typeof info.score === 'number' ? info : emptyScore,
         missing: !info,
       }
     })
-  }, [props.data, selectedActivity])
+  }, [props.data, selectedActivity, emptyScore])
 
   const bestWindow = useMemo(() => {
     if (!activeData.length || activeData.every(d => d.missing)) return null
@@ -109,7 +106,6 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
     return max.missing ? null : max
   }, [activeData])
 
-  // Merge consecutive good / high samples into arcs for the 24h dial.
   const dialWindows = useMemo<DialWindow[]>(() => {
     if (activeData.length < 2) return []
     const step = (new Date(activeData[1].time).getTime() - new Date(activeData[0].time).getTime()) / 3_600_000
@@ -122,7 +118,9 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
           start: run.start,
           end: run.end,
           color: run.tier === 'high' ? 'var(--teal)' : 'var(--amber)',
-          label: `${run.tier === 'high' ? 'High' : 'Good'} · ${fmtHour(run.start)}–${fmtHour(run.end)}`,
+          label: run.tier === 'high'
+            ? t('timeline.dialHigh', { start: fmtHour(run.start), end: fmtHour(run.end) })
+            : t('timeline.dialGood', { start: fmtHour(run.start), end: fmtHour(run.end) }),
         })
       }
       run = null
@@ -139,13 +137,19 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
     }
     flush()
     return out
-  }, [activeData])
+  }, [activeData, t])
 
   const bestTimeStr = useMemo(() => {
     if (!bestWindow) return ''
-    const date = new Date(bestWindow.time)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }, [bestWindow])
+    return new Date(bestWindow.time).toLocaleTimeString(tag, { hour: '2-digit', minute: '2-digit' })
+  }, [bestWindow, tag])
+
+  const errorMessage = useMemo(() => {
+    if (!props.error) return null
+    if (props.error.includes('Gold plan')) return t('errors.timelineGold')
+    if (props.error === 'Failed to load timeline') return t('errors.timelineFailed')
+    return props.error
+  }, [props.error, t])
 
   return (
     <div style={{
@@ -159,7 +163,7 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
       {!isMobile && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.25rem' }}>
           <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-            Auspicious windows for the next 24 hours (hora, choghadiya, panchaka, kalams)
+            {t('timeline.subtitle')}
           </p>
         </div>
       )}
@@ -168,14 +172,14 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
         display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem',
         marginBottom: isMobile ? '1rem' : '1.5rem', msOverflowStyle: 'none', scrollbarWidth: 'none',
       }}>
-        {activities.map(act => {
-          const isActive = selectedActivity === act.id
-          const Icon = act.icon
+        {MUHURTA_ACTIVITIES.map(actId => {
+          const isActive = selectedActivity === actId
+          const Icon = ACTIVITY_ICONS[actId]
           return (
             <button
-              key={act.id}
+              key={actId}
               type="button"
-              onClick={() => setSelectedActivity(act.id)}
+              onClick={() => setSelectedActivity(actId)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: isMobile ? '0.5rem 0.8rem' : '0.6rem 1rem',
@@ -188,7 +192,7 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
               }}
             >
               <Icon className="w-4 h-4" />
-              {act.label}
+              {t(`activities.${actId}`)}
             </button>
           )
         })}
@@ -205,24 +209,24 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
             alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
             color: 'var(--text-muted)', fontSize: '0.8rem',
           }}>
-            <Spinner size={28} label="Syncing with planetary grid" />
-            Syncing with planetary grid...
+            <Spinner size={28} label={t('timeline.syncing')} />
+            {t('timeline.syncingSpinner')}
           </div>
-        ) : props.error ? (
+        ) : errorMessage ? (
           <div style={{
             height: '100%', display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
             color: 'var(--rose)', fontSize: '0.85rem', textAlign: 'center', padding: '0.5rem',
           }}>
             <AlertTriangle className="w-5 h-5" />
-            {props.error}
+            {errorMessage}
           </div>
         ) : activeData.length === 0 ? (
           <div style={{
             height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--text-muted)', fontSize: '0.85rem',
           }}>
-            No timeline data yet
+            {t('timeline.noData')}
           </div>
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', gap: isMobile ? '2px' : '4px' }}>
@@ -254,13 +258,13 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
         )}
       </div>
 
-      {!loading && !props.error && dialWindows.length > 0 && (
+      {!loading && !errorMessage && dialWindows.length > 0 && (
         <div style={{ maxWidth: 300, margin: '0 auto 1.25rem' }}>
           <ClockDial
             windows={dialWindows}
             now={hourOf(Date.now())}
             centerTop={bestTimeStr || undefined}
-            centerBottom={bestTimeStr ? 'peak window' : undefined}
+            centerBottom={bestTimeStr ? t('timeline.peakWindow') : undefined}
             size={220}
           />
         </div>
@@ -270,11 +274,11 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--teal)' }} />
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>High</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>{t('timeline.legendHigh')}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--amber)' }} />
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Good</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{t('timeline.legendGood')}</span>
           </div>
         </div>
         {bestTimeStr && bestWindow && (
@@ -286,7 +290,10 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <AlertTriangle className="w-4 h-4 text-[var(--gold)]" />
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-gold)', fontWeight: 600 }}>
-                Peak resonance at {bestTimeStr} · score {Math.round(bestWindow.info.score)}
+                {t('timeline.peakResonance', {
+                  time: bestTimeStr,
+                  score: Math.round(bestWindow.info.score),
+                })}
               </p>
             </div>
 

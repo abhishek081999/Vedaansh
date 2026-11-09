@@ -7,6 +7,8 @@
 
 import type { ChartOutput, DashaNode, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { gName, type EngineLang } from '@/lib/engine/divisionalLang'
+import { ME_HI } from '@/lib/engine/locale/milanExtras.hi'
 import { getPadaNamingSyllable } from '@/lib/engine/astroDetailsDerived'
 
 export type MilanTone = 'supportive' | 'caution' | 'mixed'
@@ -83,9 +85,18 @@ export interface VaidhavyaVidhurMatch {
   summary: string
 }
 
-function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: string; score: number } {
+function longevityBandOf(
+  chart: ChartOutput,
+  lang: EngineLang = 'en',
+): { band: LongevityBand; note: string; score: number } {
   const asc = chart.lagnas.ascRashi
-  if (!asc) return { band: 'moderate', note: 'Lagna missing, so this reading could not be made.', score: 5 }
+  if (!asc) {
+    return {
+      band: 'moderate',
+      note: lang === 'en' ? 'Lagna missing, so this reading could not be made.' : ME_HI.lagnaMissingFull,
+      score: 5,
+    }
+  }
 
   let score = 6
   const notes: string[] = []
@@ -96,7 +107,11 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
     if (!MALEFICS.includes(g.id)) continue
     if (wholeSignHouse(g.rashi, asc) === 8) {
       score -= 1.5
-      notes.push(`${GRAHA_NAMES[g.id]} in the 8th house`)
+      notes.push(
+        lang === 'en'
+          ? `${GRAHA_NAMES[g.id]} in the 8th house`
+          : ME_HI.spouseFactors.malefic8Note(gName(g.id, lang)),
+      )
     }
     if (wholeSignHouse(g.rashi, asc) === 1) {
       score -= 0.5
@@ -106,7 +121,11 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
     const h = wholeSignHouse(l8.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       score -= 1.5
-      notes.push(`8th lord in a challenging house (house ${h})`)
+      notes.push(
+        lang === 'en'
+          ? `8th lord in a challenging house (house ${h})`
+          : ME_HI.spouseFactors.lord8Challenging(h),
+      )
     }
     if (BENEFICS.includes(l8.id as GrahaId) || [1, 4, 5, 7, 9, 10].includes(h)) {
       score += 1
@@ -116,18 +135,21 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
     const h = wholeSignHouse(sa.rashi, asc)
     if ([1, 3, 6, 10, 11].includes(h)) {
       score += 0.5
-      notes.push('Saturn supports endurance')
+      notes.push(lang === 'en' ? 'Saturn supports endurance' : ME_HI.spouseFactors.saturnEndurance)
     }
   }
 
   score = Math.max(0, Math.min(10, score))
   const band: LongevityBand = score >= 7 ? 'strong' : score >= 4 ? 'moderate' : 'fragile'
+  const note = lang === 'en'
+    ? (notes.length
+      ? `${band} wellbeing and longevity indicators (${notes.slice(0, 3).join('; ')})`
+      : `${band} wellbeing and longevity indicators from the 8th-house scan`)
+    : ME_HI.longevityNote(ME_HI.bands[band] ?? band, notes.slice(0, 3).join('; '))
   return {
     band,
     score,
-    note: notes.length
-      ? `${band} wellbeing and longevity indicators (${notes.slice(0, 3).join('; ')})`
-      : `${band} wellbeing and longevity indicators from the 8th-house scan`,
+    note,
   }
 }
 
@@ -138,16 +160,17 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
 export function scoreSpouseRiskYoga(
   chart: ChartOutput,
   role: 'vaidhavya' | 'vidhur',
+  lang: EngineLang = 'en',
 ): SpouseRiskYoga {
   const asc = chart.lagnas.ascRashi
-  const person = chart.meta.name || 'Person'
+  const person = chart.meta.name || (lang === 'en' ? 'Person' : ME_HI.person)
   const factors: string[] = []
   let intensity = 0
 
   if (!asc) {
     return {
-      person, role, intensity: 0, band: 'none', factors: ['Lagna unavailable for this chart'],
-      longevityBand: 'moderate', longevityNote: 'Not available',
+      person, role, intensity: 0, band: 'none', factors: [lang === 'en' ? 'Lagna unavailable for this chart' : ME_HI.spouseFactors.lagnaUnavailable],
+      longevityBand: 'moderate', longevityNote: lang === 'en' ? 'Not available' : ME_HI.spouseFactors.longevityUnavailable,
     }
   }
 
@@ -163,11 +186,19 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(g.rashi, asc)
     if (h === 7) {
       intensity += 2
-      factors.push(`${GRAHA_NAMES[g.id]} occupies the 7th house`)
+      factors.push(
+        lang === 'en'
+          ? `${GRAHA_NAMES[g.id]} occupies the 7th house`
+          : ME_HI.spouseFactors.malefic7(gName(g.id, lang)),
+      )
     }
     if (h === 8) {
       intensity += 1.5
-      factors.push(`${GRAHA_NAMES[g.id]} occupies the 8th house`)
+      factors.push(
+        lang === 'en'
+          ? `${GRAHA_NAMES[g.id]} occupies the 8th house`
+          : ME_HI.spouseFactors.malefic8(gName(g.id, lang)),
+      )
     }
   }
 
@@ -176,7 +207,9 @@ export function scoreSpouseRiskYoga(
     const saOnSpouse = grahaAspectsHouse(sa, 7, asc) || grahaAspectsHouse(sa, 8, asc)
     if (maOnSpouse && saOnSpouse) {
       intensity += 2.5
-      factors.push('Mars and Saturn both influence the 7th/8th houses (a classical cue for strain in the partnership, to be read with the whole chart)')
+      factors.push(lang === 'en'
+        ? 'Mars and Saturn both influence the 7th/8th houses (a classical cue for strain in the partnership, to be read with the whole chart)'
+        : ME_HI.spouseFactors.maSaSpouse)
     }
   }
 
@@ -184,11 +217,11 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(l7.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       intensity += 1.5
-      factors.push(`7th lord in a challenging house (house ${h})`)
+      factors.push(lang === 'en' ? `7th lord in a challenging house (house ${h})` : ME_HI.spouseFactors.lord7Dusthana(h))
     }
     if (l7.isCombust) {
       intensity += 1
-      factors.push('7th lord is combust (close to the Sun, so weaker)')
+      factors.push(lang === 'en' ? '7th lord is combust (close to the Sun, so weaker)' : ME_HI.spouseFactors.lord7Combust)
     }
   }
 
@@ -196,7 +229,7 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(l8.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       intensity += 1
-      factors.push(`8th lord in a challenging house (house ${h})`)
+      factors.push(lang === 'en' ? `8th lord in a challenging house (house ${h})` : ME_HI.spouseFactors.lord8Dusthana(h))
     }
   }
 
@@ -205,14 +238,14 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(ve.rashi, asc)
     if ([6, 8, 12].includes(h) || ve.isCombust) {
       intensity += 1
-      factors.push('Venus, the planet of partnership happiness, is under strain')
+      factors.push(lang === 'en' ? 'Venus, the planet of partnership happiness, is under strain' : ME_HI.spouseFactors.venusStrain)
     }
   }
   if (ju) {
     const h = wholeSignHouse(ju.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       intensity += 0.5
-      factors.push('Jupiter sits in a challenging house, so its protective support is lighter')
+      factors.push(lang === 'en' ? 'Jupiter sits in a challenging house, so its protective support is lighter' : ME_HI.spouseFactors.juStrain)
     }
   }
 
@@ -220,13 +253,13 @@ export function scoreSpouseRiskYoga(
   const band =
     intensity >= 7 ? 'high' : intensity >= 4 ? 'moderate' : intensity >= 1.5 ? 'low' : 'none'
 
-  const lon = longevityBandOf(chart)
+  const lon = longevityBandOf(chart, lang)
   return {
     person,
     role,
     intensity,
     band,
-    factors: factors.length ? factors : ['No strong classical partner-wellbeing factors flagged'],
+    factors: factors.length ? factors : [lang === 'en' ? 'No strong classical partner-wellbeing factors flagged' : ME_HI.spouseFactors.noFactors],
     longevityBand: lon.band,
     longevityNote: lon.note,
   }
@@ -237,7 +270,11 @@ export function scoreSpouseRiskYoga(
  * Vidhur for the groom's chart). Similar intensity points to a balancing tendency in the classical notes.
  * chartA = Person 1 (traditionally the groom), chartB = Person 2 (traditionally the bride).
  */
-export function matchVaidhavyaVidhur(chartA: ChartOutput, chartB: ChartOutput): VaidhavyaVidhurMatch {
+export function matchVaidhavyaVidhur(
+  chartA: ChartOutput,
+  chartB: ChartOutput,
+  lang: EngineLang = 'en',
+): VaidhavyaVidhurMatch {
   const genderA = chartA.meta.gender
   const genderB = chartB.meta.gender
 
@@ -246,8 +283,8 @@ export function matchVaidhavyaVidhur(chartA: ChartOutput, chartB: ChartOutput): 
   const boyChart = aIsMale ? chartA : chartB
   const girlChart = aIsMale ? chartB : chartA
 
-  const vidhur = scoreSpouseRiskYoga(boyChart, 'vidhur')
-  const vaidhavya = scoreSpouseRiskYoga(girlChart, 'vaidhavya')
+  const vidhur = scoreSpouseRiskYoga(boyChart, 'vidhur', lang)
+  const vaidhavya = scoreSpouseRiskYoga(girlChart, 'vaidhavya', lang)
 
   // Map back to person A/B display order
   const personA = aIsMale ? vidhur : vaidhavya
@@ -268,23 +305,29 @@ export function matchVaidhavyaVidhur(chartA: ChartOutput, chartB: ChartOutput): 
 
   if (cancelled) {
     tone = 'supportive'
-    summary =
-      `The partner-wellbeing cues in the two charts (${vaidhavya.person} ${vaidhavya.intensity}/10, ${vidhur.person} ${vidhur.intensity}/10) are of similar strength, which classical notes read as a balancing tendency. It is still worth reading alongside the rest of both charts.`
+    summary = lang === 'en'
+      ? `The partner-wellbeing cues in the two charts (${vaidhavya.person} ${vaidhavya.intensity}/10, ${vidhur.person} ${vidhur.intensity}/10) are of similar strength, which classical notes read as a balancing tendency. It is still worth reading alongside the rest of both charts.`
+      : ME_HI.vaidhavya.cancelled
   } else if (critical) {
     tone = 'caution'
-    summary =
-      `One chart (${vaidhavya.person}, ${vaidhavya.intensity}/10) carries stronger partner-wellbeing cues than the other, whose wellbeing indicators read ${vidhur.longevityBand}. Classical notes prefer comparable strength in both charts, so this is a point for gentle attention and a fuller read, not a prediction.`
+    summary = lang === 'en'
+      ? `One chart (${vaidhavya.person}, ${vaidhavya.intensity}/10) carries stronger partner-wellbeing cues than the other, whose wellbeing indicators read ${vidhur.longevityBand}. Classical notes prefer comparable strength in both charts, so this is a point for gentle attention and a fuller read, not a prediction.`
+      : ME_HI.vaidhavya.critical(vaidhavya.person, String(vaidhavya.intensity), ME_HI.bands[vidhur.longevityBand] ?? vidhur.longevityBand)
   } else if (vaidhavya.intensity >= 6 || vidhur.intensity >= 6) {
     tone = 'caution'
-    summary =
-      `The partner-wellbeing cues are uneven between the two charts (gap ${intensityGap.toFixed(1)}). A fuller reading of both charts, with a trusted astrologer if you wish, can put this in context.`
+    summary = lang === 'en'
+      ? `The partner-wellbeing cues are uneven between the two charts (gap ${intensityGap.toFixed(1)}). A fuller reading of both charts, with a trusted astrologer if you wish, can put this in context.`
+      : ME_HI.vaidhavya.uneven(intensityGap.toFixed(1))
   } else if (vaidhavya.band === 'none' && vidhur.band === 'none') {
     tone = 'supportive'
-    summary = 'No strong partner-wellbeing (Vaidhavya / Vidhur) factors flagged in either chart from this scan.'
+    summary = lang === 'en'
+      ? 'No strong partner-wellbeing (Vaidhavya / Vidhur) factors flagged in either chart from this scan.'
+      : ME_HI.vaidhavya.none
   } else {
     tone = 'mixed'
-    summary =
-      `Mild partner-wellbeing signals are present (${vaidhavya.person} ${vaidhavya.intensity}/10, ${vidhur.person} ${vidhur.intensity}/10). These are best read together with the longevity indicators and dasha timing.`
+    summary = lang === 'en'
+      ? `Mild partner-wellbeing signals are present (${vaidhavya.person} ${vaidhavya.intensity}/10, ${vidhur.person} ${vidhur.intensity}/10). These are best read together with the longevity indicators and dasha timing.`
+      : ME_HI.vaidhavya.mild(vaidhavya.person, String(vaidhavya.intensity), vidhur.person, String(vidhur.intensity))
   }
 
   return {
@@ -340,18 +383,24 @@ function currentAndNextMaha(nodes: DashaNode[] | undefined, now = new Date()): {
   return { current, next }
 }
 
-function lordRelation(a: string, b: string): { label: string; tone: MilanTone } {
-  if (a === b) return { label: 'Same lord', tone: 'mixed' }
+function lordRelation(a: string, b: string, lang: EngineLang = 'en'): { label: string; tone: MilanTone } {
+  if (a === b) {
+    return { label: lang === 'en' ? 'Same lord' : ME_HI.dasha.relation.same, tone: 'mixed' }
+  }
   const nameA = ID_TO_NAME[a] ?? a
   const nameB = ID_TO_NAME[b] ?? b
   if (a === 'Ra' || a === 'Ke' || b === 'Ra' || b === 'Ke') {
-    return { label: 'Rahu/Ketu period, often a restless or karmic phase', tone: 'caution' }
+    return { label: lang === 'en' ? 'Rahu/Ketu period, often a restless or karmic phase' : ME_HI.dasha.relation.rahu, tone: 'caution' }
   }
   const rel = FRIEND_MATRIX[nameA]?.[nameB] ?? 'Neutral'
   const rev = FRIEND_MATRIX[nameB]?.[nameA] ?? 'Neutral'
-  if (rel === 'Friend' && rev === 'Friend') return { label: 'Mutual friends', tone: 'supportive' }
-  if (rel === 'Enemy' || rev === 'Enemy') return { label: 'Lords are not natural friends', tone: 'caution' }
-  return { label: 'Neutral or mixed', tone: 'mixed' }
+  if (rel === 'Friend' && rev === 'Friend') {
+    return { label: lang === 'en' ? 'Mutual friends' : ME_HI.dasha.relation.friends, tone: 'supportive' }
+  }
+  if (rel === 'Enemy' || rev === 'Enemy') {
+    return { label: lang === 'en' ? 'Lords are not natural friends' : ME_HI.dasha.relation.enemy, tone: 'caution' }
+  }
+  return { label: lang === 'en' ? 'Neutral or mixed' : ME_HI.dasha.relation.neutral, tone: 'mixed' }
 }
 
 function iso(d: Date | string | number): string {
@@ -370,6 +419,7 @@ export function analyzeDashaPair(
   chartA: ChartOutput,
   chartB: ChartOutput,
   now = new Date(),
+  lang: EngineLang = 'en',
 ): DashaPairAnalysis {
   const aTree = chartA.dashas?.vimshottari
   const bTree = chartB.dashas?.vimshottari
@@ -379,31 +429,41 @@ export function analyzeDashaPair(
   const findings: DashaPairAnalysis['findings'] = []
   const windows: DashaPairWindow[] = []
 
-  const nameA = chartA.meta.name || 'First chart'
-  const nameB = chartB.meta.name || 'Second chart'
+  const nameA = chartA.meta.name || (lang === 'en' ? 'First chart' : ME_HI.firstChart)
+  const nameB = chartB.meta.name || (lang === 'en' ? 'Second chart' : ME_HI.secondChart)
   const pairs: { aNode: DashaNode; bNode: DashaNode; label: string }[] = []
-  if (a.current && b.current) pairs.push({ aNode: a.current, bNode: b.current, label: 'Current overlap' })
-  if (a.current && b.next) pairs.push({ aNode: a.current, bNode: b.next, label: `${nameA} now × ${nameB} next` })
-  if (a.next && b.current) pairs.push({ aNode: a.next, bNode: b.current, label: `${nameA} next × ${nameB} now` })
-  if (a.next && b.next) pairs.push({ aNode: a.next, bNode: b.next, label: 'Next overlap' })
+  if (a.current && b.current) {
+    pairs.push({ aNode: a.current, bNode: b.current, label: lang === 'en' ? 'Current overlap' : ME_HI.dasha.currentOverlap })
+  }
+  if (a.current && b.next) {
+    pairs.push({ aNode: a.current, bNode: b.next, label: lang === 'en' ? `${nameA} now × ${nameB} next` : ME_HI.dasha.nowNext(nameA, nameB) })
+  }
+  if (a.next && b.current) {
+    pairs.push({ aNode: a.next, bNode: b.current, label: lang === 'en' ? `${nameA} next × ${nameB} now` : ME_HI.dasha.nowNext(nameB, nameA) })
+  }
+  if (a.next && b.next) {
+    pairs.push({ aNode: a.next, bNode: b.next, label: lang === 'en' ? 'Next overlap' : ME_HI.dasha.nextOverlap })
+  }
 
   for (const p of pairs) {
     const start = Math.max(new Date(p.aNode.start).getTime(), new Date(p.bNode.start).getTime(), now.getTime())
     const end = Math.min(new Date(p.aNode.end).getTime(), new Date(p.bNode.end).getTime())
     if (end <= start) continue
 
-    const rel = lordRelation(p.aNode.lord, p.bNode.lord)
+    const rel = lordRelation(p.aNode.lord, p.bNode.lord, lang)
     const aHit = dashaHitsSeventh(chartA, p.aNode.lord) || dashaHitsSeventh(chartB, p.aNode.lord)
     const bHit = dashaHitsSeventh(chartB, p.bNode.lord) || dashaHitsSeventh(chartA, p.bNode.lord)
     const marriageActive = aHit || bHit
 
-    let note = `${p.label}: ${GRAHA_NAMES[p.aNode.lord as GrahaId] ?? p.aNode.lord} × ${GRAHA_NAMES[p.bNode.lord as GrahaId] ?? p.bNode.lord} — ${rel.label}.`
-    if (marriageActive) note += ' A period lord touches 7th-house themes, so partnership matters may feel more active.'
-    if (rel.tone === 'caution') note += ' Patience and clear agreements tend to help in this window.'
+    const lordA = gName(p.aNode.lord as GrahaId, lang)
+    const lordB = gName(p.bNode.lord as GrahaId, lang)
+    let note = `${p.label}: ${lordA} × ${lordB} — ${rel.label}.`
+    if (marriageActive) note += lang === 'en' ? ' A period lord touches 7th-house themes, so partnership matters may feel more active.' : ME_HI.dasha.marriageTouch
+    if (rel.tone === 'caution') note += lang === 'en' ? ' Patience and clear agreements tend to help in this window.' : ME_HI.dasha.patience
 
     windows.push({
-      personALord: GRAHA_NAMES[p.aNode.lord as GrahaId] ?? p.aNode.lord,
-      personBLord: GRAHA_NAMES[p.bNode.lord as GrahaId] ?? p.bNode.lord,
+      personALord: lordA,
+      personBLord: lordB,
       overlapStart: iso(start),
       overlapEnd: iso(end),
       relation: rel.label,
@@ -413,16 +473,18 @@ export function analyzeDashaPair(
   }
 
   if (a.current && b.current) {
-    const rel = lordRelation(a.current.lord, b.current.lord)
+    const rel = lordRelation(a.current.lord, b.current.lord, lang)
     findings.push({
-      title: 'Current Mahadasha pair',
-      detail: `${chartA.meta.name}: ${GRAHA_NAMES[a.current.lord as GrahaId] ?? a.current.lord} · ${chartB.meta.name}: ${GRAHA_NAMES[b.current.lord as GrahaId] ?? b.current.lord} — ${rel.label}.`,
+      title: lang === 'en' ? 'Current Mahadasha pair' : ME_HI.dasha.currentPair,
+      detail: `${chartA.meta.name || nameA}: ${gName(a.current.lord as GrahaId, lang)} · ${chartB.meta.name || nameB}: ${gName(b.current.lord as GrahaId, lang)} — ${rel.label}.`,
       tone: rel.tone,
     })
   } else {
     findings.push({
-      title: 'Dasha data',
-      detail: 'The Vimshottari dasha timeline is incomplete for one or both charts. Recalculate the charts to see the pair timing.',
+      title: lang === 'en' ? 'Dasha data' : 'दशा डेटा',
+      detail: lang === 'en'
+        ? 'The Vimshottari dasha timeline is incomplete for one or both charts. Recalculate the charts to see the pair timing.'
+        : ME_HI.dasha.dataIncomplete,
       tone: 'mixed',
     })
   }
@@ -431,14 +493,20 @@ export function analyzeDashaPair(
   const supportWindows = windows.filter(w => w.tone === 'supportive')
   const summary =
     cautionWindows.length > supportWindows.length
-      ? 'Upcoming dasha overlaps tendency challenging for harmony between you, so it may help to time big decisions with care.'
+      ? (lang === 'en'
+        ? 'Upcoming dasha overlaps tendency challenging for harmony between you, so it may help to time big decisions with care.'
+        : ME_HI.dasha.summaryCaution)
       : supportWindows.length > 0
-        ? 'At least one supportive pairing of dasha lords appears in the near timeline.'
-        : 'The dasha pairing looks mixed; the Antardasha detail gives finer timing.'
+        ? (lang === 'en'
+          ? 'At least one supportive pairing of dasha lords appears in the near timeline.'
+          : ME_HI.dasha.summarySupport)
+        : (lang === 'en'
+          ? 'The dasha pairing looks mixed; the Antardasha detail gives finer timing.'
+          : ME_HI.dasha.summaryMixed)
 
   return {
-    currentA: a.current ? { lord: GRAHA_NAMES[a.current.lord as GrahaId] ?? a.current.lord, end: iso(a.current.end) } : null,
-    currentB: b.current ? { lord: GRAHA_NAMES[b.current.lord as GrahaId] ?? b.current.lord, end: iso(b.current.end) } : null,
+    currentA: a.current ? { lord: gName(a.current.lord as GrahaId, lang), end: iso(a.current.end) } : null,
+    currentB: b.current ? { lord: gName(b.current.lord as GrahaId, lang), end: iso(b.current.end) } : null,
     windows: windows.slice(0, 6),
     findings,
     summary,
@@ -541,7 +609,7 @@ function varnamalaForChart(chart: ChartOutput): VarnamalaPerson {
  * Janma-naam Varnamala animal match from Moon pada syllable (not common-use name).
  * Enemy = 5th letter-group.
  */
-export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): VarnamalaMatch {
+export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput, lang: EngineLang = 'en'): VarnamalaMatch {
   const personA = varnamalaForChart(chartA)
   const personB = varnamalaForChart(chartB)
 
@@ -551,7 +619,9 @@ export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): Varnam
       personB,
       compatible: true,
       tone: 'mixed',
-      summary: 'The birth-name syllable of one or both charts could not be matched to a Varnamala group.',
+      summary: lang === 'en'
+        ? 'The birth-name syllable of one or both charts could not be matched to a Varnamala group.'
+        : ME_HI.varnamala.missing,
     }
   }
 
@@ -565,8 +635,9 @@ export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): Varnam
       personB,
       compatible: false,
       tone: 'caution',
-      summary:
-        `The birth-name animals sit in opposing groups: ${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}). This is a mild, traditional point drawn from the Moon pada sound, not the name you use every day.`,
+      summary: lang === 'en'
+        ? `The birth-name animals sit in opposing groups: ${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}). This is a mild, traditional point drawn from the Moon pada sound, not the name you use every day.`
+        : ME_HI.varnamala.enemies(personA.group.animalSa, personA.janmaSyllable, personB.group.animalSa, personB.janmaSyllable),
     }
   }
 
@@ -577,7 +648,11 @@ export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): Varnam
     compatible: true,
     tone: same ? 'supportive' : 'mixed',
     summary: same
-      ? `Same Varnamala animal (${personA.group.animalSa}) from the birth-name syllables ${personA.janmaSyllable} and ${personB.janmaSyllable}.`
-      : `${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}) are not in opposing groups, so this point is comfortable.`,
+      ? (lang === 'en'
+        ? `Same Varnamala animal (${personA.group.animalSa}) from the birth-name syllables ${personA.janmaSyllable} and ${personB.janmaSyllable}.`
+        : ME_HI.varnamala.same(personA.group.animalSa, personA.janmaSyllable, personB.janmaSyllable))
+      : (lang === 'en'
+        ? `${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}) are not in opposing groups, so this point is comfortable.`
+        : ME_HI.varnamala.comfortable(personA.group.animalSa, personA.janmaSyllable, personB.group.animalSa, personB.janmaSyllable)),
   }
 }

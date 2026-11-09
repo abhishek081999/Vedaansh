@@ -14,6 +14,8 @@ import {
 } from '@/types/astrology'
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
+import type { EngineLang } from '@/lib/engine/lang'
+import { termHi } from '@/i18n/jyotish'
 import { cn } from '@/lib/ui/cn'
 import styles from './NakshatraWheel.module.css'
 
@@ -74,17 +76,20 @@ export function NakshatraWheel({
   birthIndex,
   birthPada,
   markers,
+  lang = 'en',
 }: {
   birthIndex: number
   birthPada: number
   markers: NakshatraMarker[]
+  lang?: EngineLang
 }) {
   const [selected, setSelected] = useState(birthIndex)
   const active = ((selected % 27) + 27) % 27
+  const label = (en: string) => (lang === 'hi' ? termHi(en) : en)
   const chars = useMemo(() => {
     const pada = active === birthIndex ? birthPada : (markers.find(m => m.nakshatraIndex === active)?.pada ?? 1)
-    return getNakshatraCharacteristics(active, pada)
-  }, [active, birthIndex, birthPada, markers])
+    return getNakshatraCharacteristics(active, pada, lang)
+  }, [active, birthIndex, birthPada, markers, lang])
 
   const byStar = useMemo(() => {
     const map = new Map<number, NakshatraMarker[]>()
@@ -203,9 +208,9 @@ export function NakshatraWheel({
           {active === birthIndex && <span className={styles.metaPada}>Birth star · pada {birthPada}</span>}
         </div>
         <p className={styles.metaLine}>
-          Lord <strong>{GRAHA_NAMES[chars.lord]}</strong>
+          Lord <strong>{label(GRAHA_NAMES[chars.lord])}</strong>
           {' · '}{signsFor(active)}
-          {' · '}{chars.gana}
+          {' · '}{label(chars.gana)}
           {' · '}{chars.deity}
         </p>
         <p className={styles.metaLine}>

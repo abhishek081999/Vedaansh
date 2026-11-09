@@ -1,0 +1,190 @@
+{
+  "breadcrumb": {
+    "home": "होम",
+    "muhurta": "मुहूर्त"
+  },
+  "page": {
+    "title": "मुहूर्त इंटेलिजेंस",
+    "addToCalendar": "कैलेंडर में जोड़ें",
+    "shareReport": "रिपोर्ट साझा करें",
+    "quickIntents": "त्वरित उद्देश्य",
+    "findTitle": "शुभ दिन खोजें",
+    "findSubtitle": "दिन ग्रेड: तिथि, नक्षत्र, योग, करण, वार, तारा/चंद्र बल। टाइमलाइन में चार्ट लोड होने पर होरा, चौघड़िया, पंचक, इलेक्शनल लग्न, गंडांत, त्याज्य, ग्रहण योग, दशा और SAV जुड़ते हैं।",
+    "purpose": "उद्देश्य",
+    "from": "से",
+    "toMax": "तक (अधिकतम 60 दिन)",
+    "minGrade": "न्यूनतम ग्रेड",
+    "findMuhurta": "मुहूर्त खोजें",
+    "searching": "खोज जारी…",
+    "fullPanchangLink": "इस दिन का पूरा पंचांग →"
+  },
+  "gradeOptions": {
+    "A": "A — केवल उत्कृष्ट",
+    "B": "B — अच्छा और उससे ऊपर",
+    "C": "C — औसत और उससे ऊपर",
+    "D": "D — सभी दिन"
+  },
+  "activities": {
+    "BUSINESS": "व्यापार",
+    "TRAVEL": "यात्रा",
+    "REAL_ESTATE": "संपत्ति",
+    "RELATIONSHIP": "संबंध",
+    "HEALTH": "स्वास्थ्य",
+    "SPIRITUAL": "आध्यात्मिक",
+    "MARRIAGE": "विवाह",
+    "EDUCATION": "शिक्षा",
+    "GENERAL": "सामान्य"
+  },
+  "intents": {
+    "meeting": { "label": "बैठक", "blurb": "कॉल, साक्षात्कार, वार्ता" },
+    "travel": { "label": "यात्रा आरंभ", "blurb": "घर से प्रस्थान / यात्रा शुरू" },
+    "surgery": { "label": "चिकित्सा", "blurb": "प्रक्रिया या उपचार आरंभ" },
+    "house": { "label": "गृह प्रवेश", "blurb": "गृह प्रवेश / निवास" },
+    "naming": { "label": "नामकरण / संस्कार", "blurb": "बाल नामकरण और संस्कार" },
+    "loan": { "label": "ऋण / अनुबंध", "blurb": "कागज़ात पर हस्ताक्षर, खाता खोलना" },
+    "interview": { "label": "साक्षात्कार", "blurb": "नौकरी या प्रवेश साक्षात्कार" },
+    "puja": { "label": "पूजा", "blurb": "घर या मंदिर पूजा" },
+    "wedding": { "label": "विवाह", "blurb": "विवाह मुहूर्त खोज" },
+    "date": { "label": "संबंध", "blurb": "प्रस्ताव, सगाई वार्ता" }
+  },
+  "scoreLabels": {
+    "Excellent": "उत्कृष्ट",
+    "Good": "अच्छा",
+    "Neutral": "तटस्थ",
+    "Challenging": "कठिन",
+    "Avoid": "टालें"
+  },
+  "errors": {
+    "invalidRange": "दिनांक सीमा अमान्य है",
+    "panchangRange": "चुनी सीमा के लिए पंचांग लोड नहीं हुआ। फिर प्रयास करें।",
+    "timelineGold": "मुहूर्त टाइमलाइन के लिए Gold योजना आवश्यक",
+    "timelineFailed": "टाइमलाइन लोड नहीं हुई",
+    "noExport": "निर्यात के लिए अभी कोई खिड़की नहीं — मुहूर्त खोजें या टाइमलाइन की प्रतीक्षा करें।",
+    "reportFailed": "रिपोर्ट नहीं बन सकी"
+  },
+  "emptyResults": "इस सीमा में न्यूनतम ग्रेड पूरा करने वाला कोई दिन नहीं मिला। न्यूनतम ग्रेड घटाएँ या तिथियाँ बढ़ाएँ।",
+  "export": {
+    "calendarTitle": "मुहूर्त {activity} · ग्रेड {grade}",
+    "timelineTitle": "मुहूर्त {activity} · {label}",
+    "icsName": "वेदांश · {activity}",
+    "windowsLine": "खिड़कियाँ: {list}",
+    "avoidLine": "टालें: {list}"
+  },
+  "report": {
+    "dashaNote": "वर्तमान दशा: {path}",
+    "personalChart": "लोड चार्ट से व्यक्तिगत तारा/चंद्र बल लागू।",
+    "loadChart": "व्यक्तिगत दशा और अष्टकवर्ग ओवरले के लिए जन्म कुंडली लोड करें।"
+  },
+  "result": {
+    "auspiciousWindows": "शुभ समय-खिड़कियाँ",
+    "avoid": "टालें",
+    "taraBala": "तारा बल",
+    "chandraBala": "चंद्र बल",
+    "chandraPos": "{n}वाँ स्थान",
+    "navtaraTitle": "नवतारा बुकिंग · {verdict}",
+    "navtaraVerdict": {
+      "favourable": "अनुकूल",
+      "caution": "सावधानी",
+      "avoid": "टालें"
+    },
+    "dayFactorsTitle": "दिन कारक (ऊपर टाइमलाइन पर होरा / चौघड़िया / पंचक)"
+  },
+  "nowStrip": {
+    "todayActivity": "आज · {activity}",
+    "updating": "अद्यतन…",
+    "nowScore": "अभी स्कोर {score} · {label}",
+    "nowLabel": "अभी",
+    "bestNext2h": "अगले 2 घंटे में सर्वश्रेष्ठ:",
+    "bestLine": "{time} · स्कोर {score} ({label})",
+    "avoidNow": "अभी टालें: {list}",
+    "noVerdict": "इस उद्देश्य का लाइव निर्णय देखने के लिए 24 घंटे की टाइमलाइन लोड करें।"
+  },
+  "verdict": {
+    "excellent": {
+      "headline": "{activity}{when} के लिए अच्छा समय",
+      "detail": "{activity} के लिए परिस्थितियाँ अनुकूल हैं। आगे बढ़ने का सही समय है।{avoid}"
+    },
+    "good": {
+      "headline": "{activity}{when} के लिए काफी अच्छा",
+      "detail": "{activity} के अधिकांश कारक ठीक हैं। कमज़ोर खिड़कियों से बेहतर।{avoid}"
+    },
+    "neutral": {
+      "headline": "{activity}{when} के लिए मिश्रित",
+      "detail": "न तो बहुत अनुकूल, न वर्जित। दैनिक कार्य ठीक; बड़ी शुरुआत टाल सकते हैं।{avoid}"
+    },
+    "challenging": {
+      "headline": "{activity}{when} — प्रतीक्षा बेहतर",
+      "detail": "कई कारक कठिन हैं। यदि संभव हो, महत्वपूर्ण शुरुआत स्थगित करें।{avoid}"
+    },
+    "avoid": {
+      "headline": "{activity}{when} शुरू करना टालें",
+      "detail": "शास्त्रीय नियम अभी शुरुआत के विरुद्ध हैं। बाद का समय बेहतर विकल्प है।{avoid}"
+    },
+    "whenAround": " {time} के आसपास",
+    "avoidSuffix": " टालें: {list}।"
+  },
+  "timeline": {
+    "subtitle": "अगले 24 घंटे की शुभ खिड़कियाँ (होरा, चौघड़िया, पंचक, काल)",
+    "syncing": "ग्रह ग्रिड से सिंक",
+    "syncingSpinner": "ग्रह ग्रिड से सिंक हो रहा है…",
+    "noData": "अभी टाइमलाइन डेटा नहीं",
+    "legendHigh": "उच्च",
+    "legendGood": "अच्छा",
+    "peakResonance": "{time} पर शिखर अनुनाद · स्कोर {score}",
+    "peakWindow": "शिखर खिड़की",
+    "dialHigh": "उच्च · {start}–{end}",
+    "dialGood": "अच्छा · {start}–{end}",
+    "emptyScoreFactor": "इस गतिविधि के लिए कोई स्कोर नहीं"
+  },
+  "diagnostics": {
+    "choghadiya": "चौघड़िया",
+    "panchaka": "पंचक स्थिति",
+    "taraBala": "तारा बल",
+    "chandraBala": "चंद्र बल",
+    "electionalLagna": "इलेक्शनल लग्न",
+    "grahanYoga": "ग्रहण योग",
+    "tyajya": "त्याज्य",
+    "mahadasha": "महादशा",
+    "savLagna": "लग्न पर SAV",
+    "timingGood": "शुभ समय",
+    "timingBad": "अशुभ समय",
+    "timingNeutral": "तटस्थ समय",
+    "shubh": "शुभ",
+    "auspicious": "शुभ",
+    "avoided": "टाला गया",
+    "resonance": "{sign}{score} अनुनाद",
+    "houseNth": "{n}वाँ भाव",
+    "highSupport": "उच्च सहायता",
+    "challenging": "कठिन",
+    "neutralSupport": "तटस्थ",
+    "avoidBeginnings": "बड़ी शुरुआतें टालें",
+    "tyajyaActive": "सक्रिय",
+    "vishaPortion": "नक्षत्र का विष भाग",
+    "grahanActive": "सक्रिय",
+    "antarDasha": "अंतर {lord}",
+    "rashiLabel": "राशि {n}",
+    "dashaFit": {
+      "supportive": "अनुकूल",
+      "challenging": "कठिन",
+      "neutral": "तटस्थ"
+    },
+    "choghadiyaQuality": {
+      "Good": "शुभ",
+      "Bad": "अशुभ",
+      "Neutral": "तटस्थ"
+    },
+    "choghadiyaType": {
+      "Amrit": "अमृत",
+      "Shubh": "शुभ",
+      "Labh": "लाभ",
+      "Chala": "चल",
+      "Rog": "रोग",
+      "Kaal": "काल",
+      "Udveg": "उद्वेग"
+    },
+    "grahanType": {
+      "solar": "सूर्य",
+      "lunar": "चंद्र"
+    }
+  }
+}

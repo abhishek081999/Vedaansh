@@ -9,6 +9,7 @@ import {
   type PlanetMomentAnalysis,
   type PositionVerdict,
 } from '@/lib/engine/transitMomentAnalysis'
+import { useLang } from '@/i18n/useLang'
 import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import styles from './transit-scrubber.module.css'
 
@@ -100,10 +101,11 @@ interface TransitInsightsPanelsProps {
 }
 
 export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsightsPanelsProps) {
+  const { lang } = useLang()
   const analysis = useMemo(() => {
     if (!transitChart) return null
-    return analyzeTransitMoment(natalChart, transitChart)
-  }, [natalChart, transitChart])
+    return analyzeTransitMoment(natalChart, transitChart, lang)
+  }, [natalChart, transitChart, lang])
 
   if (!analysis) {
     return (

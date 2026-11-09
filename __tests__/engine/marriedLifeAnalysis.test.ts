@@ -190,6 +190,44 @@ describe('analyzeMarriedLife', () => {
     }))
     expect(result!.saturn.some(n => n.id === 'sa-second')).toBe(true)
   })
+
+  const overviewFixture = () => chart({
+    asc: 1,
+    grahas: [g('Ve', 2), g('Me', 2), g('Ju', 9, 'own'), g('Ma', 1, 'own'), g('Mo', 4)],
+  })
+
+  it('keeps English overview strings byte-stable', () => {
+    const result = analyzeMarriedLife(overviewFixture(), 'en')!
+    expect(result.headline).toBe('Married life is workable, and it needs consciousness')
+    expect(result.dimensions.map(d => d.label)).toEqual(['Flavor', 'Passion', 'Longevity', 'Blessing', 'Fruit'])
+    expect(result.dimensions.map(d => d.planet)).toEqual(['Venus', 'Mars', '7th lord', 'Jupiter', 'D9 lagna'])
+    expect(result.significators.find(s => s.id === 'venus')?.title).toBe('Venus (Shukra)')
+    expect(result.proposal.signName).toBe('Libra')
+    expect(result.proposal.relative).toMatch(/own choice/i)
+    expect(result.ethics).toMatch(/single combination/)
+    expect(result.fourth.reading).toMatch(/^4th house \(heart and home\):/)
+    expect(result.roles[0].title).toBe('Venus — flavor')
+  })
+
+  it('returns Hindi for free overview when lang is hi', () => {
+    const result = analyzeMarriedLife(overviewFixture(), 'hi')!
+    const devanagari = /[\u0900-\u097F]/
+    expect(result.headline).toMatch(devanagari)
+    expect(result.dimensions.map(d => d.label)).toEqual(['स्वाद', 'वासना', 'दीर्घायु', 'आशीर्वाद', 'फल'])
+    expect(result.significators.every(s => devanagari.test(s.title) && devanagari.test(s.question))).toBe(true)
+    expect(result.proposal.signName).toBe('तुला')
+    expect(result.proposal.relative).toMatch(devanagari)
+    expect(result.proposal.detail).toMatch(/तुला/)
+    expect(result.ethics).toMatch(devanagari)
+    expect(result.fourth.reading).toMatch(/चतुर्थ भाव/)
+    expect(result.dimensions[0].summary).toMatch(/जन्म कुंडली/)
+    expect(result.roles[0].title).toBe('शुक्र — स्वाद')
+    expect(result.roles[1].detail).toMatch(/[\u0900-\u097F]/)
+    expect(result.combinations[0]?.title).toMatch(/[\u0900-\u097F]/)
+    expect(result.combinations[0]?.detail).toMatch(/[\u0900-\u097F]/)
+    expect(result.jupiter[0]?.title).toMatch(/[\u0900-\u097F]/)
+    expect(result.remedies[0]?.detail).toMatch(/[\u0900-\u097F]/)
+  })
 })
 
 describe('moon and milan relationship layer', () => {

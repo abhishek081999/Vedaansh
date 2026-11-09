@@ -24,7 +24,7 @@ import {
   type AppLocale,
 } from '@/i18n/config'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import type { NextFetchEvent, NextRequest } from 'next/server'
 
 /**
  * Same-host URL for redirects. Auth.js rewrites req.url from AUTH_URL, which would
@@ -48,7 +48,19 @@ function englishPrefixTarget(pathname: string): string | null {
   return null
 }
 
-export default auth(async (req: NextRequest & { auth: any }) => {
+/**
+ * The origin Next.js itself sees (e.g. http://localhost:10000 on Render). A middleware
+ * rewrite must use it: any other origin, including the public https://vedaansh.com,
+ * is treated as an external proxy. That fetch re-enters this proxy with the visitor's
+ * NEXT_LOCALE=hi cookie, gets redirected back to /hi/..., and loops forever.
+ */
+function internalRewriteUrl(internalOrigin: string, path: string, search: string): URL {
+  const url = new URL(path, internalOrigin)
+  url.search = search
+  return url
+}
+
+const handleRequest = (internalOrigin: string) => async (req: NextRequest & { auth: any }) => {
   // ── Locale: /hi/... is served by the same page with the Hindi locale ──
   const requestPath = req.nextUrl.pathname
   const localeParts = splitLocalePath(requestPath)
@@ -178,10 +190,10 @@ export default auth(async (req: NextRequest & { auth: any }) => {
       : undefined
   let rewriteTo: URL | undefined
   if (localeParts.prefixed) {
-    // sameHostUrl, not req.nextUrl: Auth.js points req.url at AUTH_URL, and a
-    // rewrite to another origin would proxy the request to that site.
-    rewriteTo = sameHostUrl(req, pathname)
-    rewriteTo.search = req.nextUrl.search
+    // Neither req.nextUrl (Auth.js points it at AUTH_URL) nor sameHostUrl (public
+    // host + https): both differ from Next's internal origin and turn the rewrite
+    // into an external proxy request. See internalRewriteUrl.
+    rewriteTo = internalRewriteUrl(internalOrigin, pathname, req.nextUrl.search)
   }
 
   const response = withDocumentCsp(req, pathname, { rewriteTo, requestHeaders, documentHeaders: localeHeaders })
@@ -189,7 +201,17 @@ export default auth(async (req: NextRequest & { auth: any }) => {
     response.cookies.set(LOCALE_COOKIE, locale, { path: '/', maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' })
   }
   return response
-})
+}
+
+export default function proxy(req: NextRequest, ev: NextFetchEvent) {
+  // Read before auth() swaps the request URL for AUTH_URL.
+  const internalOrigin = req.nextUrl.origin
+  const authed = auth(handleRequest(internalOrigin)) as unknown as (
+    req: NextRequest,
+    ev: NextFetchEvent,
+  ) => ReturnType<ReturnType<typeof handleRequest>>
+  return authed(req, ev)
+}
 
 export const config = {
   matcher: [

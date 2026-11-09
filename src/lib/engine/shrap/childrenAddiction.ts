@@ -5,17 +5,21 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { SHRAP_HI, shrapHouseObl } from '@/lib/engine/locale/shrapDosha.hi'
 import { SIGN_LORD_BY_RASHI } from '@/lib/engine/lordshipInterpretations'
 import {
   conjunct,
   findGraha,
   gn,
+  gnList,
   houseOf,
   houseSign,
   maleficsOnHouse,
   onNodeAxis,
+  tx,
+  txList,
   type ShrapSeverity,
 } from '@/lib/engine/shrap/helpers'
 
@@ -58,7 +62,7 @@ function lordHousesFromAsc(ascRashi: Rashi, lord: GrahaId): number[] {
   return out
 }
 
-export function analyzeChildrenFocus(chart: ChartOutput, now = Date.now()): ChildrenFocusReading | null {
+export function analyzeChildrenFocus(chart: ChartOutput, now = Date.now(), lang: EngineLang = 'en'): ChildrenFocusReading | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc || !chart.grahas?.length) return null
 
@@ -79,12 +83,22 @@ export function analyzeChildrenFocus(chart: ChartOutput, now = Date.now()): Chil
   const meHouse = houseOf(chart, 'Me')
   const notes: string[] = []
 
-  if (h5.length) notes.push(`5th house under pressure from ${h5.map(gn).join(', ')} — study / focus themes need care.`)
+  const C = SHRAP_HI.children
+  if (h5.length) {
+    notes.push(tx(lang, `5th house under pressure from ${h5.map((g) => gn(g)).join(', ')} — study / focus themes need care.`, C.h5, {
+      grahas: gnList(h5, lang),
+    }))
+  }
   if (me && (me.isCombust || onNodeAxis(chart, 'Me'))) {
-    notes.push('Mercury weak or on the node axis — concentration and learning circuits fluctuate.')
+    notes.push(tx(lang, 'Mercury weak or on the node axis — concentration and learning circuits fluctuate.', C.mercury))
   }
   if (meHouse === 12 || meHouse === 8) {
-    notes.push(`Mercury in house ${meHouse} — mind may scatter into escape or secrecy rather than desk work.`)
+    notes.push(tx(
+      lang,
+      `Mercury in house ${meHouse} — mind may scatter into escape or secrecy rather than desk work.`,
+      C.mercuryHouse,
+      { graha: gn('Me', lang), ord: shrapHouseObl(meHouse) },
+    ))
   }
 
   let severity: ShrapSeverity = 'clear'
@@ -93,38 +107,46 @@ export function analyzeChildrenFocus(chart: ChartOutput, now = Date.now()): Chil
 
   const dashaLabel = [md, ad]
     .filter(Boolean)
-    .map(n => GRAHA_NAMES[n!.lord as GrahaId] ?? n!.lord)
+    .map(n => gn(n!.lord as GrahaId, lang))
     .join(' / ')
 
   return {
     headline: focusElsewhere
-      ? 'Running dasha favours attention elsewhere — remedies must align with the period'
-      : 'No strong “focus elsewhere” dasha house signal right now',
+      ? tx(lang, 'Running dasha favours attention elsewhere — remedies must align with the period', C.headlineAway)
+      : tx(lang, 'No strong “focus elsewhere” dasha house signal right now', C.headlineHere),
     severity,
     focusElsewhere,
     dashaHouses: uniqueHouses,
     dashaNote: dashaLabel
-      ? `Current Vimshottari path: ${dashaLabel}. Houses linked to these lords: ${uniqueHouses.join(', ') || '—'}. Periods of 1st, 3rd, 11th, or 12th naturally pull focus away from studies.`
-      : 'Dasha path unavailable — check Vimshottari after recalculating.',
-    remedies: [
+      ? tx(
+          lang,
+          `Current Vimshottari path: ${dashaLabel}. Houses linked to these lords: ${uniqueHouses.join(', ') || '—'}. Periods of 1st, 3rd, 11th, or 12th naturally pull focus away from studies.`,
+          C.dasha,
+          { path: dashaLabel, houses: uniqueHouses.join(', ') || '—' },
+        )
+      : tx(lang, 'Dasha path unavailable — check Vimshottari after recalculating.', C.dashaMissing),
+    remedies: txList(lang, [
       'Neel Saraswati worship — especially for focus, studies, and wrong company',
       'Align remedial effort with the running dasha; wrong period = attention diverted regardless of effort',
       'Mercury / 5th-lord strengthening through honest study routine (behavioural upay first)',
-    ],
+    ], C.remedies),
     notes,
   }
 }
 
-export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now()): AddictionReading | null {
+export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now(), lang: EngineLang = 'en'): AddictionReading | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc || !chart.grahas?.length) return null
 
-  const houseRoles: Record<number, string> = {
-    12: 'Pleasure-seeking, escapism, altered consciousness, self-undoing',
-    5: 'Cravings, pleasure, compulsive desire',
-    6: 'Habits, compulsive behaviour, daily routines',
-    8: 'Secrecy, hidden behaviour, psychological compulsion',
-  }
+  const A = SHRAP_HI.addiction
+  const houseRoles: Record<number, string> = lang === 'hi'
+    ? { ...A.roles }
+    : {
+        12: 'Pleasure-seeking, escapism, altered consciousness, self-undoing',
+        5: 'Cravings, pleasure, compulsive desire',
+        6: 'Habits, compulsive behaviour, daily routines',
+        8: 'Secrecy, hidden behaviour, psychological compulsion',
+      }
 
   const primaryHouses = ([12, 5, 6, 8] as const).map(house => {
     const occ = maleficsOnHouse(chart, house)
@@ -134,8 +156,8 @@ export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now())
       role: houseRoles[house],
       hit,
       detail: hit
-        ? `Occupied / aspected by ${occ.map(gn).join(', ')}`
-        : 'No strong malefic occupation or classical aspect on this house',
+        ? tx(lang, `Occupied / aspected by ${occ.map((g) => gn(g)).join(', ')}`, A.hit, { grahas: gnList(occ, lang) })
+        : tx(lang, 'No strong malefic occupation or classical aspect on this house', A.miss),
     }
   })
 
@@ -156,50 +178,53 @@ export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now())
   const raHouse = houseOf(chart, 'Ra')
   pushPlanet(
     'Ra',
-    'Rahu — primary addiction planet',
-    `Rahu in house ${raHouse ?? '—'}: intoxicants, illusions, smoke, obsessive loops`,
+    tx(lang, 'Rahu — primary addiction planet', A.planets.Ra.label),
+    tx(lang, `Rahu in house ${raHouse ?? '—'}: intoxicants, illusions, smoke, obsessive loops`, A.planets.Ra.detail, {
+      graha: gn('Ra', lang),
+      house: raHouse ?? '—',
+    }),
     raHouse && [5, 6, 8, 12].includes(raHouse) ? 'strong' : 'watch',
     !!ra,
   )
   pushPlanet(
     'Mo',
-    'Moon — emotional comfort seeking',
-    'Emotional / mental addiction signature when Moon is weak or with Rahu',
+    tx(lang, 'Moon — emotional comfort seeking', A.planets.Mo.label),
+    tx(lang, 'Emotional / mental addiction signature when Moon is weak or with Rahu', A.planets.Mo.detail),
     onNodeAxis(chart, 'Mo') || (mo && mo.isCombust) ? 'watch' : 'clear',
     !!(mo && (onNodeAxis(chart, 'Mo') || mo.isCombust || (mo.dignity === 'debilitated'))),
   )
   pushPlanet(
     'Ve',
-    'Venus — pleasure / alcohol / luxury',
-    'Pleasure-based addiction signature (alcohol, luxury, sensual excess)',
+    tx(lang, 'Venus — pleasure / alcohol / luxury', A.planets.Ve.label),
+    tx(lang, 'Pleasure-based addiction signature (alcohol, luxury, sensual excess)', A.planets.Ve.detail),
     conjunct(ve, ra) ? 'strong' : 'watch',
     !!(ve && (conjunct(ve, ra) || onNodeAxis(chart, 'Ve') || ve.dignity === 'debilitated')),
   )
   pushPlanet(
     'Sa',
-    'Saturn — entrenched habit',
-    'Long-term habits and fear-based patterns — hardest to break without self-discipline',
+    tx(lang, 'Saturn — entrenched habit', A.planets.Sa.label),
+    tx(lang, 'Long-term habits and fear-based patterns — hardest to break without self-discipline', A.planets.Sa.detail),
     conjunct(sa, ra) ? 'strong' : 'watch',
     !!(sa && (conjunct(sa, ra) || (raHouse === 6 && houseOf(chart, 'Sa') === 6))),
   )
   pushPlanet(
     'Me',
-    'Mercury — tech / gaming / gambling',
-    'Technology addiction signature: gaming, internet, dating apps, trading',
+    tx(lang, 'Mercury — tech / gaming / gambling', A.planets.Me.label),
+    tx(lang, 'Technology addiction signature: gaming, internet, dating apps, trading', A.planets.Me.detail),
     conjunct(me, ra) ? 'strong' : 'watch',
     !!(me && (conjunct(me, ra) || onNodeAxis(chart, 'Me'))),
   )
   pushPlanet(
     'Ma',
-    'Mars — aggression under intoxication',
-    'When linked with Rahu: risk of aggression while intoxicated — caution framing only',
+    tx(lang, 'Mars — aggression under intoxication', A.planets.Ma.label),
+    tx(lang, 'When linked with Rahu: risk of aggression while intoxicated — caution framing only', A.planets.Ma.detail),
     conjunct(ma, ra) ? 'strong' : 'watch',
     !!(ma && conjunct(ma, ra)),
   )
   pushPlanet(
     'Ju',
-    'Jupiter afflicted — excess / philosophical escapism',
-    'Afflicted Jupiter can exaggerate excess in all areas',
+    tx(lang, 'Jupiter afflicted — excess / philosophical escapism', A.planets.Ju.label),
+    tx(lang, 'Afflicted Jupiter can exaggerate excess in all areas', A.planets.Ju.detail),
     'watch',
     !!(ju && (ju.dignity === 'debilitated' || onNodeAxis(chart, 'Ju'))),
   )
@@ -208,39 +233,39 @@ export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now())
   if (conjunct(ra, ve)) {
     combinations.push({
       id: 'ra-ve',
-      label: 'Rahu + Venus',
-      detail: 'High desire, alcohol tendency, luxury beyond status, sexual excess themes',
+      label: tx(lang, 'Rahu + Venus', A.combos.ve.label),
+      detail: tx(lang, 'High desire, alcohol tendency, luxury beyond status, sexual excess themes', A.combos.ve.detail),
       severity: 'strong',
     })
   }
   if (conjunct(ra, sa) && sa?.rashi === 10) {
     combinations.push({
       id: 'ra-sa-cap',
-      label: 'Rahu + Saturn (Capricorn)',
-      detail: 'Near-impossible to break by ritual alone — self-discipline is the real remedy',
+      label: tx(lang, 'Rahu + Saturn (Capricorn)', A.combos.saCap.label),
+      detail: tx(lang, 'Near-impossible to break by ritual alone — self-discipline is the real remedy', A.combos.saCap.detail),
       severity: 'strong',
     })
   } else if (conjunct(ra, sa)) {
     combinations.push({
       id: 'ra-sa',
-      label: 'Rahu + Saturn',
-      detail: 'Entrenched addictive habit pattern — discipline outweighs external upay',
+      label: tx(lang, 'Rahu + Saturn', A.combos.sa.label),
+      detail: tx(lang, 'Entrenched addictive habit pattern — discipline outweighs external upay', A.combos.sa.detail),
       severity: 'strong',
     })
   }
   if (conjunct(ra, me)) {
     combinations.push({
       id: 'ra-me',
-      label: 'Rahu + Mercury',
-      detail: 'Gaming, internet, dating apps, day trading, gambling signatures',
+      label: tx(lang, 'Rahu + Mercury', A.combos.me.label),
+      detail: tx(lang, 'Gaming, internet, dating apps, day trading, gambling signatures', A.combos.me.detail),
       severity: 'strong',
     })
   }
   if (conjunct(ra, ma)) {
     combinations.push({
       id: 'ra-ma',
-      label: 'Rahu + Mars',
-      detail: 'Most volatile intoxication signature — heightened aggression risk when impaired. Not a prediction of crime; a caution to avoid substances and seek support.',
+      label: tx(lang, 'Rahu + Mars', A.combos.ma.label),
+      detail: tx(lang, 'Most volatile intoxication signature — heightened aggression risk when impaired. Not a prediction of crime; a caution to avoid substances and seek support.', A.combos.ma.detail),
       severity: 'strong',
     })
   }
@@ -249,9 +274,19 @@ export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now())
   const lords = path.map(n => n.lord as GrahaId)
   const triggerLords = new Set(['Ra', 'Ve', 'Sa', 'Me'])
   const dashaHit = lords.some(l => triggerLords.has(l))
+  const lordLineEn = lords.map(l => gn(l, 'en')).join(' → ')
+  const lordLine = lords.map(l => gn(l, lang)).join(' → ')
+  const tailEn = dashaHit
+    ? 'Current path includes a trigger lord — watch habits now.'
+    : 'No classic trigger lord in the live path.'
   const dashaNote = lords.length
-    ? `Running lords: ${lords.map(l => GRAHA_NAMES[l] ?? l).join(' → ')}. Addiction themes most often activate in Rahu periods (also Venus / Saturn / Mercury by type). ${dashaHit ? 'Current path includes a trigger lord — watch habits now.' : 'No classic trigger lord in the live path.'}`
-    : 'Dasha path unavailable.'
+    ? tx(
+        lang,
+        `Running lords: ${lordLineEn}. Addiction themes most often activate in Rahu periods (also Venus / Saturn / Mercury by type). ${tailEn}`,
+        A.dasha,
+        { lords: lordLine, tail: dashaHit ? A.dashaHit : A.dashaQuiet },
+      )
+    : tx(lang, 'Dasha path unavailable.', A.dashaMissing)
 
   const hitHouses = primaryHouses.filter(h => h.hit).length
   let severity: ShrapSeverity = 'clear'
@@ -259,25 +294,30 @@ export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now())
   else if (combinations.length || hitHouses >= 1 || planetSignatures.some(p => p.severity !== 'clear')) severity = 'watch'
 
   return {
-    headline:
-      severity === 'clear'
-        ? 'No strong addiction house / planet signature cluster'
-        : 'Addiction signatures present — treat as tendencies, not a diagnosis',
+    headline: severity === 'clear'
+      ? tx(lang, 'No strong addiction house / planet signature cluster', A.headlineClear)
+      : tx(lang, 'Addiction signatures present — treat as tendencies, not a diagnosis', A.headlineOn),
     severity,
-    disclaimer:
+    disclaimer: tx(
+      lang,
       'Educational astrology only. This is not a medical, psychiatric, or legal assessment. Seek professional help for substance or behavioural addiction.',
+      A.disclaimer,
+    ),
     primaryHouses,
     planetSignatures,
     combinations,
     dashaNote,
-    remedies: [
+    remedies: txList(lang, [
       'Planet-specific remedies for the signature planet(s) above',
       'Rahu upay is almost always part of the stack when Rahu is involved',
       'Bhairav, Shiva, or Hanuman worship — match to the dasha lord',
       'For Saturn–Rahu: self-discipline is the only reliable remedy; rituals alone will not hold',
       'For children’s gaming / internet: same framework — identify planet + dasha',
-    ],
-    childVsAdult:
+    ], A.remedies),
+    childVsAdult: tx(
+      lang,
       'Same framework for adults and children; expression changes. Children: gaming / internet / mobile (Mercury–Rahu). Adults: substances / alcohol / gambling (Rahu–Venus–Saturn). Dasha triggers the pattern in both.',
+      A.childVsAdult,
+    ),
   }
 }

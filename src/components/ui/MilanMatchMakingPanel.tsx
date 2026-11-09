@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeMatchMaking } from '@/lib/engine/matchMaking'
 import { LIFE_TONE, NoteCards, SectionLabel } from '@/components/ui/marriedLifeUi'
@@ -18,14 +20,16 @@ interface Props {
 }
 
 export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Props) {
-  const data = useMemo(() => analyzeMatchMaking(chartA, chartB), [chartA, chartB])
+  const { lang } = useLang()
+  const t = useTranslations('relationshipMarriage.compareMil.match')
+  const data = useMemo(() => analyzeMatchMaking(chartA, chartB, lang), [chartA, chartB, lang])
   const full = planMeetsUiGate(userPlan, 'gold')
   const [varga, setVarga] = useState('D9')
 
   if (!data) {
     return (
       <div className="card" style={{ padding: '1.2rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        Both charts need a calculated ascendant (lagna) before this match reading can run.
+        {t('emptyAsc')}
       </div>
     )
   }
@@ -35,7 +39,7 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${LIFE_TONE[data.lagna.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Match reading, step by step</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>{t('stepsTitle')}</h3>
         <div style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: 6 }}>{data.headline}</div>
         <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{data.summary}</p>
         <p style={{ margin: '0.7rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
@@ -47,11 +51,11 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
       </div>
 
       {!full && (
-        <PlanGate userPlan={userPlan} required="gold" featureName="Match reading">
+        <PlanGate userPlan={userPlan} required="gold" featureName={t('featureName')}>
           <div style={{ minHeight: 96, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 6 }}>The rest of the match reading is on the Gold plan</div>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('lockedTitle')}</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              The step-by-step sequence, the four pillars and the divisional chart overlay for both charts.
+              {t('lockedBody')}
             </div>
           </div>
         </PlanGate>
@@ -71,7 +75,7 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
       </div>
 
       <div className="card" style={{ padding: '1.1rem' }}>
-        <SectionLabel>Four pillars</SectionLabel>
+        <SectionLabel>{t('fourPillars')}</SectionLabel>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.6rem' }}>
           {data.pillars.map(p => (
             <div key={p.id} style={{ padding: '0.75rem', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', borderTop: `3px solid ${LIFE_TONE[p.tone]}` }}>
@@ -84,7 +88,7 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
       </div>
 
       <div className="card" style={{ padding: '1.1rem' }}>
-        <SectionLabel>Divisional chart overlay: planets in the same house across both charts</SectionLabel>
+        <SectionLabel>{t('vargaOverlay')}</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
           {data.vargas.map(v => (
             <button

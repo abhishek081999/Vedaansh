@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "title": "निःशुल्क कुंडली मिलान — अष्टकूट गुण मिलान",
+    "description": "36-गुण अष्टकूट गुण मिलान, दोष-अपवाद, शुक्र–मंगल रसायन, भाव-प्रभाव और मंगल दोष जाँच — निःशुल्क, बिना लॉगिन।"
+  },
+  "loader": {
+    "openingSaved": "सहेजा मिलान खोला जा रहा है…",
+    "chartLibrary": "चार्ट लाइब्रेरी लोड हो रही है",
+    "selectorFallback": "लोड हो रहा है…"
+  },
+  "steps": {
+    "person1": "पहला व्यक्ति",
+    "person2": "दूसरा व्यक्ति",
+    "matchResult": "मिलान परिणाम"
+  },
+  "form": {
+    "enterPerson1": "पहले व्यक्ति का जन्म विवरण दर्ज करें",
+    "enterPerson2": "दूसरे व्यक्ति का जन्म विवरण दर्ज करें",
+    "person1Loaded": "पहला व्यक्ति लोड हो चुका",
+    "change": "बदलें",
+    "selectFromCharts": "मेरे चार्ट से चुनें",
+    "orManual": "या स्वयं दर्ज करें"
+  },
+  "errors": {
+    "openSaved": "यह सहेजा मिलान नहीं खुल सका",
+    "loadChart": "यह चार्ट लोड नहीं हुआ। कृपया फिर प्रयास करें।",
+    "calculateChart": "यह चार्ट गणना नहीं हो सका",
+    "network": "नेटवर्क समस्या। कनेक्शन जाँचें और फिर प्रयास करें।"
+  },
+  "breadcrumb": {
+    "home": "होम",
+    "matching": "कुंडली मिलान"
+  },
+  "saved": {
+    "searchPlaceholder": "सहेजे मिलान खोजें…",
+    "newMatch": "+ नया मिलान",
+    "countOne": "{count} मिलान सहेजा",
+    "countMany": "{count} मिलान सहेजे",
+    "loading": "सहेजे मिलान लोड हो रहे हैं…",
+    "loadFailed": "सहेजे मिलान लोड नहीं हो सके। कृपया फिर प्रयास करें।",
+    "emptySearch": "इस नाम से कोई मिलान नहीं",
+    "emptyNone": "अभी कोई सहेजा मिलान नहीं",
+    "matchTwoCharts": "दो चार्ट मिलाएँ",
+    "opening": "खुल रहा है…",
+    "open": "खोलें",
+    "yesDelete": "हाँ, हटाएँ",
+    "remove": "हटाएँ"
+  },
+  "save": {
+    "signInRequired": "मेरे चार्ट में सहेजने के लिए साइन इन करें।",
+    "failed": "मिलान सहेजा नहीं जा सका। कृपया फिर प्रयास करें।",
+    "openedFromCharts": "मेरे चार्ट से खोला गया",
+    "saved": "मेरे चार्ट → कुंडली मिलान में सहेजा गया",
+    "saving": "सहेजा जा रहा है…",
+    "saveButton": "कुंडली मिलान सहेजें",
+    "signIn": "साइन इन",
+    "openMyCharts": "मेरे चार्ट खोलें"
+  },
+  "score": {
+    "outOf36": "36 में से",
+    "relationshipHint": "यह पृष्ठ दोनों चार्ट साथ पढ़ता है। किसी एक के विवाह-फल के लिए <link>संबंध</link> एकल चार्ट पर खोलें।"
+  },
+  "print": {
+    "allSections": "सभी अनुभाग छापें"
+  },
+  "tabs": {
+    "summary": "सारांश",
+    "matchReading": "मिलान पठन",
+    "eachChart": "प्रत्येक चार्ट",
+    "charts": "चार्ट"
+  },
+  "verdict": {
+    "strengthsTitle": "संबंध की मजबूतियाँ",
+    "awarenessTitle": "सजगता के क्षेत्र",
+    "awarenessEmpty": "आठों कूटों में पूर्ण अंक। दोष, नवांश और सप्तमेश अगला स्थान हैं।",
+    "strengthNadi": "नाड़ी / प्राण",
+    "strengthMaitri": "ग्रह मैत्री",
+    "strengthGana": "गण-स्वभाव",
+    "strengthYoni": "योनि मेल",
+    "strengthEligibility": "पात्रता-बैंड",
+    "strengthBhakoot": "भकूट अपवाद",
+    "strengthNadiBody": "भिन्न नाड़ी — पूरक जीवन-शक्ति; परंपरा बच्चों के स्वास्थ्य से जोड़ती है।",
+    "strengthEligibilityBody": "शास्त्रीय 18–32 सीमा में।",
+    "strengthBhakootBody": "दिखने वाला दोष मित्र स्वामी या दिशा-नियम से निरस्त।",
+    "gunaTitle": "विस्तृत गुण मिलान विश्लेषण",
+    "tableKoota": "कूट",
+    "tablePerson1": "पहला व्यक्ति",
+    "tablePerson2": "दूसरा व्यक्ति",
+    "tableStrength": "बल",
+    "tableScore": "अंक"
+  },
+  "chartTools": {
+    "sideBySide": "साथ-साथ",
+    "overlay": "ओवरले",
+    "positions": "स्थितियाँ",
+    "dasha": "दशा",
+    "panchang": "पंचांग",
+    "ashtakavarga": "अष्टकवर्ग",
+    "auraAffinity": "आभा मेल"
+  },
+  "numerology": {
+    "title": "अंक ज्योतिष मिलान",
+    "defaultTitle": "दंपति अंक ज्योतिष",
+    "subtitle": "अंक ज्योतिष मिलान: मूल अंक, प्रत्येक साथी की ग्रिड दूसरे के लिए क्या भरती है, और संबंध अंक (भाग्यांक + भाग्यांक)।",
+    "verdictMatch": "{verdict} अंक ज्योतिष मेल",
+    "verdict": {
+      "excellent": "उत्कृष्ट",
+      "good": "अच्छा",
+      "average": "औसत",
+      "challenging": "चुनौतीपूर्ण"
+    },
+    "harmony": {
+      "excellent": "उत्कृष्ट",
+      "good": "अच्छा",
+      "neutral": "तटस्थ",
+      "mixed": "मिश्र",
+      "challenging": "चुनौतीपूर्ण"
+    },
+    "combinedGrid": "संयुक्त लो शू ग्रिड",
+    "gridAria": "संयुक्त लो शू ग्रिड",
+    "gridCellPresent": "{n} × {count}",
+    "gridCellMissing": "{n} दोनों के लिए अनुपस्थित",
+    "partnerSupplies": "हरित सीमा = साथी की ओर से आया अंक।",
+    "bringsTo": "{from} → {to} के लिए लाता/लाती है",
+    "missingBoth": "दोनों के लिए अनुपस्थित — साझा उपाय",
+    "sharedPlane": "{name} ({numbers}) केवल साथ मिलकर पूरा होता है — {meaning}",
+    "relationshipLine": "संबंध अंक {value}",
+    "relationshipMeta": "({planet} · {keyword}) — {theme}: {guidance}"
+  },
+  "charts": {
+    "overlayTitle": "चार्ट ओवरले",
+    "overlayHint": "दूसरे व्यक्ति के ग्रह पहले के भावों में",
+    "auraTitle": "आभा और भावनात्मक मेल",
+    "planetCol": "ग्रह",
+    "relationCol": "संबंध",
+    "axis": "अक्ष",
+    "sav": "सव",
+    "natalPanchang": "जन्म पंचांग",
+    "levelGood": "अच्छा",
+    "levelCare": "ध्यान",
+    "levelMix": "मिश्र",
+    "numerologyTitle": "अंक ज्योतिष मिलान",
+    "person1Fallback": "पहला व्यक्ति",
+    "person2Fallback": "दूसरा व्यक्ति"
+  },
+  "role": {
+    "boy": "वर",
+    "girl": "वधू"
+  },
+  "footer": {
+    "brand": "वेदांश सटीक ज्योतिष इंजन",
+    "tagline": "स्विस एफ़ेमेरिस · अष्टकूट + तीन-चरण कुंडली मिलान"
+  }
+}

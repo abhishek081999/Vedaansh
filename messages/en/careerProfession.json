@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "title": "Career & Profession — Vedic Chart Reading",
+    "description": "Career direction, Dashamsha strength, and professional method readings from your Vedic birth chart."
+  },
+  "page": {
+    "loader": "Reading career and profession…",
+    "chartRequiredTitle": "Career & Profession",
+    "chartRequiredDescription": "Load or create your birth chart to read career direction, Dashamsha strength, and the professional method for your profession.",
+    "noAscendant": "This chart has no ascendant, so career and profession cannot be read yet.",
+    "featureName": "Career and profession"
+  },
+  "hero": {
+    "eyebrow": "Career and profession",
+    "methodLabel": "Method",
+    "methodAria": "Select career method"
+  },
+  "methods": {
+    "desk": {
+      "code": "M1",
+      "name": "Career reading",
+      "topic": "The 10th house and its lord, whether the career can be delivered, the turns of the work, and who helps or blocks the post."
+    },
+    "method": {
+      "code": "M2",
+      "name": "Professional method",
+      "topic": "The karma field first, then the pair that is joined, then how the nakshatra behaves. Dashamsha comes after the birth chart."
+    }
+  },
+  "tabs": {
+    "aria": "Career and profession sections",
+    "overview": "Overview",
+    "overviewHint": "Five scores, the six questions, the likely track, foreign work, and profession fields",
+    "promise": "Promise and Strength",
+    "promiseHint": "Can the 10th deliver, how strong the career planets are, and the D9, D10, and A10 checks",
+    "houses": "Houses and Planets",
+    "housesHint": "Livelihood houses, the 10th from Moon and Sun, each planet at work, the dispositor (ruler of the sign it sits in) chain, and the varga ladder",
+    "yogas": "Yogas and Nakshatra",
+    "yogasHint": "Career yogas and the nakshatra profession formula",
+    "turns": "Turns and Support",
+    "turnsHint": "Starts, breaks, changes, and rises of the career, and who helps or blocks the post",
+    "timing": "Timing",
+    "timingHint": "Good and poor periods from mahadasha down to sookshma, and the slow-planet transits",
+    "action": "Remedies and Brief",
+    "actionHint": "What to do with this chart, and a consultant brief to copy"
+  },
+  "sections": {
+    "delivery": "Can the promise be delivered?",
+    "deliveryVotes": "Checks on the promise",
+    "prosperity": "What the work pays",
+    "strengthPlanets": "Career planets",
+    "livelihoodHouses": "Livelihood houses",
+    "livelihoodHouseRow": "House {house} · {label}",
+    "turns": "The turns of the career",
+    "support": "Who helps the career",
+    "argala": "Outside help on the 10th (argala)",
+    "room": "Around the post — signature, rival, client, and cost",
+    "sixQuestions": "The six questions",
+    "professionFields": "Profession fields",
+    "feedLivelihood": "Houses that feed the livelihood",
+    "houseSign": "House {house} · {sign}",
+    "phaladeepika": "Phaladeepika — 10th from Moon and Sun",
+    "cardTitleSign": "{title} · {sign}",
+    "careerYogas": "Career yogas",
+    "planetsAtWork": "What each planet is doing for the work",
+    "dispositorChain": "Dispositor chain",
+    "stepHouse": "Step {step} · house {house}",
+    "whoSees": "Who sees the career",
+    "planetConditions": "Condition of the career planets",
+    "vargaLadder": "Varga ladder of the 10th lord",
+    "vargaHouse": "{varga} · house {house}",
+    "vargaOnly": "{varga}",
+    "nakshatraFormula": "Nakshatra formula",
+    "nakshatraPada": "{nakshatra} · pada {pada}",
+    "openNakshatraLab": "Open the nakshatra profession lab",
+    "confirmHold": "Does the promise hold?",
+    "navamshaLord": "Navamsha of the 10th lord · {sign}",
+    "dashamshaLagna": "Dashamsha · {lagna} lagna",
+    "openDashamsha": "Open Dashamsha",
+    "a10": "A10 · {sign} · house {house}",
+    "recalculateDivisionals": "Recalculate the chart so Navamsha, Dashamsha, and A10 are included.",
+    "timingFavor": "Which periods favor the career",
+    "remedies": "What to do with this chart",
+    "consultantBrief": "Consultant brief",
+    "rolePlanet": "{role} · {planet}",
+    "planetInSign": "{planet} in {sign}"
+  },
+  "charts": {
+    "d1Label": "D1 · Lagna chart",
+    "d10Label": "D10 · Dashamsha",
+    "lagna": "{sign} lagna"
+  },
+  "timing": {
+    "fitGood": "Good for career",
+    "fitMixed": "Mixed for career",
+    "fitPoor": "Poor for career",
+    "mahadasha": "Mahadasha",
+    "antardasha": "Antardasha",
+    "pratyantardasha": "Pratyantardasha · {window}",
+    "sookshma": "Sookshma · {window}",
+    "nowPrefix": "Now · ",
+    "periodRange": "{lord} · {start} to {end}",
+    "transitsGochar": "Transits (gochar)",
+    "readingTransits": "Reading the current transits…",
+    "transitHit": "{planet} · house {house} · {sign}{retro}",
+    "retrogradeSuffix": " · retrograde"
+  },
+  "locked": {
+    "title": "Full reading is on Gold",
+    "text": "Profession fields, job or business, yogas, D9 and D10 confirmation, A10, timing, and the consultant brief."
+  },
+  "brief": {
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "ui": {
+    "transitError": "Transit could not be read.",
+    "bindus": "{count} bindus"
+  },
+  "methodPanel": {
+    "noAscendant": "This chart has no ascendant, so the professional method cannot start.",
+    "headerEyebrow": "M2 · Professional method",
+    "tabsAria": "Professional method sections",
+    "lockedFeatureName": "Professional career method",
+    "lockedTitle": "The full method is on Gold",
+    "lockedText": "The karma field first, then the pair that is joined, then the nakshatra's group and behavior, then Dashamsha.",
+    "noCombinations": "No textbook pair is locked on this chart. The dominant planet and the 10th lord carry the field.",
+    "houseGrid": "House {house} · {sign}",
+    "stepN": "Step {step}",
+    "layerN": "{index}. {title}",
+    "tabs": {
+      "field": "Karma Field",
+      "fieldHint": "The field of karma, the sector, and how the 10th lord works that field",
+      "pair": "Pairs and Calling",
+      "pairHint": "Combinations that are actually joined, streams, the pillars, and the calling",
+      "nakshatra": "Nakshatra and D10",
+      "nakshatraHint": "How the nakshatra behaves, then the Dashamsha check after the birth chart",
+      "mind": "Mind and Decision",
+      "mindHint": "Direction, the pipeline from want to result, counsel, and demand",
+      "lords": "Lords and Patterns",
+      "lordsHint": "Lords and chains, dasha phase and karmic loops, and the style of working",
+      "houses": "Houses and Steps",
+      "housesHint": "The five questions, the houses behind them, and the seven steps",
+      "later": "Study and Later",
+      "laterHint": "Education, job and family questions, the five layers of a career, and the profession formula"
+    },
+    "groups": {
+      "kshetra": "Karma field",
+      "sector": "Sector — the kind of work",
+      "profile": "Profile — how the field is worked",
+      "streams": "Streams — the pair that is joined",
+      "pillars": "Pillars — house, planet, and sign",
+      "calling": "Calling — what pulls the person",
+      "gana": "Nakshatra and gana",
+      "disha": "Direction — halves, growth, and comfort",
+      "pipeline": "Pipeline — from want to result",
+      "counsel": "Counsel — mind and aim",
+      "demand": "Demand — staying, venturing, and reach",
+      "system": "Lords and chains",
+      "pattern": "Pattern — dasha phase and karmic loops",
+      "study": "Education"
+    },
+    "sections": {
+      "fiveQuestions": "Five questions",
+      "structureFrame": "Structure — the frame",
+      "supportBone": "Support — muscle and bone",
+      "sevenSteps": "The seven steps",
+      "combinationsOnChart": "Combinations on this chart",
+      "energyNow": "Where that energy sits now",
+      "d10Verdict": "D10 verdict",
+      "jobFamilyVenture": "Job, family, and venture questions",
+      "fiveLayers": "Five layers of a career",
+      "professionFormula": "Profession formula",
+      "styleOfWorking": "Style of working"
+    }
+  }
+}

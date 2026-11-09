@@ -1,0 +1,190 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "muhurta": "Muhurta"
+  },
+  "page": {
+    "title": "Muhurta Intelligence",
+    "addToCalendar": "Add to calendar",
+    "shareReport": "Share report",
+    "quickIntents": "Quick intents",
+    "findTitle": "Find Auspicious Days",
+    "findSubtitle": "Day grades: tithi, nakshatra, yoga, karana, vara, Tara/Chandra. Timeline adds hora, choghadiya, panchaka, electional lagna, gandanta, tyajya, grahan yoga, dasha & SAV when a chart is loaded.",
+    "purpose": "Purpose",
+    "from": "From",
+    "toMax": "To (max 60 days)",
+    "minGrade": "Min grade",
+    "findMuhurta": "Find Muhurta",
+    "searching": "Searching…",
+    "fullPanchangLink": "Full Panchang for this day →"
+  },
+  "gradeOptions": {
+    "A": "A — Excellent only",
+    "B": "B — Good & above",
+    "C": "C — Average & above",
+    "D": "D — All days"
+  },
+  "activities": {
+    "BUSINESS": "Business",
+    "TRAVEL": "Travel",
+    "REAL_ESTATE": "Property",
+    "RELATIONSHIP": "Relationship",
+    "HEALTH": "Wellness",
+    "SPIRITUAL": "Spiritual",
+    "MARRIAGE": "Marriage",
+    "EDUCATION": "Education",
+    "GENERAL": "General"
+  },
+  "intents": {
+    "meeting": { "label": "Meeting", "blurb": "Calls, interviews, negotiations" },
+    "travel": { "label": "Travel start", "blurb": "Leave home / board journey" },
+    "surgery": { "label": "Medical", "blurb": "Procedure or treatment start" },
+    "house": { "label": "Housewarming", "blurb": "Griha pravesh / move-in" },
+    "naming": { "label": "Naming / samskar", "blurb": "Child naming & rites" },
+    "loan": { "label": "Loan / contract", "blurb": "Sign papers, open account" },
+    "interview": { "label": "Interview", "blurb": "Job or admission interview" },
+    "puja": { "label": "Puja", "blurb": "Home or temple worship" },
+    "wedding": { "label": "Wedding", "blurb": "Vivaha muhurta search" },
+    "date": { "label": "Relationship", "blurb": "Proposal, engagement talk" }
+  },
+  "scoreLabels": {
+    "Excellent": "Excellent",
+    "Good": "Good",
+    "Neutral": "Neutral",
+    "Challenging": "Challenging",
+    "Avoid": "Avoid"
+  },
+  "errors": {
+    "invalidRange": "Invalid date range",
+    "panchangRange": "Could not load panchang for the selected range. Try again.",
+    "timelineGold": "Gold plan required for Muhurta timeline",
+    "timelineFailed": "Failed to load timeline",
+    "noExport": "No windows to export yet — run Find Muhurta or wait for the timeline.",
+    "reportFailed": "Could not build report"
+  },
+  "emptyResults": "No days met the minimum grade in this range. Try lowering the min grade or expanding the dates.",
+  "export": {
+    "calendarTitle": "Muhurta {activity} · Grade {grade}",
+    "timelineTitle": "Muhurta {activity} · {label}",
+    "icsName": "Vedaansh · {activity}",
+    "windowsLine": "Windows: {list}",
+    "avoidLine": "Avoid: {list}"
+  },
+  "report": {
+    "dashaNote": "Current dasha: {path}",
+    "personalChart": "Personal Tara/Chandra bala applied from loaded chart.",
+    "loadChart": "Load a birth chart for personal dasha & ashtakavarga overlays."
+  },
+  "result": {
+    "auspiciousWindows": "Auspicious windows",
+    "avoid": "Avoid",
+    "taraBala": "Tara Bala",
+    "chandraBala": "Chandra Bala",
+    "chandraPos": "{n}th Pos",
+    "navtaraTitle": "Navtara booking · {verdict}",
+    "navtaraVerdict": {
+      "favourable": "favourable",
+      "caution": "caution",
+      "avoid": "avoid"
+    },
+    "dayFactorsTitle": "Day factors (hora / choghadiya / panchaka on timeline above)"
+  },
+  "nowStrip": {
+    "todayActivity": "Today · {activity}",
+    "updating": "Updating…",
+    "nowScore": "Now score {score} · {label}",
+    "nowLabel": "now",
+    "bestNext2h": "Best in next 2 hours:",
+    "bestLine": "{time} · score {score} ({label})",
+    "avoidNow": "Avoid now: {list}",
+    "noVerdict": "Load the 24h timeline to see a live verdict for this purpose."
+  },
+  "verdict": {
+    "excellent": {
+      "headline": "Good time for {activity}{when}",
+      "detail": "Conditions look supportive for {activity}. It is a good time to go ahead.{avoid}"
+    },
+    "good": {
+      "headline": "Fairly good for {activity}{when}",
+      "detail": "Most factors are okay for {activity}. Prefer this window over weaker ones.{avoid}"
+    },
+    "neutral": {
+      "headline": "Mixed for {activity}{when}",
+      "detail": "Neither strongly favorable nor forbidden. Routine work is fine; major beginnings can wait.{avoid}"
+    },
+    "challenging": {
+      "headline": "Better to wait for {activity}{when}",
+      "detail": "Several factors are challenging. Postpone important starts if you can.{avoid}"
+    },
+    "avoid": {
+      "headline": "Avoid starting {activity}{when}",
+      "detail": "Classical rules advise against starting this right now. A later time is a better choice.{avoid}"
+    },
+    "whenAround": " around {time}",
+    "avoidSuffix": " Avoid: {list}."
+  },
+  "timeline": {
+    "subtitle": "Auspicious windows for the next 24 hours (hora, choghadiya, panchaka, kalams)",
+    "syncing": "Syncing with planetary grid",
+    "syncingSpinner": "Syncing with planetary grid...",
+    "noData": "No timeline data yet",
+    "legendHigh": "High",
+    "legendGood": "Good",
+    "peakResonance": "Peak resonance at {time} · score {score}",
+    "peakWindow": "peak window",
+    "dialHigh": "High · {start}–{end}",
+    "dialGood": "Good · {start}–{end}",
+    "emptyScoreFactor": "No score for this activity"
+  },
+  "diagnostics": {
+    "choghadiya": "Choghadiya",
+    "panchaka": "Panchaka Status",
+    "taraBala": "Tara Bala",
+    "chandraBala": "Chandra Bala",
+    "electionalLagna": "Electional Lagna",
+    "grahanYoga": "Grahan Yoga",
+    "tyajya": "Tyajya",
+    "mahadasha": "Mahadasha",
+    "savLagna": "SAV @ Lagna",
+    "timingGood": "Good Timing",
+    "timingBad": "Bad Timing",
+    "timingNeutral": "Neutral Timing",
+    "shubh": "Shubh",
+    "auspicious": "Auspicious",
+    "avoided": "Avoided",
+    "resonance": "{sign}{score} Resonance",
+    "houseNth": "{n}th House",
+    "highSupport": "High Support",
+    "challenging": "Challenging",
+    "neutralSupport": "Neutral",
+    "avoidBeginnings": "Avoid major beginnings",
+    "tyajyaActive": "Active",
+    "vishaPortion": "Visha portion of nakshatra",
+    "grahanActive": "Active",
+    "antarDasha": "Antar {lord}",
+    "rashiLabel": "Rashi {n}",
+    "dashaFit": {
+      "supportive": "supportive",
+      "challenging": "challenging",
+      "neutral": "neutral"
+    },
+    "choghadiyaQuality": {
+      "Good": "Good",
+      "Bad": "Bad",
+      "Neutral": "Neutral"
+    },
+    "choghadiyaType": {
+      "Amrit": "Amrit",
+      "Shubh": "Shubh",
+      "Labh": "Labh",
+      "Chala": "Chala",
+      "Rog": "Rog",
+      "Kaal": "Kaal",
+      "Udveg": "Udveg"
+    },
+    "grahanType": {
+      "solar": "Solar",
+      "lunar": "Lunar"
+    }
+  }
+}

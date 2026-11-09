@@ -417,6 +417,29 @@ describe('intimate life', () => {
     expect(links.some(l => l.house === 8 && l.native === 'Aarav')).toBe(true)
     expect(links[0].detail).toMatch(/crisis/i)
   })
+
+  it('keeps English intimate notes byte-stable', () => {
+    const en = analyzeIntimateLife(chart(1, [g('Ma', 1), g('Sa', 10), g('Ju', 1), g('Ve', 2), g('Mo', 4)]), 'en')!
+    const enAgain = analyzeIntimateLife(chart(1, [g('Ma', 1), g('Sa', 10), g('Ju', 1), g('Ve', 2), g('Mo', 4)]))
+    expect(enAgain!.notes.find(n => n.id === 'seventh-pressure')?.detail).toBe(en.notes.find(n => n.id === 'seventh-pressure')?.detail)
+  })
+
+  it('returns Hindi for intimate notes when lang is hi', () => {
+    const hi = analyzeIntimateLife(chart(1, [g('Ma', 1), g('Sa', 10), g('Ju', 1), g('Ve', 2), g('Mo', 4)]), 'hi')!
+    const devanagari = /[\u0900-\u097F]/
+    expect(hi.notes.find(n => n.id === 'seventh-pressure')?.title).toMatch(devanagari)
+    const taurus = analyzeIntimateLife(chart(2, [g('Su', 2), g('Mo', 2), g('Ju', 2), g('Ve', 6, 1, { nakshatraIndex: 5 })]), 'hi')!
+    expect(taurus.notes.find(n => n.id === 'approach')?.detail).toMatch(devanagari)
+    const links = dusthanaLinks('Aarav', 11, 'Meera', 6, 'hi')
+    expect(links[0].detail).toMatch(devanagari)
+    const latinSentence = /\b(the|and|with|from|does|not)\b/i
+    for (const bucket of [hi.notes, hi.inlaws, hi.influence, hi.timings, hi.divisions]) {
+      for (const note of bucket) {
+        expect(`${note.title} ${note.detail}`).toMatch(devanagari)
+        expect(`${note.title} ${note.detail}`).not.toMatch(latinSentence)
+      }
+    }
+  })
 })
 
 describe('moon and lagna additions', () => {

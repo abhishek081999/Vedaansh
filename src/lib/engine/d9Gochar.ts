@@ -7,6 +7,9 @@
 import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { D9 } from '@/lib/engine/vargas'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { D9_GOCHAR_HI } from '@/lib/engine/locale/d9Gochar.hi'
 
 function isVargottama(d1: Rashi, d9: Rashi): boolean {
   return d1 === d9
@@ -40,6 +43,45 @@ function houseFrom(sign: Rashi, asc: Rashi): number {
   return ((sign - asc + 12) % 12) + 1
 }
 
+function planetLabel(id: GrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? gName(id, 'hi') : GRAHA_NAMES[id]
+}
+
+function signLabel(rashi: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? rName(rashi, 'hi') : RASHI_NAMES[rashi]
+}
+
+function buildNote(
+  id: GrahaId,
+  transitD9: Rashi,
+  houseFromD9Lagna: number | null,
+  vargottama: boolean,
+  overNatalD9Ids: GrahaId[],
+  lang: EngineLang,
+): string {
+  const planet = planetLabel(id, lang)
+  const rashi = signLabel(transitD9, lang)
+  if (lang === 'hi') {
+    let note = fill(D9_GOCHAR_HI.noteBase, { planet, rashi })
+    if (houseFromD9Lagna != null) note += fill(D9_GOCHAR_HI.noteHouse, { house: houseFromD9Lagna })
+    if (vargottama) note += D9_GOCHAR_HI.noteVargottama
+    if (overNatalD9Ids.length) {
+      note += fill(D9_GOCHAR_HI.noteOverNatal, {
+        planets: overNatalD9Ids.map(x => planetLabel(x, lang)).join(', '),
+      })
+    }
+    return note
+  }
+
+  let note = `Transit ${planet} in D9 ${rashi}`
+  if (houseFromD9Lagna != null) note += ` (H${houseFromD9Lagna} from D9 lagna)`
+  if (vargottama) note += ' — vargottama in transit'
+  if (overNatalD9Ids.length) {
+    note += ` — over natal D9 ${overNatalD9Ids.map(x => planetLabel(x, lang)).join(', ')}`
+  }
+  return note
+}
+
 /**
  * Build D9 gochar rows from transit longitudes + natal D9 chart.
  */
@@ -47,7 +89,9 @@ export function analyzeD9Gochar(input: {
   transitGrahas: Pick<GrahaData, 'id' | 'rashi' | 'lonSidereal'>[]
   natalD9: Pick<GrahaData, 'id' | 'rashi'>[]
   d9Lagna?: Rashi | null
+  lang?: EngineLang
 }): D9GocharReport {
+  const lang: EngineLang = input.lang === 'hi' ? 'hi' : 'en'
   const d9Lagna = input.d9Lagna ?? null
   const natalBySign = new Map<Rashi, GrahaId[]>()
   for (const g of input.natalD9) {
@@ -72,12 +116,7 @@ export function analyzeD9Gochar(input: {
     const overNatalD9Ids = (natalBySign.get(transitD9) ?? []).filter(x => x !== id)
     const vargottama = isVargottama(transitD1, transitD9)
 
-    let note = `Transit ${GRAHA_NAMES[id]} in D9 ${RASHI_NAMES[transitD9]}`
-    if (houseFromD9Lagna != null) note += ` (H${houseFromD9Lagna} from D9 lagna)`
-    if (vargottama) note += ' — vargottama in transit'
-    if (overNatalD9Ids.length) {
-      note += ` — over natal D9 ${overNatalD9Ids.map(x => GRAHA_NAMES[x]).join(', ')}`
-    }
+    const note = buildNote(id, transitD9, houseFromD9Lagna, vargottama, overNatalD9Ids, lang)
 
     if (vargottama || overNatalD9Ids.length > 0 || (houseFromD9Lagna != null && [1, 5, 7, 9, 10].includes(houseFromD9Lagna))) {
       highlights.push(note)
@@ -85,13 +124,13 @@ export function analyzeD9Gochar(input: {
 
     rows.push({
       planetId: id,
-      planetName: GRAHA_NAMES[id],
+      planetName: planetLabel(id, lang),
       transitD1Rashi: transitD1,
-      transitD1Name: RASHI_NAMES[transitD1],
+      transitD1Name: signLabel(transitD1, lang),
       transitD9Rashi: transitD9,
-      transitD9Name: RASHI_NAMES[transitD9],
+      transitD9Name: signLabel(transitD9, lang),
       natalD9Rashi: natalD9,
-      natalD9Name: natalD9 != null ? RASHI_NAMES[natalD9] : null,
+      natalD9Name: natalD9 != null ? signLabel(natalD9, lang) : null,
       houseFromD9Lagna,
       overNatalD9Ids,
       isVargottamaTransit: vargottama,
@@ -101,7 +140,7 @@ export function analyzeD9Gochar(input: {
 
   return {
     d9Lagna,
-    d9LagnaName: d9Lagna != null ? RASHI_NAMES[d9Lagna] : null,
+    d9LagnaName: d9Lagna != null ? signLabel(d9Lagna, lang) : null,
     rows,
     highlights: highlights.slice(0, 8),
   }

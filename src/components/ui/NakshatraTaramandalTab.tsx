@@ -6,8 +6,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Compass, Crown, Layers, Sparkles, Star } from 'lucide-react'
 import type { ChartOutput } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { termHi } from '@/i18n/jyotish'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import {
   analyzeTaramandalChart,
@@ -17,10 +20,21 @@ import {
 
 type Section = 'chart' | 'mandals' | 'reference'
 
-const SECTIONS: { id: Section; label: string; Icon: typeof Star }[] = [
-  { id: 'chart', label: 'Your Chart', Icon: Compass },
-  { id: 'mandals', label: 'All Mandals', Icon: Layers },
-  { id: 'reference', label: 'About', Icon: Sparkles },
+const SIGN_ABBR: Record<string, string> = { Sag: 'Sagittarius', Cap: 'Capricorn' }
+
+function useNm() {
+  const { hi } = useLang()
+  return (en: string) => {
+    if (!hi || !en) return en
+    const one = (part: string) => termHi(SIGN_ABBR[part.trim()] ?? part.trim())
+    return en.includes('/') ? en.split('/').map(one).join('/') : one(en)
+  }
+}
+
+const SECTIONS: { id: Section; Icon: typeof Star }[] = [
+  { id: 'chart', Icon: Compass },
+  { id: 'mandals', Icon: Layers },
+  { id: 'reference', Icon: Sparkles },
 ]
 
 const MANDAL_ACCENT: Record<TaramandalId, string> = {
@@ -39,10 +53,12 @@ const MANDAL_ACCENT: Record<TaramandalId, string> = {
 }
 
 export function NakshatraTaramandalTab({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('nakshatra.taramandal')
+  const { lang } = useLang()
   const [section, setSection] = useState<Section>('chart')
   const [openId, setOpenId] = useState<TaramandalId | null>(null)
 
-  const analysis = useMemo(() => analyzeTaramandalChart(chart), [chart])
+  const analysis = useMemo(() => analyzeTaramandalChart(chart, lang), [chart, lang])
 
   const activeViews = useMemo(
     () => analysis.mandals.filter(v => v.mandal.complete && (v.planetHits.length > 0 || v.moonInMandal || v.lagnaInMandal)),
@@ -52,8 +68,7 @@ export function NakshatraTaramandalTab({ chart }: { chart: ChartOutput }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
-        Taramandal is not Navtara. Each nakshatra is held by one or more constellation groups;
-        planets in a group take on that mandal&apos;s cosmic work.
+        {t('intro')}
       </p>
 
       <div
@@ -69,7 +84,7 @@ export function NakshatraTaramandalTab({ chart }: { chart: ChartOutput }) {
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Taramandal sections"
+        aria-label={t('sectionsAria')}
       >
         {SECTIONS.map(s => {
           const active = section === s.id
@@ -99,7 +114,7 @@ export function NakshatraTaramandalTab({ chart }: { chart: ChartOutput }) {
               }}
             >
               <s.Icon size={13} aria-hidden />
-              {s.label}
+              {t(`sections.${s.id}`)}
             </button>
           )
         })}
@@ -136,6 +151,8 @@ function ChartSection({
   openId: TaramandalId | null
   setOpenId: (id: TaramandalId | null) => void
 }) {
+  const t = useTranslations('nakshatra.taramandal')
+  const nm = useNm()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <div style={{
@@ -145,10 +162,10 @@ function ChartSection({
         borderRadius: 'var(--r-md)',
       }}>
         <div style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: 4 }}>
-          Janma Nakshatra · Taramandal
+          {t('janmaEyebrow')}
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text-gold)', fontWeight: 600 }}>
-          {analysis.birthNakshatraName}
+          {nm(analysis.birthNakshatraName)}
         </div>
         {analysis.birthMemberships.length > 0 ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.55rem' }}>
@@ -165,14 +182,14 @@ function ChartSection({
                 }}
               >
                 {m.isKing && <Crown size={11} aria-hidden style={{ verticalAlign: '-1px', marginRight: 4, color: MANDAL_ACCENT[m.mandalId] }} />}
-                {m.mandalName}
-                {m.role === 'partial' ? ' · partial' : ''}
+                {t(`mandals.${m.mandalId}`)}
+                {m.role === 'partial' ? ` · ${t('partial')}` : ''}
               </span>
             ))}
           </div>
         ) : (
           <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Not yet mapped to a complete Taramandal in the current teaching set.
+            {t('unmapped')}
           </p>
         )}
         <p style={{ margin: '0.65rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
@@ -181,7 +198,7 @@ function ChartSection({
       </div>
 
       {activeViews.length === 0 ? (
-        <EmptyHint text="No complete mandal currently holds Moon, Lagna, or a core planet in this chart’s taught memberships." />
+        <EmptyHint text={t('emptyChart')} />
       ) : (
         activeViews.map(view => (
           <MandalCard
@@ -206,13 +223,14 @@ function MandalsSection({
   openId: TaramandalId | null
   setOpenId: (id: TaramandalId | null) => void
 }) {
+  const t = useTranslations('nakshatra.taramandal')
   const complete = views.filter(v => v.mandal.complete)
   const pending = views.filter(v => !v.mandal.complete)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-        {complete.length} taught mandals · each nakshatra is held like a king’s member of a constellation group.
+        {t('taughtLead', { count: complete.length })}
       </p>
       {complete.map(view => (
         <MandalCard
@@ -225,7 +243,7 @@ function MandalsSection({
       {pending.length > 0 && (
         <>
           <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-            Forthcoming (king only)
+            {t('forthcoming')}
           </div>
           {pending.map(view => (
             <MandalCard
@@ -252,9 +270,12 @@ function MandalCard({
   onToggle: () => void
   highlightChart?: boolean
 }) {
+  const t = useTranslations('nakshatra.taramandal')
+  const nm = useNm()
   const { mandal, planetHits, moonInMandal, lagnaInMandal } = view
   const accent = MANDAL_ACCENT[mandal.id]
-  const kingName = mandal.kingIndex != null ? NAKSHATRA_NAMES[mandal.kingIndex] : '—'
+  const kingName = mandal.kingIndex != null ? nm(NAKSHATRA_NAMES[mandal.kingIndex]) : '—'
+  const aka = mandal.id === 'rakshasa' || mandal.id === 'marut' ? t(`aka.${mandal.id}`) : mandal.aka
 
   return (
     <div style={{
@@ -284,28 +305,28 @@ function MandalCard({
                 width: 8, height: 8, borderRadius: '50%', background: accent, flexShrink: 0,
               }} />
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                {mandal.name}
+                {t(`mandals.${mandal.id}`)}
               </span>
               {!mandal.complete && (
                 <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', border: '1px solid var(--border-soft)', padding: '1px 6px', borderRadius: 4 }}>
-                  Pending
+                  {t('pending')}
                 </span>
               )}
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 3 }}>
-              {mandal.aka ? `${mandal.aka} · ` : ''}King · {kingName}
+              {aka ? `${aka} · ` : ''}{t('kingLine', { name: kingName })}
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
             {(moonInMandal || lagnaInMandal) && (
               <div style={{ display: 'flex', gap: 4 }}>
-                {moonInMandal && <MiniPill>Moon</MiniPill>}
-                {lagnaInMandal && <MiniPill>Lagna</MiniPill>}
+                {moonInMandal && <MiniPill>{nm('Moon')}</MiniPill>}
+                {lagnaInMandal && <MiniPill>{nm('Lagna')}</MiniPill>}
               </div>
             )}
             {planetHits.length > 0 && (
               <span style={{ fontSize: '0.62rem', color: accent, fontWeight: 600 }}>
-                {planetHits.length} planet{planetHits.length === 1 ? '' : 's'}
+                {planetHits.length === 1 ? t('planetOne', { count: planetHits.length }) : t('planetMany', { count: planetHits.length })}
               </span>
             )}
           </div>
@@ -324,7 +345,7 @@ function MandalCard({
           )}
 
           <div>
-            <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 6 }}>Members</div>
+            <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 6 }}>{t('members')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
               {mandal.members.map(mem => {
                 const isKing = mandal.kingIndex === mem.nakshatraIndex
@@ -342,8 +363,8 @@ function MandalCard({
                     }}
                   >
                     {isKing && '★ '}
-                    {NAKSHATRA_NAMES[mem.nakshatraIndex]}
-                    {mem.role === 'partial' ? ' (partial)' : ''}
+                    {nm(NAKSHATRA_NAMES[mem.nakshatraIndex])}
+                    {mem.role === 'partial' ? ` (${t('partial')})` : ''}
                   </span>
                 )
               })}
@@ -352,25 +373,25 @@ function MandalCard({
 
           {mandal.kingWhy && (
             <div>
-              <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 4 }}>Why this king</div>
+              <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 4 }}>{t('whyKing')}</div>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{mandal.kingWhy}</p>
             </div>
           )}
 
           {mandal.functions.length > 0 && (
-            <BulletBlock title="Functions" items={mandal.functions} />
+            <BulletBlock title={t('functions')} items={mandal.functions} />
           )}
           {mandal.works.length > 0 && (
-            <BulletBlock title="Works" items={mandal.works} />
+            <BulletBlock title={t('works')} items={mandal.works} />
           )}
 
           {(highlightChart || planetHits.length > 0) && (
             <div>
               <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 6 }}>
-                Planets in this mandal
+                {t('planetsIn')}
               </div>
               {planetHits.length === 0 ? (
-                <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>None in this chart.</p>
+                <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('noneInChart')}</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                   {planetHits.map(hit => (
@@ -385,12 +406,12 @@ function MandalCard({
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-gold)', fontSize: '0.88rem' }}>
-                          {GRAHA_NAMES[hit.grahaId] ?? hit.grahaName}
+                          {nm(GRAHA_NAMES[hit.grahaId] ?? hit.grahaName)}
                         </span>
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                          {hit.nakshatraName} P{hit.pada}
-                          {hit.isKing ? ' · king star' : ''}
-                          {hit.role === 'partial' ? ' · partial' : ''}
+                          {nm(hit.nakshatraName)} {t('padaMark', { pada: hit.pada })}
+                          {hit.isKing ? ` · ${t('kingStar')}` : ''}
+                          {hit.role === 'partial' ? ` · ${t('partial')}` : ''}
                         </span>
                       </div>
                       {hit.notes && (
@@ -464,6 +485,8 @@ function ReferenceSection({
 }: {
   uncovered: Array<{ index: number; name: string }>
 }) {
+  const t = useTranslations('nakshatra.taramandal')
+  const nm = useNm()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <div style={{
@@ -473,13 +496,10 @@ function ReferenceSection({
         borderRadius: 'var(--r-md)',
       }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: 'var(--text-gold)', marginBottom: 6 }}>
-          Taramandal ≠ Navtara
+          {t('notNavtara')}
         </div>
         <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Navtara counts nine tara steps from the birth star. Taramandal is a different system:
-          fixed constellation groups that hold every nakshatra as a member. When planets fall in a
-          mandal, their signification shifts with that group&apos;s cosmic energy — including patterns
-          sometimes mistaken for stelliums.
+          {t('notNavtaraBody')}
         </p>
       </div>
 
@@ -490,11 +510,10 @@ function ReferenceSection({
         borderRadius: 'var(--r-md)',
       }}>
         <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 6 }}>
-          Teaching coverage gaps
+          {t('coverageGaps')}
         </div>
         <p style={{ margin: '0 0 0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-          Remaining gaps are only the forthcoming Mrityu Karma / Gyan mandals (kings recorded; full groups pending).
-          Partial members elsewhere still count.
+          {t('coverageBody')}
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
           {uncovered.map(n => (
@@ -509,7 +528,7 @@ function ReferenceSection({
                 color: 'var(--text-primary)',
               }}
             >
-              {n.name}
+              {nm(n.name)}
             </span>
           ))}
         </div>

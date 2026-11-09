@@ -10,6 +10,7 @@ import {
   buildTransitMonthCalendar,
   transitCalendarToHtml,
 } from '@/lib/engine/transitCalendar'
+import type { EngineLang } from '@/lib/engine/lang'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requirePlanGate } from '@/lib/security/planAccess'
 import type { Rashi } from '@/types/astrology'
@@ -21,7 +22,12 @@ const QuerySchema = z.object({
   month:     z.coerce.number().int().min(1).max(12),
   format:    z.enum(['json', 'html']).optional(),
   name:      z.string().max(80).optional(),
+  lang:      z.enum(['en', 'hi']).optional(),
 })
+
+function parseEngineLang(raw: string | undefined): EngineLang {
+  return raw === 'hi' ? 'hi' : 'en'
+}
 
 export async function GET(request: Request) {
   const blocked = await guardRoute(request, routeSecurityPresets.publicEphemeris())
@@ -43,6 +49,7 @@ export async function GET(request: Request) {
     month: searchParams.get('month'),
     format: searchParams.get('format') ?? undefined,
     name: searchParams.get('name') ?? undefined,
+    lang: searchParams.get('lang') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -53,15 +60,17 @@ export async function GET(request: Request) {
   }
 
   try {
+    const engineLang = parseEngineLang(parsed.data.lang)
     const cal = buildTransitMonthCalendar({
       ascRashi: parsed.data.ascRashi as Rashi,
       moonRashi: parsed.data.moonRashi as Rashi,
       year: parsed.data.year,
       month: parsed.data.month,
+      lang: engineLang,
     })
 
     if (parsed.data.format === 'html') {
-      const html = transitCalendarToHtml(cal, parsed.data.name)
+      const html = transitCalendarToHtml(cal, parsed.data.name, engineLang)
       return new NextResponse(html, {
         status: 200,
         headers: {

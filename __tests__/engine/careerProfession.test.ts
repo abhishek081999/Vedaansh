@@ -555,4 +555,22 @@ describe('analyzeCareerProfession', () => {
     expect(support.room.find(n => n.id === 'indu')!.answer).toBe('Wealth from work falls in house 10.')
     expect(support.room.find(n => n.id === 'minister')!.answer).toMatch(/agree/)
   })
+
+  it('keeps English output byte-identical when lang=en', () => {
+    const en = analyzeCareerProfession(serviceChart(), AS_OF, 'en')!
+    const legacy = analyzeCareerProfession(serviceChart(), AS_OF)!
+    expect(JSON.stringify(en)).toBe(JSON.stringify(legacy))
+    expect(en.ethics).toMatch(/^Read this as a map of livelihood/)
+    expect(en.scores.map(s => s.label)).toEqual(['Status', 'Authority', 'Profession', 'Skill', 'Gains'])
+  })
+
+  it('returns Devanagari for service chart when lang=hi', () => {
+    const hi = analyzeCareerProfession(serviceChart(), AS_OF, 'hi')!
+    const devanagari = /[\u0900-\u097F]/
+    expect(hi.ethics).toMatch(devanagari)
+    expect(hi.scores.every(s => devanagari.test(s.label))).toBe(true)
+    expect(hi.track.headline).toMatch(devanagari)
+    expect(hi.significators.every(s => devanagari.test(s.title) && devanagari.test(s.question))).toBe(true)
+    expect(hi.brief.sections[0].heading).toBe('निर्णय')
+  })
 })

@@ -1,0 +1,250 @@
+// Hindi display strings for src/lib/engine/jaiminiMarriageAnalysis.ts
+
+import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+
+export const JMA_HI = {
+  houseInfluence: {
+    1: 'आत्म-चित्र और प्राण',
+    2: 'वित्त, वाणी और पारिवारिक संसाधन',
+    3: 'साहस, भाई–बहन और छोटे प्रयास',
+    4: 'घर की शांति और भावनात्मक जड़ें',
+    5: 'प्रेम, रचना और संतान',
+    6: 'सेवा, ऋण और प्रतिद्वंद्विता',
+    7: 'साझेदारी करार और सार्वजनिक संबंध',
+    8: 'गुप्त विषय, अंतरंगता और साझा संसाधन',
+    9: 'धर्म, भाग्य और उच्च आदर्श',
+    10: 'करियर, प्रतिष्ठा और सार्वजनिक कर्म',
+    11: 'महत्वाकांक्षा, लाभ और इच्छाएँ',
+    12: 'हानि, विदेश और शयन सुख',
+  } as Record<number, string>,
+  dkProfiles: {
+    Su: { nature: 'आत्मविश्वासी, प्राधिकारी, राजसी उपस्थिति', hiddenChallenge: 'सत्ता संघर्ष; साथी निर्णय पर हावी हो सकता है', karmicLesson: 'अहंकार संतुलित करें; साझेदारी में सम्मानपूर्ण नेतृत्व सीखें' },
+    Mo: { nature: 'भावुक, देखभाल करने वाला, पारिवारिक', hiddenChallenge: 'मूड स्विंग और भावनात्मक अस्थिरता', karmicLesson: 'भावनात्मक संतुलन और स्थिर देखभाल विकसित करें' },
+    Ma: { nature: 'साहसी, भावुक, कर्मठ', hiddenChallenge: 'झगड़े, शयनकक्ष संघर्ष, तीव्र यौन ऊर्जा', karmicLesson: 'क्रोध नियंत्रित करें; ऊर्जा रचनात्मक कर्म में मोड़ें' },
+    Me: { nature: 'बुद्धिमान, वाक्-चतुर, संवादी', hiddenChallenge: 'द्वैध स्वभाव, अति-संवाद, छेड़छाड़', karmicLesson: 'अत्यधिक बात संतुलित करें; उतनी सुनें जितना बोलें' },
+    Ju: { nature: 'बुद्धिमान, परिपक्व, शिक्षक/मार्गदर्शक', hiddenChallenge: 'नैतिक ऊंचाई का भाव', karmicLesson: 'सलाह लेने के लिए खुले रहें; उपदेश न दें' },
+    Ve: { nature: 'रोमांटिक, कलात्मक, आकर्षक, सुख-चाही', hiddenChallenge: 'अतिरंजना या अतितृष्णा (स्थिति अनुसार)', karmicLesson: 'सुख मापें; नवीनता से ऊपर भक्ति गहरी करें' },
+    Sa: { nature: 'परिपक्व, गंभीर, मेहनती, व्यावहारिक', hiddenChallenge: 'भावनात्मक शुष्कता या दूरी', karmicLesson: 'कर्म अनुशासन स्वीकारें; गर्मी जानबूझकर बनाएँ' },
+    Ra: { nature: 'विदेशी, अपरंपरागत या विवादास्पद आकर्षण', hiddenChallenge: 'गुप्त या गैर-पारंपरिक संबंध', karmicLesson: 'असामान्य मार्ग स्वीकारें, आत्म-धोखा नहीं' },
+    Ke: { nature: 'वैराग्यी, रहस्यमय या पूर्वजन्मिक बंध', hiddenChallenge: 'अचानक पृथक्करण या आध्यात्मिक पीछे हटना', karmicLesson: 'नियंत्रण छोड़ें; कर्म अनुबंध समापन का सम्मान करें' },
+    Ur: { nature: 'अचानक, सुधारवादी साथी ऊर्जा', hiddenChallenge: 'संबंध में अप्रत्याशित टूटना', karmicLesson: 'लिपटे बिना अनुकूलन करें' },
+    Ne: { nature: 'आदर्शवादी, करुणामय, अस्पष्ट साथी', hiddenChallenge: 'भ्रम या प्रेम में निराशा', karmicLesson: 'स्पष्ट देखें; प्रक्षेपण के बिना प्रेम करें' },
+    Pl: { nature: 'तीव्र, परिवर्तनकारी साथी', hiddenChallenge: 'शक्ति और नियंत्रण की गतिशीलता', karmicLesson: 'ईमानदारी से रूपांतर; दमन नहीं' },
+  } as Record<GrahaId, { nature: string; hiddenChallenge: string; karmicLesson: string }>,
+  scenarios: {
+    strong_dk_weak_ul: { label: 'आकर्षण प्रबल · स्थिरता कमज़ोर', note: 'प्रेम/इच्छा उठ सकती है, पर उपपद की कमजोरी विवाह टिकाऊ बनने को धमकाती है।' },
+    weak_dk_strong_ul: { label: 'स्थिरता प्रबल · आकर्षण कमज़ोर', note: 'कर्तव्य या सामाजिक दबाव से विवाह टिक सकता है, सुख सीमित।' },
+    both_strong: { label: 'DK और UL दोनों प्रबल', note: 'समय पुष्टि करे तो सुखद, अपेक्षाकृत स्थिर विवाह संभव।' },
+    both_weak: { label: 'DK और UL दोनों कमज़ोर', note: 'समग्र रूप से कठिन — घर्षण, विलंब या बार-बार तनाव।' },
+    mixed: { label: 'मिश्रित DK / UL शक्ति', note: 'परिणाम दशा सक्रियता और उपपद/DK पर शुभ ग्रह उद्धार पर निर्भर।' },
+  },
+  insights: {
+    dkVsUl: 'DK बनाम UL',
+    marriagePath: 'विवाह मार्ग',
+    quality: 'गुणवत्ता',
+    d9Blessing: { title: 'D9 आशीर्वाद', text: 'नवमांश में त्रिकोण में DK — बंधन की दीर्घायु के लिए दैवीय सहायता।' },
+    redFlags: { title: 'चेतावनियाँ संकुचित', text: '{count} विवाह-संबंधी तनाव के चिह्न सक्रिय। पहले उपपद और राहु देखें।' },
+    activeTiming: { title: 'सक्रिय समय', text: 'अभी सक्रिय: {active}. घटना से पहले विम्शोत्तरी से क्रॉस-चेक करें।' },
+    pathText: '{path}. प्रेम चिह्न {love}, व्यवस्थित चिह्न {arranged}.',
+  },
+  checklist: [
+    'दाराकारक (न्यूनतम अंश वाला ग्रह) पहचानें',
+    'D1 में DK की राशि नोट करें',
+    'उपपद (A12) खोजें',
+    'उपपद के सातवें को देखें',
+    'उपपद के दूसरे को देखें (पारिवारिक स्थिरता)',
+    'सातवें स्वामी जाँचें (शास्त्रीय + जैमिनी राशि मूल्य)',
+    'D9 में जाएँ — DK की स्थिति',
+    'D9 में DK के सातवें को खोजें',
+    'सामाजिक स्वीकृति के लिए सूर्य और चंद्र देखें',
+    'सभी समय विम्शोत्तरी से मिलाएँ',
+  ],
+  quotes: [
+    'DK आपका आकर्षण है। UL आपकी स्थिरता। दोनों अलग-अलग आंकें।',
+    'सप्तम भाव दिखाता है आपके भीतर क्या कम है — और जीवनसाथी वही लाता है।',
+    'जैमिनी और योगिनी — हमेशा विम्शोत्तरी से पुष्टि करें। घटनाएँ मेल खानी चाहिए।',
+    'तलाक हमेशा असफलता नहीं — कभी-कभी कर्म अनुबंध समाप्त होते हैं।',
+    'यदि D9 में DK त्रिकोण (1, 5, 9) में है, अन्य चुनौतियों के बावजूद विवाह को आशीर्वाद मिलता है।',
+  ],
+  summary: '{dk} DK {dkSign} में · उपपद {ulSign} · {scenario}। {path}। गुणवत्ता: {quality}। {flags} चेतावनी(याँ) सक्रिय।',
+  influenceNote: 'DK {dk} {sign} (H{house}) को देखता है — पति/पत्नी का H{house} ({theme}) पर प्रभाव।',
+  signType: { Movable: 'चर', Fixed: 'स्थिर', Dual: 'द्विस्वभाव' } as Record<string, string>,
+  karakaShort: {
+    AK: 'आ.का.', AmK: 'अ.का.', BK: 'भ्रा.का.', MK: 'मा.का.', PK: 'पु.का.', PiK: 'पि.का.', GK: 'ज्ञा.का.', DK: 'दा.का.',
+  } as Record<string, string>,
+  qualityBand: { strong: 'प्रबल', moderate: 'मध्यम', weak: 'कमज़ोर' } as Record<string, string>,
+  dualIncomplete: 'दोनों कुंडलियों में D9 और उपपाद डेटा अधूरा है।',
+  dualChartA: 'पहली कुंडली',
+  dualChartB: 'दूसरी कुंडली',
+  dualWatch: 'ध्यान देने योग्य बिंदु',
+  qualitySummary: {
+    strong: 'दशा सहयोग मिले तो विवाह की गुणवत्ता अपेक्षाकृत सहायक।',
+    moderate: 'विवाह की गुणवत्ता मिश्रित — प्रयास लगता रहता है, सहायता के टुकड़े मिलते हैं।',
+    weak: 'विवाह की गुणवत्ता दबाव में — सहनशीलता, परामर्श या कर्म पूर्णता के विषय आ सकते हैं।',
+    trineSuffix: ' D9 त्रिकोण में DK घर्षण के बावजूद बंधन को बचाने में मदद करता है।',
+  },
+  marriagePathLabel: {
+    unclear: 'मार्ग अस्पष्ट — दशा और जीवन संदर्भ तौलें',
+    love: 'प्रेम विवाह की प्रवृत्ति',
+    arranged: 'व्यवस्थित / परिवार-मध्यस्थ प्रवृत्ति',
+    love_cum_arranged: 'प्रेम + व्यवस्था का मिश्रण',
+  } as Record<string, string>,
+  marriagePathNotes: {
+    '5th house strength supports romance / love choice.': 'पंचम भाव की शक्ति रोमांस / प्रेम विकल्प को सहारा देती है।',
+    '5th connects with DK — love marriage indicator.': 'पंचम DK से जुड़ा — प्रेम विवाह संकेत।',
+    '5th links 7th — romance feeds into marriage.': 'पंचम सप्तम से जुड़ा — प्रेम विवाह में बहता है।',
+    'Jupiter/Venus influence on 7th — classical arranged / blessed match.': 'सप्तम पर गुरु/शुक्र — शास्त्रीय व्यवस्थित / आशीर्वादित युगल।',
+    'UL relatively clear — family-structured marriage path.': 'उपपद साफ — परिवार-संरचित विवाह मार्ग।',
+    '2nd/9th activity — family involvement visible.': 'द्वितीय/नवम सक्रिय — परिवार की भूमिका दिखती है।',
+    'Sun/Moon support society-accepted match.': 'सूर्य–चंद्र समाज-स्वीकृत युगल को सहारा।',
+    'No decisive 5th/7th/UL cluster — confirm with dasha and biography.': 'निर्णायक पंचम/सप्तम/UL समूह नहीं — दशा और जीवन से पुष्टि करें।',
+  } as Record<string, string>,
+  socialNotes: {
+    '2nd from UL has difficult pressure but helpful aspects may preserve the marriage.':
+      'उपपद के दूसरे पर दबाव, पर शुभ दृष्टि विवाह बचा सकती है।',
+    'Sun shows family/society acceptance; Moon shows mass / emotional family support.': 'सूर्य परिवार/समाज स्वीकृति; चंद्र भावनात्मक पारिवारिक सहारा।',
+    'Sun troubled (debility, Scorpio/Capricorn stress, or nodes) — family/society may resist the match.': 'सूर्य क्लिष्ट — परिवार/समाज युगल का विरोध कर सकता है।',
+    'Sun not heavily under pressure — social/family acceptance of marriage is supported.': 'सूर्य पर अत्यधिक दबाव नहीं — सामाजिक/पारिवारिक स्वीकृति सहायक।',
+    'Sun with 7th lord — supports marriage through family/social channels.': 'सूर्य सप्तमेश के साथ — पारिवारिक/सामाजिक मार्ग से विवाह सहायित।',
+    'Moon with Rahu/Ketu — emotional family support can be unstable or polarized.': 'चंद्र राहु/केतु के साथ — भावनात्मक पारिवारिक सहारा अस्थिर या ध्रुवीकृत।',
+  } as Record<string, string>,
+  seventhNotes: {
+    'In Jaimini, add rashi value (sign type + drishti (aspect)) to the classical 7th reading.': 'जैमिनी में शास्त्रीय सप्तम पढ़ने में राशि मूल्य (प्रकार + दृष्टि) जोड़ें।',
+  } as Record<string, string>,
+  dkExtras: {
+    retro: 'वक्री DK साथी लक्षण तीव्र करता है (जैसे बुध DK → अति-संवाद)।',
+    companions: 'DK के साथी ({names}) साथी स्वभाव और शक्ति गतिशीलता रंग देते हैं।',
+    dual: 'द्विस्वभाव राशि में DK — साथी में दोहरा स्वभाव / अनुकूलन।',
+    rahu: 'DK से राहु जुड़ा — अपरंपरागत, विदेशी या गुप्त संबंध संभव।',
+    saturn: 'DK के साथ शनि — विलंब, शीतलता या भारी कर्मिक बोझ।',
+    combust: 'DK अस्त — साथी कारक कमज़ोर या पहचान दबाव में।',
+  },
+  ulExtras: {
+    nodeAxis: 'उपपद राहु–केतु अक्ष पर। जैमिनी इसे विवाह अस्थिरता का महत्वपूर्ण चिह्न मानता है — निश्चित परिणाम नहीं।',
+    secondDamaged: 'उपपद के दूसरे को कठिन ग्रह — शुभ उद्धार बिना पारिवारिक टूटने का जोखिम।',
+    secondMixed: 'उपपद के दूसरे पर दबाव, पर शुभ दृष्टि विवाह बचा सकती है।',
+    lordWeak: 'उपपदेश अस्त या नीच — विवाह समस्या अधिक संभावित।',
+  },
+  d9Extras: {
+    trine: 'D9 त्रिकोण (1/5/9) में DK — अन्य चुनौतियों के बावजूद दैवीय आशीर्वाद।',
+    dusthana: 'D9 में DK 6/8/12 में — घर्षण या अलगाव के संकेत।',
+    debil: 'D9 में DK नीच — साथी गुण आदर्श नहीं; परिपक्वता चाहिए।',
+    ju: 'D9 में DK से गुरु जुड़ा — कृपा संघ को सहारा देती है।',
+  },
+  redFlags: {
+    rahu_dk: {
+      label: 'राहु DK से युक्त/दृष्टि',
+      on: 'राहु–DK संबंध: गुप्त/अपरंपरागत संबंध का जोखिम (जैमिनी में विवाह तनाव का शास्त्रीय चिह्न)।',
+      off: 'मजबूत राहु–DK संबंध नहीं।',
+    },
+    ul_lord_weak: {
+      label: 'उपपदेश अस्त / नीच',
+      on: 'उपपदेश क्षतिग्रस्त — विवाह समस्या अधिक संभावित।',
+      off: 'उपपदेश अस्त/नीच नहीं।',
+    },
+    ul_2nd_damaged: {
+      label: 'उपपद के दूसरे का पूर्ण क्षय',
+      on: 'पारिवारिक स्थिरता कारक क्षतिग्रस्त — शुभ उद्धार बिना टूटने का जोखिम।',
+      off: 'उपपद के दूसरे का पूर्ण क्षय नहीं।',
+    },
+    dk_d9_dusthana: {
+      label: 'D9 में DK 6, 8 या 12 में',
+      on: 'नवमांश में DK दुःस्थान में — घर्षण / अलगाव के विषय।',
+      off: 'D9 में DK दुःस्थान में नहीं।',
+    },
+    dk_ul_conflict: {
+      label: 'UL और DK में सीधा संघर्ष',
+      on: '',
+      off: 'DK और UL में चरम संघर्ष नहीं।',
+    },
+    rk_7th: {
+      label: 'सप्तम / UL पर राहु–केतु अक्ष',
+      on: 'विवाह अक्ष / उपपद पर नोडीय दबाव — अस्थिरता संकेत।',
+      off: 'नोड सप्तम / उपपद को तेज़ नहीं काटते।',
+    },
+  },
+  timing: {
+    dk_sign: { label: 'DK राशि दशा', note: 'DK राशि सक्रिय — विवाह/संबंध शुरू या तीव्र।' },
+    ul_sign: { label: 'उपपद राशि दशा', note: 'उपपद राशि सक्रिय — विवाह गुणवत्ता शिखर या संकट।' },
+    ul_7th: { label: 'उपपद के सातवें की दशा', note: 'उपपद के सातवें से — संबंध मोड़।' },
+    dk_7th: { label: 'DK के सातवें की दशा', note: 'DK के सातवें से — साझेदारी नियति खिड़की।' },
+    ul_2nd: { label: 'उपपद के दूसरे की दशा', note: 'उपपद के दूसरे से — परिवार निर्माण या टूटना।' },
+    ul_lord_vim: { label: 'उपपदेश विम्शोत्तरी', note: 'जैमिनी खिड़कियाँ उपपदेश दशा से विम्शोत्तरी में पुष्टि करें।' },
+  } as Record<string, { label: string; note: string }>,
+  linePhrases: [
+    ['Darakaraka is', 'दाराकारक'],
+    ['at', 'पर'],
+    ['in', 'में'],
+    [' — primary access point to marriage.', ' — विवाह का मुख्य प्रवेश बिंदु।'],
+    ['Partner nature:', 'साथी स्वभाव:'],
+    ['Hidden challenge:', 'छिपी चुनौती:'],
+    ['Karmic lesson:', 'कर्म पाठ:'],
+    ['Upapada Lagna is', 'उपपद लग्न'],
+    [' — reality check for marriage survival.', ' — विवाह टिकाऊपन की जाँच।'],
+    ['7th from UL is', 'उपपद के सातवें से'],
+    [' — nature of the partner through the UL lens.', ' — उपपद लेंस से साथी स्वभाव।'],
+    ['2nd from UL is', 'उपपद के दूसरे से'],
+    [' — family stability after marriage.', ' — विवाह के बाद पारिवारिक स्थिरता।'],
+    ['7th house is', 'सप्तम भाव'],
+    [' — will marriage happen, and partner’s broad character.', ' — क्या विवाह होगा और साथी का व्यापक चित्र।'],
+    ['7th lord', 'सप्तमेश'],
+    [' — dignity colours marital quality.', ' — बल विवाह गुणवत्ता रंग देता है।'],
+    ['DK in Navamsha:', 'नवमांश में DK:'],
+    [' — partner’s true / inner nature.', ' — साथी का अंतरंग स्वभाव।'],
+    ['7th from DK in D9 is', 'D9 में DK के सातवें से'],
+    [' — destiny of the marriage.', ' — विवाह की नियति।'],
+    ['retrograde intensifies partner traits', 'वक्री साथी लक्षण तीव्र'],
+    ['Companions with DK', 'DK के साथी'],
+    ['colour spouse temperament and power dynamics.', 'साथी स्वभाव और शक्ति गतिशीलता रंगते हैं।'],
+    ['DK in a dual sign', 'द्विस्वभाव में DK'],
+    ['dual nature / adaptability themes in the partner.', 'साथी में दोहरापन / अनुकूलन।'],
+    ['Rahu linked to DK', 'DK से राहु जुड़ा'],
+    ['Saturn with DK', 'DK के साथ शनि'],
+    ['DK combust', 'DK अस्त'],
+    ['Dignity', 'बल'],
+    ['supports strength', 'शक्ति सहारा'],
+    ['weakens expression', 'अभिव्यक्ति कमज़ोर'],
+    ['Combustion weakens the significator', 'दहन कारक कमज़ोर'],
+    ['Placed in house', 'भाव'],
+    ['kendra/trikona support', 'केन्द्र/त्रिकोण सहायता'],
+    ['Dusthana house', 'दुःस्थान भाव'],
+    ['pressures the significator', 'कारक पर दबाव'],
+    ['Rahu link adds unconventional / unstable pressure', 'राहु संबंध अपरंपरागत/अस्थिर दबाव'],
+    ['Saturn link adds delay and karmic weight', 'शनि संबंध विलंब और कर्म बोझ'],
+    ['helpful planet Jaimini link(s)', 'शुभ जैमिनी संबंध'],
+    ['difficult planet Jaimini link(s)', 'कठिन जैमिनी संबंध'],
+    ['UL lord well dignified', 'उपपदेश सुबल'],
+    ['UL lord weak / debilitated', 'उपपदेश कमज़ोर / नीच'],
+    ['UL lord combust', 'उपपदेश अस्त'],
+    ['2nd from UL damaged', 'उपपद के दूसरे क्षतिग्रस्त'],
+    ['family stability under stress', 'पारिवारिक स्थिरता दबाव में'],
+    ['UL on Rahu–Ketu axis', 'उपपद राहु–केतु अक्ष पर'],
+    ['classic marriage instability marker', 'विवाह अस्थिरता का शास्त्रीय संकेत'],
+    ['Helpful aspect on damaged 2nd from UL can save the marriage', 'क्षतिग्रस्त दूसरे पर शुभ दृष्टि विवाह बचा सकती है'],
+    ['Love markers', 'प्रेम चिह्न'],
+    ['arranged markers', 'व्यवस्थित चिह्न'],
+    ['Family support:', 'पारिवारिक सहारा:'],
+    ['Currently activated:', 'अभी सक्रिय:'],
+    ['Cross-check with Vimshottari before predicting events.', 'घटना से पहले विम्शोत्तरी से क्रॉस-चेक।'],
+    ['Quality:', 'गुणवत्ता:'],
+    ['red flag(s) active.', 'चेतावनी(याँ) सक्रिय।'],
+  ] as [string, string][],
+} as const
+
+export function localizeJaiminiLine(en: string): string {
+  if (JMA_HI.marriagePathNotes[en]) return JMA_HI.marriagePathNotes[en]
+  if (JMA_HI.socialNotes[en]) return JMA_HI.socialNotes[en]
+  if (JMA_HI.seventhNotes[en]) return JMA_HI.seventhNotes[en]
+  let t = en
+  for (const [from, to] of JMA_HI.linePhrases) t = t.split(from).join(to)
+  for (let r = 12; r >= 1; r--) {
+    const name = RASHI_NAMES[r as Rashi]
+    if (name) t = t.split(name).join(rName(r as Rashi, 'hi'))
+  }
+  for (const id of Object.keys(GRAHA_NAMES) as GrahaId[]) {
+    const name = GRAHA_NAMES[id]
+    if (name) t = t.split(name).join(gName(id, 'hi'))
+  }
+  return t
+}

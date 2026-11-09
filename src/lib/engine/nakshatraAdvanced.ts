@@ -11,6 +11,20 @@
 
 import { NAKSHATRA_NAMES, NAKSHATRA_LORDS } from '@/types/astrology'
 import type { GrahaId, GrahaData } from '@/types/astrology'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
+import type { EngineLang } from '@/lib/engine/lang'
+import {
+  NAKSHATRA_BODY_PART_HI,
+  NAKSHATRA_DEITY_HI,
+  NAKSHATRA_SHAKTI_HI,
+  NAKSHATRA_SYMBOL_HI,
+  NAKSHATRA_VARNA_HI,
+  NAKSHATRA_YONI_HI,
+  NAK_SUMMARY_HI,
+  NO_PANCHAKA_HI,
+  PANCHAKA_DESCRIPTIONS_HI,
+  TARA_TEXT_HI,
+} from '@/lib/engine/locale/nakshatraAdvanced.hi'
 
 // ─────────────────────────────────────────────────────────────
 //  Static tables
@@ -147,7 +161,7 @@ export const TARA_QUALITIES: Record<TaraName, { quality: 'auspicious' | 'inauspi
 /**
  * Calculate Navtara Chakra for all 27 nakshatras, relative to a birth nakshatra.
  */
-export function getNavtaraChakra(birthNakIndex: number): Array<{
+export function getNavtaraChakra(birthNakIndex: number, lang: EngineLang = 'en'): Array<{
   nakshatraIndex: number
   nakshatraName:  string
   tara:           TaraName
@@ -155,6 +169,7 @@ export function getNavtaraChakra(birthNakIndex: number): Array<{
   quality:        'auspicious' | 'inauspicious' | 'neutral'
   meaning:        string
 }> {
+  const hi = lang === 'hi'
   return NAKSHATRA_NAMES.map((name, i) => {
     const diff = (i - birthNakIndex + 27) % 27
     const taraIdx = diff % 9
@@ -162,11 +177,11 @@ export function getNavtaraChakra(birthNakIndex: number): Array<{
     const q = TARA_QUALITIES[taraName]
     return {
       nakshatraIndex: i,
-      nakshatraName:  name,
+      nakshatraName:  hi ? NAKSHATRA_HI[i] : name,
       tara:           taraName,
       taraNumber:     taraIdx + 1,
       quality:        q.quality,
-      meaning:        q.meaning,
+      meaning:        hi ? TARA_TEXT_HI[taraName].meaning : q.meaning,
     }
   })
 }
@@ -174,15 +189,18 @@ export function getNavtaraChakra(birthNakIndex: number): Array<{
 /**
  * Get Tarabala for a given day's nakshatra relative to birth nakshatra.
  */
-export function getTarabala(birthNakIndex: number, dayNakIndex: number): TaraQuality & { taraNumber: number } {
+export function getTarabala(birthNakIndex: number, dayNakIndex: number, lang: EngineLang = 'en'): TaraQuality & { taraNumber: number } {
   const diff = (dayNakIndex - birthNakIndex + 27) % 27
   const taraIdx = diff % 9
   const name = TARA_NAMES[taraIdx]
   const q = TARA_QUALITIES[name]
+  const text = lang === 'hi' ? TARA_TEXT_HI[name] : q
   return {
     name,
     taraNumber: taraIdx + 1,
-    ...q,
+    quality: q.quality,
+    meaning: text.meaning,
+    recommendation: text.recommendation,
   }
 }
 
@@ -215,22 +233,23 @@ const NAKSHATRA_SYMBOL: string[] = [
   'Sword / Two Front Legs of Funeral Cot','Snake in Water / Last Two Legs of Funeral Cot','Drum / Fish in Water',
 ]
 
-export function getNakshatraCharacteristics(index: number, pada: number = 1): NakshatraCharacteristics {
+export function getNakshatraCharacteristics(index: number, pada: number = 1, lang: EngineLang = 'en'): NakshatraCharacteristics {
   const i = ((index % 27) + 27) % 27
+  const hi = lang === 'hi'
   return {
     index:    i,
-    name:     NAKSHATRA_NAMES[i],
+    name:     hi ? NAKSHATRA_HI[i] : NAKSHATRA_NAMES[i],
     pada,
     lord:     NAKSHATRA_LORDS[i],
-    deity:    NAKSHATRA_DEITY[i],
+    deity:    hi ? NAKSHATRA_DEITY_HI[i] : NAKSHATRA_DEITY[i],
     gana:     NAKSHATRA_GANA[i],
-    yoni:     NAKSHATRA_YONI[i],
+    yoni:     hi ? NAKSHATRA_YONI_HI[i] : NAKSHATRA_YONI[i],
     nadi:     NAKSHATRA_NADI[i],
-    varna:    NAKSHATRA_VARNA[i],
-    shakti:   NAKSHATRA_SHAKTI[i],
+    varna:    hi ? NAKSHATRA_VARNA_HI[i] : NAKSHATRA_VARNA[i],
+    shakti:   hi ? NAKSHATRA_SHAKTI_HI[i] : NAKSHATRA_SHAKTI[i],
     nature:   NAKSHATRA_NATURE[i] as string,
-    bodyPart: NAKSHATRA_BODY_PART[i],
-    symbol:   NAKSHATRA_SYMBOL[i],
+    bodyPart: hi ? NAKSHATRA_BODY_PART_HI[i] : NAKSHATRA_BODY_PART[i],
+    symbol:   hi ? NAKSHATRA_SYMBOL_HI[i] : NAKSHATRA_SYMBOL[i],
   }
 }
 
@@ -279,13 +298,16 @@ const PANCHAKA_DESCRIPTIONS: Record<Exclude<PanchakaType, null>, string> = {
   'Roga Panchaka':   'A good time to rest. If it is safe to wait, delay planned medical procedures, and follow your doctor’s advice',
 }
 
-export function checkPanchaka(nakIndex: number): PanchakaResult {
+export function checkPanchaka(nakIndex: number, lang: EngineLang = 'en'): PanchakaResult {
   const pType = isPanchaka(nakIndex)
+  const hi = lang === 'hi'
   return {
     nakshatraIndex: nakIndex,
-    nakshatraName:  NAKSHATRA_NAMES[nakIndex],
+    nakshatraName:  hi ? NAKSHATRA_HI[nakIndex] ?? NAKSHATRA_NAMES[nakIndex] : NAKSHATRA_NAMES[nakIndex],
     panchaka:       pType,
-    description:    pType ? PANCHAKA_DESCRIPTIONS[pType] : 'No Panchaka dosha present',
+    description:    pType
+      ? (hi ? PANCHAKA_DESCRIPTIONS_HI[pType] : PANCHAKA_DESCRIPTIONS[pType])
+      : (hi ? NO_PANCHAKA_HI : 'No Panchaka dosha present'),
   }
 }
 
@@ -418,10 +440,11 @@ export interface NakCompatibility {
   taraName:    TaraName
   ganaMatch:   boolean
   nadiMatch:   boolean   // true = dosha (same nadi = bad)
-  summary:     'Excellent' | 'Good' | 'Average' | 'Poor' | 'Incompatible'
+  /** Grade id in English; Hindi label when lang is hi. Tone logic should use score. */
+  summary:     'Excellent' | 'Good' | 'Average' | 'Poor' | 'Incompatible' | 'उत्तम' | 'अच्छा' | 'औसत' | 'कमज़ोर' | 'असंगत'
 }
 
-export function getNakCompatibility(nak1: number, nak2: number): NakCompatibility {
+export function getNakCompatibility(nak1: number, nak2: number, lang: EngineLang = 'en'): NakCompatibility {
   // Use unified Ashtakoot logic for consistency
   // nak1 and nak2 are 0-indexed (0-26)
   
@@ -458,11 +481,12 @@ export function getNakCompatibility(nak1: number, nak2: number): NakCompatibilit
   const total = taraScore + ganaScore + nadiScore + yoniScore
   const score = Math.round((total / 21) * 100)
 
-  const summary: NakCompatibility['summary'] =
-    score >= 80 ? 'Excellent' :
-    score >= 60 ? 'Good' :
-    score >= 40 ? 'Average' :
-    score >= 20 ? 'Poor' : 'Incompatible'
+  const summaryId =
+    score >= 80 ? 'Excellent' as const :
+    score >= 60 ? 'Good' as const :
+    score >= 40 ? 'Average' as const :
+    score >= 20 ? 'Poor' as const : 'Incompatible' as const
+  const summary = lang === 'hi' ? NAK_SUMMARY_HI[summaryId] : summaryId
 
   return {
     score, taraScore, ganaScore: Math.round(ganaScore / 2), nadiScore, yoniScore,

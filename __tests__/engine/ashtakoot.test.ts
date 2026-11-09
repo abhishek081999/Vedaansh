@@ -157,3 +157,24 @@ describe('calculateAshtakoot core scoring', () => {
     expect(r.total).toBeLessThanOrEqual(36)
   })
 })
+
+const DEVANAGARI = /[ऀ-ॿ]/
+
+describe('calculateAshtakoot Hindi', () => {
+  it('keeps English byte-identical when lang=en', () => {
+    const en = calculateAshtakoot(1, 1, 7, 4)
+    const en2 = calculateAshtakoot(1, 1, 7, 4, {}, 'en')
+    expect(JSON.stringify(en2)).toBe(JSON.stringify(en))
+  })
+
+  it('returns Devanagari text and unchanged numeric fields when lang=hi', () => {
+    const en = calculateAshtakoot(1, 1, 7, 4)
+    const hi = calculateAshtakoot(1, 1, 7, 4, {}, 'hi')
+    expect(hi.total).toBe(en.total)
+    expect(hi.eligibility.band).toBe(en.eligibility.band)
+    expect(hi.varna.points).toBe(en.varna.points)
+    expect(DEVANAGARI.test(hi.varna.meaning)).toBe(true)
+    expect(DEVANAGARI.test(hi.disclaimer)).toBe(true)
+    expect(DEVANAGARI.test(hi.layers.psychology)).toBe(true)
+  })
+})

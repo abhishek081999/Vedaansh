@@ -7,6 +7,9 @@
 
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI, termHi } from '@/i18n/jyotish'
+import type { EngineLang } from '@/lib/engine/lang'
+import { DOSHA_TEXT_HI, MEDICAL_LABEL_HI, MEDICAL_PROFILE_HI, MEDICAL_REVEALS_HI } from '@/lib/engine/locale/nakshatraMedical.hi'
 
 export type MedicalDosha = 'Vata' | 'Pitta' | 'Kapha'
 
@@ -386,8 +389,36 @@ export const NAKSHATRA_MEDICAL: NakshatraMedicalProfile[] = [
   },
 ]
 
-export function getNakshatraMedical(index: number): NakshatraMedicalProfile {
-  return NAKSHATRA_MEDICAL[((index % 27) + 27) % 27]
+function signsHi(signs: string): string {
+  return signs.split('/').map(part => {
+    const t = part.trim()
+    if (t === 'Sag') return 'धनु'
+    if (t === 'Cap') return 'मकर'
+    return termHi(t)
+  }).join('/')
+}
+
+function localizeMedical(en: NakshatraMedicalProfile): NakshatraMedicalProfile {
+  const hi = MEDICAL_PROFILE_HI[en.index]
+  return {
+    ...en,
+    name: NAKSHATRA_HI[en.index] ?? en.name,
+    signs: signsHi(en.signs),
+    deity: hi.deity,
+    externalBodyParts: hi.external,
+    internalOrgans: hi.internal,
+    glandsSystems: hi.glands,
+    primaryDiseases: hi.primary,
+    additionalDiseases: hi.additional,
+    karmicHealing: hi.karmic,
+    diseaseNature: hi.nature,
+    keyTrigger: hi.trigger,
+  }
+}
+
+export function getNakshatraMedical(index: number, lang: EngineLang = 'en'): NakshatraMedicalProfile {
+  const en = NAKSHATRA_MEDICAL[((index % 27) + 27) % 27]
+  return lang === 'hi' ? localizeMedical(en) : en
 }
 
 // ── Dosha quick reference ─────────────────────────────────────
@@ -416,6 +447,21 @@ export const MEDICAL_DOSHA_INFO: Record<MedicalDosha, DoshaMedicalInfo> = {
   },
 }
 
+export function doshaMedicalInfo(dosha: MedicalDosha, lang: EngineLang = 'en'): DoshaMedicalInfo {
+  const en = MEDICAL_DOSHA_INFO[dosha]
+  if (lang !== 'hi') return en
+  return { ...en, ...DOSHA_TEXT_HI[dosha] }
+}
+
+export function listDoshaMedicalInfo(lang: EngineLang = 'en'): Record<MedicalDosha, DoshaMedicalInfo> {
+  if (lang !== 'hi') return MEDICAL_DOSHA_INFO
+  return {
+    Vata: doshaMedicalInfo('Vata', 'hi'),
+    Pitta: doshaMedicalInfo('Pitta', 'hi'),
+    Kapha: doshaMedicalInfo('Kapha', 'hi'),
+  }
+}
+
 export const DOSHA_COL: Record<MedicalDosha, string> = {
   Vata: '#818cf8',
   Pitta: '#f87171',
@@ -424,7 +470,8 @@ export const DOSHA_COL: Record<MedicalDosha, string> = {
 
 // ── Chart-aware helpers ───────────────────────────────────────
 
-export function getMedicalIndicators(chart: ChartOutput): MedicalIndicatorResult[] {
+export function getMedicalIndicators(chart: ChartOutput, lang: EngineLang = 'en'): MedicalIndicatorResult[] {
+  const hi = lang === 'hi'
   const asc = chart.lagnas.ascRashi
   const sixthRashi = rashiOfHouse(6, asc)
   const sixthLordId = SIGN_LORD[sixthRashi]
@@ -442,13 +489,18 @@ export function getMedicalIndicators(chart: ChartOutput): MedicalIndicatorResult
     planetId: GrahaId | null,
     nakIdx: number,
   ): MedicalIndicatorResult => {
-    const profile = getNakshatraMedical(nakIdx)
+    const profile = getNakshatraMedical(nakIdx, lang)
     return {
-      key, label, priority, reveals,
+      key,
+      label: hi ? MEDICAL_LABEL_HI[key] : label,
+      priority,
+      reveals: hi ? MEDICAL_REVEALS_HI[key] : reveals,
       planetId,
-      planetName: planetId ? GRAHA_NAMES[planetId] : 'Lagna',
+      planetName: planetId
+        ? (hi ? GRAHA_HI[planetId] : GRAHA_NAMES[planetId])
+        : (hi ? MEDICAL_LABEL_HI.lagnaName : 'Lagna'),
       nakshatraIndex: nakIdx,
-      nakshatraName: NAKSHATRA_NAMES[nakIdx] ?? profile.name,
+      nakshatraName: hi ? (NAKSHATRA_HI[nakIdx] ?? profile.name) : (NAKSHATRA_NAMES[nakIdx] ?? profile.name),
       profile,
     }
   }
@@ -481,12 +533,13 @@ export function getMedicalIndicators(chart: ChartOutput): MedicalIndicatorResult
   ]
 }
 
-export function getAfflictedMedicalHits(chart: ChartOutput): {
+export function getAfflictedMedicalHits(chart: ChartOutput, lang: EngineLang = 'en'): {
   grahaId: GrahaId
   grahaName: string
   nakshatraIndex: number
   profile: NakshatraMedicalProfile
 }[] {
+  const hi = lang === 'hi'
   const core = chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
   // Highlight malefics + nodes in medical-sensitive positions; always include Moon/6L via indicators
   const watch: GrahaId[] = ['Ma', 'Sa', 'Ra', 'Ke', 'Su']
@@ -494,8 +547,8 @@ export function getAfflictedMedicalHits(chart: ChartOutput): {
     .filter(g => watch.includes(g.id))
     .map(g => ({
       grahaId: g.id,
-      grahaName: GRAHA_NAMES[g.id],
+      grahaName: hi ? GRAHA_HI[g.id] : GRAHA_NAMES[g.id],
       nakshatraIndex: g.nakshatraIndex,
-      profile: getNakshatraMedical(g.nakshatraIndex),
+      profile: getNakshatraMedical(g.nakshatraIndex, lang),
     }))
 }

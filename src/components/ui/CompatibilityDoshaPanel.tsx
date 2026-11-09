@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useMemo } from 'react'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import { ChartOutput } from '@/types/astrology'
 import { calculateManglik, calculatePapeSamya, type ManglikAnalysis } from '@/lib/engine/doshas'
 import { getManglikTeaching } from '@/lib/engine/manglikTeaching'
@@ -8,41 +10,40 @@ import { analyzeDashaPair } from '@/lib/engine/milanExtras'
 
 /** Manglik, Pape-Samya, and current/next dasha overlap for a pair. */
 export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutput; chartB?: ChartOutput }) {
+  const { lang } = useLang()
+  const t = useTranslations('relationshipMarriage.compareMil.dosha')
   const m1 = useMemo(() => calculateManglik(chartA.grahas, [], chartA.lagnas.ascRashi), [chartA])
   const p1 = useMemo(() => calculatePapeSamya(chartA.grahas, chartA.lagnas.ascRashi), [chartA])
   
   const m2 = useMemo(() => chartB ? calculateManglik(chartB.grahas, [], chartB.lagnas.ascRashi) : null, [chartB])
   const p2 = useMemo(() => chartB ? calculatePapeSamya(chartB.grahas, chartB.lagnas.ascRashi) : null, [chartB])
   const dashaPair = useMemo(
-    () => (chartB ? analyzeDashaPair(chartA, chartB) : null),
-    [chartA, chartB],
+    () => (chartB ? analyzeDashaPair(chartA, chartB, new Date(), lang) : null),
+    [chartA, chartB, lang],
   )
 
   const nameA = chartA.meta.name
-  const nameB = chartB?.meta.name ?? 'Partner'
+  const nameB = chartB?.meta.name ?? t('partnerFallback')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* Manglik Section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-        <ManglikCard name={nameA} analysis={m1} grahas={chartA.grahas} ascRashi={chartA.lagnas.ascRashi} />
+        <ManglikCard name={nameA} analysis={m1} grahas={chartA.grahas} ascRashi={chartA.lagnas.ascRashi} lang={lang} t={t} />
         {chartB && m2 && (
-          <ManglikCard name={nameB} analysis={m2} grahas={chartB.grahas} ascRashi={chartB.lagnas.ascRashi} />
+          <ManglikCard name={nameB} analysis={m2} grahas={chartB.grahas} ascRashi={chartB.lagnas.ascRashi} lang={lang} t={t} />
         )}
       </div>
 
       {/* Pape Samya Balance */}
       {chartB && p1 && p2 && (
-        <PapeSamyaComparison 
-          p1={p1} p2={p2} 
-          nameA={nameA} nameB={nameB} 
-        />
+        <PapeSamyaComparison p1={p1} p2={p2} nameA={nameA} nameB={nameB} t={t} />
       )}
 
       {dashaPair && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <h3 className="label-caps" style={{ margin: '0 0 0.55rem', fontSize: '0.72rem' }}>Dasha pairing</h3>
+          <h3 className="label-caps" style={{ margin: '0 0 0.55rem', fontSize: '0.72rem' }}>{t('dashaTitle')}</h3>
           <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {dashaPair.summary}
           </p>
@@ -65,7 +66,7 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
         padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', 
         fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', border: '1px solid var(--border)' 
       }}>
-        Manglik means Mars sits in a house traditionally linked to extra heat in partnership. Classical practice also looks at the balance of Mars and other difficult planets across both charts. Cancellation rules and age matter, and a Manglik chart is never a verdict on a relationship.
+        {t('footer')}
       </div>
     </div>
   )
@@ -76,14 +77,22 @@ function ManglikCard({
   analysis,
   grahas,
   ascRashi,
+  lang,
+  t,
 }: {
   name: string
   analysis: ManglikAnalysis
   grahas: ChartOutput['grahas']
   ascRashi: ChartOutput['lagnas']['ascRashi']
+  lang: 'en' | 'hi'
+  t: (key: string) => string
 }) {
-  const teaching = getManglikTeaching(analysis, grahas, ascRashi)
+  const teaching = getManglikTeaching(analysis, grahas, ascRashi, lang)
   const intensity = analysis.intensity
+  const intensityLabel =
+    intensity === 'High' ? t('intensityHigh')
+      : intensity === 'Low' ? t('intensityLow')
+        : t('intensityNone')
 
   const color =
     teaching.status === 'present'
@@ -96,10 +105,10 @@ function ManglikCard({
 
   const title =
     teaching.status === 'present'
-      ? 'Kuja (Manglik) Dosha'
+      ? t('kujaTitle')
       : teaching.status === 'cancelled'
-        ? 'Manglik cancelled'
-        : 'Non-Manglik'
+        ? t('cancelledTitle')
+        : t('nonManglik')
 
   return (
     <div className="card" style={{
@@ -119,7 +128,7 @@ function ManglikCard({
           background: `${color}15`, color, border: `1px solid ${color}30`,
         }}>
           {teaching.headline.toUpperCase()}
-          {teaching.status === 'present' && intensity !== 'None' ? ` · ${intensity.toUpperCase()}` : ''}
+          {teaching.status === 'present' && intensity !== 'None' ? ` · ${intensityLabel}` : ''}
         </div>
       </div>
 
@@ -153,7 +162,7 @@ function ManglikCard({
         ) : null}
         {teaching.perspectives ? (
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            <strong style={{ color: 'var(--text-gold)' }}>Scope:</strong> {teaching.perspectives.scopeLabel}
+            <strong style={{ color: 'var(--text-gold)' }}>{t('scope')}:</strong> {teaching.perspectives.scopeLabel}
           </div>
         ) : null}
         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -167,7 +176,9 @@ function ManglikCard({
   )
 }
 
-function PapeSamyaComparison({ p1, p2, nameA, nameB }: { p1: any; p2: any; nameA: string; nameB: string }) {
+function PapeSamyaComparison({
+  p1, p2, nameA, nameB, t,
+}: { p1: any; p2: any; nameA: string; nameB: string; t: (key: string, values?: Record<string, string>) => string }) {
   const w1 = p1.totalWeight
   const w2 = p2.totalWeight
   const max = Math.max(w1, w2, 4)
@@ -176,7 +187,7 @@ function PapeSamyaComparison({ p1, p2, nameA, nameB }: { p1: any; p2: any; nameA
 
   return (
     <div className="card" style={{ padding: '1.5rem' }}>
-      <div className="label-caps" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Pape-Samya (balance of difficult planets)</div>
+      <div className="label-caps" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>{t('papeTitle')}</div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         
@@ -206,9 +217,9 @@ function PapeSamyaComparison({ p1, p2, nameA, nameB }: { p1: any; p2: any; nameA
           fontSize: '0.85rem'
         }}>
           {isBalanced ? (
-            <span><strong>Balanced</strong>: the weight of difficult planets is shared fairly evenly between both charts.</span>
+            <span><strong>{t('balanced')}</strong>: {t('balancedDetail')}</span>
           ) : (
-            <span><strong>Uneven</strong>: the weight of difficult planets differs between the charts ({diff.toFixed(2)} points). This is a tendency, and awareness and shared effort help.</span>
+            <span><strong>{t('uneven')}</strong>: {t('unevenDetail', { diff: diff.toFixed(2) })}</span>
           )}
         </div>
       </div>

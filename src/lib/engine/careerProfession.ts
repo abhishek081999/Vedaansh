@@ -22,6 +22,11 @@ import {
   getNakshatraProfession,
 } from '@/lib/engine/nakshatraProfession'
 import { rashiAspectsOrOccupies } from '@/lib/engine/jaimini/aspects'
+import { type EngineLang } from '@/lib/engine/lang'
+import {
+  localizeCareerProfession,
+  localizeCareerTransits,
+} from '@/lib/engine/careerProfessionLocale'
 
 export type CareerTone = 'supportive' | 'caution' | 'mixed'
 export type CareerTrackId = 'service' | 'business' | 'government' | 'hybrid'
@@ -878,14 +883,16 @@ function judgeCareerTransit(
 export function readCareerTransits(
   chart: ChartOutput,
   positions: { id: GrahaId; rashi: Rashi; isRetro?: boolean }[],
+  lang: EngineLang = 'en',
 ): CareerTransitReading {
   const asc = chart.lagnas?.ascRashi
   if (!asc || !positions.length) {
-    return {
-      available: false,
+    const empty = {
+      available: false as const,
       headline: 'Transit positions are not on this reading yet.',
-      hits: [],
+      hits: [] as CareerTransitHit[],
     }
+    return lang === 'hi' ? localizeCareerTransits(empty) : empty
   }
   const tenthSign = houseSign(asc, 10)
   const tenthLordId = SIGN_LORDS[tenthSign]
@@ -920,7 +927,8 @@ export function readCareerTransits(
     : ''
   const headline = [goodLine, poorLine].filter(Boolean).join(' ')
     || 'No slow planet is clearly for the career or against it. The sky is mixed.'
-  return { available: true, headline, hits }
+  const reading = { available: true as const, headline, hits }
+  return lang === 'hi' ? localizeCareerTransits(reading) : reading
 }
 
 function periodNote(role: string, lordName: string, level: string): string {
@@ -2106,6 +2114,7 @@ function buildCareerSupport(
 export function analyzeCareerProfession(
   chart: ChartOutput,
   asOf: Date = new Date(),
+  lang: EngineLang = 'en',
 ): CareerProfessionAnalysis | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
@@ -2777,7 +2786,7 @@ export function analyzeCareerProfession(
   ]
   const plain = briefSections.map(s => `${s.heading}\n${s.body}`).join('\n\n')
 
-  return {
+  const result: CareerProfessionAnalysis = {
     headline,
     summary,
     ethics: ETHICS,
@@ -2815,4 +2824,5 @@ export function analyzeCareerProfession(
     brief: { plain, sections: briefSections },
     advanced,
   }
+  return lang === 'hi' ? localizeCareerProfession(result) : result
 }

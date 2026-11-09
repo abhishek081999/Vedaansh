@@ -8,6 +8,15 @@
 import type { ChartOutput, DashaNode, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
+import { type EngineLang } from '@/lib/engine/lang'
+import {
+  approachDetail,
+  approachTitle,
+  dashaBondDetail,
+  dusthanaDetail,
+  fifthHouseText,
+  localizeIntimateLife,
+} from '@/lib/engine/intimateLifeLocale'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { D7 } from '@/lib/engine/vargas'
 
@@ -38,6 +47,8 @@ const EXALT: Partial<Record<GrahaId, number>> = {
 
 const MALEFICS = new Set<GrahaId>(['Su', 'Ma', 'Sa', 'Ra', 'Ke'])
 const INTIMATE_HOUSES = new Set([5, 7, 8, 12])
+
+let CURRENT_LANG: EngineLang = 'en'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -268,7 +279,7 @@ function pushPatterns(chart: ChartOutput, asc: number, notes: MarriedLifeNote[])
           ? 'Ketu’s mahadasha cuts the bond. The person turns unavailable, and the bond does not rejoin. The body and intimacy go dry in this period.'
           : DASHA_BOND.Ke!
     }
-    notes.push(note('dasha-bond', `${GRAHA_NAMES[maha]} dasha`, detail, 'mixed'))
+    notes.push(note('dasha-bond', `${GRAHA_NAMES[maha]} dasha`, dashaBondDetail(maha, detail, CURRENT_LANG), 'mixed'))
   }
   if (maha === 'Sa' && tree?.length && runningMaha) {
     const start = new Date(runningMaha.start).getTime()
@@ -418,7 +429,14 @@ function pushDrive(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
   }
 
   if (APPROACH[asc]) {
-    notes.push(note('approach', `${RASHI_NAMES[asc as Rashi]} approach`, APPROACH[asc]!, 'mixed'))
+    const hiDetail = approachDetail(asc as Rashi, CURRENT_LANG)
+  const hiTitle = CURRENT_LANG === 'hi' ? approachTitle(asc as Rashi, CURRENT_LANG) : `${RASHI_NAMES[asc as Rashi]} approach`
+    notes.push(note(
+      'approach',
+      hiTitle || `${RASHI_NAMES[asc as Rashi]} approach`,
+      hiDetail ?? APPROACH[asc]!,
+      'mixed',
+    ))
   }
 
   const taurusCrowd = classical(chart).filter(g => g.rashi === 2)
@@ -1021,10 +1039,12 @@ function d7EndingWindows(chart: ChartOutput, now: number): MarriedLifeNote[] {
   return [...past, ...ahead].map(r => r.note)
 }
 
-export function analyzeIntimateLife(chart: ChartOutput): IntimateLife | null {
+export function analyzeIntimateLife(chart: ChartOutput, lang: EngineLang = 'en'): IntimateLife | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
-
+  const prev = CURRENT_LANG
+  CURRENT_LANG = lang
+  try {
   const notes: MarriedLifeNote[] = []
   const fifth = inHouse(chart, 5, asc)
   const venus = find(chart, 'Ve')
@@ -1036,7 +1056,7 @@ export function analyzeIntimateLife(chart: ChartOutput): IntimateLife | null {
   const rahu = find(chart, 'Ra')
   const ketu = find(chart, 'Ke')
 
-  const fifthText = fifthReading(fifth, saturn)
+  const fifthText = fifthHouseText(fifthReading(fifth, saturn), lang)
   if (fifthText) {
     notes.push(note('fifth', `5th — ${RASHI_NAMES[signOf(asc, 5)]}`, fifthText, 'mixed'))
   }
@@ -1209,13 +1229,17 @@ export function analyzeIntimateLife(chart: ChartOutput): IntimateLife | null {
     ? cautions.slice(0, 3).map(n => n.title).join(' · ')
     : ''
 
-  return {
+  const result: IntimateLife = {
     headline,
     notes,
     inlaws,
     influence,
     timings: relationshipTimings(chart, asc),
     divisions: divisionReadings(chart),
+  }
+  return lang === 'hi' ? localizeIntimateLife(result) : result
+  } finally {
+    CURRENT_LANG = prev
   }
 }
 
@@ -1612,7 +1636,7 @@ function influenceNotes(chart: ChartOutput, asc: number): MarriedLifeNote[] {
 }
 
 /** Partner lagna in the native's 6th, 8th, or 12th: a crisis helper, not automatically a spouse. */
-export function dusthanaLinks(nameA: string, ascA: number, nameB: string, ascB: number): DusthanaLink[] {
+export function dusthanaLinks(nameA: string, ascA: number, nameB: string, ascB: number, lang: EngineLang = 'en'): DusthanaLink[] {
   const links: DusthanaLink[] = []
   const one = (nativeName: string, nativeAsc: number, otherName: string, otherAsc: number) => {
     const h = ((otherAsc - nativeAsc + 12) % 12) + 1
@@ -1620,8 +1644,10 @@ export function dusthanaLinks(nameA: string, ascA: number, nameB: string, ascB: 
     links.push({
       helper: otherName,
       native: nativeName,
-      house: h,
-      detail: `${otherName}'s ${RASHI_NAMES[otherAsc as Rashi]} lagna sits in ${nativeName}'s ${h}th. ${otherName} can pull ${nativeName} out of that crisis. As a spouse the same pair stays poor.`,
+      house: h as 6 | 8 | 12,
+      detail: lang === 'en'
+        ? `${otherName}'s ${RASHI_NAMES[otherAsc as Rashi]} lagna sits in ${nativeName}'s ${h}th. ${otherName} can pull ${nativeName} out of that crisis. As a spouse the same pair stays poor.`
+        : dusthanaDetail(otherName, nativeName, h, otherAsc as Rashi, lang),
     })
   }
   one(nameA, ascA, nameB, ascB)

@@ -1,0 +1,512 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "nakshatra": "Nakshatra"
+  },
+  "meta": {
+    "title": "Nakshatra Analysis — Vedic Astrology",
+    "description": "Deep Nakshatra analysis: Pada, ruling deity, planet, compatibility, remedies, Yogini Dasha & transit activation. Swiss Ephemeris precision for all 27 Nakshatras.",
+    "ogTitle": "Nakshatra Analysis — Vedaansh",
+    "ogDescription": "All 27 Nakshatras — Pada, deity, planet, Yogini Dasha & remedies. Swiss Ephemeris accuracy.",
+    "keywords": ["Nakshatra", "Vedic nakshatra", "birth star", "Pada", "Yogini dasha", "nakshatra compatibility", "Ashwini", "Rohini", "Hasta"]
+  },
+  "tabMeta": {
+    "overview": {
+      "title": "Nakshatra Overview — Birth Star Analysis",
+      "description": "Your birth Nakshatra at a glance: ruling planet, deity, Gana, Nadi, symbol, Pada & introductory interpretation via Swiss Ephemeris.",
+      "crumb": "Overview"
+    },
+    "compat": {
+      "title": "Nakshatra Compatibility — Vedic Star Matching",
+      "description": "Nakshatra-based compatibility analysis: Navtara, Stree-Dirgha, Vedha, Rajju & Mahendra compatibility scoring for relationships.",
+      "crumb": "Compatibility"
+    },
+    "remedies": {
+      "title": "Nakshatra Remedies — Vedic Prescriptions",
+      "description": "Personalized Nakshatra remedies: mantras, gemstones, colours, fasting days & deity worship based on your birth star.",
+      "crumb": "Remedies"
+    },
+    "bestdays": {
+      "title": "Nakshatra Best Days — Monthly Forecast",
+      "description": "Monthly nakshatra forecast: auspicious and inauspicious days from your birth star, tara quality, and Panchaka.",
+      "crumb": "Best Days"
+    },
+    "muhurta": {
+      "title": "Nakshatra Muhurta — Auspicious Star Timings",
+      "description": "Nakshatra-based Muhurta guidance: identify auspicious and inauspicious days based on transit Nakshatra and your birth star.",
+      "crumb": "Muhurta"
+    },
+    "panchaka": {
+      "title": "Panchaka — Last Five Stars",
+      "description": "Panchaka dosha from Dhanishtha through Revati: which natal planets sit in the zone and what each kind means.",
+      "crumb": "Panchaka"
+    },
+    "planet": {
+      "title": "Planets in Nakshatra — Star Placements",
+      "description": "Every graha’s nakshatra, pada, lord, Navtara from the birth Moon, and strength notes.",
+      "crumb": "Planets"
+    },
+    "taramandal": {
+      "title": "Taramandal — Nakshatra Constellation Groups",
+      "description": "Garuda, Naga, Deva, Rakshasa, Pitru, Marut, Agni, Soma, Vaishya & Pashu mandals: how constellation groups hold nakshatras and reshape planetary signification.",
+      "crumb": "Taramandal"
+    },
+    "navtara": {
+      "title": "Navtara Predictions — Nine Tara Decision Windows",
+      "description": "Navtara Chakra with dasha-linked prediction: Janma–Ati-Mitra groups, natal planet result capacity, current MD/AD experience nature, and decision windows. Confirm events with dasha + gochara.",
+      "crumb": "Navtara"
+    },
+    "profession": {
+      "title": "Nakshatra Profession — Career Star Profile",
+      "description": "Profession groups, formulas, and natal star career profile from your birth Moon nakshatra.",
+      "crumb": "Profession"
+    },
+    "medical": {
+      "title": "Nakshatra Medical — Body Map & Dosha",
+      "description": "Body-part map, dosha tendencies, and medical reference keyed to your birth nakshatra.",
+      "crumb": "Medical"
+    }
+  },
+  "page": {
+    "emptyTitle": "Nakshatra",
+    "emptyDetail": "Load a birth chart for the Moon’s star, Navtara, muhurta, compatibility, and remedies.",
+    "emptyTabDetail": "Load a birth chart to open this nakshatra section.",
+    "openBirthForm": "Open birth form"
+  },
+  "hero": {
+    "eyebrow": "Janma Nakshatra",
+    "pada": "Pada {n}",
+    "moonSub": "Birth Moon star · lord {lord}",
+    "lord": "Lord",
+    "gana": "Gana",
+    "deity": "Deity",
+    "yoni": "Yoni",
+    "shakti": "Shakti"
+  },
+  "chart": {
+    "starsTitle": "27 stars",
+    "rashiTitle": "D1 · Rashi",
+    "typeAria": "Chart type",
+    "nakshatras": "Nakshatras",
+    "rashi": "Rashi",
+    "moonNote": "Moon in <strong>{name}</strong> pada {pada}",
+    "moonLord": "Lord {lord}"
+  },
+  "tabs": {
+    "analysisAria": "Nakshatra analysis",
+    "sectionsAria": "Nakshatra sections",
+    "overview": "Overview",
+    "navtara": "Navtara",
+    "taramandal": "Taramandal",
+    "taramandalShort": "Mandal",
+    "bestdays": "Best Days",
+    "bestdaysShort": "Days",
+    "muhurta": "Muhurta",
+    "panchaka": "Panchaka",
+    "planet": "Planets",
+    "compat": "Compat",
+    "remedies": "Remedies",
+    "remediesShort": "Remedy",
+    "profession": "Profession",
+    "professionShort": "Career",
+    "medical": "Medical"
+  },
+  "overview": {
+    "title": "Birth star",
+    "deity": "Deity",
+    "gana": "Gana",
+    "yoni": "Yoni",
+    "nadi": "Nadi",
+    "varna": "Varna",
+    "nature": "Nature",
+    "bodyPart": "Body part",
+    "symbol": "Symbol",
+    "padasAria": "Nakshatra padas",
+    "pada": "Pada {n}"
+  },
+  "bestDays": {
+    "title": "Monthly forecast",
+    "bestFor": "Best days for {month} {year}",
+    "monthAria": "Month",
+    "yearAria": "Year",
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "taraSuffix": "{tara} tara",
+    "auspicious": "auspicious",
+    "neutral": "neutral",
+    "inauspicious": "inauspicious",
+    "panchaka": "Panchaka",
+    "planningStrong": "Planning. ",
+    "planningBody": "Keep launches and <teal>travel</teal> on <gold>auspicious</gold> days. Leave contracts and medical procedures off <rose>inauspicious</rose> and <rose>Panchaka</rose> days."
+  },
+  "muhurtaTab": {
+    "lead": "How {name} suits each kind of beginning.",
+    "activities": {
+      "marriage": "Marriage",
+      "travel": "Travel",
+      "business": "Business",
+      "education": "Education",
+      "medical": "Medical",
+      "spiritual": "Spiritual",
+      "property": "Property",
+      "career": "Career",
+      "finance": "Finance"
+    },
+    "ratings": {
+      "Excellent": "Excellent",
+      "Good": "Good",
+      "Neutral": "Neutral",
+      "Avoid": "Avoid"
+    }
+  },
+  "panchaka": {
+    "lead": "Panchaka covers the last five stars, Dhanishtha through Revati. A planet born there carries that dosha.",
+    "inStar": "{name} in {nakshatra}",
+    "clear": "No planet sits in the Panchaka zone at birth",
+    "starMap": "Star map"
+  },
+  "planet": {
+    "strongest": "Strongest",
+    "weakest": "Weakest",
+    "rupas": "{name} ({value} rupas)",
+    "profileLine": "Chart profile <b>{profile}</b> · mean ratio <gold>{ratio}x</gold>",
+    "balanced": "balanced",
+    "lead": "Each graha’s star, pada, and Navtara counted from the birth Moon in {name}.",
+    "headers": {
+      "planet": "Planet",
+      "nakshatra": "Nakshatra",
+      "pada": "Pada",
+      "lord": "Lord",
+      "navtara": "Navtara",
+      "gana": "Gana"
+    },
+    "notes": "Planet notes",
+    "lagna": "Lagna"
+  },
+  "compat": {
+    "birthStar": "Birth star",
+    "compareAria": "Compare nakshatra",
+    "relationTitle": "Relationship Navtara",
+    "youToOther": "You → other: ",
+    "otherToYou": "Other → you: ",
+    "all27": "All 27",
+    "match": "Match",
+    "mismatch": "Mismatch",
+    "sameNadi": "Same nadi",
+    "different": "Different",
+    "factors": {
+      "tarabala": "Tarabala",
+      "gana": "Gana",
+      "nadi": "Nadi",
+      "yoni": "Yoni"
+    }
+  },
+  "remedies": {
+    "unavailable": "Remedy notes are not available for this star.",
+    "lead": "Worship, mantra, and service traditionally kept for <gold>{name}</gold>.",
+    "sections": {
+      "mantra": "Mantra",
+      "gemMetal": "Gem and metal",
+      "offerings": "Offerings",
+      "worship": "Worship",
+      "service": "Service"
+    },
+    "fields": {
+      "mantra": "Mantra",
+      "beej": "Beej",
+      "gemstone": "Gemstone",
+      "metal": "Metal",
+      "color": "Color",
+      "flower": "Flower",
+      "tree": "Tree",
+      "deity": "Deity",
+      "upasana": "Upasana",
+      "fasting": "Fasting",
+      "charity": "Charity",
+      "health": "Health"
+    }
+  },
+  "navtara": {
+    "howTitle": "How to use Navtara",
+    "howBody": "Confirm <em>what</em> happens with dasha + gochara and natal placement. Use Navtara for the <em>nature</em> of the experience and your decision window (Vipat / Pratyari / Vadha = extra caution). Gochara without matching dasha = energy only.",
+    "currentWindow": "Current Navtara window",
+    "dashaUnavailable": "Dasha unavailable",
+    "md": "MD",
+    "ad": "AD",
+    "tones": {
+      "supportive": "Supportive",
+      "challenging": "Challenging",
+      "neutral": "Neutral",
+      "transformative": "Transformative"
+    },
+    "periods": {
+      "mahadasha": "Mahadasha",
+      "antardasha": "Antardasha",
+      "pratyantar": "Pratyantar"
+    },
+    "decisionWindow": "Decision window:",
+    "liveGochara": "Live gochara Navtara",
+    "gocharaLead": "Transit stars vs your Janma nakshatra. Event candidates need dasha match (MD/AD/PD lord).",
+    "loadingTransits": "Loading transits…",
+    "transitFetchFailed": "Transit fetch failed",
+    "transitLoadFailed": "Could not load transits",
+    "moon": "Moon:",
+    "gocharaHeaders": {
+      "planet": "Planet",
+      "nak": "Nak",
+      "tara": "Tara",
+      "event": "Event"
+    },
+    "eventActive": "Active",
+    "eventEnergy": "Energy",
+    "muhurtaGate": "Muhurta booking gate",
+    "muhurtaLead": "Pick the day's Moon nakshatra before booking vehicle delivery, renovation start, or agreements. Vipat / Pratyari / Vadha → avoid.",
+    "scoreLine": "{tara} · score {score}",
+    "verdicts": {
+      "favourable": "Favourable",
+      "caution": "Caution",
+      "avoid": "Avoid"
+    },
+    "relationship": "Relationship Navtara",
+    "relationshipLead": "How your birth star experiences theirs, and theirs yours — support vs hard-window friction.",
+    "otherOption": "Other: {name}",
+    "you": "You",
+    "other": "Other",
+    "natalPlanets": "Natal planets by Navtara",
+    "natalLead": "From {name}. Planets in Vipat / Pratyari / Vadha often cannot deliver 100% of their chart promise; Mitra / Ati-Mitra lords tend to leave a benefit trail even through challenges.",
+    "natalHeaders": {
+      "planet": "Planet",
+      "nakshatra": "Nakshatra",
+      "tara": "Tara",
+      "capacity": "Capacity"
+    },
+    "capacity": {
+      "full": "Full promise",
+      "reduced": "Reduced delivery",
+      "mixed": "Mixed / identity"
+    },
+    "reduced": "Reduced:",
+    "supportive": "Supportive:",
+    "dashaMap": "Vimshottari MD → Navtara map",
+    "dashaMapLead": "Birth mahadasha lord = Janma; each next lord in Vimshottari order advances one tara.",
+    "hard": "HARD",
+    "nineGroups": "Nine Tara groups from {name}",
+    "taraWord": "Tara",
+    "decide": "Decide:",
+    "trap": "Trap:",
+    "shortLabels": {
+      "Janma": "Growth & nature",
+      "Sampat": "Gains & opportunity",
+      "Vipat": "Crisis & struggle",
+      "Kshema": "Protection & solutions",
+      "Pratyari": "Opposition",
+      "Sadhaka": "Achievement & change",
+      "Vadha": "Loss & release",
+      "Mitra": "Support",
+      "AtiMitra": "Grace & protection"
+    }
+  },
+  "taramandal": {
+    "intro": "Taramandal is not Navtara. Each nakshatra is held by one or more constellation groups; planets in a group take on that mandal's cosmic work.",
+    "sectionsAria": "Taramandal sections",
+    "sections": {
+      "chart": "Your Chart",
+      "mandals": "All Mandals",
+      "reference": "About"
+    },
+    "janmaEyebrow": "Janma Nakshatra · Taramandal",
+    "unmapped": "Not yet mapped to a complete Taramandal in the current teaching set.",
+    "emptyChart": "No complete mandal currently holds Moon, Lagna, or a core planet in this chart's taught memberships.",
+    "taughtLead": "{count} taught mandals · each nakshatra is held like a king's member of a constellation group.",
+    "forthcoming": "Forthcoming (king only)",
+    "pending": "Pending",
+    "kingLine": "King · {name}",
+    "partial": "partial",
+    "planetOne": "{count} planet",
+    "planetMany": "{count} planets",
+    "members": "Members",
+    "whyKing": "Why this king",
+    "functions": "Functions",
+    "works": "Works",
+    "planetsIn": "Planets in this mandal",
+    "noneInChart": "None in this chart.",
+    "padaMark": "P{pada}",
+    "kingStar": "king star",
+    "notNavtara": "Taramandal ≠ Navtara",
+    "notNavtaraBody": "Navtara counts nine tara steps from the birth star. Taramandal is a different system: fixed constellation groups that hold every nakshatra as a member. When planets fall in a mandal, their signification shifts with that group's cosmic energy — including patterns sometimes mistaken for stelliums.",
+    "coverageGaps": "Teaching coverage gaps",
+    "coverageBody": "Remaining gaps are only the forthcoming Mrityu Karma / Gyan mandals (kings recorded; full groups pending). Partial members elsewhere still count.",
+    "mandals": {
+      "garuda": "Garuda Mandal",
+      "naga": "Naga Mandal",
+      "deva": "Deva Mandal",
+      "rakshasa": "Rakshasa Mandal",
+      "pitru": "Pitru Mandal",
+      "marut": "Marut Mandal",
+      "agni": "Agni Mandal",
+      "soma": "Soma Mandal",
+      "vaishya": "Vaishya Mandal",
+      "pashu": "Cosmic Pashu Mandal",
+      "mrityu_karma": "Mrityu Karma Mandal",
+      "gyan": "Cosmic Gyan Mandal"
+    },
+    "aka": {
+      "rakshasa": "Asura group",
+      "marut": "Vayu Mandal"
+    }
+  },
+  "profession": {
+    "freePreview": "Free preview: career indicators + blueprint summary. Formula, groups, combos, and full reference require Gold.",
+    "viewPlans": "View plans",
+    "intro": "Profession nakshatra map — career blueprint from 10th lord, fulfillment from Moon, and unconventional path from Rahu.",
+    "sections": {
+      "profile": "Profile",
+      "formula": "Formula",
+      "groups": "Groups",
+      "reference": "Reference"
+    },
+    "moreOnGold": "More on Gold",
+    "priority": {
+      "PRIMARY": "PRIMARY",
+      "SECONDARY": "SECONDARY",
+      "TERTIARY": "TERTIARY"
+    },
+    "tenthLord": "10th Lord",
+    "indicatorMeta": "{planet} · Pada {pada} ({rashi})",
+    "blueprintTitle": "Career Blueprint",
+    "blueprintSub": "10th Lord {lord} in {nak}",
+    "fulfillmentTitle": "Fulfillment Signature",
+    "fulfillmentSub": "Moon in {name} Pada {pada}",
+    "padaExecution": "Pada execution · {rashi}",
+    "examples": "Examples: {examples}",
+    "functionalGroup": "Functional group · {label}",
+    "ganaPitfall": "Gana pitfall · {pitfall}",
+    "solution": "Solution: {solution}",
+    "activeCombos": "Active planet × nakshatra career combos in this chart",
+    "inNak": "{planet} in {nak}",
+    "browseAll": "Browse all profession nakshatras",
+    "browseSub": "Lord {lord} · {signs} · {gana}",
+    "goldLock": "Fulfillment signature, pada execution, combos, and full nakshatra browser unlock on Gold.",
+    "rows": {
+      "coreMeaning": "Core Meaning",
+      "workingStyle": "Working Style",
+      "hiddenPower": "Hidden Power",
+      "bottomLine": "Bottom Line",
+      "pitfall": "Pitfall"
+    },
+    "padaLine": "Pada {pada} · {rashi} navamsa · {style}",
+    "moreCount": "+{count} more",
+    "gana": "Gana",
+    "lord": "Lord",
+    "formulaResult": "Result · Full career picture",
+    "layers": {
+      "l1": { "name": "Layer 1", "component": "Planet", "question": "WHAT skill do you have?" },
+      "l2": { "name": "Layer 2", "component": "Nakshatra", "question": "HOW do you apply that skill?" },
+      "l3": { "name": "Layer 3", "component": "House", "question": "WHERE do you apply it?" },
+      "l4": { "name": "Layer 4", "component": "Pada (Navamsa)", "question": "HOW do you execute/deliver?" },
+      "l5": {
+        "name": "Layer 5",
+        "component": "Dasha",
+        "question": "WHEN does it activate?",
+        "value": "During the relevant mahadasha / antardasha of the career significators"
+      }
+    },
+    "threeIndicators": "Three key career indicators",
+    "inNakPower": "{planet} in {nak} · {power}",
+    "ashwiniExample": "Ashwini padas — detailed example",
+    "ashwiniPada": "Pada {pada} · {navamsa}",
+    "groupings": "Nakshatra functional groupings",
+    "groups": {
+      "starters": "Starters",
+      "builders": "Builders",
+      "analyzers": "Analyzers",
+      "destroyers": "Destroyers",
+      "controllers": "Controllers",
+      "networkers": "Networkers",
+      "performers": "Performers",
+      "strategists": "Strategists",
+      "listeners": "Listeners"
+    },
+    "ganaClass": "Gana classification · career implications",
+    "strength": "Strength: {value}",
+    "pitfallLine": "Pitfall: {pitfall} — {damage}",
+    "fix": "Fix: {value}",
+    "lordChain": "Nakshatra lord chain",
+    "refPlanet": "Planet skills in career",
+    "refPlanetHeaders": ["Planet", "Core Skill", "Positive", "If Weak"],
+    "refCombos": "Planet × nakshatra career combinations",
+    "refCombosHeaders": ["Planet", "Skill", "Nakshatra", "Expression", "Notes"],
+    "refDiagnosis": "Quick career diagnosis (if 10th lord is in…)",
+    "refDiagnosisHeaders": ["Nakshatra", "Behavior Style", "Career Direction"],
+    "refPada": "Pada system — execution style by navamsa rashi",
+    "refPadaHeaders": ["Pada Rashi", "Career Energy", "Execution Style", "Examples"],
+    "refAries": "Same pada (Aries 1st) — different nakshatras",
+    "refAriesHeaders": ["Nakshatra", "Base Energy", "Aries Adds", "Final Expression"],
+    "refAll": "All 27 profession nakshatras",
+    "refAllHeaders": ["#", "Nakshatra", "Lord", "Gana", "Hidden Power", "Career Fields"]
+  },
+  "medical": {
+    "freePreview": "Free preview: medical indicators + constitution summary. Dosha map, body map, afflictions, and full reference require Gold.",
+    "viewPlans": "View plans",
+    "intro": "Medical nakshatra map — constitution from Moon, disease blueprint from 6th lord, and body vessel from Lagna. Educational reference only; not a medical diagnosis.",
+    "sections": {
+      "profile": "Profile",
+      "dosha": "Dosha",
+      "body": "Body Map",
+      "reference": "Reference"
+    },
+    "moreOnGold": "More on Gold",
+    "priority": {
+      "PRIMARY": "PRIMARY",
+      "SECONDARY": "SECONDARY",
+      "TERTIARY": "TERTIARY"
+    },
+    "sixthLord": "6th Lord",
+    "constitutionTitle": "Health Constitution",
+    "constitutionSub": "Moon in {name} · {deity}",
+    "blueprintTitle": "Disease Blueprint",
+    "blueprintSub": "6th Lord {lord} in {nak}",
+    "vesselTitle": "Body Vessel",
+    "vesselSub": "Lagna in {nak}",
+    "diseaseNature": "Disease nature · {dosha}",
+    "keyTrigger": "Key trigger: {trigger}",
+    "afflictions": "Malefic / nodal medical hits in this chart",
+    "inNak": "{planet} in {nak}",
+    "watch": "Watch: {items}",
+    "browseAll": "Browse all medical nakshatras",
+    "browseSub": "Lord {lord} · {signs} · {deity}",
+    "goldLock": "Disease blueprint, body vessel, afflictions, and full medical browser unlock on Gold.",
+    "dosha": "Dosha",
+    "lord": "Lord",
+    "primaryDiseases": "Primary diseases",
+    "alsoWatch": "Also watch",
+    "external": "External",
+    "internal": "Internal",
+    "systems": "Systems",
+    "nature": "Nature",
+    "healing": "Healing",
+    "yourDosha": "Your Moon medical dosha",
+    "durationClass": "Duration class: {duration} · {action}",
+    "duration": {
+      "vata": "1, 9, 25 days",
+      "pitta": "11, 20, 30 days",
+      "kapha": "Months to years"
+    },
+    "kalapurusha": "Kalapurusha · signs on the body",
+    "moonBody": "Moon body map · {name}",
+    "externalParts": "External body parts",
+    "internalOrgans": "Internal organs",
+    "glands": "Glands / systems",
+    "sixthHouseSign": "6th house sign",
+    "all27": "All 27 — body parts / systems",
+    "bodyHeaders": ["Nakshatra", "External / Systems"],
+    "refDiseases": "Associated diseases / conditions",
+    "refDiseasesHeaders": ["Nakshatra", "Diseases"],
+    "refDeity": "Deity · medical implication",
+    "refDeityHeaders": ["Nakshatra", "Deity", "Implication", "Key Trigger"],
+    "refFull": "Full medical reference (27)",
+    "refFullHeaders": ["#", "Nakshatra", "Dosha", "Primary Diseases", "Disease Nature"],
+    "refDosha": "Dosha quick reference",
+    "refDoshaHeaders": ["Dosha", "Duration", "Count", "Characteristics", "Key Action"]
+  }
+}

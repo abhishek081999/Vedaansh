@@ -159,7 +159,7 @@ const TERMS_HI: Record<string, string> = {
   Bhadra: 'भद्रा',
   // Koota / nakshatra traits
   Vata: 'वात', Pitta: 'पित्त', Kapha: 'कफ', Brahmin: 'ब्राह्मण', Kshatriya: 'क्षत्रिय', Vaishya: 'वैश्य', Shudra: 'शूद्र',
-  Mleccha: 'म्लेच्छ', Human: 'नर (मानव)', Quadruped: 'चतुष्पद', Water: 'जलचर', Insect: 'कीट', 'Wild Animal': 'वनचर',
+  Mleccha: 'म्लेच्छ', Human: 'नर (मानव)', Quadruped: 'चतुष्पद', Water: 'जलचर', Insect: 'कीट', Wild: 'वन्य', 'Wild Animal': 'वनचर',
   Fire: 'अग्नि', Earth: 'पृथ्वी', Air: 'वायु', Sthira: 'स्थिर', Mixed: 'मिश्र', Mridu: 'मृदु', Tikshna: 'तीक्ष्ण', Ugra: 'उग्र',
   'Aadi (Vata / Sushumna)': 'आदि (वात / सुषुम्ना)', 'Madhya (Pitta / Pingala)': 'मध्य (पित्त / पिंगला)', 'Antya (Kapha / Ida)': 'अंत्य (कफ / इड़ा)',
   'Swarna (Gold)': 'स्वर्ण', 'Rajata (Silver)': 'रजत', 'Tamra (Copper)': 'ताम्र', 'Lauha (Iron)': 'लौह',

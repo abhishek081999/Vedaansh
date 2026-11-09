@@ -6,7 +6,9 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { Heatmap, TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 import type {
@@ -42,6 +44,7 @@ const MAJOR: GrahaId[] = ['Ju', 'Sa', 'Ra', 'Ke']
 
 /** Grid of which slow planet aspects which natal point now + double/triple windows on a timeline. */
 function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
+  const t = useTranslations('transit.aspects')
   const grid = useMemo(() => {
     const targets: string[] = []
     const labels: string[] = []
@@ -51,13 +54,15 @@ function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
         labels.push(h.targetLabel)
       }
     }
-    const values = MAJOR.map(lord => targets.map(t => (report.nowHits.some(h => h.transitLord === lord && h.targetId === t) ? 1 : null)))
+    const values = MAJOR.map(lord => targets.map(tId => (report.nowHits.some(h => h.transitLord === lord && h.targetId === tId) ? 1 : null)))
     const title = (r: number, c: number) => {
       const hit = report.nowHits.find(h => h.transitLord === MAJOR[r] && h.targetId === targets[c])
-      return hit ? `${hit.transitLordName} → ${hit.targetLabel}: ${hit.relation} (${hit.transitSignName} → ${hit.natalSignName})` : `${MAJOR[r]} → ${labels[c]}: no contact`
+      if (!hit) return t('noContact', { from: MAJOR[r], to: labels[c] })
+      const rel = hit.relation === 'conjunction' ? t('conjunction') : t('aspect')
+      return `${hit.transitLordName} → ${hit.targetLabel}: ${rel} (${hit.transitSignName} → ${hit.natalSignName})`
     }
     return { labels, values, title }
-  }, [report.nowHits])
+  }, [report.nowHits, t])
 
   const windows = useMemo(() => {
     const lanes: string[] = []
@@ -85,7 +90,7 @@ function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '0.75rem' }}>
       {grid.labels.length > 0 && (
-        <VizCard title="Contacts right now" caption="Filled cell = that slow planet occupies or aspects the natal point today">
+        <VizCard title={t('vizContactsTitle')} caption={t('vizContactsCaption')}>
           <Heatmap
             rows={MAJOR}
             cols={grid.labels}
@@ -94,18 +99,18 @@ function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
             max={1}
             format={v => (v ? '●' : '')}
             cellTitle={grid.title}
-            ariaLabel="Current transit contacts to natal points"
+            ariaLabel={t('ariaContacts')}
           />
         </VizCard>
       )}
       {windows.segments.length > 0 && (
         <VizCard
-          title="Double / triple transit windows"
-          caption="×2 / ×3 = how many slow planets touch the same point together. Gold line = today."
+          title={t('vizWindowsTitle')}
+          caption={t('vizWindowsCaption')}
           legend={[
-            { label: 'Supportive', color: toneColor('supportive') },
-            { label: 'Mixed', color: toneColor('mixed') },
-            { label: 'Caution', color: toneColor('caution') },
+            { label: t('legendSupportive'), color: toneColor('supportive') },
+            { label: t('legendMixed'), color: toneColor('mixed') },
+            { label: t('legendCaution'), color: toneColor('caution') },
           ]}
         >
           <TimelineBand
@@ -115,7 +120,7 @@ function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
             to={report.windowEndIso}
             now={report.asOfIso}
             laneHeight={18}
-            ariaLabel="Multi-transit windows by natal point"
+            ariaLabel={t('ariaWindows')}
           />
         </VizCard>
       )}
@@ -124,6 +129,7 @@ function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
 }
 
 function MultiCard({ w }: { w: MultiTransitWindow }) {
+  const t = useTranslations('transit.aspects')
   const color = toneColor(w.tone)
   return (
     <div
@@ -145,7 +151,7 @@ function MultiCard({ w }: { w: MultiTransitWindow }) {
       </div>
       <div style={{ fontSize: '0.78rem', color: color, fontWeight: 700, marginBottom: '0.25rem' }}>
         {w.transitLordNames.join(' + ')}
-        {w.isCurrent ? ' · Active now' : ''}
+        {w.isCurrent ? ` · ${t('activeNow')}` : ''}
       </div>
       <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
         {w.summary}
@@ -155,6 +161,7 @@ function MultiCard({ w }: { w: MultiTransitWindow }) {
 }
 
 function HitChip({ h }: { h: TransitAspectHit }) {
+  const t = useTranslations('transit.aspects')
   return (
     <div
       style={{
@@ -168,7 +175,7 @@ function HitChip({ h }: { h: TransitAspectHit }) {
         {h.transitLordName} → {h.targetLabel}
       </div>
       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-        {h.relation === 'conjunction' ? 'Conjunction' : 'Aspect'} · {h.transitSignName} · H{h.houseFromLagna}
+        {h.relation === 'conjunction' ? t('conjunction') : t('aspect')} · {h.transitSignName} · H{h.houseFromLagna}
       </div>
     </div>
   )
@@ -197,6 +204,8 @@ function EventRow({ ev }: { ev: TransitAspectEvent }) {
 }
 
 export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
+  const t = useTranslations('transit.aspects')
+  const { lang } = useLang()
   const [report, setReport] = useState<TransitAspectReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -223,25 +232,26 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           ascRashi: String(ascRashi),
           natal,
           months: '18',
+          lang,
         })
         const res = await fetch(`/api/transit/aspects?${qs}`)
         const json = await res.json()
         if (cancelled) return
         if (!json.success) {
-          setError(json.error || 'Failed to load aspects')
+          setError(json.error || t('loadFailed'))
           setReport(null)
         } else {
           setReport(json.data)
         }
       } catch {
-        if (!cancelled) setError('Failed to load aspects')
+        if (!cancelled) setError(t('loadFailed'))
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
     void load()
     return () => { cancelled = true }
-  }, [ascRashi, natal])
+  }, [ascRashi, natal, lang, t])
 
   if (loading) {
     return (
@@ -258,7 +268,7 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           }}
         />
         <div style={{ color: 'var(--text-gold)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-          Scanning gochara aspects…
+          {t('loading')}
         </div>
       </div>
     )
@@ -267,7 +277,7 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
   if (error || !report) {
     return (
       <div className="card" style={{ padding: '1.5rem', color: 'var(--text-muted)' }}>
-        {error || 'No aspect data available.'}
+        {error || t('noData')}
       </div>
     )
   }
@@ -282,17 +292,17 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
           <div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Ju · Sa · Ra · Ke · Parashara whole-sign
+              {t('eyebrow')}
             </div>
             <h2 style={{ margin: '0.25rem 0 0', fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.35rem' : '1.75rem', color: 'var(--text-gold)' }}>
-              Aspects & Multi-Transit
+              {t('title')}
             </h2>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', background: 'var(--surface-3)', padding: 3, borderRadius: 8, border: '1px solid var(--border-soft)', height: 'fit-content' }}>
             {([
-              ['all', 'All'],
-              ['multi', 'Double / Triple'],
-              ['events', 'Aspect starts'],
+              ['all', t('filterAll')],
+              ['multi', t('filterMulti')],
+              ['events', t('filterEvents')],
             ] as const).map(([id, label]) => (
               <button
                 key={id}
@@ -318,7 +328,11 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           {report.summary}
         </p>
         <div style={{ marginTop: '0.65rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-          Window {report.windowStartIso} → {report.windowEndIso} · as of {report.asOfIso}
+          {t('windowAsOf', {
+            start: report.windowStartIso,
+            end: report.windowEndIso,
+            asOf: report.asOfIso,
+          })}
         </div>
       </div>
 
@@ -328,11 +342,11 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
         <>
           <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
             <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Active multi-transits
+              {t('sectionActiveMulti')}
             </h3>
             {report.nowMulti.length === 0 ? (
               <div className="card" style={{ padding: '0.9rem', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                No double/triple transit on a natal point right now.
+                {t('emptyActiveMulti')}
               </div>
             ) : (
               report.nowMulti.map(w => <MultiCard key={w.id} w={w} />)
@@ -342,7 +356,7 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           {report.nowHits.length > 0 && (
             <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
               <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Current gochara hits
+                {t('sectionCurrentHits')}
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '0.45rem' }}>
                 {report.nowHits.map(h => (
@@ -355,7 +369,7 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           {upcomingMulti.length > 0 && (
             <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
               <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Upcoming double / triple windows
+                {t('sectionUpcomingMulti')}
               </h3>
               {upcomingMulti.map(w => <MultiCard key={w.id} w={w} />)}
             </section>
@@ -366,12 +380,12 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
       {showEvents && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Aspect / conjunction starts
+            {t('sectionEventStarts')}
           </h3>
           <div className="card" style={{ padding: isMobile ? '0.65rem 0.85rem' : '0.75rem 1.1rem' }}>
             {report.upcomingEvents.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', padding: '0.5rem 0' }}>
-                No new aspect starts in this window.
+                {t('emptyEvents')}
               </div>
             ) : (
               report.upcomingEvents.map(ev => (
@@ -393,9 +407,8 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           lineHeight: 1.55,
         }}
       >
-        <strong style={{ color: 'var(--text-primary)' }}>How to read this:</strong> Whole-sign Parashara drishti
-        (7th for all; Ju 5/9; Sa 3/10; nodes via 7th). Double/triple means two or more of Ju/Sa/Ra/Ke
-        simultaneously conjunct or aspect the same natal point. Confirm with dasha before acting on any window.
+        <strong style={{ color: 'var(--text-primary)' }}>{t('howToTitle')}</strong>{' '}
+        {t('howToBody')}
       </div>
     </div>
   )

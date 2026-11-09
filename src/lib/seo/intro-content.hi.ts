@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { HOME_FAQ, HOME_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO } from './intro-content'
+import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, NAKSHATRA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, ROADMAP_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -117,10 +117,120 @@ export const PANCHANG_CALENDAR_SEO_HI: SeoIntroProps = {
   ],
 }
 
+export const COMPARE_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'कुंडली मिलान और तुलना — Vedaansh',
+  h1: 'निःशुल्क कुंडली मिलान — अष्टकूट गुण मिलान और अंतरदृष्टि',
+  paragraphs: [
+    '36-गुण अष्टकूट (गुण मिलान), मंगल और नाड़ी जाँच, और द्वि-चार्ट सिनैस्ट्री के साथ दो जन्म कुंडलियाँ साथ-साथ देखें। दोनों के जन्म विवरण दर्ज करें — सहेजी चार्ट ज़रूरी नहीं।',
+    'Vedaansh लाहिरी अयनांश के साथ स्विस एफ़ेमेरिस के निरयन स्थानों से शास्त्रीय परंपरा के अनुरूप विवाह-मेल विश्लेषण देता है।',
+  ],
+  h2: 'मिलान-सुविधाएँ',
+  bullets: [
+    { label: 'अष्टकूट मिलान', desc: 'वर्ण, वश्य, तारा, योनि, ग्रह मैत्री, गण, भकूट और नाड़ी' },
+    { label: 'दोष विश्लेषण', desc: 'मंगल दोष, नाड़ी और भकूट संघर्ष के विशेष बिंदु' },
+    { label: 'दोहरी कुंडलियाँ', desc: 'साथ-साथ D1, दशा और पंचांग तुलना' },
+    { label: 'बिना लॉगिन', desc: 'तुरंत निःशुल्क मेल-जाँच' },
+  ],
+  relatedLinks: [
+    guideLink('ashtakoot-guna-milan-explained', 'अष्टकूट गुण मिलान'),
+    guideLink('mangal-dosha-explained', 'मंगल दोष'),
+    guideLink('what-is-navamsha-d9-chart', 'नवांश (D9)'),
+    guideLink('what-is-dashamsha-d10-chart', 'दशमांश (D10)'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function compareIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? COMPARE_SEO_HI : COMPARE_SEO
+}
+
 export function panchangIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? PANCHANG_SEO_HI : PANCHANG_SEO
 }
 
 export function panchangCalendarIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? PANCHANG_CALENDAR_SEO_HI : PANCHANG_CALENDAR_SEO
+}
+
+export const MUHURTA_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'वैदिक मुहूर्त खोजक — Vedaansh',
+  h1: 'वैदिक मुहूर्त खोजक — शुभ समय-खिड़कियाँ',
+  paragraphs: [
+    'विवाह, यात्रा, व्यापार, संपत्ति, शिक्षा आदि के लिए शुभ मुहूर्त खोजें। Vedaansh प्रत्येक दिन को योग गुणवत्ता, तिथि, नक्षत्र, वार स्वामी और राहु काल / गुलिक से बचाव के आधार पर मूल्यांकित करता है।',
+    'अभिजित मुहूर्त और व्यक्तिगत तारा/चंद्र बल (जन्म कुंडली सहित) इलेक्शनल ज्योतिष के निर्णय को परिष्कृत करते हैं।',
+  ],
+  h2: 'मुहूर्त विश्लेषण में शामिल',
+  bullets: [
+    { label: 'गतिविधि-विशिष्ट स्कोर', desc: 'विवाह, गृह प्रवेश, यात्रा, अनुबंध आदि' },
+    { label: 'टाइमलाइन दृश्य', desc: 'तिथि सीमा में अनुकूल अंतराल देखें' },
+    { label: 'शास्त्रीय नियम', desc: 'ज्योतिष परंपरा के योग, तिथि और नक्षत्र फ़िल्टर' },
+  ],
+  relatedLinks: [
+    guideLink('muhurta-for-marriage', 'विवाह मुहूर्त'),
+    guideLink('what-is-panchang-tithi-nakshatra', 'पंचांग मूल बातें'),
+    guideLink('rahu-kalam-explained', 'राहु काल'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function muhurtaIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? MUHURTA_SEO_HI : MUHURTA_SEO
+}
+
+export const ROADMAP_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'व्यक्तिगत गोचर रोडमैप — Vedaansh',
+  h1: 'व्यक्तिगत वैदिक गोचर रोडमैप — दशा और ग्रह खिड़कियाँ',
+  paragraphs: [
+    'आगामी ग्रह गोचर, विंशोत्तरी दशा अवधि और महत्वपूर्ण ज्योतिष समय-खिड़कियाँ अपनी जन्म कुंडली से जुड़ी समयरेखा पर देखें।',
+    'शनि, गुरु, राहु–केतु और दशा परिवर्तन के आसपास निर्णय योजना बनाने के लिए स्विस एफ़ेमेरिस सटीकता वाले रोडमैप का उपयोग करें।',
+  ],
+  h2: 'रोडमैप की मुख्य बातें',
+  bullets: [
+    { label: 'गोचर समयरेखा', desc: 'आगामी प्रमुख ग्रह संक्रमण और दृष्टि' },
+    { label: 'दशा ओवरले', desc: 'एक ही दृश्य में महादशा और अंतर्दशा' },
+    { label: 'साढ़े साती ट्रैकर', desc: 'उदय / शिखर / अस्त के साथ चंद्र से कंटक और अष्टम' },
+    { label: 'दृष्टि और बहु-गोचर', desc: 'गुरु/शनि/राहु/केतु गोचर प्रभाव और दोहरी/त्रिगुणित खिड़कियाँ' },
+    { label: 'द्वि-चक्र + मूर्ति + D9', desc: 'जन्म/गोचर चक्र, संक्रमण मूर्ति, नवांश गोचर' },
+    { label: 'मासिक कैलेंडर', desc: 'मुद्रण योग्य HTML सहित व्यक्तिगत गोचर माह ग्रिड (Gold+)' },
+  ],
+  relatedLinks: [
+    guideLink('vimshottari-dasha-explained', 'विंशोत्तरी दशा'),
+    guideLink('ashtakavarga-explained', 'अष्टकवर्ग'),
+    { href: '/transit/sade-sati', label: 'साढ़े साती ट्रैकर' },
+    { href: '/transit/aspects', label: 'दृष्टि और बहु-गोचर' },
+    { href: '/transit/biwheel', label: 'द्वि-चक्र · मूर्ति · D9' },
+    { href: '/transit/calendar', label: 'गोचर कैलेंडर' },
+    { href: '/transit/scrubber', label: 'लाइव गोचर स्क्रबर' },
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function transitIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? ROADMAP_SEO_HI : ROADMAP_SEO
+}
+
+export const NAKSHATRA_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'नक्षत्र विश्लेषण — Vedaansh',
+  h1: 'नक्षत्र विश्लेषण — जन्म तारा, अनुकूलता और उपाय',
+  paragraphs: [
+    'अपने जन्मनक्षत्र का पाद, अधिष्ठातृ देवता, ग्रह, गण, नाड़ी और प्रतीक सहित अन्वेषण करें। Vedaansh नवतारा फल (दशा निर्णय खिड़कियाँ, जन्म ग्रह तारा क्षमता), अनुकूलता अंक, व्यक्तिगत उपाय, गोचर सक्रियण और नक्षत्र-आधारित मुहूर्त मार्गदर्शन देता है।',
+    'सभी गणनाएँ स्विस एफ़ेमेरिस सायन देशांतर और लाहिरी अयनांश से होती हैं — शास्त्रीय ज्योतिष से मेल खाती सटीकता।',
+  ],
+  h2: 'नक्षत्र उपकरण',
+  bullets: [
+    { label: 'परिचय', desc: 'जन्म तारे का सार और प्रारंभिक फलादेश' },
+    { label: 'अनुकूलता', desc: 'नवतारा, रज्जु, वेध और संबंध अंक' },
+    { label: 'उपाय', desc: 'मंत्र, रत्न, रंग और देवता उपासना' },
+    { label: 'गोचर और मुहूर्त', desc: 'ग्रह सक्रियण और शुभ तारा समय' },
+  ],
+  relatedLinks: [
+    guideLink('chandra-bala-tara-bala', 'तारा बल और चंद्र बल'),
+    guideLink('vimshottari-dasha-explained', 'विंशोत्तरी दशा'),
+    guideLink('yogini-dasha-explained', 'योगिनी दशा'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function nakshatraIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? NAKSHATRA_SEO_HI : NAKSHATRA_SEO
 }

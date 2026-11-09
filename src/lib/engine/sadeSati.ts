@@ -12,6 +12,9 @@ import {
   getPlanetPosition,
   signOf,
 } from '@/lib/engine/ephemeris'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { rName } from '@/lib/engine/divisionalLang'
+import { SADE_SATI_HI, SADE_SATI_PHASE_HI } from '@/lib/engine/locale/sadeSati.hi'
 import { RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
 
 export type SaturnMoonPhaseKind =
@@ -194,30 +197,52 @@ function progressPct(startMs: number, endMs: number, nowMs: number): number {
   return Math.round(((nowMs - startMs) / span) * 1000) / 10
 }
 
+function phaseMeta(kind: SaturnMoonPhaseKind, lang: EngineLang) {
+  return lang === 'hi' ? SADE_SATI_PHASE_HI[kind] : PHASE_META[kind]
+}
+
+function rashiLabel(rashi: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? rName(rashi, 'hi') : RASHI_NAMES[rashi]
+}
+
+function houseOrdinal(house: number, lang: EngineLang): string {
+  if (lang === 'hi') return SADE_SATI_HI.ordinal[house] ?? String(house)
+  return `${house}th`
+}
+
 function segmentToPhase(
   seg: SignSegment,
   moonRashi: Rashi,
   nowMs: number,
+  lang: EngineLang,
 ): SaturnMoonPhase {
   const fromMoonHouse = houseFromMoon(seg.rashi, moonRashi)
   const kind = classifySaturnFromMoon(fromMoonHouse)
-  const meta = PHASE_META[kind]
+  const meta = phaseMeta(kind, lang)
   const start = jdToDate(seg.startJd)
   const end = jdToDate(seg.endJd)
   const startMs = start.getTime()
   const endMs = end.getTime()
   const isCurrent = nowMs >= startMs && nowMs < endMs
+  const saName = rashiLabel(seg.rashi, lang)
+  const summary =
+    lang === 'hi'
+      ? `${meta.summary} ${fill(SADE_SATI_HI.phaseTail, {
+          rashi: saName,
+          house: houseOrdinal(fromMoonHouse, lang),
+        })}`
+      : `${meta.summary} Saturn in ${saName} (${fromMoonHouse}th from Moon).`
   return {
     kind,
     label: meta.label,
     fromMoonHouse,
     saturnRashi: seg.rashi,
-    saturnRashiName: RASHI_NAMES[seg.rashi],
+    saturnRashiName: saName,
     startIso: toIsoDate(start),
     endIso: toIsoDate(end),
     isCurrent,
     progressPct: isCurrent ? progressPct(startMs, endMs, nowMs) : 0,
-    summary: `${meta.summary} Saturn in ${RASHI_NAMES[seg.rashi]} (${fromMoonHouse}th from Moon).`,
+    summary,
   }
 }
 
@@ -244,7 +269,11 @@ function mergeAdjacentPhases(phases: SaturnMoonPhase[]): SaturnMoonPhase[] {
   return out
 }
 
-function groupSadeSatiCycles(phases: SaturnMoonPhase[], nowMs: number): SadeSatiCycle[] {
+function groupSadeSatiCycles(
+  phases: SaturnMoonPhase[],
+  nowMs: number,
+  lang: EngineLang,
+): SadeSatiCycle[] {
   const cycles: SadeSatiCycle[] = []
   let bucket: SaturnMoonPhase[] = []
 
@@ -255,13 +284,18 @@ function groupSadeSatiCycles(phases: SaturnMoonPhase[], nowMs: number): SadeSati
     const startMs = new Date(`${startIso}T12:00:00Z`).getTime()
     const endMs = new Date(`${endIso}T12:00:00Z`).getTime()
     const isCurrent = nowMs >= startMs && nowMs < endMs
+    const startY = startIso.slice(0, 4)
+    const endY = endIso.slice(0, 4)
     cycles.push({
       startIso,
       endIso,
       phases: bucket,
       isCurrent,
       progressPct: isCurrent ? progressPct(startMs, endMs, nowMs) : 0,
-      label: `Sade Sati ${startIso.slice(0, 4)}–${endIso.slice(0, 4)}`,
+      label:
+        lang === 'hi'
+          ? fill(SADE_SATI_HI.cycleLabel, { start: startY, end: endY })
+          : `Sade Sati ${startY}–${endY}`,
     })
     bucket = []
   }
@@ -277,7 +311,7 @@ function groupSadeSatiCycles(phases: SaturnMoonPhase[], nowMs: number): SadeSati
   return cycles
 }
 
-function computeSofteners(ascRashi?: Rashi): SadeSatiSoftener[] {
+function computeSofteners(ascRashi: Rashi | undefined, lang: EngineLang): SadeSatiSoftener[] {
   if (!ascRashi) return []
   const softeners: SadeSatiSoftener[] = []
   const trikonaLords = [1, 5, 9].map((h) => {
@@ -287,8 +321,11 @@ function computeSofteners(ascRashi?: Rashi): SadeSatiSoftener[] {
   if (trikonaLords.some((l) => l === 'Mo' || l === 'Sa')) {
     softeners.push({
       id: 'trikona-moon-saturn',
-      title: 'Sade Sati softener',
-      detail: '1st, 5th, or 9th lord from Lagna is Moon or Saturn — classical texts note a gentler Sade Sati. Still confirm with dasha and Ashtakavarga.',
+      title: lang === 'hi' ? SADE_SATI_HI.softenerTitle : 'Sade Sati softener',
+      detail:
+        lang === 'hi'
+          ? SADE_SATI_HI.softenerDetail
+          : '1st, 5th, or 9th lord from Lagna is Moon or Saturn — classical texts note a gentler Sade Sati. Still confirm with dasha and Ashtakavarga.',
     })
   }
   return softeners
@@ -302,6 +339,7 @@ export interface AnalyzeSadeSatiOptions {
   lookAheadYears?: number
   /** Optional lagna for softener rules. */
   ascRashi?: Rashi
+  lang?: EngineLang
 }
 
 /**
@@ -311,6 +349,7 @@ export function analyzeSadeSati(
   moonRashi: Rashi,
   options: AnalyzeSadeSatiOptions = {},
 ): SadeSatiReport {
+  const lang = options.lang ?? 'en'
   const asOf = utcNoon(options.asOf ?? new Date())
   const lookback = options.lookbackYears ?? 12
   const lookAhead = options.lookAheadYears ?? 20
@@ -321,11 +360,11 @@ export function analyzeSadeSati(
 
   const nowMs = asOf.getTime()
   const timeline = buildSaturnSignTimeline(windowStart, windowEnd)
-  const rawPhases = timeline.map(seg => segmentToPhase(seg, moonRashi, nowMs))
+  const rawPhases = timeline.map(seg => segmentToPhase(seg, moonRashi, nowMs, lang))
   const phases = mergeAdjacentPhases(rawPhases)
 
   const currentPhase = phases.find(p => p.isCurrent) ?? null
-  const cycles = groupSadeSatiCycles(phases, nowMs)
+  const cycles = groupSadeSatiCycles(phases, nowMs, lang)
   const currentCycle = cycles.find(c => c.isCurrent) ?? null
   const specials = phases.filter(p => p.kind === 'kantaka' || p.kind === 'ashtama')
   const upcoming = phases.filter(p => {
@@ -337,11 +376,21 @@ export function analyzeSadeSati(
   const saNow = saturnRashiAtJd(dateToJD(asOf))
   const fromMoonHouse = houseFromMoon(saNow, moonRashi)
   const kind = classifySaturnFromMoon(fromMoonHouse)
-  const meta = PHASE_META[kind]
+  const meta = phaseMeta(kind, lang)
+  const saName = rashiLabel(saNow, lang)
+  const moonName = rashiLabel(moonRashi, lang)
+  const nowSummary =
+    lang === 'hi'
+      ? `${meta.summary} ${fill(SADE_SATI_HI.nowTail, {
+          saRashi: saName,
+          house: houseOrdinal(fromMoonHouse, lang),
+          moonRashi: moonName,
+        })}`
+      : `${meta.summary} Transit Saturn in ${saName} — ${fromMoonHouse}th from Moon in ${moonName}.`
 
   return {
     moonRashi,
-    moonRashiName: RASHI_NAMES[moonRashi],
+    moonRashiName: moonName,
     asOfIso: toIsoDate(asOf),
     windowStartIso: toIsoDate(windowStart),
     windowEndIso: toIsoDate(windowEnd),
@@ -349,19 +398,19 @@ export function analyzeSadeSati(
       kind,
       label: meta.label,
       saturnRashi: saNow,
-      saturnRashiName: RASHI_NAMES[saNow],
+      saturnRashiName: saName,
       fromMoonHouse,
       inSadeSati: isSadeSatiKind(kind),
       inKantaka: kind === 'kantaka',
       inAshtama: kind === 'ashtama',
-      summary: `${meta.summary} Transit Saturn in ${RASHI_NAMES[saNow]} — ${fromMoonHouse}th from Moon in ${RASHI_NAMES[moonRashi]}.`,
+      summary: nowSummary,
     },
     currentPhase,
     currentCycle,
     cycles,
     specials,
     upcoming,
-    softeners: computeSofteners(options.ascRashi),
+    softeners: computeSofteners(options.ascRashi, lang),
   }
 }
 

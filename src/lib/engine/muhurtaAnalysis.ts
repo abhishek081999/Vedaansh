@@ -5,6 +5,16 @@
 
 import { NakshatraResult, TithiResult, YogaResult, KaranaResult, VaraResult } from './nakshatra'
 import { GrahaId } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { termHi, GRAHA_HI } from '@/i18n/jyotish'
+import {
+  MA_HI,
+  MUHURTA_ACTIVITY_LABELS_HI,
+  SCORE_LABELS_HI,
+  TARA_FACTORS_HI,
+  choghadiyaTypeHi,
+} from '@/lib/engine/locale/muhurtaAnalysis.hi'
+import { panchakaDisplayLabel } from '@/lib/engine/muhurtaAdvanced'
 
 export type MuhurtaActivity =
   | 'BUSINESS'
@@ -40,6 +50,23 @@ export const MUHURTA_ACTIVITY_LABELS: Record<MuhurtaActivity, string> = {
   MARRIAGE: 'Marriage',
   EDUCATION: 'Education',
   GENERAL: 'General',
+}
+
+export function muhurtaActivityLabel(activity: MuhurtaActivity, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? MUHURTA_ACTIVITY_LABELS_HI[activity] : MUHURTA_ACTIVITY_LABELS[activity]
+}
+
+function displayScoreLabel(label: MuhurtaScore['label'], lang: EngineLang): MuhurtaScore['label'] {
+  if (lang !== 'hi') return label
+  return SCORE_LABELS_HI[label] as MuhurtaScore['label']
+}
+
+function jyotishTerm(name: string, lang: EngineLang): string {
+  return lang === 'hi' ? termHi(name) : name
+}
+
+function horaLordLabel(lord: GrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? (GRAHA_HI[lord] ?? lord) : lord
 }
 
 export type ChoghadiyaType = 'Amrit' | 'Shubh' | 'Labh' | 'Chala' | 'Rog' | 'Kaal' | 'Udveg'
@@ -79,6 +106,7 @@ export function analyzeMuhurta(
     panchaka?: { isAuspicious: boolean; label: string; remainder: number }
   },
   natal: { moonNak: number; moonSign: number },
+  lang: EngineLang = 'en',
 ): MuhurtaScore {
   let score = 50 // Base score
   const factors: string[] = []
@@ -87,41 +115,61 @@ export function analyzeMuhurta(
   // --- Common Factors (Universal) ---
   if (panchang.isRahuKalam) {
     score -= 30
-    factors.push('Rahu Kalam (Negative)')
+    factors.push(lang === 'hi' ? MA_HI.rahuKalam : 'Rahu Kalam (Negative)')
   }
   if (panchang.isGulikaKalam) {
     score -= 15
-    factors.push('Gulika Kalam (Negative)')
+    factors.push(lang === 'hi' ? MA_HI.gulikaKalam : 'Gulika Kalam (Negative)')
   }
   if (panchang.isYamaganda) {
     score -= 20
-    factors.push('Yamaganda (Negative)')
+    factors.push(lang === 'hi' ? MA_HI.yamaganda : 'Yamaganda (Negative)')
   }
   if (panchang.isAbhijit && activity !== 'TRAVEL') {
     score += 20
-    factors.push('Abhijit Muhurta (Highly Auspicious)')
+    factors.push(lang === 'hi' ? MA_HI.abhijit : 'Abhijit Muhurta (Highly Auspicious)')
   }
 
   // --- Yoga quality (Sun+Moon yoga from panchang) ---
+  const yogaName = jyotishTerm(panchang.yoga.name, lang)
   if (panchang.yoga.quality === 'auspicious') {
     score += 10
-    factors.push(`Yoga: ${panchang.yoga.name} (Auspicious)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.yogaAuspicious, { name: yogaName })
+        : `Yoga: ${panchang.yoga.name} (Auspicious)`,
+    )
   } else if (panchang.yoga.quality === 'inauspicious') {
     score -= 15
-    factors.push(`Yoga: ${panchang.yoga.name} (Inauspicious)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.yogaInauspicious, { name: yogaName })
+        : `Yoga: ${panchang.yoga.name} (Inauspicious)`,
+    )
   } else {
-    factors.push(`Yoga: ${panchang.yoga.name} (Neutral)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.yogaNeutral, { name: yogaName })
+        : `Yoga: ${panchang.yoga.name} (Neutral)`,
+    )
   }
 
   // --- Karana / Bhadra (Vishti) ---
+  const karanaName = jyotishTerm(panchang.karana.name, lang)
   if (panchang.karana.isBhadra) {
     score -= 25
-    factors.push('Karana: Bhadra / Vishti (Avoid lasting acts)')
+    factors.push(lang === 'hi' ? MA_HI.karanaBhadra : 'Karana: Bhadra / Vishti (Avoid lasting acts)')
   } else if (panchang.karana.type === 'fixed') {
     score -= 5
-    factors.push(`Karana: ${panchang.karana.name} (Fixed — mild caution)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.karanaFixed, { name: karanaName })
+        : `Karana: ${panchang.karana.name} (Fixed — mild caution)`,
+    )
   } else {
-    factors.push(`Karana: ${panchang.karana.name}`)
+    factors.push(
+      lang === 'hi' ? fill(MA_HI.karanaPlain, { name: karanaName }) : `Karana: ${panchang.karana.name}`,
+    )
   }
 
   // --- Tara Bala (Natal Alignment) ---
@@ -139,9 +187,11 @@ export function analyzeMuhurta(
     9: { score: 15, name: 'Ati-Mitra (Best Friend)', favorable: true },
   }
   score += taraScores[tara].score
-  factors.push(`Tara Bala: ${taraScores[tara].name}`)
+  const taraDisplay =
+    lang === 'hi' ? (TARA_FACTORS_HI[tara] ?? taraScores[tara].name) : taraScores[tara].name
+  factors.push(lang === 'hi' ? fill(MA_HI.taraBala, { name: taraDisplay }) : `Tara Bala: ${taraScores[tara].name}`)
   diag.taraBala = {
-    name: taraScores[tara].name,
+    name: taraDisplay,
     score: taraScores[tara].score,
     favorable: taraScores[tara].favorable,
   }
@@ -162,36 +212,63 @@ export function analyzeMuhurta(
 
   if (isChandraFavorable) {
     score += 15
-    factors.push(`Chandra Bala: ${dist}th House (Favorable)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.chandraFav, { house: dist })
+        : `Chandra Bala: ${dist}th House (Favorable)`,
+    )
   } else if (isChandraChallenging) {
     score -= 20
-    factors.push(`Chandra Bala: ${dist}th House (Challenging)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.chandraHard, { house: dist })
+        : `Chandra Bala: ${dist}th House (Challenging)`,
+    )
   } else {
-    factors.push(`Chandra Bala: ${dist}th House (Neutral)`)
+    factors.push(
+      lang === 'hi'
+        ? fill(MA_HI.chandraNeutral, { house: dist })
+        : `Chandra Bala: ${dist}th House (Neutral)`,
+    )
   }
 
   // --- Choghadiya ---
   if (panchang.choghadiya) {
+    const chogType =
+      lang === 'hi' ? choghadiyaTypeHi(panchang.choghadiya.type) : panchang.choghadiya.type
     if (panchang.choghadiya.quality === 'Good') {
       score += 15
-      factors.push(`Choghadiya: ${panchang.choghadiya.type} (Good)`)
+      factors.push(
+        lang === 'hi'
+          ? fill(MA_HI.choghadiyaGood, { type: chogType })
+          : `Choghadiya: ${panchang.choghadiya.type} (Good)`,
+      )
     } else if (panchang.choghadiya.quality === 'Bad') {
       score -= 20
-      factors.push(`Choghadiya: ${panchang.choghadiya.type} (Bad)`)
+      factors.push(
+        lang === 'hi'
+          ? fill(MA_HI.choghadiyaBad, { type: chogType })
+          : `Choghadiya: ${panchang.choghadiya.type} (Bad)`,
+      )
     }
     diag.choghadiya = { type: panchang.choghadiya.type, quality: panchang.choghadiya.quality }
   }
 
   // --- Panchaka ---
   if (panchang.panchaka) {
+    const pkLabel = panchakaDisplayLabel(
+      panchang.panchaka.remainder,
+      panchang.panchaka.isAuspicious,
+      lang,
+    )
     if (!panchang.panchaka.isAuspicious) {
       score -= 15
-      factors.push(`Panchaka: ${panchang.panchaka.label}`)
+      factors.push(lang === 'hi' ? fill(MA_HI.panchaka, { label: pkLabel }) : `Panchaka: ${panchang.panchaka.label}`)
     } else {
-      factors.push('Panchaka: Shubh')
+      factors.push(lang === 'hi' ? MA_HI.panchakaShubh : 'Panchaka: Shubh')
     }
     diag.panchaka = {
-      label: panchang.panchaka.label,
+      label: pkLabel,
       isAuspicious: panchang.panchaka.isAuspicious,
       remainder: panchang.panchaka.remainder,
     }
@@ -212,127 +289,137 @@ export function analyzeMuhurta(
     }
     if (horaTargets[activity].includes(panchang.horaLord)) {
       score += 10
-      factors.push(`Auspicious Hora: ${panchang.horaLord}`)
+      factors.push(
+        lang === 'hi'
+          ? fill(MA_HI.horaGood, { lord: horaLordLabel(panchang.horaLord, lang) })
+          : `Auspicious Hora: ${panchang.horaLord}`,
+      )
     }
   }
+
+  const varaDay = jyotishTerm(panchang.vara.name, lang)
 
   // --- Activity Specific Logic ---
   switch (activity) {
     case 'BUSINESS':
       if ([2, 3, 5, 7, 10, 11, 13].includes(panchang.tithi.number % 15 || 15)) {
-        score += 15;
-        factors.push('Favorable Tithi for Commerce');
+        score += 15
+        factors.push(lang === 'hi' ? MA_HI.commerceTithi : 'Favorable Tithi for Commerce')
       }
       if (['Ashwini', 'Pushya', 'Hasta', 'Chitra', 'Revati'].includes(panchang.nakshatra.name)) {
-        score += 15;
-        factors.push('Prosperity Nakshatra');
+        score += 15
+        factors.push(lang === 'hi' ? MA_HI.prosperityNak : 'Prosperity Nakshatra')
       }
       if (panchang.vara.name === 'Wednesday' || panchang.vara.name === 'Thursday') {
-        score += 10;
-        factors.push(`${panchang.vara.name} (Mercury/Jupiter Day)`);
+        score += 10
+        factors.push(
+          lang === 'hi'
+            ? fill(MA_HI.mercuryJupiterDay, { day: varaDay })
+            : `${panchang.vara.name} (Mercury/Jupiter Day)`,
+        )
       }
-      break;
+      break
 
     case 'TRAVEL':
       if (['Ashwini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana', 'Dhanishta', 'Shatabhisha'].includes(panchang.nakshatra.name)) {
-        score += 20;
-        factors.push('Excellent Nakshatra for Journey');
+        score += 20
+        factors.push(lang === 'hi' ? MA_HI.travelNak : 'Excellent Nakshatra for Journey')
       }
       if (panchang.tithi.number === 4 || panchang.tithi.number === 9 || panchang.tithi.number === 14) {
-        score -= 20;
-        factors.push('Rikta Tithi (Avoid Travel)');
+        score -= 20
+        factors.push(lang === 'hi' ? MA_HI.riktaTravel : 'Rikta Tithi (Avoid Travel)')
       }
-      break;
+      break
 
     case 'REAL_ESTATE':
       if (['Rohini', 'Mrigashira', 'Chitra', 'Anuradha', 'Revati'].includes(panchang.nakshatra.name)) {
-        score += 20;
-        factors.push('Stability Nakshatra');
+        score += 20
+        factors.push(lang === 'hi' ? MA_HI.stabilityNak : 'Stability Nakshatra')
       }
       if (panchang.vara.name === 'Thursday' || panchang.vara.name === 'Friday') {
-        score += 10;
-        factors.push('Auspicious Weekday');
+        score += 10
+        factors.push(lang === 'hi' ? MA_HI.auspiciousWeekday : 'Auspicious Weekday')
       }
-      break;
+      break
 
     case 'SPIRITUAL':
       if (panchang.nakshatra.name === 'Pushya' || panchang.nakshatra.name === 'Shravana') {
-        score += 25;
-        factors.push('Divine Nakshatra');
+        score += 25
+        factors.push(lang === 'hi' ? MA_HI.divineNak : 'Divine Nakshatra')
       }
       if (panchang.tithi.name === 'Purnima' || panchang.tithi.number === 11) {
-        score += 20;
-        factors.push('Soul-Cleaning Tithi');
+        score += 20
+        factors.push(lang === 'hi' ? MA_HI.soulTithi : 'Soul-Cleaning Tithi')
       }
-      break;
+      break
 
     case 'HEALTH':
       if (['Ashwini', 'Pushya', 'Hasta'].includes(panchang.nakshatra.name)) {
-        score += 20;
-        factors.push('Vibrant Health Nakshatra');
+        score += 20
+        factors.push(lang === 'hi' ? MA_HI.healthNak : 'Vibrant Health Nakshatra')
       }
       if (panchang.vara.name === 'Sunday') {
-        score += 10;
-        factors.push('Sun (Vitality) Day');
+        score += 10
+        factors.push(lang === 'hi' ? MA_HI.sunVitalityDay : 'Sun (Vitality) Day')
       }
-      break;
+      break
 
     case 'RELATIONSHIP':
       if (['Rohini', 'Mrigashira', 'Anuradha', 'Revati'].includes(panchang.nakshatra.name)) {
-        score += 20;
-        factors.push('Connection Harmony Nakshatra');
+        score += 20
+        factors.push(lang === 'hi' ? MA_HI.harmonyNak : 'Connection Harmony Nakshatra')
       }
       if (panchang.vara.name === 'Friday' || panchang.vara.name === 'Monday') {
-        score += 10;
-        factors.push('Love/Emotion Day');
+        score += 10
+        factors.push(lang === 'hi' ? MA_HI.loveEmotionDay : 'Love/Emotion Day')
       }
-      break;
+      break
 
     case 'MARRIAGE':
       if (['Rohini', 'Mrigashira', 'Magha', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Mula', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(panchang.nakshatra.name)) {
-        score += 25;
-        factors.push('Classical Vivaha Nakshatra');
+        score += 25
+        factors.push(lang === 'hi' ? MA_HI.vivahaNak : 'Classical Vivaha Nakshatra')
       }
       if ([2, 3, 5, 7, 10, 11, 13].includes(panchang.tithi.number % 15 || 15)) {
-        score += 15;
-        factors.push('Strong Marriage Tithi');
+        score += 15
+        factors.push(lang === 'hi' ? MA_HI.marriageTithi : 'Strong Marriage Tithi')
       }
       if (panchang.vara.name === 'Friday' || panchang.vara.name === 'Thursday') {
-        score += 10;
-        factors.push('Auspicious Wedding Day');
+        score += 10
+        factors.push(lang === 'hi' ? MA_HI.weddingDay : 'Auspicious Wedding Day')
       }
-      break;
+      break
 
     case 'EDUCATION':
       if (['Rohini', 'Mrigashira', 'Punarvasu', 'Hasta', 'Chitra', 'Swati', 'Anuradha', 'Shravana'].includes(panchang.nakshatra.name)) {
-        score += 20;
-        factors.push('Knowledge Seeker Nakshatra');
+        score += 20
+        factors.push(lang === 'hi' ? MA_HI.knowledgeNak : 'Knowledge Seeker Nakshatra')
       }
       if ([2, 5, 6, 7, 10, 11].includes(panchang.tithi.number % 15 || 15)) {
-        score += 10;
-        factors.push('Good Tithi for Learning');
+        score += 10
+        factors.push(lang === 'hi' ? MA_HI.learningTithi : 'Good Tithi for Learning')
       }
-      break;
+      break
 
     case 'GENERAL':
-      if (panchang.choghadiya?.quality === 'Good') score += 10;
-      if (panchang.isAbhijit) score += 10;
-      break;
+      if (panchang.choghadiya?.quality === 'Good') score += 10
+      if (panchang.isAbhijit) score += 10
+      break
   }
 
   // Final normalization
-  const finalScore = Math.max(0, Math.min(100, score));
-  let label: MuhurtaScore['label'] = 'Neutral';
-  if (finalScore >= 80) label = 'Excellent';
-  else if (finalScore >= 65) label = 'Good';
-  else if (finalScore >= 45) label = 'Neutral';
-  else if (finalScore >= 30) label = 'Challenging';
-  else label = 'Avoid';
+  const finalScore = Math.max(0, Math.min(100, score))
+  let label: MuhurtaScore['label'] = 'Neutral'
+  if (finalScore >= 80) label = 'Excellent'
+  else if (finalScore >= 65) label = 'Good'
+  else if (finalScore >= 45) label = 'Neutral'
+  else if (finalScore >= 30) label = 'Challenging'
+  else label = 'Avoid'
 
   return {
     score: finalScore,
-    label,
+    label: displayScoreLabel(label, lang),
     factors,
-    diagnostics: diag
-  };
+    diagnostics: diag,
+  }
 }

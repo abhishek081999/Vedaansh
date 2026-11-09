@@ -12,6 +12,14 @@ import {
   classifySaturnFromMoon,
   type SaturnMoonPhaseKind,
 } from '@/lib/engine/sadeSati'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import {
+  KIND_LABEL_HI,
+  MONTH_NAMES_HI,
+  TRANSIT_CALENDAR_HI,
+} from '@/lib/engine/locale/transitCalendar.hi'
+import { termHi } from '@/i18n/jyotish'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
 import { SWISSEPH_IDS, dateToJD, getPlanetPosition, signOf } from '@/lib/engine/ephemeris'
 
@@ -79,13 +87,31 @@ function saturnKindOnDay(moonRashi: Rashi, date: Date): SaturnMoonPhaseKind {
   return classifySaturnFromMoon(house)
 }
 
-function eventLabel(ev: TransitEvent): string {
-  const name = GRAHA_NAMES[ev.planetId] ?? ev.planetId
-  if (ev.type === 'sign_change') return `${name} → ${RASHI_NAMES[ev.sign as Rashi] ?? ev.sign}`
+function kindLabel(kind: SaturnMoonPhaseKind, lang: EngineLang): string {
+  return lang === 'hi' ? KIND_LABEL_HI[kind] : KIND_LABEL[kind]
+}
+
+function monthName(month: number, lang: EngineLang): string {
+  return lang === 'hi' ? MONTH_NAMES_HI[month - 1]! : MONTH_NAMES[month - 1]!
+}
+
+function eventLabel(ev: TransitEvent, lang: EngineLang): string {
+  const name = lang === 'hi' ? gName(ev.planetId, 'hi') : (GRAHA_NAMES[ev.planetId] ?? ev.planetId)
+  if (ev.type === 'sign_change') {
+    const sign = lang === 'hi' ? rName(ev.sign as Rashi, 'hi') : (RASHI_NAMES[ev.sign as Rashi] ?? ev.sign)
+    return `${name} → ${sign}`
+  }
   if (ev.type === 'house_change') return `${name} H${ev.house}`
-  if (ev.type === 'retrograde_start') return `${name} Rx`
-  if (ev.type === 'retrograde_end') return `${name} Dir`
-  if (ev.type === 'nakshatra_change') return `${name} ${ev.nakshatra}`
+  if (ev.type === 'retrograde_start') {
+    return lang === 'hi' ? `${name} ${TRANSIT_CALENDAR_HI.rx}` : `${name} Rx`
+  }
+  if (ev.type === 'retrograde_end') {
+    return lang === 'hi' ? `${name} ${TRANSIT_CALENDAR_HI.dir}` : `${name} Dir`
+  }
+  if (ev.type === 'nakshatra_change') {
+    const nak = lang === 'hi' ? termHi(ev.nakshatra) : ev.nakshatra
+    return `${name} ${nak}`
+  }
   return `${name} ${ev.type.replace(/_/g, ' ')}`
 }
 
@@ -97,12 +123,14 @@ export function buildTransitMonthCalendar(input: {
   moonRashi: Rashi
   year: number
   month: number // 1–12
+  lang?: EngineLang
 }): TransitCalendarMonth {
   const { ascRashi, moonRashi, year, month } = input
+  const lang: EngineLang = input.lang === 'hi' ? 'hi' : 'en'
   const nDays = daysInMonth(year, month)
   const start = utcNoon(year, month, 1)
 
-  const rawEvents = calculatePersonalTransits(ascRashi, start, 1.05)
+  const rawEvents = calculatePersonalTransits(ascRashi, start, 1.05, lang)
   const byDate = new Map<string, TransitEvent[]>()
   for (const ev of rawEvents) {
     if (!ev.date.startsWith(`${year}-${String(month).padStart(2, '0')}`)) continue
@@ -124,9 +152,9 @@ export function buildTransitMonthCalendar(input: {
       .slice(0, 6)
       .map(ev => ({
         planetId: ev.planetId,
-        planetName: GRAHA_NAMES[ev.planetId] ?? ev.planetId,
+        planetName: lang === 'hi' ? gName(ev.planetId, 'hi') : (GRAHA_NAMES[ev.planetId] ?? ev.planetId),
         type: ev.type,
-        label: eventLabel(ev),
+        label: eventLabel(ev, lang),
         isMajor: ev.isMajor,
       }))
 
@@ -151,14 +179,17 @@ export function buildTransitMonthCalendar(input: {
       day: d,
       events: dayEvents,
       sadeSatiKind: kind,
-      sadeSatiLabel: KIND_LABEL[kind],
+      sadeSatiLabel: kindLabel(kind, lang),
       majorSnippet,
       flags,
     })
   }
 
-  const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`
-  const summary = `${monthLabel}: ${eventDays} major-event day(s); Saturn–Moon stress on ${ssDays} day(s).`
+  const monthLabel = `${monthName(month, lang)} ${year}`
+  const summary =
+    lang === 'hi'
+      ? fill(TRANSIT_CALENDAR_HI.summary, { monthLabel, eventDays, ssDays })
+      : `${monthLabel}: ${eventDays} major-event day(s); Saturn–Moon stress on ${ssDays} day(s).`
 
   return {
     year,
@@ -177,9 +208,16 @@ function rashiShort(sign: number): string {
 }
 
 /** Compact HTML for print / PDF-lite month ephemeris. */
-export function transitCalendarToHtml(cal: TransitCalendarMonth, nativeName?: string): string {
+export function transitCalendarToHtml(
+  cal: TransitCalendarMonth,
+  nativeName?: string,
+  lang: EngineLang = 'en',
+): string {
+  const hi = lang === 'hi'
+  const html = hi ? TRANSIT_CALENDAR_HI.html : null
+  const empty = '—'
   const rows = cal.days.map(d => {
-    const ev = d.events.map(e => e.label).join('; ') || '—'
+    const ev = d.events.map(e => e.label).join('; ') || empty
     return `<tr>
       <td>${d.dateIso}</td>
       <td>${d.sadeSatiLabel}</td>
@@ -188,7 +226,23 @@ export function transitCalendarToHtml(cal: TransitCalendarMonth, nativeName?: st
     </tr>`
   }).join('')
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Gochar ${cal.monthLabel}</title>
+  const title = hi
+    ? `${html!.titlePrefix} ${cal.monthLabel}`
+    : `Gochar ${cal.monthLabel}`
+  const heading = hi
+    ? fill(html!.heading, { monthLabel: cal.monthLabel })
+    : `Personal Gochar — ${cal.monthLabel}`
+  const lagnaLabel = hi ? html!.lagna : 'Lagna'
+  const moonLabel = hi ? html!.moon : 'Moon'
+  const thDate = hi ? html!.thDate : 'Date'
+  const thSaMoon = hi ? html!.thSaMoon : 'Sa–Moon'
+  const thMajors = hi ? html!.thMajors : 'Ju/Sa/Ra/Ke'
+  const thEvents = hi ? html!.thEvents : 'Events'
+  const footer = hi
+    ? html!.footer
+    : 'Vedaansh · Educational timing only · Confirm with dasha'
+
+  return `<!DOCTYPE html><html lang="${hi ? 'hi' : 'en'}"><head><meta charset="utf-8"/><title>${title}</title>
 <style>
 body{font-family:Georgia,serif;padding:24px;color:#222}
 h1{font-size:1.4rem;margin:0 0 4px}
@@ -198,12 +252,12 @@ th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}
 th{background:#f5f0e6}
 @media print{body{padding:0}}
 </style></head><body>
-<h1>Personal Gochar — ${cal.monthLabel}</h1>
-<div class="meta">${nativeName ? `${nativeName} · ` : ''}Lagna R${cal.ascRashi} · Moon R${cal.moonRashi}<br/>${cal.summary}</div>
+<h1>${heading}</h1>
+<div class="meta">${nativeName ? `${nativeName} · ` : ''}${lagnaLabel} R${cal.ascRashi} · ${moonLabel} R${cal.moonRashi}<br/>${cal.summary}</div>
 <table>
-<thead><tr><th>Date</th><th>Sa–Moon</th><th>Ju/Sa/Ra/Ke</th><th>Events</th></tr></thead>
+<thead><tr><th>${thDate}</th><th>${thSaMoon}</th><th>${thMajors}</th><th>${thEvents}</th></tr></thead>
 <tbody>${rows}</tbody>
 </table>
-<p style="margin-top:1.5rem;font-size:11px;color:#888">Vedaansh · Educational timing only · Confirm with dasha</p>
+<p style="margin-top:1.5rem;font-size:11px;color:#888">${footer}</p>
 </body></html>`
 }

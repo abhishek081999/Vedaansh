@@ -671,11 +671,16 @@
 
 .calTara {
   margin-top: 2px;
+  max-width: 100%;
+  overflow: hidden;
+  padding-inline: 1px;
   font-size: 0.52rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--text-muted);
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calToday {

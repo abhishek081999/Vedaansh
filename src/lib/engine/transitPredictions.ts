@@ -7,8 +7,21 @@
 // ─────────────────────────────────────────────────────────────
 
 import { GRAHA_NAMES, type GrahaId } from '@/types/astrology'
-import { FORECAST_AREAS, type ForecastAreaId } from '@/lib/engine/transitForecastAreas'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName } from '@/lib/engine/divisionalLang'
+import {
+  FORECAST_AREAS,
+  forecastAreaLabel,
+  type ForecastAreaId,
+} from '@/lib/engine/transitForecastAreas'
 import { TRANSIT_INTERPRETATIONS } from '@/lib/engine/transits'
+import {
+  MONTH_OPENERS_HI,
+  PREDICTIONS_HI,
+  TRANSIT_INTERPRETATIONS_HI,
+  VOICE_HI,
+  type AreaVoiceHi,
+} from '@/lib/engine/locale/transitPredictions.hi'
 import type {
   ForecastPoint,
   ForecastTrackSegment,
@@ -135,6 +148,14 @@ const MONTH_OPENERS: Record<PredictionTone, string[]> = {
   pressure: ['A demanding month — pace yourself.', 'Expect friction and slower results this month.', 'A month for patience and consolidation.'],
 }
 
+function voiceOf(id: ForecastAreaId, lang: EngineLang): AreaVoice | AreaVoiceHi {
+  return lang === 'hi' ? VOICE_HI[id] : VOICE[id]
+}
+
+function openersOf(lang: EngineLang): Record<PredictionTone, string[]> {
+  return lang === 'hi' ? MONTH_OPENERS_HI : MONTH_OPENERS
+}
+
 // ── Helpers ──────────────────────────────────────────────────
 
 function toneOf(score: number): PredictionTone {
@@ -143,20 +164,23 @@ function toneOf(score: number): PredictionTone {
   return 'mixed'
 }
 
-function fmtMonth(iso: string): string {
-  return new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso.slice(0, 7)}-15T12:00:00Z`))
+function fmtMonth(iso: string, lang: EngineLang): string {
+  const locale = lang === 'hi' ? 'hi-IN' : 'en-IN'
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso.slice(0, 7)}-15T12:00:00Z`))
 }
 
-function fmtDay(iso: string): string {
-  return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
+function fmtDay(iso: string, lang: EngineLang): string {
+  const locale = lang === 'hi' ? 'hi-IN' : 'en-IN'
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
 }
 
-function fmtRange(a: string, b: string): string {
-  return `${fmtDay(a)} – ${fmtDay(b)}`
+function fmtRange(a: string, b: string, lang: EngineLang): string {
+  return `${fmtDay(a, lang)} – ${fmtDay(b, lang)}`
 }
 
-function grahaName(id?: GrahaId): string {
-  return id ? GRAHA_NAMES[id] ?? id : ''
+function grahaName(id: GrahaId | undefined, lang: EngineLang): string {
+  if (!id) return ''
+  return lang === 'hi' ? gName(id, 'hi') : GRAHA_NAMES[id] ?? id
 }
 
 function avg(values: number[]): number {
@@ -164,8 +188,10 @@ function avg(values: number[]): number {
 }
 
 /** First `n` comma-separated phrases of a voice string, joined naturally. */
-function lead(s: string, n = 1): string {
-  return s.split(',').map(x => x.trim()).filter(Boolean).slice(0, n).join(' and ')
+function lead(s: string, n = 1, lang: EngineLang = 'en'): string {
+  const parts = s.split(',').map(x => x.trim()).filter(Boolean).slice(0, n)
+  if (lang === 'hi') return parts.join(' और ')
+  return parts.join(' and ')
 }
 
 function lowerFirst(s: string): string {
@@ -192,8 +218,13 @@ function weakestStretch(points: ForecastPoint[], id: ForecastAreaId): { startIso
   return best ? { startIso: points[best.s].dateIso, endIso: points[best.e].dateIso, avg: Math.round(best.a) } : null
 }
 
+function transitTheme(planet: string, house: number, lang: EngineLang): string | undefined {
+  if (lang === 'hi') return TRANSIT_INTERPRETATIONS_HI[planet]?.[house] ?? TRANSIT_INTERPRETATIONS[planet]?.[house]
+  return TRANSIT_INTERPRETATIONS[planet]?.[house]
+}
+
 /** Slow-planet themes for houses of an area that are occupied right now. */
-function areaThemes(id: ForecastAreaId, tracks: ForecastTrackSegment[], asOfIso: string): string[] {
+function areaThemes(id: ForecastAreaId, tracks: ForecastTrackSegment[], asOfIso: string, lang: EngineLang): string[] {
   const def = FORECAST_AREAS.find(a => a.id === id)
   if (!def) return []
   const houses = new Set([...def.primary, ...def.secondary])
@@ -202,8 +233,19 @@ function areaThemes(id: ForecastAreaId, tracks: ForecastTrackSegment[], asOfIso:
     if (t.planet === 'Ma') continue
     if (!(t.startIso <= asOfIso && asOfIso < t.endIso)) continue
     if (!houses.has(t.houseFromLagna)) continue
-    const theme = TRANSIT_INTERPRETATIONS[t.planet]?.[t.houseFromLagna]
-    if (theme) out.push(`${GRAHA_NAMES[t.planet]} in your ${t.houseFromLagna}${ordSuffix(t.houseFromLagna)} house (${t.signName}, until ${fmtDay(t.endIso)}): ${theme}`)
+    const theme = transitTheme(t.planet, t.houseFromLagna, lang)
+    if (!theme) continue
+    if (lang === 'hi') {
+      out.push(fill(PREDICTIONS_HI.theme, {
+        planet: grahaName(t.planet, lang),
+        house: t.houseFromLagna,
+        sign: t.signName,
+        day: fmtDay(t.endIso, lang),
+        theme,
+      }))
+    } else {
+      out.push(`${GRAHA_NAMES[t.planet]} in your ${t.houseFromLagna}${ordSuffix(t.houseFromLagna)} house (${t.signName}, until ${fmtDay(t.endIso, 'en')}): ${theme}`)
+    }
   }
   return out
 }
@@ -214,13 +256,61 @@ function ordSuffix(n: number): string {
   return s[(v - 20) % 10] ?? s[v] ?? s[0]
 }
 
+function ordHouse(n: number, lang: EngineLang): string {
+  if (lang === 'hi') return String(n)
+  return `${n}${ordSuffix(n)}`
+}
+
 // ── Builders ─────────────────────────────────────────────────
 
-function buildOverview(r: ForecastCore, areaAvg: Array<{ label: string; v: number }>): string[] {
-  // The headline already leads the hero, so the overview starts with the drivers.
+function buildOverview(r: ForecastCore, areaAvg: Array<{ label: string; v: number }>, lang: EngineLang): string[] {
   const out: string[] = []
   const plus = r.now.drivers.filter(d => d.impact > 0).slice(0, 2)
   const minus = r.now.drivers.filter(d => d.impact < 0).slice(0, 2)
+  if (lang === 'hi') {
+    const P = PREDICTIONS_HI.overview
+    if (plus.length || minus.length) {
+      const parts: string[] = []
+      if (plus.length) {
+        parts.push(fill(P.supportFrom, {
+          list: plus.map(d => fill(P.driverItem, { planet: d.planetName, house: ordHouse(d.houseFromMoon, lang) })).join(' और '),
+        }))
+      }
+      if (minus.length) {
+        parts.push(fill(P.pressureFrom, {
+          list: minus.map(d => fill(P.driverItem, { planet: d.planetName, house: ordHouse(d.houseFromMoon, lang) })).join(' और '),
+        }))
+      }
+      out.push(fill(P.rightNow, { parts: parts.join(P.while) }))
+    }
+    if (r.now.md) {
+      const lords = [r.now.md, r.now.ad].filter((x, i, a): x is GrahaId => !!x && a.indexOf(x) === i)
+      const lordDrivers = r.now.drivers.filter(d => lords.includes(d.planet))
+      const state = lordDrivers.length
+        ? lordDrivers.map(d =>
+            fill(
+              d.status === 'favourable' ? P.wellPlaced : d.status === 'vedha' ? P.obstructed : P.underStrain,
+              { planet: d.planetName },
+            )).join('; ')
+        : P.neutralTransits
+      out.push(fill(P.dashaRunning, {
+        md: grahaName(r.now.md, lang),
+        ad: grahaName(r.now.ad, lang),
+        state,
+        effort: lordDrivers.some(d => d.impact < 0) ? P.effortHard : P.effortEasy,
+      }))
+    }
+    const sorted = [...areaAvg].sort((a, b) => b.v - a.v)
+    const fav = r.windows.filter(w => w.kind === 'favourable').sort((a, b) => b.avg - a.avg)[0]
+    const caution = r.windows.filter(w => w.kind === 'caution').sort((a, b) => a.avg - b.avg)[0]
+    const yearBits = [fill(P.yearStrongWeak, { strong: sorted[0].label, weak: sorted[sorted.length - 1].label })]
+    if (fav) yearBits.push(fill(P.bestStretch, { range: fmtRange(fav.startIso, fav.endIso, lang) }))
+    if (caution) yearBits.push(fill(P.toughStretch, { range: fmtRange(caution.startIso, caution.endIso, lang) }))
+    out.push(yearBits.join(' '))
+    return out
+  }
+
+  // English (byte-identical)
   if (plus.length || minus.length) {
     const parts: string[] = []
     if (plus.length) parts.push(`support comes from ${plus.map(d => `${d.planetName} (${d.houseFromMoon}${ordSuffix(d.houseFromMoon)} from Moon)`).join(' and ')}`)
@@ -233,22 +323,67 @@ function buildOverview(r: ForecastCore, areaAvg: Array<{ label: string; v: numbe
     const state = lordDrivers.length
       ? lordDrivers.map(d => `${d.planetName} is ${d.status === 'favourable' ? 'well placed' : d.status === 'vedha' ? 'obstructed' : 'under strain'} in transit`).join('; ')
       : 'their transits are neutral'
-    out.push(`You are running ${grahaName(r.now.md)} Mahadasha / ${grahaName(r.now.ad)} Antardasha — ${state}, so dasha results ${lordDrivers.some(d => d.impact < 0) ? 'need more effort to show' : 'can manifest readily'}.`)
+    out.push(`You are running ${grahaName(r.now.md, 'en')} Mahadasha / ${grahaName(r.now.ad, 'en')} Antardasha — ${state}, so dasha results ${lordDrivers.some(d => d.impact < 0) ? 'need more effort to show' : 'can manifest readily'}.`)
   }
   const sorted = [...areaAvg].sort((a, b) => b.v - a.v)
   const fav = r.windows.filter(w => w.kind === 'favourable').sort((a, b) => b.avg - a.avg)[0]
   const caution = r.windows.filter(w => w.kind === 'caution').sort((a, b) => a.avg - b.avg)[0]
   const yearBits = [`Over the period, ${sorted[0].label.toLowerCase()} is your strongest area and ${sorted[sorted.length - 1].label.toLowerCase()} needs the most care.`]
-  if (fav) yearBits.push(`The best stretch is ${fmtRange(fav.startIso, fav.endIso)}.`)
-  if (caution) yearBits.push(`The toughest is ${fmtRange(caution.startIso, caution.endIso)} — plan lighter commitments then.`)
+  if (fav) yearBits.push(`The best stretch is ${fmtRange(fav.startIso, fav.endIso, 'en')}.`)
+  if (caution) yearBits.push(`The toughest is ${fmtRange(caution.startIso, caution.endIso, 'en')} — plan lighter commitments then.`)
   out.push(yearBits.join(' '))
   return out
 }
 
-function buildAreas(r: ForecastCore): AreaPrediction[] {
+function buildAreas(r: ForecastCore, lang: EngineLang): AreaPrediction[] {
   return r.areaOutlooks.map(o => {
-    const v = VOICE[o.id]
+    const v = voiceOf(o.id, lang)
     const tone = toneOf(o.now)
+    if (lang === 'hi') {
+      const A = PREDICTIONS_HI.area
+      const verdict = tone === 'supportive'
+        ? fill(A.verdictGood, { noun: v.noun })
+        : tone === 'pressure' ? fill(A.verdictHard, { noun: v.noun }) : fill(A.verdictMixed, { noun: v.noun })
+      const nowText = tone === 'supportive'
+        ? fill(A.expectGood, { good: v.good })
+        : tone === 'pressure'
+          ? fill(A.expectHard, { hard: v.hard })
+          : fill(A.expectMixed, { good: lead(v.good, 1, lang), hard: lead(v.hard, 1, lang) })
+      const trend = o.trend === 'rising' ? A.trendRising
+        : o.trend === 'falling' ? A.trendFalling : ''
+      const ahead: string[] = []
+      if (o.bestWindow) {
+        ahead.push(fill(A.peak, {
+          range: fmtRange(o.bestWindow.startIso, o.bestWindow.endIso, lang),
+          good: lead(v.good, 1, lang),
+        }))
+      }
+      if (o.nextDoubleTransitIso) {
+        ahead.push(o.nextDoubleTransitIso <= r.asOfIso
+          ? A.doubleNow
+          : fill(A.doubleFrom, { day: fmtDay(o.nextDoubleTransitIso, lang) }))
+      }
+      const weak = weakestStretch(r.points, o.id)
+      if (weak) {
+        ahead.push(fill(A.careful, {
+          range: fmtRange(weak.startIso, weak.endIso, lang),
+          hard: lead(v.hard, 1, lang),
+        }))
+      }
+      if (!ahead.length) ahead.push(A.evenAhead)
+      return {
+        id: o.id,
+        label: o.label,
+        tone,
+        verdict,
+        now: `${nowText}${trend}`,
+        ahead: ahead.join(' '),
+        themes: [...areaThemes(o.id, r.tracks, r.asOfIso, lang), ...o.notes].slice(0, 4),
+        doList: tone === 'pressure' ? v.doHard : v.doGood,
+        avoidList: tone === 'pressure' ? v.avoidHard : v.avoidGood,
+      }
+    }
+
     const verdict = tone === 'supportive'
       ? `Favourable for ${v.noun}.`
       : tone === 'pressure' ? `A testing phase for ${v.noun}.` : `Mixed conditions for ${v.noun}.`
@@ -258,14 +393,14 @@ function buildAreas(r: ForecastCore): AreaPrediction[] {
     const trend = o.trend === 'rising' ? ' Conditions improve over the coming weeks.'
       : o.trend === 'falling' ? ' Conditions soften over the coming weeks — use the present window.' : ''
     const ahead: string[] = []
-    if (o.bestWindow) ahead.push(`Peak period: ${fmtRange(o.bestWindow.startIso, o.bestWindow.endIso)} — the best time for ${lead(v.good)}.`)
+    if (o.bestWindow) ahead.push(`Peak period: ${fmtRange(o.bestWindow.startIso, o.bestWindow.endIso, 'en')} — the best time for ${lead(v.good)}.`)
     if (o.nextDoubleTransitIso) {
       ahead.push(o.nextDoubleTransitIso <= r.asOfIso
         ? 'Jupiter and Saturn both influence this area now (double transit) — concrete events are likely.'
-        : `Jupiter + Saturn double transit from ${fmtDay(o.nextDoubleTransitIso)} — a classic trigger for concrete events here.`)
+        : `Jupiter + Saturn double transit from ${fmtDay(o.nextDoubleTransitIso, 'en')} — a classic trigger for concrete events here.`)
     }
     const weak = weakestStretch(r.points, o.id)
-    if (weak) ahead.push(`Go carefully ${fmtRange(weak.startIso, weak.endIso)}, when ${lead(v.hard)} is more likely.`)
+    if (weak) ahead.push(`Go carefully ${fmtRange(weak.startIso, weak.endIso, 'en')}, when ${lead(v.hard)} is more likely.`)
     if (!ahead.length) ahead.push('No sharp peaks or dips ahead — results follow effort.')
 
     return {
@@ -275,14 +410,14 @@ function buildAreas(r: ForecastCore): AreaPrediction[] {
       verdict,
       now: `${nowText}${trend}`,
       ahead: ahead.join(' '),
-      themes: [...areaThemes(o.id, r.tracks, r.asOfIso), ...o.notes].slice(0, 4),
+      themes: [...areaThemes(o.id, r.tracks, r.asOfIso, 'en'), ...o.notes].slice(0, 4),
       doList: tone === 'pressure' ? v.doHard : v.doGood,
       avoidList: tone === 'pressure' ? v.avoidHard : v.avoidGood,
     }
   })
 }
 
-function buildMonths(r: ForecastCore): MonthPrediction[] {
+function buildMonths(r: ForecastCore, lang: EngineLang): MonthPrediction[] {
   const groups = new Map<string, ForecastPoint[]>()
   for (const p of r.points) {
     const k = p.dateIso.slice(0, 7)
@@ -290,48 +425,110 @@ function buildMonths(r: ForecastCore): MonthPrediction[] {
   }
   let i = 0
   const out: MonthPrediction[] = []
+  const openers = openersOf(lang)
   for (const [month, pts] of groups) {
     if (pts.length < 2 && out.length > 0) continue // partial trailing month
     const score = Math.round(avg(pts.map(p => p.overall)))
     const tone = toneOf(score)
-    const areaScores = FORECAST_AREAS.map(a => ({ a, v: avg(pts.map(p => p.areas[a.id].score)) })).sort((x, y) => y.v - x.v)
+    const areaScores = FORECAST_AREAS.map(a => ({
+      a,
+      label: forecastAreaLabel(a.id, lang),
+      v: avg(pts.map(p => p.areas[a.id].score)),
+    })).sort((x, y) => y.v - x.v)
     const best = areaScores[0]
     const watch = areaScores[areaScores.length - 1]
     const evs = r.events.filter(e => e.dateIso.slice(0, 7) === month)
     const slowEvs = evs.filter(e => e.kind === 'dasha' || ['Ju', 'Sa', 'Ra', 'Ke'].includes(e.planet))
-    const opener = MONTH_OPENERS[tone][i % MONTH_OPENERS[tone].length]
-    const sentences = [
-      opener,
-      `${best.a.label} is the bright spot — ${lowerFirst(lead(VOICE[best.a.id].good, 2))}.`,
-    ]
-    if (watch.v <= 46) sentences.push(`Watch ${watch.a.label.toLowerCase()}: ${lead(VOICE[watch.a.id].hard)}.`)
-    if (slowEvs.length) sentences.push(`Turning point${slowEvs.length > 1 ? 's' : ''}: ${slowEvs.map(e => `${e.label} (${fmtDay(e.dateIso).replace(/ \d{4}$/, '')})`).join('; ')}.`)
-    const dt = FORECAST_AREAS.filter(a => pts.some(p => p.areas[a.id].doubleTransit))
-    if (dt.length) sentences.push(`Double transit active on ${dt.map(a => a.label.toLowerCase()).join(', ')}.`)
-    out.push({
-      month,
-      score,
-      tone,
-      headline: `${fmtMonth(month)} · ${tone === 'supportive' ? 'Supportive' : tone === 'pressure' ? 'Challenging' : 'Mixed'}`,
-      text: sentences.join(' '),
-      bestArea: best.a.label,
-      watchArea: watch.a.label,
-      events: [...evs].sort((a, b) => a.dateIso.localeCompare(b.dateIso)).map(e => `${fmtDay(e.dateIso).replace(/ \d{4}$/, '')} — ${e.label}`),
-    })
+    const opener = openers[tone][i % openers[tone].length]
+    const bestVoice = voiceOf(best.a.id, lang)
+    const watchVoice = voiceOf(watch.a.id, lang)
+
+    if (lang === 'hi') {
+      const M = PREDICTIONS_HI.month
+      const sentences = [
+        opener,
+        fill(M.bright, { area: best.label, good: lowerFirst(lead(bestVoice.good, 2, lang)) }),
+      ]
+      if (watch.v <= 46) sentences.push(fill(M.watch, { area: watch.label, hard: lead(watchVoice.hard, 1, lang) }))
+      if (slowEvs.length) {
+        sentences.push(fill(M.turning, {
+          plural: slowEvs.length > 1 ? M.turningPlural : '',
+          list: slowEvs.map(e => `${e.label} (${fmtDay(e.dateIso, lang).replace(/ \d{4}$/, '')})`).join('; '),
+        }))
+      }
+      const dt = FORECAST_AREAS.filter(a => pts.some(p => p.areas[a.id].doubleTransit))
+      if (dt.length) {
+        sentences.push(fill(M.double, {
+          areas: dt.map(a => forecastAreaLabel(a.id, lang)).join(', '),
+        }))
+      }
+      out.push({
+        month,
+        score,
+        tone,
+        headline: fill(M.headline, {
+          month: fmtMonth(month, lang),
+          tone: PREDICTIONS_HI.toneHeadline[tone],
+        }),
+        text: sentences.join(' '),
+        bestArea: best.label,
+        watchArea: watch.label,
+        events: [...evs].sort((a, b) => a.dateIso.localeCompare(b.dateIso)).map(e => `${fmtDay(e.dateIso, lang).replace(/ \d{4}$/, '')} — ${e.label}`),
+      })
+    } else {
+      const sentences = [
+        opener,
+        `${best.a.label} is the bright spot — ${lowerFirst(lead(VOICE[best.a.id].good, 2))}.`,
+      ]
+      if (watch.v <= 46) sentences.push(`Watch ${watch.a.label.toLowerCase()}: ${lead(VOICE[watch.a.id].hard)}.`)
+      if (slowEvs.length) sentences.push(`Turning point${slowEvs.length > 1 ? 's' : ''}: ${slowEvs.map(e => `${e.label} (${fmtDay(e.dateIso, 'en').replace(/ \d{4}$/, '')})`).join('; ')}.`)
+      const dt = FORECAST_AREAS.filter(a => pts.some(p => p.areas[a.id].doubleTransit))
+      if (dt.length) sentences.push(`Double transit active on ${dt.map(a => a.label.toLowerCase()).join(', ')}.`)
+      out.push({
+        month,
+        score,
+        tone,
+        headline: `${fmtMonth(month, 'en')} · ${tone === 'supportive' ? 'Supportive' : tone === 'pressure' ? 'Challenging' : 'Mixed'}`,
+        text: sentences.join(' '),
+        bestArea: best.a.label,
+        watchArea: watch.a.label,
+        events: [...evs].sort((a, b) => a.dateIso.localeCompare(b.dateIso)).map(e => `${fmtDay(e.dateIso, 'en').replace(/ \d{4}$/, '')} — ${e.label}`),
+      })
+    }
     i += 1
   }
   return out
 }
 
-function buildWindowPredictions(r: ForecastCore): WindowPrediction[] {
+function buildWindowPredictions(r: ForecastCore, lang: EngineLang): WindowPrediction[] {
   return r.windows.map(w => {
-    const v = VOICE[w.leadArea]
+    const v = voiceOf(w.leadArea, lang)
     const good = w.kind === 'favourable'
+    if (lang === 'hi') {
+      const W = PREDICTIONS_HI.window
+      return {
+        kind: w.kind,
+        startIso: w.startIso,
+        endIso: w.endIso,
+        title: fill(W.title, {
+          kind: good ? W.opportunity : W.caution,
+          area: w.leadAreaLabel,
+          range: fmtRange(w.startIso, w.endIso, lang),
+        }),
+        expect: fill(good ? W.expectGood : W.expectHard, {
+          summary: w.summary,
+          good: v.good,
+          hard: v.hard,
+        }),
+        doList: good ? v.doGood : v.doHard,
+        avoidList: good ? v.avoidGood : v.avoidHard,
+      }
+    }
     return {
       kind: w.kind,
       startIso: w.startIso,
       endIso: w.endIso,
-      title: `${good ? 'Opportunity' : 'Caution'} · ${w.leadAreaLabel} · ${fmtRange(w.startIso, w.endIso)}`,
+      title: `${good ? 'Opportunity' : 'Caution'} · ${w.leadAreaLabel} · ${fmtRange(w.startIso, w.endIso, 'en')}`,
       expect: good
         ? `${w.summary} Expect ${v.good}.`
         : `${w.summary} Expect ${v.hard}.`,
@@ -341,12 +538,12 @@ function buildWindowPredictions(r: ForecastCore): WindowPrediction[] {
   })
 }
 
-export function buildForecastPredictions(r: ForecastCore): ForecastPredictions {
+export function buildForecastPredictions(r: ForecastCore, lang: EngineLang = 'en'): ForecastPredictions {
   const areaAvg = r.areaOutlooks.map(o => ({ label: o.label, v: o.avg }))
   return {
-    overview: buildOverview(r, areaAvg),
-    areas: buildAreas(r),
-    months: buildMonths(r),
-    windows: buildWindowPredictions(r),
+    overview: buildOverview(r, areaAvg, lang),
+    areas: buildAreas(r, lang),
+    months: buildMonths(r, lang),
+    windows: buildWindowPredictions(r, lang),
   }
 }
