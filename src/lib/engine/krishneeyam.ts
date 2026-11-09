@@ -43,6 +43,7 @@ import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_HI } from '@/i18n/jyotish'
 import type { EngineLang } from '@/lib/engine/lang'
 import { AROODHA_DESC_HI, KRISHNA_HEADLINE_HI, MUKHA_HI, ODAYA_HI } from '@/lib/engine/locale/krishneeyam.hi'
+import { krishneeyamToHi } from '@/lib/engine/locale/krishneeyamHi'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -162,6 +163,8 @@ export interface KrishneeyamResult {
   houseQuery?: {
     houseType: string
     hasTreasure: string
+    /** True when treasure is indicated. Read this, not the text. */
+    treasure: boolean
     ownership: string
     direction: string
     shape: string
@@ -232,6 +235,8 @@ export interface KrishneeyamResult {
   // Exam / competition
   exam?: {
     success: string
+    /** Success band behind `success`. Read this, not the text. */
+    level: 'excellent' | 'good' | 'marginal' | 'difficult'
     subject: string
     keyStrength: string
     weakness: string
@@ -242,6 +247,8 @@ export interface KrishneeyamResult {
   // Rules cited
   rules: string[]
   details: string[]
+  /** Per `details` entry: does it belong to the pregnancy or travel section. */
+  detailTopics: { pregnancy: boolean; travel: boolean }[]
   remedies: string[]
   direction: string
 }
@@ -1636,6 +1643,19 @@ function analyzeAnabhaYoga(grahas: GrahaData[], moonRashi: number, lagnaRashi: n
 // ─── Main Engine ──────────────────────────────────────────────────────────────
 
 export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang = 'en'): KrishneeyamResult {
+  const en = runKrishneeyamEn(input)
+  if (lang !== 'hi') return en
+  // The English is built from hundreds of joined phrases; translate the
+  // finished strings in one pass so every phrase is looked up whole.
+  const hi = krishneeyamToHi(en)
+  hi.headline = KRISHNA_HEADLINE_HI[en.headline] ?? hi.headline
+  hi.houseReference.label = en.houseReference.type === 'arudha'
+    ? `आरूढ़ लग्न — ${RASHI_HI[en.houseReference.rashi]}`
+    : `उदय लग्न — ${RASHI_HI[en.coreLagnaRashi]}`
+  return hi
+}
+
+function runKrishneeyamEn(input: KrishneeyamInput): KrishneeyamResult {
   const {
     lagnaRashi, lagnaDegreeFull, lagnaSignDegree,
     sunRashi, sunDegreeFull, moonRashi, moonDegreeFull,
@@ -1653,8 +1673,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     type: houseRefType,
     rashi: houseLagna as Rashi,
     label: houseRefType === 'arudha'
-      ? (lang === 'hi' ? `आरूढ़ लग्न — ${RASHI_HI[houseLagna]}` : `Arudha Lagna — ${RASHI_NAMES[houseLagna]}`)
-      : (lang === 'hi' ? `उदय लग्न — ${RASHI_HI[lagnaRashi]}` : `Udaya Lagna — ${RASHI_NAMES[lagnaRashi]}`),
+      ? `Arudha Lagna — ${RASHI_NAMES[houseLagna]}`
+      : `Udaya Lagna — ${RASHI_NAMES[lagnaRashi]}`,
   }
   const planetHousesFromReference = grahas
     .filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
@@ -1676,7 +1696,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
   const planetsInUdayaAsc = grahas.filter(g => g.rashi === lagnaRashi && !['Ur','Ne','Pl'].includes(g.id))
 
   // ── 1. Ascendant Type Analysis [Ch1, St17-18] ─────────────────────────────
-  const odayaInfo = getOdayaType(coreRashi, lang)
+  const odayaInfo = getOdayaType(coreRashi)
   total++
   if (odayaInfo.verdict === 'good') positive++
   else if (odayaInfo.verdict === 'bad') negative++
@@ -1708,7 +1728,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
   rules.push(`[Ch1:17-18] ${coreRefName} ${RASHI_NAMES[coreRashi]} is ${odayaInfo.label} → ${odayaInfo.verdict.toUpperCase()}`)
 
   // ── 2. Mukha Type [Ch3, St15-16] ─────────────────────────────────────────
-  const mukhaInfo = getMukhaType(coreRashi, sunRashi, lang)
+  const mukhaInfo = getMukhaType(coreRashi, sunRashi)
   total++
   if (mukhaInfo.verdict === 'good') positive++
   else if (mukhaInfo.verdict === 'bad') negative++
@@ -1716,7 +1736,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
   rules.push(`[Ch3:15-16] ${coreRefName} ${mukhaInfo.label} → ${mukhaInfo.verdict.toUpperCase()}`)
 
   // ── 3. Aroodha–Reference relationship [Ch11, St21] ─────────────────────────
-  const aroodhaRel = getAroodhaUdayaRelation(aroodha, coreRashi, lang)
+  const aroodhaRel = getAroodhaUdayaRelation(aroodha, coreRashi)
   const aroodhaRelDescription = houseRefType === 'arudha'
     ? aroodhaRel.description.replace(/\bUdaya\b/g, 'Arudha Lagna')
     : aroodhaRel.description
@@ -2033,7 +2053,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     else details.push('[Ch26:7] 3rd Drekkana → Article has reached BACK of thief\'s house (deeply hidden)')
 
     // Height from Mukha type [Ch3, St16]
-    const mukha = getMukhaType(lagnaRashi, sunRashi, lang)
+    const mukha = getMukhaType(lagnaRashi, sunRashi)
     if (mukha.type === 'oordhwamukha') details.push('[Ch3:16] Oordhwamukha → Article is in a HIGHER PLACE (upper shelf, hanging)')
     else if (mukha.type === 'adhomukha') details.push('[Ch3:16] Adhomukha → Article is UNDERGROUND or in a pit/buried')
     else details.push('[Ch3:16] Thiryangmukha → Article is at GROUND LEVEL or on the side')
@@ -2288,7 +2308,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     const altHouseNature = relevantPlanet ? PLANET_HOUSE_ALT[relevantPlanet.id] : ''
 
     // Treasure query [Ch15, St7]
-    const hasTreasure = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,7,10,11].includes(getPlanetHouse(g.rashi, houseLagna)))
+    const treasure = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,7,10,11].includes(getPlanetHouse(g.rashi, houseLagna)))
+    const hasTreasure = treasure
       ? 'YES — Helpful planets in quadrant/11th → Treasure exists in the house'
       : 'NO — No helpful planets in quadrant → No hidden treasure indicated'
 
@@ -2304,7 +2325,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     const shapes: Record<number, string> = { 10: 'Round house', 11: 'Rahu\'s house (a toilet or a run-down place)', 5: 'Covered house' }
     const houseShape = shapes[lagnaRashi] ?? 'Standard rectangular'
 
-    houseQuery = { houseType: `${houseNature}. Alt: ${altHouseNature}`, hasTreasure, ownership, direction: houseDirection, shape: houseShape }
+    houseQuery = { houseType: `${houseNature}. Alt: ${altHouseNature}`, hasTreasure, treasure, ownership, direction: houseDirection, shape: houseShape }
     rules.push(`[Ch15:2-4] ${relevantPlanet?.name ?? 'No planet'} in ascendant/7th → ${houseNature}`)
     rules.push(`[Ch15:7] Treasure: ${hasTreasure}`)
     details.push(`[Ch15:6] House direction: ${houseDirection}, shape: ${houseShape}`)
@@ -2520,7 +2541,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     const keyStrength = merGood ? 'Mercury strong — sharp intellect' : jupGood2 ? 'Jupiter strong — good conceptual grasp' : 'Hard work compensates'
     const weakness = !merGood ? 'Mercury weak — writing/communication errors possible' : !moonGood ? 'Moon weak — memory may falter under pressure' : 'None significant'
     const examTiming = successPoints >= 2 ? 'Best result in current attempt' : 'Consider next opportunity for better outcome'
-    exam = { success, subject: subjectStr, keyStrength, weakness, timing: examTiming }
+    const level = successPoints >= 3 ? 'excellent' as const : successPoints === 2 ? 'good' as const : successPoints === 1 ? 'marginal' as const : 'difficult' as const
+    exam = { success, level, subject: subjectStr, keyStrength, weakness, timing: examTiming }
     scorecard.push({ label: 'Exam Success', result: successPoints >= 2 ? 'good' : successPoints === 1 ? 'neutral' : 'bad', detail: success, weight: 2 })
     rules.push(`[Pariksha Prashna] 5th lord + Mercury + Jupiter analysis: ${success}`)
   }
@@ -2567,8 +2589,16 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     remedies.push('Perform Navagraha puja; propitiate the ascendant lord specifically')
   }
 
-  return {
-    verdict, headline: lang === 'hi' ? (KRISHNA_HEADLINE_HI[headline] ?? headline) : headline, confidence,
+  const detailTopics = details.map((d) => {
+    const x = d.toLowerCase()
+    return {
+      pregnancy: x.includes('ch21') || x.includes('ketu') || x.includes('pregnan') || x.includes('child'),
+      travel: x.includes('ch14') || x.includes('travel') || x.includes('return') || x.includes('mode'),
+    }
+  })
+
+  const result: KrishneeyamResult = {
+    verdict, headline, confidence,
     ascendantType: `${odayaInfo.label} · ${RASHI_NAMES[coreRashi]}`,
     ascendantTypeResult: odayaInfo.verdict,
     signType: `${mukhaInfo.label} · ${RASHI_NAMES[coreRashi]}`,
@@ -2608,9 +2638,10 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput, lang: EngineLang 
     lawsuit,
     exam,
     rahuInAscendant,
-    rules, details, remedies,
+    rules, details, detailTopics, remedies,
     direction,
   }
+  return result
 }
 
 // Helper used in saturn analysis

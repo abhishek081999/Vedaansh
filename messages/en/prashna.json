@@ -303,7 +303,9 @@
     "copyType": "Type: {type}",
     "copyReading": "Reading: {headline}",
     "copyRules": "RULES THAT FIRED",
-    "copyTiming": "TIMING (separate methods, not added together)"
+    "copyTiming": "TIMING (separate methods, not added together)",
+    "stableSummary": "The verdict holds across about 8 minutes either side, so a small error in the time does not change it.",
+    "unstableSummary": "The verdict changes within {min} minutes of the recorded time. Note the exact moment carefully and hold this reading loosely."
   },
   "vedic": {
     "kicker": "Vedic praśna · {topic}",

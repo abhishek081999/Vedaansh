@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import { AlertTriangle, Clock, Scale, Target } from 'lucide-react'
 import type { VedicPolarity, VedicPrashnaReading } from '@/lib/engine/vedicPrashna'
 import { grahaName, ordinal } from '@/lib/engine/satpanchasikaFacts'
@@ -29,6 +30,7 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
   const tr = useTranslations('prashna.vedic')
   const tv = useTranslations('prashna.verdict')
   const tp = useTranslations('prashna.polarity')
+  const { lang } = useLang()
   const v = VERDICT_STYLE[r.verdict]
   const s = r.significators
   const chips = [
@@ -105,7 +107,7 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
             <div key={t.name} style={{ padding: '0.55rem 0.65rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--gold)' }}>{t.name}</div>
               <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.15rem 0' }}>{t.value}</div>
-              {t.days !== undefined && askedOn && <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.15rem' }}>{tr('around', { date: approxDate(askedOn, t.days, 'days') ?? '' })}</div>}
+              {t.days !== undefined && askedOn && <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.15rem' }}>{tr('around', { date: approxDate(askedOn, t.days, 'days', lang) ?? '' })}</div>}
               <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{t.working}</div>
             </div>
           ))}
