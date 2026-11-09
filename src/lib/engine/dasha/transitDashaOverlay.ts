@@ -4,9 +4,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { DashaNode } from '@/types/astrology'
-import { GRAHA_NAMES, type GrahaId } from '@/types/astrology'
+import { type GrahaId } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { getDashasBetween } from '@/lib/engine/dasha/vimshottari'
+import { gName, type EngineLang } from '@/lib/engine/divisionalLang'
 
 export interface DashaBandSegment {
   lord: string
@@ -34,8 +35,8 @@ function toMs(value: Date | string | number): number {
   return new Date(value).getTime()
 }
 
-function lordDisplay(lord: string): string {
-  return GRAHA_NAMES[lord as GrahaId] ?? lord
+function lordDisplay(lord: string, lang: EngineLang = 'en'): string {
+  return gName(lord as GrahaId, lang) || lord
 }
 
 function clamp01(n: number): number {
@@ -49,13 +50,14 @@ function toBand(
   windowStartMs: number,
   windowEndMs: number,
   spanMs: number,
+  lang: EngineLang,
 ): DashaBandSegment | null {
   const startMs = Math.max(toMs(node.start), windowStartMs)
   const endMs = Math.min(toMs(node.end), windowEndMs)
   if (endMs <= startMs || spanMs <= 0) return null
   return {
     lord: node.lord,
-    lordName: lordDisplay(node.lord),
+    lordName: lordDisplay(node.lord, lang),
     start: new Date(startMs),
     end: new Date(endMs),
     level,
@@ -73,6 +75,7 @@ export function buildTransitDashaOverlay(
   windowStart: Date,
   windowEnd: Date,
   now: number = Date.now(),
+  lang: EngineLang = 'en',
 ): TransitDashaOverlay {
   const from = windowStart
   const to = windowEnd
@@ -84,12 +87,12 @@ export function buildTransitDashaOverlay(
   const antarRaw = getDashasBetween(nodes, from, to, 2)
 
   const maha = mahaRaw
-    .map(n => toBand(n, 1, windowStartMs, windowEndMs, spanMs))
+    .map(n => toBand(n, 1, windowStartMs, windowEndMs, spanMs, lang))
     .filter((b): b is DashaBandSegment => b != null)
     .sort((a, b) => a.startFrac - b.startFrac)
 
   const antar = antarRaw
-    .map(n => toBand(n, 2, windowStartMs, windowEndMs, spanMs))
+    .map(n => toBand(n, 2, windowStartMs, windowEndMs, spanMs, lang))
     .filter((b): b is DashaBandSegment => b != null)
     .sort((a, b) => a.startFrac - b.startFrac)
 
@@ -103,21 +106,26 @@ export function buildTransitDashaOverlay(
 }
 
 /** Short MD/AD label at a moment (e.g. "Jupiter / Venus"). */
-export function formatDashaPathAt(nodes: DashaNode[], at: Date | number): string {
+export function formatDashaPathAt(
+  nodes: DashaNode[],
+  at: Date | number,
+  lang: EngineLang = 'en',
+): string {
   const path = getDashaPathAt(nodes, typeof at === 'number' ? at : at.getTime())
   if (path.length === 0) return ''
-  const maha = lordDisplay(path[0].lord)
-  const antar = path[1] ? lordDisplay(path[1].lord) : null
+  const maha = lordDisplay(path[0].lord, lang)
+  const antar = path[1] ? lordDisplay(path[1].lord, lang) : null
   return antar ? `${maha} / ${antar}` : maha
 }
 
 export function dashaLordsAt(
   nodes: DashaNode[],
   at: Date | number,
+  lang: EngineLang = 'en',
 ): { maha: string | null; antar: string | null } {
   const path = getDashaPathAt(nodes, typeof at === 'number' ? at : at.getTime())
   return {
-    maha: path[0] ? lordDisplay(path[0].lord) : null,
-    antar: path[1] ? lordDisplay(path[1].lord) : null,
+    maha: path[0] ? lordDisplay(path[0].lord, lang) : null,
+    antar: path[1] ? lordDisplay(path[1].lord, lang) : null,
   }
 }

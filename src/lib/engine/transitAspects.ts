@@ -12,6 +12,9 @@ import {
   ketuLongitude,
 } from '@/lib/engine/ephemeris'
 import { transitRelationToSign, type TransitRelation } from '@/lib/engine/aspects'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { TRANSIT_ASPECTS_HI } from '@/lib/engine/locale/transitAspects.hi'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
 
 export type NatalTargetId = 'Lg' | GrahaId
@@ -157,17 +160,31 @@ function rashiAt(timeline: SignSegment[], jd: number): Rashi | null {
   return timeline[0]?.rashi ?? null
 }
 
+function grahaLabel(id: GrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? gName(id, 'hi') : GRAHA_NAMES[id]
+}
+
+function rashiLabel(rashi: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? rName(rashi, 'hi') : RASHI_NAMES[rashi]
+}
+
+function relationLabel(rel: TransitRelation, lang: EngineLang): string {
+  if (lang !== 'hi') return rel
+  return TRANSIT_ASPECTS_HI.relation[rel]
+}
+
 export function buildNatalTargets(
   ascRashi: Rashi,
   natalRashis: Partial<Record<GrahaId, Rashi>>,
+  lang: EngineLang = 'en',
 ): NatalTarget[] {
   const targets: NatalTarget[] = [
-    { id: 'Lg', label: 'Lagna', rashi: ascRashi },
+    { id: 'Lg', label: lang === 'hi' ? TRANSIT_ASPECTS_HI.lagna : 'Lagna', rashi: ascRashi },
   ]
   for (const id of NATAL_GRAHA_ORDER) {
     const r = natalRashis[id]
     if (r == null) continue
-    targets.push({ id, label: GRAHA_NAMES[id], rashi: r })
+    targets.push({ id, label: grahaLabel(id, lang), rashi: r })
   }
   return targets
 }
@@ -176,6 +193,7 @@ function hitsAtSigns(
   lordSigns: Partial<Record<GrahaId, Rashi>>,
   targets: NatalTarget[],
   ascRashi: Rashi,
+  lang: EngineLang,
 ): TransitAspectHit[] {
   const hits: TransitAspectHit[] = []
   for (const lord of MAJOR_LORDS) {
@@ -186,14 +204,14 @@ function hitsAtSigns(
       if (!rel) continue
       hits.push({
         transitLord: lord,
-        transitLordName: GRAHA_NAMES[lord],
+        transitLordName: grahaLabel(lord, lang),
         targetId: target.id,
         targetLabel: target.label,
         relation: rel,
         transitSign: tSign,
-        transitSignName: RASHI_NAMES[tSign],
+        transitSignName: rashiLabel(tSign, lang),
         natalSign: target.rashi,
-        natalSignName: RASHI_NAMES[target.rashi],
+        natalSignName: rashiLabel(target.rashi, lang),
         houseFromLagna: houseFromLagna(tSign, ascRashi),
       })
     }
@@ -212,7 +230,12 @@ function toneForLords(lords: GrahaId[]): MultiTransitTone {
   return 'mixed'
 }
 
-function gradeLabel(n: number): string {
+function gradeLabel(n: number, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    if (n >= 4) return TRANSIT_ASPECTS_HI.grade[4]
+    if (n === 3) return TRANSIT_ASPECTS_HI.grade[3]
+    return TRANSIT_ASPECTS_HI.grade[2]
+  }
   if (n >= 4) return 'Quadruple transit'
   if (n === 3) return 'Triple transit'
   return 'Double transit'
@@ -227,6 +250,7 @@ function multiFromHits(
   startIso: string,
   endIso: string,
   nowMs: number,
+  lang: EngineLang,
 ): MultiTransitWindow[] {
   const byTarget = new Map<NatalTargetId, TransitAspectHit[]>()
   for (const h of hits) {
@@ -245,11 +269,13 @@ function multiFromHits(
     const isCurrent = nowMs >= startMs && nowMs < endMs
     const tone = toneForLords(uniqueLords)
     const targetLabel = list[0].targetLabel
-    const names = uniqueLords.map(id => GRAHA_NAMES[id])
+    const names = uniqueLords.map(id => grahaLabel(id, lang))
+    const gLabel = gradeLabel(grade, lang)
+    const relations = list.map(h => relationLabel(h.relation, lang)).join(', ')
     windows.push({
       id: `${targetId}-${lordsKey(uniqueLords)}-${startIso}`,
       grade,
-      gradeLabel: gradeLabel(grade),
+      gradeLabel: gLabel,
       targetId,
       targetLabel,
       transitLords: uniqueLords,
@@ -258,7 +284,15 @@ function multiFromHits(
       endIso,
       isCurrent,
       tone,
-      summary: `${gradeLabel(grade)} on natal ${targetLabel}: ${names.join(' + ')} (${list.map(h => h.relation).join(', ')}).`,
+      summary:
+        lang === 'hi'
+          ? fill(TRANSIT_ASPECTS_HI.multiSummary, {
+              grade: gLabel,
+              target: targetLabel,
+              lords: names.join(' + '),
+              relations,
+            })
+          : `${gLabel} on natal ${targetLabel}: ${names.join(' + ')} (${list.map(h => h.relation).join(', ')}).`,
     })
   }
   return windows
@@ -297,19 +331,21 @@ export interface AnalyzeTransitAspectsInput {
   natalRashis: Partial<Record<GrahaId, Rashi>>
   asOf?: Date
   months?: number
+  lang?: EngineLang
 }
 
 /**
  * Slow-planet gochara aspects + overlapping double/triple windows.
  */
 export function analyzeTransitAspects(input: AnalyzeTransitAspectsInput): TransitAspectReport {
+  const lang = input.lang ?? 'en'
   const asOf = utcNoon(input.asOf ?? new Date())
   const months = Math.max(1, Math.min(36, input.months ?? 18))
   const windowStart = asOf
   const windowEnd = new Date(asOf)
   windowEnd.setUTCMonth(windowEnd.getUTCMonth() + months)
 
-  const targets = buildNatalTargets(input.ascRashi, input.natalRashis)
+  const targets = buildNatalTargets(input.ascRashi, input.natalRashis, lang)
   const timelines: Record<GrahaId, SignSegment[]> = {
     Ju: buildPlanetSignTimeline('Ju', windowStart, windowEnd),
     Sa: buildPlanetSignTimeline('Sa', windowStart, windowEnd),
@@ -336,12 +372,13 @@ export function analyzeTransitAspects(input: AnalyzeTransitAspectsInput): Transi
   for (const pid of MAJOR_LORDS) {
     nowSigns[pid] = planetRashiAtJd(pid, nowJd)
   }
-  const nowHits = hitsAtSigns(nowSigns, targets, input.ascRashi)
+  const nowHits = hitsAtSigns(nowSigns, targets, input.ascRashi, lang)
   const nowMulti = multiFromHits(
     nowHits,
     toIsoDate(asOf),
     toIsoDate(new Date(asOf.getTime() + 24 * 60 * 60 * 1000)),
     nowMs,
+    lang,
   ).map(w => ({ ...w, isCurrent: true, endIso: w.startIso }))
 
   // Rebuild nowMulti with open-ended current feel — use actual overlapping window later
@@ -359,10 +396,10 @@ export function analyzeTransitAspects(input: AnalyzeTransitAspectsInput): Transi
       const r = rashiAt(timelines[pid], mid)
       if (r != null) signs[pid] = r
     }
-    const hits = hitsAtSigns(signs, targets, input.ascRashi)
+    const hits = hitsAtSigns(signs, targets, input.ascRashi, lang)
     const startIso = toIsoDate(jdToDate(a))
     const endIso = toIsoDate(jdToDate(b))
-    rawMulti.push(...multiFromHits(hits, startIso, endIso, nowMs))
+    rawMulti.push(...multiFromHits(hits, startIso, endIso, nowMs, lang))
 
     const hitKeys = new Set(hits.map(h => `${h.transitLord}:${h.targetId}:${h.relation}`))
     if (a >= nowJd - 0.01) {
@@ -378,8 +415,29 @@ export function analyzeTransitAspects(input: AnalyzeTransitAspectsInput): Transi
             relation: h.relation,
             transitSign: h.transitSign,
             transitSignName: h.transitSignName,
-            label: `${h.transitLordName} ${h.relation === 'conjunction' ? 'over' : 'aspects'} ${h.targetLabel}`,
-            detail: `Transit ${h.transitLordName} in ${h.transitSignName} ${h.relation === 'conjunction' ? 'conjuncts' : 'aspects'} natal ${h.targetLabel} (${h.natalSignName}).`,
+            label:
+              lang === 'hi'
+                ? fill(
+                    h.relation === 'conjunction'
+                      ? TRANSIT_ASPECTS_HI.eventOver
+                      : TRANSIT_ASPECTS_HI.eventAspects,
+                    { lord: h.transitLordName, target: h.targetLabel },
+                  )
+                : `${h.transitLordName} ${h.relation === 'conjunction' ? 'over' : 'aspects'} ${h.targetLabel}`,
+            detail:
+              lang === 'hi'
+                ? fill(
+                    h.relation === 'conjunction'
+                      ? TRANSIT_ASPECTS_HI.detailConjunct
+                      : TRANSIT_ASPECTS_HI.detailAspect,
+                    {
+                      lord: h.transitLordName,
+                      sign: h.transitSignName,
+                      target: h.targetLabel,
+                      natal: h.natalSignName,
+                    },
+                  )
+                : `Transit ${h.transitLordName} in ${h.transitSignName} ${h.relation === 'conjunction' ? 'conjuncts' : 'aspects'} natal ${h.targetLabel} (${h.natalSignName}).`,
           })
         }
       }
@@ -411,19 +469,38 @@ export function analyzeTransitAspects(input: AnalyzeTransitAspectsInput): Transi
 
   const summaryParts: string[] = []
   if (effectiveNowMulti.length) {
+    const list = effectiveNowMulti
+      .slice(0, 2)
+      .map(w =>
+        lang === 'hi'
+          ? fill(TRANSIT_ASPECTS_HI.summaryActiveItem, { grade: w.gradeLabel, target: w.targetLabel })
+          : `${w.gradeLabel} on ${w.targetLabel}`,
+      )
+      .join('; ')
     summaryParts.push(
-      `Active: ${effectiveNowMulti.slice(0, 2).map(w => `${w.gradeLabel} on ${w.targetLabel}`).join('; ')}.`,
+      lang === 'hi'
+        ? fill(TRANSIT_ASPECTS_HI.summaryActive, { list })
+        : `Active: ${list}.`,
     )
   } else if (nowHits.length) {
+    const list = nowHits.slice(0, 3).map(h => `${h.transitLordName}→${h.targetLabel}`).join('; ')
     summaryParts.push(
-      `Now: ${nowHits.slice(0, 3).map(h => `${h.transitLordName}→${h.targetLabel}`).join('; ')}.`,
+      lang === 'hi' ? fill(TRANSIT_ASPECTS_HI.summaryNow, { list }) : `Now: ${list}.`,
     )
   } else {
-    summaryParts.push('No major Ju/Sa/Ra/Ke aspects on natal points right now.')
+    summaryParts.push(lang === 'hi' ? TRANSIT_ASPECTS_HI.summaryNone : 'No major Ju/Sa/Ra/Ke aspects on natal points right now.')
   }
   const nextMulti = multiWindows.find(w => !w.isCurrent && new Date(w.startIso) > asOf)
   if (nextMulti) {
-    summaryParts.push(`Next multi-transit: ${nextMulti.gradeLabel} on ${nextMulti.targetLabel} from ${nextMulti.startIso}.`)
+    summaryParts.push(
+      lang === 'hi'
+        ? fill(TRANSIT_ASPECTS_HI.summaryNext, {
+            grade: nextMulti.gradeLabel,
+            target: nextMulti.targetLabel,
+            date: nextMulti.startIso,
+          })
+        : `Next multi-transit: ${nextMulti.gradeLabel} on ${nextMulti.targetLabel} from ${nextMulti.startIso}.`,
+    )
   }
 
   return {

@@ -5,14 +5,20 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
-import { DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { dignityInterpretation } from '@/lib/engine/interpretations'
 import {
+  classicalNotesInLang,
   getDignityClassicalNotes,
   getPlanetInHouseClassical,
   getPlanetInSignClassical,
   type ClassicalNote,
 } from '@/lib/engine/classicalInterpretations'
 import { getPlanetInHouse } from '@/lib/engine/houseInterpretations'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
+import { momentSummaryHi, TM_HI, TARA_MOMENT_HI, transitHouseThemeHi } from '@/lib/engine/locale/transitMoment.hi'
+import { ordHi } from '@/lib/engine/locale/todayReading.hi'
 
 export type PositionVerdict = 'good' | 'mixed' | 'caution'
 export type MomentLabel = 'Excellent' | 'Good' | 'Neutral' | 'Challenging' | 'Avoid'
@@ -103,7 +109,7 @@ function combinedVerdict(dignity: string, pid: GrahaId, house: number): Position
   return 'mixed'
 }
 
-function taraBala(natalMoonNak: number, transitMoonNak: number): { name: string; score: number } {
+function taraBala(natalMoonNak: number, transitMoonNak: number, lang: EngineLang = 'en'): { name: string; score: number } {
   const diff = ((transitMoonNak - natalMoonNak + 27) % 27) + 1
   const tara = diff % 9 || 9
   const map: Record<number, { score: number; name: string }> = {
@@ -117,7 +123,10 @@ function taraBala(natalMoonNak: number, transitMoonNak: number): { name: string;
     8: { score: 8, name: 'Mitra (friend)' },
     9: { score: 12, name: 'Ati-Mitra (best friend)' },
   }
-  return map[tara] ?? { score: 0, name: 'Neutral' }
+  const base = map[tara] ?? { score: 0, name: 'Neutral' }
+  if (lang !== 'hi') return base
+  const hiName = TARA_MOMENT_HI[tara]?.name ?? TM_HI.neutralTara
+  return { score: base.score, name: hiName }
 }
 
 export interface PlanetMomentAnalysis {
@@ -161,11 +170,20 @@ function momentLabel(score: number): MomentLabel {
   return 'Avoid'
 }
 
+function grahaLabel(pid: GrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? (GRAHA_HI[pid] ?? GRAHA_NAMES[pid]) : GRAHA_NAMES[pid]
+}
+
+function rashiLabel(rashi: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? (RASHI_HI[rashi] ?? RASHI_NAMES[rashi]) : RASHI_NAMES[rashi]
+}
+
 function buildPlanetPrediction(
   pid: GrahaId,
   natal: GrahaData,
   transit: GrahaData,
   natalAsc: Rashi,
+  lang: EngineLang = 'en',
 ): PlanetMomentAnalysis {
   const natalH = grahaHouse(natal.rashi, natalAsc)
   const transitH = grahaHouse(transit.rashi, natalAsc)
@@ -173,29 +191,95 @@ function buildPlanetPrediction(
   const transitV = combinedVerdict(transit.dignity, pid, transitH)
   const sameSign = natal.rashi === transit.rashi
 
-  const teachingSummary = getPlanetInHouse(pid, transitH, 'summary')
+  const teachingSummary = getPlanetInHouse(pid, transitH, 'summary', lang)
   const classicalHouseSummary = getPlanetInHouseClassical(pid, transitH)[0]?.text ?? null
-  const houseText =
-    teachingSummary
-    ?? classicalHouseSummary
-    ?? `${GRAHA_NAMES[pid]} activates your ${transitH}${ordinal(transitH)} house — themes of ${HOUSE_THEMES[transitH] ?? 'life activity'}.`
-
-  let prediction = `Gochar H${transitH} (${RASHI_NAMES[transit.rashi]}): ${houseText}`
-  if (sameSign) {
-    prediction = `Return to natal sign (${RASHI_NAMES[natal.rashi]}): karmic completion and renewal for ${GRAHA_NAMES[pid]}. ${houseText}`
-  } else if (natalH !== transitH) {
-    prediction = `Moves from natal H${natalH} to gochar H${transitH}. ${houseText}`
+  let houseText: string
+  if (lang === 'hi') {
+    const classicalHi =
+      classicalNotesInLang(getPlanetInHouseClassical(pid, transitH), 'hi')[0]?.text ?? null
+    houseText =
+      teachingSummary
+      ?? classicalHi
+      ?? fill(TM_HI.houseFallback, {
+        graha: grahaLabel(pid, lang),
+        house: transitH,
+        ordinal: ` ${ordHi(transitH)}`,
+        theme: transitHouseThemeHi(transitH),
+      })
+  } else {
+    houseText =
+      teachingSummary
+      ?? classicalHouseSummary
+      ?? `${GRAHA_NAMES[pid]} activates your ${transitH}${ordinal(transitH)} house — themes of ${HOUSE_THEMES[transitH] ?? 'life activity'}.`
   }
 
-  if (transit.isRetro) {
-    prediction += ` Retrograde — review and rework rather than push forward.`
+  let prediction: string
+  if (lang === 'hi') {
+    const rashiTr = rashiLabel(transit.rashi, lang)
+    const rashiNa = rashiLabel(natal.rashi, lang)
+    if (sameSign) {
+      prediction = fill(TM_HI.returnSign, {
+        rashi: rashiNa,
+        graha: grahaLabel(pid, lang),
+        houseText,
+      })
+    } else if (natalH !== transitH) {
+      prediction = fill(TM_HI.houseMove, { natalH, transitH, houseText })
+    } else {
+      prediction = fill(TM_HI.gocharLine, { house: transitH, rashi: rashiTr, houseText })
+    }
+    if (transit.isRetro) prediction += TM_HI.retroSuffix
+  } else {
+    prediction = `Gochar H${transitH} (${RASHI_NAMES[transit.rashi]}): ${houseText}`
+    if (sameSign) {
+      prediction = `Return to natal sign (${RASHI_NAMES[natal.rashi]}): karmic completion and renewal for ${GRAHA_NAMES[pid]}. ${houseText}`
+    } else if (natalH !== transitH) {
+      prediction = `Moves from natal H${natalH} to gochar H${transitH}. ${houseText}`
+    }
+    if (transit.isRetro) {
+      prediction += ` Retrograde — review and rework rather than push forward.`
+    }
   }
 
-  const detail = [
-    `Natal: ${RASHI_NAMES[natal.rashi]} H${natalH}, ${natal.dignity} — ${DIGNITY_INTERPRETATIONS[natal.dignity]?.split('.')[0] ?? 'average strength'}.`,
-    `Transit: ${RASHI_NAMES[transit.rashi]} H${transitH}, ${transit.dignity}${transit.isRetro ? ', retrograde' : ''}.`,
-    'Read as temporary gochar colouring — confirm with dasha before acting.',
-  ].join(' ')
+  let detail: string
+  if (lang === 'hi') {
+    const natalDigNote =
+      dignityInterpretation(natal.dignity, 'hi')?.split('.')[0] ?? TM_HI.avgStrength
+    detail = [
+      fill(TM_HI.detailNatal, {
+        rashi: rashiLabel(natal.rashi, lang),
+        house: natalH,
+        dignity: dignityHi(natal.dignity),
+        dignityNote: natalDigNote,
+      }),
+      fill(TM_HI.detailTransit, {
+        rashi: rashiLabel(transit.rashi, lang),
+        house: transitH,
+        dignity: dignityHi(transit.dignity),
+        retro: transit.isRetro ? TM_HI.retroFlag : '',
+      }),
+      TM_HI.detailFooter,
+    ].join(' ')
+  } else {
+    detail = [
+      `Natal: ${RASHI_NAMES[natal.rashi]} H${natalH}, ${natal.dignity} — ${dignityInterpretation(natal.dignity)?.split('.')[0] ?? 'average strength'}.`,
+      `Transit: ${RASHI_NAMES[transit.rashi]} H${transitH}, ${transit.dignity}${transit.isRetro ? ', retrograde' : ''}.`,
+      'Read as temporary gochar colouring — confirm with dasha before acting.',
+    ].join(' ')
+  }
+
+  const houseClassical = classicalNotesInLang(getPlanetInHouseClassical(pid, transitH), lang)
+  const signClassical = classicalNotesInLang(getPlanetInSignClassical(pid, transit.rashi), lang)
+  const dignityClassical = classicalNotesInLang(
+    getDignityClassicalNotes(
+      transit.dignity,
+      transit.isCombust,
+      transit.isRetro,
+      pid,
+      'summary',
+    ),
+    lang,
+  )
 
   return {
     planetId: pid,
@@ -209,15 +293,9 @@ function buildPlanetPrediction(
     prediction,
     detail,
     teachingSummary,
-    houseClassical: getPlanetInHouseClassical(pid, transitH),
-    signClassical: getPlanetInSignClassical(pid, transit.rashi),
-    dignityClassical: getDignityClassicalNotes(
-      transit.dignity,
-      transit.isCombust,
-      transit.isRetro,
-      pid,
-      'summary',
-    ),
+    houseClassical,
+    signClassical,
+    dignityClassical,
     isRetro: transit.isRetro,
     sameSignAsNatal: sameSign,
   }
@@ -232,6 +310,7 @@ function ordinal(n: number): string {
 export function analyzeTransitMoment(
   natalChart: ChartOutput,
   transitChart: ChartOutput,
+  lang: EngineLang = 'en',
 ): TransitMomentAnalysis {
   const natalAsc = natalChart.lagnas.ascRashi
   const natalMoon = natalChart.grahas.find(g => g.id === 'Mo')
@@ -248,7 +327,7 @@ export function analyzeTransitMoment(
     const transit = transitChart.grahas.find(g => g.id === pid)
     if (!natal || !transit) continue
 
-    const analysis = buildPlanetPrediction(pid, natal, transit, natalAsc)
+    const analysis = buildPlanetPrediction(pid, natal, transit, natalAsc, lang)
     planets.push(analysis)
 
     const hScore = houseTransitScore(pid, analysis.transitHouse)
@@ -256,10 +335,26 @@ export function analyzeTransitMoment(
     score += (hScore + dScore) * (pid === 'Ju' || pid === 'Sa' ? 1.5 : pid === 'Mo' ? 1.2 : 0.6)
 
     if (analysis.transitVerdict === 'good' && (pid === 'Ju' || pid === 'Ve' || pid === 'Mo')) {
-      goodFactors.push(`${GRAHA_NAMES[pid]} in favorable transit (${RASHI_NAMES[transit.rashi]}, H${analysis.transitHouse})`)
+      goodFactors.push(
+        lang === 'hi'
+          ? fill(TM_HI.favorableTransit, {
+            graha: grahaLabel(pid, lang),
+            rashi: rashiLabel(transit.rashi, lang),
+            house: analysis.transitHouse,
+          })
+          : `${GRAHA_NAMES[pid]} in favorable transit (${RASHI_NAMES[transit.rashi]}, H${analysis.transitHouse})`,
+      )
     }
     if (analysis.transitVerdict === 'caution' && MALEFICS.has(pid)) {
-      cautionFactors.push(`${GRAHA_NAMES[pid]} in demanding transit (H${analysis.transitHouse}${transit.isRetro ? ', ℞' : ''})`)
+      cautionFactors.push(
+        lang === 'hi'
+          ? fill(TM_HI.demandingTransit, {
+            graha: grahaLabel(pid, lang),
+            house: analysis.transitHouse,
+            retro: transit.isRetro ? ', ℞' : '',
+          })
+          : `${GRAHA_NAMES[pid]} in demanding transit (H${analysis.transitHouse}${transit.isRetro ? ', ℞' : ''})`,
+      )
     }
   }
 
@@ -267,40 +362,61 @@ export function analyzeTransitMoment(
     const chandraH = houseFromMoon(natalMoon.rashi, transitMoon.rashi)
     if (CHANDRA_FAVORABLE.has(chandraH)) {
       score += 12
-      goodFactors.push(`Chandra Bala: Moon ${chandraH}${ordinal(chandraH)} from natal Moon — emotionally supportive`)
+      goodFactors.push(
+        lang === 'hi'
+          ? fill(TM_HI.chandraGood, { nth: ordHi(chandraH) })
+          : `Chandra Bala: Moon ${chandraH}${ordinal(chandraH)} from natal Moon — emotionally supportive`,
+      )
     } else if (CHANDRA_HARD.has(chandraH)) {
       score -= 14
-      cautionFactors.push(`Chandra Bala: Moon ${chandraH}${ordinal(chandraH)} from natal Moon — emotional sensitivity`)
+      cautionFactors.push(
+        lang === 'hi'
+          ? fill(TM_HI.chandraHard, { nth: ordHi(chandraH) })
+          : `Chandra Bala: Moon ${chandraH}${ordinal(chandraH)} from natal Moon — emotional sensitivity`,
+      )
     }
 
-    const tara = taraBala(natalMoon.nakshatraIndex, transitMoon.nakshatraIndex)
+    const tara = taraBala(natalMoon.nakshatraIndex, transitMoon.nakshatraIndex, lang)
     score += tara.score
-    if (tara.score > 0) goodFactors.push(`Tara Bala: ${tara.name}`)
-    else if (tara.score < -10) cautionFactors.push(`Tara Bala: ${tara.name}`)
+    if (tara.score > 0) {
+      goodFactors.push(lang === 'hi' ? fill(TM_HI.taraGood, { name: tara.name }) : `Tara Bala: ${tara.name}`)
+    } else if (tara.score < -10) {
+      cautionFactors.push(lang === 'hi' ? fill(TM_HI.taraCaution, { name: tara.name }) : `Tara Bala: ${tara.name}`)
+    }
   }
 
   const ju = planets.find(p => p.planetId === 'Ju')
   const sa = planets.find(p => p.planetId === 'Sa')
   if (ju?.transitVerdict === 'good' && [1, 5, 9, 11].includes(ju.transitHouse)) {
     score += 8
-    goodFactors.push(`Jupiter blessing in house ${ju.transitHouse} — expansion and protection`)
+    goodFactors.push(
+      lang === 'hi'
+        ? fill(TM_HI.juBlessing, { house: ju.transitHouse })
+        : `Jupiter blessing in house ${ju.transitHouse} — expansion and protection`,
+    )
   }
   if (sa?.transitVerdict === 'caution' && [1, 4, 7, 8, 12].includes(sa.transitHouse)) {
     score -= 10
-    cautionFactors.push(`Saturn pressure in house ${sa.transitHouse} — patience and discipline required`)
+    cautionFactors.push(
+      lang === 'hi'
+        ? fill(TM_HI.saPressure, { house: sa.transitHouse })
+        : `Saturn pressure in house ${sa.transitHouse} — patience and discipline required`,
+    )
   }
 
   score = Math.max(5, Math.min(95, Math.round(score)))
   const label = momentLabel(score)
 
   const summary =
-    label === 'Excellent' || label === 'Good'
-      ? 'Overall supportive window for initiative, meetings, and positive action — especially where Jupiter/Venus/Moon are strong.'
-      : label === 'Neutral'
-        ? 'Mixed cosmic weather — proceed with awareness; favor routine work over high-stakes launches.'
-        : label === 'Challenging'
-          ? 'Demanding period — delay irreversible decisions; focus on remediation, health, and spiritual practice.'
-          : 'Highly sensitive moment — avoid conflict, surgery, and major commitments if possible.'
+    lang === 'hi'
+      ? momentSummaryHi(label)
+      : label === 'Excellent' || label === 'Good'
+        ? 'Overall supportive window for initiative, meetings, and positive action — especially where Jupiter/Venus/Moon are strong.'
+        : label === 'Neutral'
+          ? 'Mixed cosmic weather — proceed with awareness; favor routine work over high-stakes launches.'
+          : label === 'Challenging'
+            ? 'Demanding period — delay irreversible decisions; focus on remediation, health, and spiritual practice.'
+            : 'Highly sensitive moment — avoid conflict, surgery, and major commitments if possible.'
 
   return {
     score,

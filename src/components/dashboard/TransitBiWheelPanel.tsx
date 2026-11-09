@@ -7,7 +7,9 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { analyzeD9Gochar, type D9GocharReport } from '@/lib/engine/d9Gochar'
 import type { MoorthyResult } from '@/lib/engine/moorthyNirnaya'
@@ -32,6 +34,8 @@ function toneColor(tone: string): string {
 }
 
 export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
+  const t = useTranslations('transit.biwheel')
+  const { lang } = useLang()
   const [date, setDate] = useState(todayISO())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -65,21 +69,21 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
             settings: chart.meta.settings,
           }),
         }),
-        fetch(`/api/transit/moorthy?asOf=${d}`),
+        fetch(`/api/transit/moorthy?asOf=${encodeURIComponent(d)}&lang=${lang}`),
       ])
       const chartJson = await chartRes.json()
       const moorthyJson = await moorthyRes.json()
-      if (!chartJson.success) throw new Error(chartJson.error || 'Transit chart failed')
+      if (!chartJson.success) throw new Error(chartJson.error || t('chartFailed'))
       setTransitGrahas(chartJson.data.grahas as GrahaData[])
       setMoorthy(moorthyJson.success ? moorthyJson.data : [])
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load bi-wheel data')
+      setError(e instanceof Error ? e.message : t('loadFailed'))
       setTransitGrahas(null)
       setMoorthy([])
     } finally {
       setLoading(false)
     }
-  }, [chart])
+  }, [chart, lang, t])
 
   useEffect(() => {
     void fetchAll(date)
@@ -93,10 +97,19 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
       transitGrahas,
       natalD9,
       d9Lagna,
+      lang,
     })
-  }, [transitGrahas, chart.vargas, chart.vargaLagnas])
+  }, [transitGrahas, chart.vargas, chart.vargaLagnas, lang])
 
   const chartSize = isMobile ? 320 : 440
+  const tableHeaders = [
+    t('thGraha'),
+    t('thD1'),
+    t('thD9'),
+    t('thNatalD9'),
+    t('thHouseD9'),
+    t('thFlags'),
+  ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.35rem' }}>
@@ -104,14 +117,14 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-end' }}>
           <div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Natal inner · Transit outer
+              {t('eyebrow')}
             </div>
             <h2 style={{ margin: '0.25rem 0 0', fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.35rem' : '1.75rem', color: 'var(--text-gold)' }}>
-              Bi-wheel · Moorthy · D9
+              {t('title')}
             </h2>
           </div>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-            Transit date
+            {t('dateLabel')}
             <input
               type="date"
               value={date}
@@ -131,7 +144,7 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
 
       {loading && (
         <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-gold)', fontStyle: 'italic' }}>
-          Building bi-wheel…
+          {t('loading')}
         </div>
       )}
       {error && (
@@ -152,19 +165,19 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
               showTooltip
             />
             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              <span><span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>●</span> Natal (inner)</span>
-              <span><span style={{ color: 'rgba(139,124,246,0.95)', fontWeight: 700 }}>●</span> Transit (outer)</span>
+              <span><span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>●</span> {t('legendNatal')}</span>
+              <span><span style={{ color: 'rgba(139,124,246,0.95)', fontWeight: 700 }}>●</span> {t('legendTransit')}</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <section style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               <h3 style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Moorthy Nirnaya (Ju / Sa)
+                {t('moorthyTitle')}
               </h3>
               {moorthy.length === 0 ? (
                 <div className="card" style={{ padding: '0.85rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                  Moorthy data unavailable for this date.
+                  {t('moorthyEmpty')}
                 </div>
               ) : (
                 moorthy.map(m => (
@@ -177,11 +190,11 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <strong style={{ color: 'var(--text-primary)' }}>{m.planetName} in {m.rashiName}</strong>
+                      <strong style={{ color: 'var(--text-primary)' }}>{t('planetInRashi', { planet: m.planetName, rashi: m.rashiName })}</strong>
                       <span style={{ color: toneColor(m.tone), fontWeight: 800, fontSize: '0.78rem' }}>{m.metalLabel}</span>
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      Ingress {m.ingressIso} · {m.weekday}
+                      {t('ingressLine', { date: m.ingressIso, weekday: m.weekday })}
                     </div>
                     <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {m.summary}
@@ -194,7 +207,9 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
             {d9Report && (
               <section style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                 <h3 style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  D9 gochar{d9Report.d9LagnaName ? ` · D9 lagna ${d9Report.d9LagnaName}` : ''}
+                  {d9Report.d9LagnaName
+                    ? t('d9TitleWithLagna', { lagna: d9Report.d9LagnaName })
+                    : t('d9Title')}
                 </h3>
                 {d9Report.highlights.length > 0 && (
                   <div className="card" style={{ padding: '0.75rem 0.9rem', fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -208,7 +223,7 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
                       <thead>
                         <tr style={{ background: 'var(--surface-3)', textAlign: 'left' }}>
-                          {['Graha', 'D1', 'D9', 'Natal D9', 'H(D9)', 'Flags'].map(h => (
+                          {tableHeaders.map(h => (
                             <th key={h} style={{ padding: '0.45rem 0.55rem', color: 'var(--text-muted)', fontWeight: 700 }}>{h}</th>
                           ))}
                         </tr>
@@ -223,7 +238,7 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
                             <td style={{ padding: '0.4rem 0.55rem', color: 'var(--text-secondary)' }}>{r.houseFromD9Lagna ?? '—'}</td>
                             <td style={{ padding: '0.4rem 0.55rem', color: 'var(--text-gold)', fontWeight: 600 }}>
                               {[
-                                r.isVargottamaTransit ? 'Vg' : null,
+                                r.isVargottamaTransit ? t('flagVg') : null,
                                 r.overNatalD9Ids.length ? `×${r.overNatalD9Ids.join(',')}` : null,
                               ].filter(Boolean).join(' ') || '—'}
                             </td>
@@ -250,9 +265,8 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
           lineHeight: 1.55,
         }}
       >
-        <strong style={{ color: 'var(--text-primary)' }}>How to read this:</strong> Bi-wheel shows natal grahas inside and transit outside from your D1 lagna.
-        Moorthy uses the weekday of Ju/Sa sign ingress (gold/silver supportive; copper mixed; iron caution).
-        D9 gochar maps the same transit longitudes into Navamsha for marriage/dharma confirmation — pair with dasha.
+        <strong style={{ color: 'var(--text-primary)' }}>{t('howToTitle')}</strong>{' '}
+        {t('howToBody')}
       </div>
     </div>
   )

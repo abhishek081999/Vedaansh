@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { analyzeTransitAspects } from '@/lib/engine/transitAspects'
+import type { EngineLang } from '@/lib/engine/lang'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import type { GrahaId, Rashi } from '@/types/astrology'
 
@@ -17,7 +18,12 @@ const QuerySchema = z.object({
   natal: z.string().min(3).max(120),
   asOf: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   months: z.coerce.number().int().min(1).max(36).optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
+
+function parseEngineLang(raw: string | undefined): EngineLang {
+  return raw === 'hi' ? 'hi' : 'en'
+}
 
 function parseNatal(raw: string): Partial<Record<GrahaId, Rashi>> | null {
   const out: Partial<Record<GrahaId, Rashi>> = {}
@@ -45,6 +51,7 @@ export async function GET(request: Request) {
     natal: searchParams.get('natal'),
     asOf: searchParams.get('asOf') ?? undefined,
     months: searchParams.get('months') ?? undefined,
+    lang: searchParams.get('lang') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -68,6 +75,7 @@ export async function GET(request: Request) {
       natalRashis,
       asOf: parsed.data.asOf ? new Date(`${parsed.data.asOf}T12:00:00Z`) : undefined,
       months: parsed.data.months,
+      lang: parseEngineLang(parsed.data.lang),
     })
     return NextResponse.json({ success: true, data })
   } catch (err) {

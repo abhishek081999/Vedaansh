@@ -4,6 +4,7 @@ import React from 'react'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { analyzeTransitMoment, type PositionVerdict } from '@/lib/engine/transitMomentAnalysis'
+import { useLang } from '@/i18n/useLang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import styles from './transit-scrubber.module.css'
 import { buildPointGroups, type PointPos } from './transitPoints'
@@ -72,10 +73,11 @@ export function TransitDetailsPanels({
   formatDisplayTime,
   timeForInput,
 }: TransitDetailsPanelsProps) {
+  const { lang } = useLang()
   const planetAnalysis = React.useMemo(() => {
     if (!transitChart) return null
-    return analyzeTransitMoment(natalChart, transitChart)
-  }, [natalChart, transitChart])
+    return analyzeTransitMoment(natalChart, transitChart, lang)
+  }, [natalChart, transitChart, lang])
 
   const pointGroups = React.useMemo(
     () => buildPointGroups(natalChart, transitChart),

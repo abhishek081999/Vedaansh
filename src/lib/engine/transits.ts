@@ -12,9 +12,16 @@ import {
   ketuLongitude,
 } from './ephemeris'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
+import { termHi } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { TRANSIT_INTERPRETATIONS_HI, TRANSITS_HI } from '@/lib/engine/locale/transits.hi'
 import { getNakshatra } from './nakshatra'
 import { getPlanetInHouse } from './houseInterpretations'
-import { getPlanetInHouseClassicalSummary } from './classicalInterpretations'
+import {
+  classicalNotesInLang,
+  getPlanetInHouseClassical,
+} from './classicalInterpretations'
 
 export interface TransitEvent {
   planetId:  GrahaId
@@ -107,15 +114,47 @@ export const TRANSIT_INTERPRETATIONS: Record<string, Record<number, string>> = {
   }
 }
 
-function getDetailedInterpretation(pid: GrahaId, house: number, type: string): string {
-  const teaching = getPlanetInHouse(pid, house, 'summary')
-  const classical = getPlanetInHouseClassicalSummary(pid, house)
-  const legacy = TRANSIT_INTERPRETATIONS[pid]?.[house]
+function nakLabel(name: string, lang: EngineLang): string {
+  return lang === 'hi' ? termHi(name) : name
+}
+
+function getDetailedInterpretation(
+  pid: GrahaId,
+  house: number,
+  type: string,
+  lang: EngineLang = 'en',
+): string {
+  const teaching = getPlanetInHouse(pid, house, 'summary', lang)
+  const classicalNotes = getPlanetInHouseClassical(pid, house)
+  const classical =
+    lang === 'hi'
+      ? classicalNotesInLang(classicalNotes, 'hi')[0]?.text ?? null
+      : classicalNotes[0]?.text ?? null
+  const legacy =
+    lang === 'hi'
+      ? TRANSIT_INTERPRETATIONS_HI[pid]?.[house]
+      : TRANSIT_INTERPRETATIONS[pid]?.[house]
   const base =
     teaching
     ?? classical
     ?? legacy
-    ?? `${GRAHA_NAMES[pid]} transits your ${house}${getOrdinal(house)} house.`
+    ?? (lang === 'hi'
+      ? fill(TRANSITS_HI.fallback, { graha: gName(pid, 'hi'), house })
+      : `${GRAHA_NAMES[pid]} transits your ${house}${getOrdinal(house)} house.`)
+
+  if (lang === 'hi') {
+    const theme = base.split(/[।.]/)[0]?.trim() || base
+    switch (type) {
+      case 'house_change':
+        return fill(TRANSITS_HI.activation, { house, base })
+      case 'retrograde_start':
+        return fill(TRANSITS_HI.reflection, { theme })
+      case 'retrograde_end':
+        return fill(TRANSITS_HI.progress, { theme })
+      default:
+        return base
+    }
+  }
 
   switch (type) {
     case 'house_change':
@@ -139,7 +178,8 @@ function isMajorTransit(pid: GrahaId, type: TransitEvent['type']) {
 export function calculatePersonalTransits(
   birthAscRashi: number,
   startDate: Date,
-  months: number = 12
+  months: number = 12,
+  lang: EngineLang = 'en',
 ): TransitEvent[] {
   const events: TransitEvent[] = []
   const planets: GrahaId[] = PLANETS_FOR_ROADMAP
@@ -190,6 +230,7 @@ export function calculatePersonalTransits(
   for (const pid of planets) {
     let prevBoundaryJd = startJd
     let prev = stateAtJd(pid, prevBoundaryJd)
+    const planet = gName(pid, lang)
 
     for (let day = 1; day <= totalDays; day += 1) {
       const currentBoundaryJd = startJd + day
@@ -199,6 +240,8 @@ export function calculatePersonalTransits(
         const jdEvent = findTransitionJd(pid, prevBoundaryJd, currentBoundaryJd, prev.rashi, (s) => s.rashi)
         const eventState = stateAtJd(pid, jdEvent)
         const dateStr = jdToDate(jdEvent).toISOString().split('T')[0]
+        const interp = getDetailedInterpretation(pid, eventState.house, 'sign_change', lang)
+        const rashi = rName(eventState.rashi, lang)
         events.push({
           planetId: pid,
           date: dateStr,
@@ -209,7 +252,9 @@ export function calculatePersonalTransits(
           house: eventState.house,
           nakshatra: eventState.nakshatra,
           pada: eventState.pada,
-          description: `${GRAHA_NAMES[pid]} enters ${RASHI_NAMES[eventState.rashi]}. ${getDetailedInterpretation(pid, eventState.house, 'sign_change')}`,
+          description: lang === 'hi'
+            ? fill(TRANSITS_HI.enters, { graha: planet, rashi, interp })
+            : `${GRAHA_NAMES[pid]} enters ${RASHI_NAMES[eventState.rashi]}. ${interp}`,
           isMajor: isMajorTransit(pid, 'sign_change'),
         })
       }
@@ -228,7 +273,7 @@ export function calculatePersonalTransits(
           house: eventState.house,
           nakshatra: eventState.nakshatra,
           pada: eventState.pada,
-          description: getDetailedInterpretation(pid, eventState.house, 'house_change'),
+          description: getDetailedInterpretation(pid, eventState.house, 'house_change', lang),
           isMajor: isMajorTransit(pid, 'house_change'),
         })
       }
@@ -247,7 +292,14 @@ export function calculatePersonalTransits(
           house: eventState.house,
           nakshatra: eventState.nakshatra,
           pada: eventState.pada,
-          description: `${GRAHA_NAMES[pid]} moves from ${prev.nakshatra} to ${eventState.nakshatra}, Pada ${eventState.pada}.`,
+          description: lang === 'hi'
+            ? fill(TRANSITS_HI.nakshatraMove, {
+                graha: planet,
+                from: nakLabel(prev.nakshatra, lang),
+                to: nakLabel(eventState.nakshatra, lang),
+                pada: eventState.pada,
+              })
+            : `${GRAHA_NAMES[pid]} moves from ${prev.nakshatra} to ${eventState.nakshatra}, Pada ${eventState.pada}.`,
           isMajor: isMajorTransit(pid, 'nakshatra_change'),
         })
       }
@@ -266,7 +318,13 @@ export function calculatePersonalTransits(
           house: eventState.house,
           nakshatra: eventState.nakshatra,
           pada: eventState.pada,
-          description: `${GRAHA_NAMES[pid]} shifts to Pada ${eventState.pada} of ${eventState.nakshatra}.`,
+          description: lang === 'hi'
+            ? fill(TRANSITS_HI.padaShift, {
+                graha: planet,
+                nakshatra: nakLabel(eventState.nakshatra, lang),
+                pada: eventState.pada,
+              })
+            : `${GRAHA_NAMES[pid]} shifts to Pada ${eventState.pada} of ${eventState.nakshatra}.`,
           isMajor: isMajorTransit(pid, 'pada_change'),
         })
       }
@@ -275,20 +333,36 @@ export function calculatePersonalTransits(
         const jdEvent = findTransitionJd(pid, prevBoundaryJd, currentBoundaryJd, prev.isRetro, (s) => s.isRetro)
         const eventState = stateAtJd(pid, jdEvent)
         const dateStr = jdToDate(jdEvent).toISOString().split('T')[0]
+        const turningDirect = prev.isRetro
+        const interp = getDetailedInterpretation(
+          pid,
+          eventState.house,
+          turningDirect ? 'retrograde_end' : 'retrograde_start',
+          lang,
+        )
         events.push({
           planetId: pid,
           date: dateStr,
-          type: prev.isRetro ? 'retrograde_end' : 'retrograde_start',
-          from: prev.isRetro ? 'Retrograde' : 'Direct',
-          to: prev.isRetro ? 'Direct' : 'Retrograde',
+          type: turningDirect ? 'retrograde_end' : 'retrograde_start',
+          from: turningDirect
+            ? (lang === 'hi' ? TRANSITS_HI.retrograde : 'Retrograde')
+            : (lang === 'hi' ? TRANSITS_HI.direct : 'Direct'),
+          to: turningDirect
+            ? (lang === 'hi' ? TRANSITS_HI.direct : 'Direct')
+            : (lang === 'hi' ? TRANSITS_HI.retrograde : 'Retrograde'),
           sign: eventState.rashi,
           house: eventState.house,
           nakshatra: eventState.nakshatra,
           pada: eventState.pada,
-          description: prev.isRetro
-            ? `${GRAHA_NAMES[pid]} turns Direct. ${getDetailedInterpretation(pid, eventState.house, 'retrograde_end')}`
-            : `${GRAHA_NAMES[pid]} turns Retrograde. ${getDetailedInterpretation(pid, eventState.house, 'retrograde_start')}`,
-          isMajor: isMajorTransit(pid, prev.isRetro ? 'retrograde_end' : 'retrograde_start'),
+          description: lang === 'hi'
+            ? fill(turningDirect ? TRANSITS_HI.turnsDirect : TRANSITS_HI.turnsRetrograde, {
+                graha: planet,
+                interp,
+              })
+            : turningDirect
+              ? `${GRAHA_NAMES[pid]} turns Direct. ${interp}`
+              : `${GRAHA_NAMES[pid]} turns Retrograde. ${interp}`,
+          isMajor: isMajorTransit(pid, turningDirect ? 'retrograde_end' : 'retrograde_start'),
         })
       }
 

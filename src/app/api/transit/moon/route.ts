@@ -45,6 +45,7 @@ const BodySchema = z.object({
   moonLon: z.number().finite(),
   moonSpeedDegPerDay: z.number().finite().positive().optional(),
   now: z.string().datetime().optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
 
 export async function POST(request: Request) {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { natal: raw, moonLon, moonSpeedDegPerDay, now } = parsed.data
+    const { natal: raw, moonLon, moonSpeedDegPerDay, now, lang } = parsed.data
     const natal = {
       grahas: raw.grahas.map(g => ({
         ...g,
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
       moonLon,
       moonSpeedDegPerDay,
       now: now ? new Date(now) : new Date(),
+      lang: lang ?? 'en',
     })
 
     if (!data) {

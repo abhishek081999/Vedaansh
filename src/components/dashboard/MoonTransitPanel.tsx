@@ -14,6 +14,7 @@ import {
   type MoonContactTone,
   type MoonTransitReport,
 } from '@/lib/engine/moonTransitAnalysis'
+import { useLang } from '@/i18n/useLang'
 import styles from './moon-transit.module.css'
 
 interface MoonTransitPanelProps {
@@ -160,6 +161,7 @@ export function MoonTransitPanel({
   compact = false,
   className,
 }: MoonTransitPanelProps) {
+  const { lang } = useLang()
   const tz = natalChart.meta.timezone || 'Asia/Kolkata'
   const [transitChart, setTransitChart] = useState<ChartOutput | null>(transitProp ?? null)
   const [loading, setLoading] = useState(!transitProp)
@@ -206,8 +208,8 @@ export function MoonTransitPanel({
 
   const report = useMemo(() => {
     if (!transitChart) return null
-    return buildMoonTransitFromCharts(natalChart, transitChart)
-  }, [natalChart, transitChart])
+    return buildMoonTransitFromCharts(natalChart, transitChart, undefined, lang)
+  }, [natalChart, transitChart, lang])
 
   const elongation = useMemo(() => {
     if (!transitChart) return 0

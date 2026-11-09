@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO } from './intro-content'
+import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, ROADMAP_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -175,4 +175,36 @@ export const MUHURTA_SEO_HI: SeoIntroProps = {
 
 export function muhurtaIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? MUHURTA_SEO_HI : MUHURTA_SEO
+}
+
+export const ROADMAP_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'व्यक्तिगत गोचर रोडमैप — Vedaansh',
+  h1: 'व्यक्तिगत वैदिक गोचर रोडमैप — दशा और ग्रह खिड़कियाँ',
+  paragraphs: [
+    'आगामी ग्रह गोचर, विंशोत्तरी दशा अवधि और महत्वपूर्ण ज्योतिष समय-खिड़कियाँ अपनी जन्म कुंडली से जुड़ी समयरेखा पर देखें।',
+    'शनि, गुरु, राहु–केतु और दशा परिवर्तन के आसपास निर्णय योजना बनाने के लिए स्विस एफ़ेमेरिस सटीकता वाले रोडमैप का उपयोग करें।',
+  ],
+  h2: 'रोडमैप की मुख्य बातें',
+  bullets: [
+    { label: 'गोचर समयरेखा', desc: 'आगामी प्रमुख ग्रह संक्रमण और दृष्टि' },
+    { label: 'दशा ओवरले', desc: 'एक ही दृश्य में महादशा और अंतर्दशा' },
+    { label: 'साढ़े साती ट्रैकर', desc: 'उदय / शिखर / अस्त के साथ चंद्र से कंटक और अष्टम' },
+    { label: 'दृष्टि और बहु-गोचर', desc: 'गुरु/शनि/राहु/केतु गोचर प्रभाव और दोहरी/त्रिगुणित खिड़कियाँ' },
+    { label: 'द्वि-चक्र + मूर्ति + D9', desc: 'जन्म/गोचर चक्र, संक्रमण मूर्ति, नवांश गोचर' },
+    { label: 'मासिक कैलेंडर', desc: 'मुद्रण योग्य HTML सहित व्यक्तिगत गोचर माह ग्रिड (Gold+)' },
+  ],
+  relatedLinks: [
+    guideLink('vimshottari-dasha-explained', 'विंशोत्तरी दशा'),
+    guideLink('ashtakavarga-explained', 'अष्टकवर्ग'),
+    { href: '/transit/sade-sati', label: 'साढ़े साती ट्रैकर' },
+    { href: '/transit/aspects', label: 'दृष्टि और बहु-गोचर' },
+    { href: '/transit/biwheel', label: 'द्वि-चक्र · मूर्ति · D9' },
+    { href: '/transit/calendar', label: 'गोचर कैलेंडर' },
+    { href: '/transit/scrubber', label: 'लाइव गोचर स्क्रबर' },
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function transitIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? ROADMAP_SEO_HI : ROADMAP_SEO
 }

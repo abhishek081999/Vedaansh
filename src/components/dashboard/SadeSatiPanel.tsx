@@ -6,7 +6,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 import type { SadeSatiReport, SaturnMoonPhase, SaturnMoonPhaseKind } from '@/lib/engine/sadeSati'
@@ -21,82 +23,9 @@ function toneColor(kind: SaturnMoonPhaseKind): string {
   return 'var(--amber)'
 }
 
-function statusBadge(report: SadeSatiReport): { label: string; color: string } {
-  if (report.now.inSadeSati) {
-    return { label: report.now.label, color: toneColor(report.now.kind) }
-  }
-  if (report.now.inKantaka) {
-    return { label: 'Kantaka / Dhaiya active', color: toneColor('kantaka') }
-  }
-  if (report.now.inAshtama) {
-    return { label: 'Ashtama Shani active', color: toneColor('ashtama') }
-  }
-  return { label: 'Clear window', color: 'var(--teal)' }
-}
-
-function phaseShort(p: SaturnMoonPhase): string {
-  if (p.kind === 'ashtama') return 'Ashtama'
-  if (p.kind === 'kantaka') return 'Kantaka'
-  if (p.kind === 'sade_sati_peak') return 'Peak'
-  if (p.kind === 'sade_sati_rising') return 'Rising'
-  if (p.kind === 'sade_sati_setting') return 'Setting'
-  return p.label.replace('Sade Sati — ', '').split(' ')[0]
-}
-
-function PhaseCard({ phase, compact }: { phase: SaturnMoonPhase; compact?: boolean }) {
-  const color = toneColor(phase.kind)
-  return (
-    <div
-      style={{
-        border: '1px solid var(--border-soft)',
-        borderLeft: `4px solid ${color}`,
-        borderRadius: 10,
-        padding: compact ? '0.65rem 0.75rem' : '0.85rem 1rem',
-        background: phase.isCurrent ? `${color}10` : 'var(--surface-2)',
-      }}
-    >
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.35rem', marginBottom: '0.3rem' }}>
-        <strong style={{ color: 'var(--text-primary)', fontSize: compact ? '0.82rem' : '0.9rem' }}>
-          {phase.label}
-        </strong>
-        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-          {phase.startIso} → {phase.endIso}
-        </span>
-      </div>
-      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: phase.isCurrent ? '0.45rem' : 0 }}>
-        Saturn in {phase.saturnRashiName} · {phase.fromMoonHouse}th from Moon
-        {phase.isCurrent ? ` · ${phase.progressPct}% through phase` : ''}
-      </div>
-      {!compact && (
-        <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          {phase.summary}
-        </p>
-      )}
-      {phase.isCurrent && (
-        <div
-          style={{
-            marginTop: '0.55rem',
-            height: 6,
-            borderRadius: 4,
-            background: 'var(--surface-3)',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: `${phase.progressPct}%`,
-              height: '100%',
-              background: color,
-              borderRadius: 4,
-            }}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
 export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
+  const t = useTranslations('transit.sadeSati')
+  const { lang } = useLang()
   const [report, setReport] = useState<SadeSatiReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -105,6 +34,31 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const moonRashi = moon?.rashi ?? null
   const ascRashi = chart.lagnas.ascRashi
+
+  const statusBadge = (r: SadeSatiReport): { label: string; color: string } => {
+    if (r.now.inSadeSati) return { label: r.now.label, color: toneColor(r.now.kind) }
+    if (r.now.inKantaka) return { label: t('badgeKantaka'), color: toneColor('kantaka') }
+    if (r.now.inAshtama) return { label: t('badgeAshtama'), color: toneColor('ashtama') }
+    return { label: t('badgeClear'), color: 'var(--teal)' }
+  }
+
+  const phaseShort = (p: SaturnMoonPhase): string => {
+    if (p.kind === 'ashtama') return t('shortAshtama')
+    if (p.kind === 'kantaka') return t('shortKantaka')
+    if (p.kind === 'sade_sati_peak') return t('shortPeak')
+    if (p.kind === 'sade_sati_rising') return t('shortRising')
+    if (p.kind === 'sade_sati_setting') return t('shortSetting')
+    return p.label.replace(/Sade Sati — |साढ़े साती — /, '').split(/[\s—]/)[0]
+  }
+
+  const placementLine = (phase: SaturnMoonPhase): string =>
+    phase.isCurrent
+      ? t('placementProgress', {
+          rashi: phase.saturnRashiName,
+          house: phase.fromMoonHouse,
+          pct: phase.progressPct,
+        })
+      : t('placement', { rashi: phase.saturnRashiName, house: phase.fromMoonHouse })
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -116,7 +70,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
   useEffect(() => {
     if (!moonRashi) {
       setLoading(false)
-      setError('Natal Moon position is required for Sade Sati.')
+      setError(t('needMoon'))
       return
     }
 
@@ -130,25 +84,26 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
           ascRashi: String(ascRashi),
           lookbackYears: '12',
           lookAheadYears: '20',
+          lang,
         })
         const res = await fetch(`/api/transit/sade-sati?${qs}`)
         const json = await res.json()
         if (cancelled) return
         if (!json.success) {
-          setError(json.error || 'Failed to load Sade Sati')
+          setError(json.error || t('loadFailed'))
           setReport(null)
         } else {
           setReport(json.data)
         }
       } catch {
-        if (!cancelled) setError('Failed to load Sade Sati')
+        if (!cancelled) setError(t('loadFailed'))
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
     void load()
     return () => { cancelled = true }
-  }, [moonRashi, ascRashi])
+  }, [moonRashi, ascRashi, lang, t])
 
   if (loading) {
     return (
@@ -165,7 +120,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
           }}
         />
         <div style={{ color: 'var(--text-gold)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-          Mapping Saturn against your Moon…
+          {t('loading')}
         </div>
       </div>
     )
@@ -174,7 +129,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
   if (error || !report) {
     return (
       <div className="card" style={{ padding: '1.5rem', color: 'var(--text-muted)' }}>
-        {error || 'No Sade Sati data available.'}
+        {error || t('noData')}
       </div>
     )
   }
@@ -183,16 +138,68 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
   const pastCycles = report.cycles.filter(c => !c.isCurrent && new Date(c.endIso) < new Date(report.asOfIso))
   const futureCycles = report.cycles.filter(c => !c.isCurrent && new Date(c.startIso) > new Date(report.asOfIso))
 
+  function PhaseCard({ phase, compact }: { phase: SaturnMoonPhase; compact?: boolean }) {
+    const color = toneColor(phase.kind)
+    return (
+      <div
+        style={{
+          border: '1px solid var(--border-soft)',
+          borderLeft: `4px solid ${color}`,
+          borderRadius: 10,
+          padding: compact ? '0.65rem 0.75rem' : '0.85rem 1rem',
+          background: phase.isCurrent ? `${color}10` : 'var(--surface-2)',
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.35rem', marginBottom: '0.3rem' }}>
+          <strong style={{ color: 'var(--text-primary)', fontSize: compact ? '0.82rem' : '0.9rem' }}>
+            {phase.label}
+          </strong>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            {phase.startIso} → {phase.endIso}
+          </span>
+        </div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: phase.isCurrent ? '0.45rem' : 0 }}>
+          {placementLine(phase)}
+        </div>
+        {!compact && (
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            {phase.summary}
+          </p>
+        )}
+        {phase.isCurrent && (
+          <div
+            style={{
+              marginTop: '0.55rem',
+              height: 6,
+              borderRadius: 4,
+              background: 'var(--surface-3)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${phase.progressPct}%`,
+                height: '100%',
+                background: color,
+                borderRadius: 4,
+              }}
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.35rem' }}>
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.35rem' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
           <div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              From natal Moon · {report.moonRashiName}
+              {t('fromMoon', { rashi: report.moonRashiName })}
             </div>
             <h2 style={{ margin: '0.25rem 0 0', fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.35rem' : '1.75rem', color: 'var(--text-gold)' }}>
-              Saturn–Moon Tracker
+              {t('title')}
             </h2>
           </div>
           <div
@@ -217,9 +224,9 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '0.55rem' }}>
           {[
-            { k: 'Transit Saturn', v: report.now.saturnRashiName },
-            { k: 'House from Moon', v: `${report.now.fromMoonHouse}` },
-            { k: 'As of', v: report.asOfIso },
+            { k: t('statSaturn'), v: report.now.saturnRashiName },
+            { k: t('statHouse'), v: `${report.now.fromMoonHouse}` },
+            { k: t('statAsOf'), v: report.asOfIso },
           ].map(row => (
             <div key={row.k} style={{ background: 'var(--surface-3)', borderRadius: 8, padding: '0.55rem 0.7rem', border: '1px solid var(--border-soft)' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>{row.k}</div>
@@ -230,11 +237,11 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
       </div>
 
       <VizCard
-        title="Saturn–Moon timeline"
-        caption="Sade Sati cycles on top, Kantaka (Dhaiya) and Ashtama below. Gold line = today. Hover a block for dates."
+        title={t('timelineTitle')}
+        caption={t('timelineCaption')}
         legend={[
-          { label: 'Peak / Ashtama', color: toneColor('ashtama') },
-          { label: 'Rising, setting, Kantaka', color: toneColor('kantaka') },
+          { label: t('legendPeak'), color: toneColor('ashtama') },
+          { label: t('legendRising'), color: toneColor('kantaka') },
         ]}
       >
         <TimelineBand
@@ -260,12 +267,12 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
               title: `${p.label} · ${p.startIso} → ${p.endIso}`,
             })),
           ]}
-          laneLabels={['Sade Sati', 'Dhaiya / 8th']}
+          laneLabels={[t('laneSade'), t('laneDhaiya')]}
           from={report.windowStartIso}
           to={report.windowEndIso}
           now={report.asOfIso}
           ticks={8}
-          ariaLabel="Saturn transit phases relative to the natal Moon"
+          ariaLabel={t('ariaTimeline')}
         />
       </VizCard>
 
@@ -290,7 +297,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
       {report.currentPhase && report.currentPhase.kind !== 'clear' && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Current phase
+            {t('currentPhase')}
           </h3>
           <PhaseCard phase={report.currentPhase} />
         </section>
@@ -300,7 +307,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.35rem' }}>
             <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Active Sade Sati cycle · {report.currentCycle.progressPct}% complete
+              {t('activeCycle', { pct: report.currentCycle.progressPct })}
             </h3>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               {report.currentCycle.startIso} → {report.currentCycle.endIso}
@@ -317,7 +324,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
       {report.specials.some(p => p.isCurrent || new Date(p.startIso) > new Date(report.asOfIso)) && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Kantaka (Dhaiya) & Ashtama
+            {t('specials')}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {report.specials
@@ -333,7 +340,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
       {report.upcoming.length > 0 && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Upcoming Saturn–Moon windows
+            {t('upcoming')}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {report.upcoming.map(p => (
@@ -346,7 +353,7 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
       {(futureCycles.length > 0 || pastCycles.length > 0) && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Sade Sati cycles in window
+            {t('cyclesInWindow')}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.55rem' }}>
             {[...futureCycles.slice(0, 2), ...pastCycles.slice(-2).reverse()].map(c => (
@@ -359,33 +366,15 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
                   background: 'var(--surface-2)',
                 }}
               >
-                <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.85rem' }}>{c.label}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '0.2rem' }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.85rem' }}>{c.label}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
                   {c.startIso} → {c.endIso}
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-                  {c.phases.map(p => p.label.replace('Sade Sati — ', '')).join(' · ')}
                 </div>
               </div>
             ))}
           </div>
         </section>
       )}
-
-      <div
-        style={{
-          padding: '1rem 1.15rem',
-          background: 'var(--surface-2)',
-          borderRadius: 'var(--r-md)',
-          border: '1px dashed var(--border-soft)',
-          fontSize: '0.8rem',
-          color: 'var(--text-secondary)',
-          lineHeight: 1.55,
-        }}
-      >
-        <strong style={{ color: 'var(--text-primary)' }}>How to read this:</strong> Sade Sati is Saturn’s ~7.5-year pass through the 12th, Moon-sign, and 2nd from natal Moon.
-        Kantaka (Dhaiya) is the 4th; Ashtama is the 8th. Always weigh results with Vimshottari dasha and Ashtakavarga — never from Saturn alone.
-      </div>
     </div>
   )
 }

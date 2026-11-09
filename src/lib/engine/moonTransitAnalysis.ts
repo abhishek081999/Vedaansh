@@ -9,8 +9,9 @@ import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcChandraBala } from '@/lib/engine/muhurtaPersonal'
 import { getTaraFromBirth } from '@/lib/engine/navtaraPrediction'
-import { GRAHA_HI, termHi } from '@/i18n/jyotish'
+import { GRAHA_HI, nakshatraName, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { fill, type EngineLang } from '@/lib/engine/lang'
+import { CONTACT_HI, LAGNA_LABELS_HI } from '@/lib/engine/locale/moonTransit.hi'
 import { HOUSE_SHORT_THEMES_HI, ordHi } from '@/lib/engine/locale/todayReading.hi'
 
 export type MoonContactKind = 'graha' | 'lagna' | 'upagraha'
@@ -156,25 +157,6 @@ function arudhaLon(natal: ChartOutput): number | null {
 }
 
 /** Collect natal conjunction targets for the Moon. */
-const LAGNA_LABELS_HI: Record<string, string> = {
-  Asc: 'लग्न', AL: 'आरूढ़ लग्न', bhavaLagna: 'भाव लग्न', horaLagna: 'होरा लग्न', ghatiLagna: 'घटी लग्न',
-  vighatiLagna: 'विघटी लग्न', varnadaLagna: 'वर्णद लग्न', sriLagna: 'श्री लग्न', pranapada: 'प्राणपद',
-  induLagna: 'इंदु लग्न', bhriguBindu: 'भृगु बिंदु',
-}
-
-const CONTACT_HI = {
-  house: 'आपके जन्म का {target} {nth} भाव में है — {theme}।',
-  grahaGood: 'चंद्रमा जन्म के {target} से मिलता है। मन और मनोदशा {theme} की ओर झुकती है। {house}',
-  grahaBad: 'चंद्रमा जन्म के {target} से मिलता है। {theme} को लेकर भावनाएँ तीखी हो सकती हैं; प्रतिक्रिया धीमी रखें। {house}',
-  grahaMixed: 'चंद्रमा जन्म के {target} से मिलता है। ध्यान {theme} पर केंद्रित होता है, कोई निश्चित परिणाम नहीं। {house}',
-  asc: 'चंद्रमा आपके लग्न से गुज़रता है। शरीर का बोध और आप स्वयं को कैसे प्रस्तुत करते हैं, यह आगे आता है। {house}',
-  lagna: 'चंद्रमा {target} से गुज़रता है। यह बताता है कि उस लग्न का विषय मनोदशा और गति में कैसे दिखता है। {house}',
-  upaBad: 'चंद्रमा {target} से गुज़रता है। संपर्क सटीक रहने तक तीखी नई शुरुआत के बजाय दिनचर्या चुनें। {house}',
-  upa: 'चंद्रमा {target} से गुज़रता है। {theme} के आसपास सूक्ष्म समय-संकेत। {house}',
-  chandra: ' चंद्र बल स्थिर अर्थ का साथ देता है।',
-  lifeThemes: 'जीवन के विषय',
-}
-
 export function collectMoonTargets(natal: ChartOutput, lang: EngineLang = 'en'): MoonContactTarget[] {
   const hi = lang === 'hi'
   const asc = natal.lagnas.ascRashi
@@ -366,23 +348,24 @@ export function buildMoonTransitReport(input: BuildMoonTransitInput): MoonTransi
     : DEFAULT_MOON_SPEED
   const nearHours = input.nearHours ?? NEAR_HOURS
   const cycleHours = (input.cycleDays ?? CYCLE_DAYS) * 24
+  const lang = input.lang ?? 'en'
 
   const moonRashi = rashiOfLon(moonLon)
   const nak = getNakshatra(moonLon)
-  const chandra = calcChandraBala(natalMoon.rashi, moonRashi)
+  const chandra = calcChandraBala(natalMoon.rashi, moonRashi, lang)
   const tara = getTaraFromBirth(natalMoon.nakshatraIndex, nak.index)
   const lagnaHouse = houseFrom(input.natal.lagnas.ascRashi, moonRashi)
 
   // Chandra quality at contact time uses Moon's rashi at the hit for near-term tone;
   // for simplicity we use current Chandra quality for text, and recompute per-contact
   // from the estimated hit longitude.
-  const targets = collectMoonTargets(input.natal, input.lang)
+  const targets = collectMoonTargets(input.natal, lang)
   const contacts = targets.map(t => {
     const hours = hoursToConjunction(moonLon, t.lon, speed)
     const hitLon = normLon(moonLon + (hours / 24) * speed)
     const hitRashi = rashiOfLon(hitLon)
-    const hitChandra = calcChandraBala(natalMoon.rashi, hitRashi)
-    const base = buildContact(t, moonLon, speed, nowMs, hitChandra.quality, input.lang)
+    const hitChandra = calcChandraBala(natalMoon.rashi, hitRashi, lang)
+    const base = buildContact(t, moonLon, speed, nowMs, hitChandra.quality, lang)
     return base
   })
 
@@ -403,14 +386,17 @@ export function buildMoonTransitReport(input: BuildMoonTransitInput): MoonTransi
     moon: {
       lon: moonLon,
       rashi: moonRashi,
-      rashiName: RASHI_NAMES[moonRashi],
-      nakshatraName: nak.name || NAKSHATRA_NAMES[nak.index],
+      rashiName: lang === 'hi' ? (RASHI_HI[moonRashi] ?? RASHI_NAMES[moonRashi]) : RASHI_NAMES[moonRashi],
+      nakshatraName:
+        lang === 'hi'
+          ? nakshatraName(nak.index, 'hi', nak.name || NAKSHATRA_NAMES[nak.index])
+          : nak.name || NAKSHATRA_NAMES[nak.index],
       pada: nak.pada,
       speedDegPerDay: speed,
       lagnaHouse,
       chandraPosition: chandra.position,
       chandraQuality: chandra.quality,
-      taraName: tara.name,
+      taraName: lang === 'hi' ? tara.hindi : tara.name,
       taraTone: tara.tone,
       taraIsHard: tara.isHard,
     },
@@ -425,6 +411,7 @@ export function buildMoonTransitFromCharts(
   natal: ChartOutput,
   transit: ChartOutput,
   now?: Date,
+  lang: EngineLang = 'en',
 ): MoonTransitReport | null {
   const tMoon = transit.grahas.find(g => g.id === 'Mo')
   if (!tMoon) return null
@@ -433,5 +420,6 @@ export function buildMoonTransitFromCharts(
     moonLon: tMoon.lonSidereal,
     moonSpeedDegPerDay: tMoon.speed,
     now: now ?? new Date(),
+    lang,
   })
 }

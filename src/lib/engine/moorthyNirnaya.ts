@@ -8,6 +8,9 @@ import type { GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { buildPlanetSignTimeline } from '@/lib/engine/transitAspects'
 import { dateToJD, jdToDate } from '@/lib/engine/ephemeris'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { MOORTHY_HI, MOORTHY_METAL_HI, MOORTHY_WEEKDAY_HI } from '@/lib/engine/locale/moorthyNirnaya.hi'
 
 export type MoorthyMetal = 'swarna' | 'rajata' | 'tamra' | 'loha'
 
@@ -61,7 +64,10 @@ export function moorthyMetalFromWeekdayLord(lord: GrahaId): MoorthyMetal {
   return 'loha' // Me, Sa
 }
 
-export function moorthyFromIngressDate(ingress: Date): {
+export function moorthyFromIngressDate(
+  ingress: Date,
+  lang: EngineLang = 'en',
+): {
   metal: MoorthyMetal
   metalLabel: string
   tone: MoorthyTone
@@ -73,13 +79,14 @@ export function moorthyFromIngressDate(ingress: Date): {
   const weekdayLord = WEEKDAY_LORDS[dow]
   const metal = moorthyMetalFromWeekdayLord(weekdayLord)
   const meta = METAL_META[metal]
+  const hi = lang === 'hi' ? MOORTHY_METAL_HI[metal] : null
   return {
     metal,
-    metalLabel: meta.label,
+    metalLabel: hi?.label ?? meta.label,
     tone: meta.tone,
-    weekday: WEEKDAY_NAMES[dow],
+    weekday: lang === 'hi' ? MOORTHY_WEEKDAY_HI[dow] : WEEKDAY_NAMES[dow],
     weekdayLord,
-    blurb: meta.blurb,
+    blurb: hi?.blurb ?? meta.blurb,
   }
 }
 
@@ -95,7 +102,10 @@ function toIsoDate(d: Date): string {
  * Moorthy for Ju/Sa in their current signs at `asOf`,
  * using weekday of the most recent ingress into that sign.
  */
-export function analyzeMoorthyNirnaya(asOf: Date = new Date()): MoorthyResult[] {
+export function analyzeMoorthyNirnaya(
+  asOf: Date = new Date(),
+  lang: EngineLang = 'en',
+): MoorthyResult[] {
   const now = utcNoon(asOf)
   const lookbackStart = new Date(now)
   lookbackStart.setUTCFullYear(lookbackStart.getUTCFullYear() - 4)
@@ -112,11 +122,23 @@ export function analyzeMoorthyNirnaya(asOf: Date = new Date()): MoorthyResult[] 
     if (!current) continue
 
     const ingress = jdToDate(current.startJd)
-    const m = moorthyFromIngressDate(utcNoon(ingress))
+    const m = moorthyFromIngressDate(utcNoon(ingress), lang)
     const rashi = current.rashi
+    const planetName = lang === 'hi' ? gName(pid, 'hi') : GRAHA_NAMES[pid]
+    const rashiName = lang === 'hi' ? rName(rashi, 'hi') : RASHI_NAMES[rashi]
+    const summary =
+      lang === 'hi'
+        ? fill(MOORTHY_HI.summary, {
+            planet: planetName,
+            rashi: rashiName,
+            weekday: m.weekday,
+            metal: m.metalLabel,
+            blurb: m.blurb,
+          })
+        : `${planetName} entered ${rashiName} on ${m.weekday} → ${m.metalLabel}. ${m.blurb}`
     results.push({
       planetId: pid,
-      planetName: GRAHA_NAMES[pid],
+      planetName,
       metal: m.metal,
       metalLabel: m.metalLabel,
       tone: m.tone,
@@ -124,8 +146,8 @@ export function analyzeMoorthyNirnaya(asOf: Date = new Date()): MoorthyResult[] 
       weekdayLord: m.weekdayLord,
       ingressIso: toIsoDate(ingress),
       rashi,
-      rashiName: RASHI_NAMES[rashi],
-      summary: `${GRAHA_NAMES[pid]} entered ${RASHI_NAMES[rashi]} on ${m.weekday} → ${m.metalLabel}. ${m.blurb}`,
+      rashiName,
+      summary,
     })
   }
 

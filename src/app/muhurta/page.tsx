@@ -465,7 +465,7 @@ export default function MuhurtaPage() {
     return labels.slice(0, 4)
   }, [timelineData, purpose])
 
-  const activityLabel = (id: MuhurtaActivity) => t(`activities.${id}`)
+  const activityLabel = useCallback((id: MuhurtaActivity) => t(`activities.${id}`), [t])
 
   const exportCalendar = useCallback(() => {
     const events: { title: string; description?: string; start: Date; end: Date; location?: string }[] = []
@@ -514,7 +514,7 @@ export default function MuhurtaPage() {
     }
     const ics = buildMuhurtaIcs(events, t('export.icsName', { activity: activityLabel(purpose) }))
     downloadIcs(`vedaansh-muhurta-${purpose.toLowerCase()}.ics`, ics)
-  }, [results, timelineData, purpose, location.name, t])
+  }, [results, timelineData, purpose, location.name, t, activityLabel])
 
   const exportReport = useCallback(async () => {
     setError(null)

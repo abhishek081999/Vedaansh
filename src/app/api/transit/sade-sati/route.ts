@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { analyzeSadeSati } from '@/lib/engine/sadeSati'
+import type { EngineLang } from '@/lib/engine/lang'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import type { Rashi } from '@/types/astrology'
 
@@ -15,7 +16,12 @@ const QuerySchema = z.object({
   asOf:      z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   lookbackYears: z.coerce.number().int().min(1).max(40).optional(),
   lookAheadYears: z.coerce.number().int().min(1).max(40).optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
+
+function parseEngineLang(raw: string | undefined): EngineLang {
+  return raw === 'hi' ? 'hi' : 'en'
+}
 
 export async function GET(request: Request) {
   const blocked = await guardRoute(request, routeSecurityPresets.publicEphemeris())
@@ -28,6 +34,7 @@ export async function GET(request: Request) {
     asOf: searchParams.get('asOf') ?? undefined,
     lookbackYears: searchParams.get('lookbackYears') ?? undefined,
     lookAheadYears: searchParams.get('lookAheadYears') ?? undefined,
+    lang: searchParams.get('lang') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -38,12 +45,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { moonRashi, ascRashi, asOf, lookbackYears, lookAheadYears } = parsed.data
+    const { moonRashi, ascRashi, asOf, lookbackYears, lookAheadYears, lang } = parsed.data
+    const engineLang = parseEngineLang(lang)
     const data = analyzeSadeSati(moonRashi as Rashi, {
       asOf: asOf ? new Date(`${asOf}T12:00:00Z`) : undefined,
       ascRashi: ascRashi as Rashi | undefined,
       lookbackYears,
       lookAheadYears,
+      lang: engineLang,
     })
     return NextResponse.json({ success: true, data })
   } catch (err) {

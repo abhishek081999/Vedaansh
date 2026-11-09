@@ -6,15 +6,15 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import type { TransitCalendarDay, TransitCalendarMonth } from '@/lib/engine/transitCalendar'
 
 interface TransitCalendarPanelProps {
   chart: ChartOutput
 }
-
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function kindColor(kind: string): string {
   if (kind === 'sade_sati_peak' || kind === 'ashtama') return 'var(--rose)'
@@ -79,6 +79,8 @@ function DayCell({
 }
 
 export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
+  const t = useTranslations('transit.calendar')
+  const { lang } = useLang()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -90,6 +92,15 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
 
   const moonRashi = chart.grahas.find(g => g.id === 'Mo')?.rashi
   const ascRashi = chart.lagnas.ascRashi
+  const weekdays = [
+    t('weekdaySun'),
+    t('weekdayMon'),
+    t('weekdayTue'),
+    t('weekdayWed'),
+    t('weekdayThu'),
+    t('weekdayFri'),
+    t('weekdaySat'),
+  ]
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -100,7 +111,7 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
 
   useEffect(() => {
     if (!moonRashi) {
-      setError('Natal Moon required')
+      setError(t('needMoon'))
       setLoading(false)
       return
     }
@@ -114,26 +125,27 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
           moonRashi: String(moonRashi),
           year: String(year),
           month: String(month),
+          lang,
         })
         const res = await fetch(`/api/transit/calendar?${qs}`)
         const json = await res.json()
         if (cancelled) return
         if (!json.success) {
-          setError(json.error || 'Failed to load calendar')
+          setError(json.error || t('loadFailed'))
           setCal(null)
         } else {
           setCal(json.data)
           setSelectedIso(null)
         }
       } catch {
-        if (!cancelled) setError('Failed to load calendar')
+        if (!cancelled) setError(t('loadFailed'))
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
     void load()
     return () => { cancelled = true }
-  }, [ascRashi, moonRashi, year, month])
+  }, [ascRashi, moonRashi, year, month, lang, t])
 
   const shiftMonth = (delta: number) => {
     let m = month + delta
@@ -152,7 +164,8 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
       year: String(year),
       month: String(month),
       format: 'html',
-      name: chart.meta.name || 'Native',
+      name: chart.meta.name || t('nativeFallback'),
+      lang,
     })
     window.open(`/api/transit/calendar?${qs}`, '_blank')
   }
@@ -173,25 +186,25 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
         <div>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Personal gochar month
+            {t('eyebrow')}
           </div>
           <h2 style={{ margin: '0.2rem 0 0', fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.3rem' : '1.65rem', color: 'var(--text-gold)' }}>
-            {cal?.monthLabel ?? 'Transit Calendar'}
+            {cal?.monthLabel ?? t('titleFallback')}
           </h2>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
           <button type="button" className="btn" onClick={() => shiftMonth(-1)} style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem' }}>←</button>
-          <button type="button" className="btn" onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1) }} style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem' }}>Today</button>
+          <button type="button" className="btn" onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1) }} style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem' }}>{t('today')}</button>
           <button type="button" className="btn" onClick={() => shiftMonth(1)} style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem' }}>→</button>
           <button type="button" className="btn btn-primary" onClick={openPrint} style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}>
-            Print / HTML
+            {t('printHtml')}
           </button>
         </div>
       </div>
 
       {loading && (
         <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-gold)', fontStyle: 'italic' }}>
-          Building month…
+          {t('loading')}
         </div>
       )}
       {error && <div className="card" style={{ padding: '1rem', color: 'var(--rose)' }}>{error}</div>}
@@ -206,7 +219,7 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
               gap: isMobile ? '0.3rem' : '0.4rem',
             }}
           >
-            {WEEKDAYS.map(w => (
+            {weekdays.map(w => (
               <div key={w} style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textAlign: 'center', padding: '0.2rem' }}>
                 {w}
               </div>
@@ -231,7 +244,7 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
                 {selected.majorSnippet}
               </div>
               {selected.events.length === 0 ? (
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No major ingress/retro events this day.</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('noEvents')}</div>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                   {selected.events.map((e, idx) => (
@@ -243,8 +256,7 @@ export function TransitCalendarPanel({ chart }: TransitCalendarPanelProps) {
           )}
 
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Amber/rose day marks = Saturn–Moon stress (Sade Sati / Kantaka / Ashtama). Gold dot = major transit event.
-            Full chart PDF (Gold+) also includes a Gochar chapter.
+            {t('legend')}
           </div>
         </>
       )}

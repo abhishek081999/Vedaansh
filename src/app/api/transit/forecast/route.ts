@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/auth'
 import { buildTransitForecast, type ForecastNatal } from '@/lib/engine/transitForecast'
+import type { EngineLang } from '@/lib/engine/lang'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requirePlanGate } from '@/lib/security/planAccess'
 import type { GrahaId, Rashi } from '@/types/astrology'
@@ -32,7 +33,12 @@ const BodySchema = z.object({
   })).max(60).optional(),
   asOf: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   months: z.number().int().min(1).max(24).optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
+
+function parseEngineLang(raw: string | undefined): EngineLang {
+  return raw === 'hi' ? 'hi' : 'en'
+}
 
 export async function POST(request: Request) {
   const blocked = await guardRoute(request, routeSecurityPresets.publicEphemeris())
@@ -62,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { ascRashi, moonRashi, bav, sav, dashas, asOf, months } = parsed.data
+    const { ascRashi, moonRashi, bav, sav, dashas, asOf, months, lang } = parsed.data
     const natal: ForecastNatal = {
       ascRashi: ascRashi as Rashi,
       moonRashi: moonRashi as Rashi,
@@ -74,6 +80,7 @@ export async function POST(request: Request) {
       natal,
       asOf: asOf ? new Date(`${asOf}T12:00:00Z`) : undefined,
       months,
+      lang: parseEngineLang(lang),
     })
     return NextResponse.json({ success: true, data })
   } catch (err) {
