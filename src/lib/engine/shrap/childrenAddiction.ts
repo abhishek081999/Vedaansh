@@ -85,7 +85,7 @@ export function analyzeChildrenFocus(chart: ChartOutput, now = Date.now(), lang:
 
   const C = SHRAP_HI.children
   if (h5.length) {
-    notes.push(tx(lang, `5th house under pressure from ${h5.map(gn).join(', ')} — study / focus themes need care.`, C.h5, {
+    notes.push(tx(lang, `5th house under pressure from ${h5.map((g) => gn(g)).join(', ')} — study / focus themes need care.`, C.h5, {
       grahas: gnList(h5, lang),
     }))
   }
@@ -156,7 +156,7 @@ export function analyzeAddictionSignatures(chart: ChartOutput, now = Date.now(),
       role: houseRoles[house],
       hit,
       detail: hit
-        ? tx(lang, `Occupied / aspected by ${occ.map(gn).join(', ')}`, A.hit, { grahas: gnList(occ, lang) })
+        ? tx(lang, `Occupied / aspected by ${occ.map((g) => gn(g)).join(', ')}`, A.hit, { grahas: gnList(occ, lang) })
         : tx(lang, 'No strong malefic occupation or classical aspect on this house', A.miss),
     }
   })

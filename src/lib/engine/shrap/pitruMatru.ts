@@ -112,7 +112,7 @@ export function analyzePitruDosha(chart: ChartOutput, lang: EngineLang = 'en'): 
     score += h9Mal.length >= 2 ? 1.5 : 1
     indicators.push({
       id: 'h9-mal',
-      text: tx(lang, `9th house afflicted by ${h9Mal.map(gn).join(', ')}`, P.h9, { grahas: gnList(h9Mal, lang) }),
+      text: tx(lang, `9th house afflicted by ${h9Mal.map((g) => gn(g)).join(', ')}`, P.h9, { grahas: gnList(h9Mal, lang) }),
     })
   }
 
@@ -123,7 +123,7 @@ export function analyzePitruDosha(chart: ChartOutput, lang: EngineLang = 'en'): 
       score += 1
       indicators.push({
         id: 'l9-aff',
-        text: tx(lang, `9th lord ${gn(lord9)} afflicted by ${hits.map(gn).join(', ')}`, P.l9aff, {
+        text: tx(lang, `9th lord ${gn(lord9)} afflicted by ${hits.map((g) => gn(g)).join(', ')}`, P.l9aff, {
           lord: gn(lord9, lang),
           hits: gnList(hits, lang),
         }),
@@ -224,7 +224,7 @@ export function analyzeMatruDosha(chart: ChartOutput, lang: EngineLang = 'en'): 
     score += h4Mal.length >= 2 ? 1.5 : 1
     indicators.push({
       id: 'h4-mal',
-      text: tx(lang, `4th house afflicted by ${h4Mal.map(gn).join(', ')}`, M.h4, { grahas: gnList(h4Mal, lang) }),
+      text: tx(lang, `4th house afflicted by ${h4Mal.map((g) => gn(g)).join(', ')}`, M.h4, { grahas: gnList(h4Mal, lang) }),
     })
   }
 
@@ -240,7 +240,7 @@ export function analyzeMatruDosha(chart: ChartOutput, lang: EngineLang = 'en'): 
       score += 1
       indicators.push({
         id: 'l4-aff',
-        text: tx(lang, `4th lord ${gn(lord4)} afflicted by ${hits.map(gn).join(', ')}`, M.l4aff, {
+        text: tx(lang, `4th lord ${gn(lord4)} afflicted by ${hits.map((g) => gn(g)).join(', ')}`, M.l4aff, {
           lord: gn(lord4, lang),
           hits: gnList(hits, lang),
         }),
@@ -258,7 +258,7 @@ export function analyzeMatruDosha(chart: ChartOutput, lang: EngineLang = 'en'): 
     score += 0.5
     indicators.push({
       id: 'mo-mal',
-      text: tx(lang, `Moon pressured by ${moonMal.map(gn).join(', ')}`, M.moonPress, { grahas: gnList(moonMal, lang) }),
+      text: tx(lang, `Moon pressured by ${moonMal.map((g) => gn(g)).join(', ')}`, M.moonPress, { grahas: gnList(moonMal, lang) }),
     })
   }
 

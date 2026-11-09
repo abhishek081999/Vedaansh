@@ -118,7 +118,7 @@ export function analyzeSarpaDosha(chart: ChartOutput, lang: EngineLang = 'en'): 
       score += 1.5
       indicators.push({
         id: 'l5-ra',
-        text: tx(lang, `5th lord ${gn(lord5)} afflicted by ${hits.map(gn).join(', ')}`, S.l5, {
+        text: tx(lang, `5th lord ${gn(lord5)} afflicted by ${hits.map((g) => gn(g)).join(', ')}`, S.l5, {
           lord: gn(lord5, lang),
           hits: gnList(hits, lang),
         }),
@@ -226,7 +226,7 @@ export function analyzeGuruDosha(chart: ChartOutput, lang: EngineLang = 'en'): S
     score += 0.75
     indicators.push({
       id: 'h5-aff',
-      text: tx(lang, `5th house afflicted (${h5.map(gn).join(', ') || 'malefics'})`, G.h5, {
+      text: tx(lang, `5th house afflicted (${h5.map((g) => gn(g)).join(', ') || 'malefics'})`, G.h5, {
         list: gnList(h5, lang) || G.malefics,
       }),
     })
