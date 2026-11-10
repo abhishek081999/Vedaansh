@@ -14,7 +14,7 @@ const gunzip = promisify(zlib.gunzip)
 
 const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
 const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
-/** Match current + legacy chart cache keys (v15/v18/v19/…). Must stay in sync with chartCacheKey(). */
+/** Match current + legacy chart cache keys (v15/v18/v19/v20/…). Must stay in sync with chartCacheKey(). */
 function isChartCacheKey(key: string): boolean {
   return key.includes(':chart:')
 }
@@ -292,6 +292,32 @@ export const redis = {
 
 // ── Cache key helpers ─────────────────────────────────────────
 
+/** Bump when ChartOutput calc semantics change (invalidates Redis chart entries). */
+export const CHART_CACHE_VERSION = 20
+/** Bump when panchang payload shape / guides change. */
+export const PANCHANG_CACHE_VERSION = 8
+/** Bump when atlas search/reverse payload shape changes. */
+export const ATLAS_CACHE_VERSION = 2
+/** Bump when daily rashi horoscope report shape changes. */
+export const HOROSCOPE_CACHE_VERSION = 7
+
+/** Prefixes admin cleanup must wipe — current + known legacy chart versions. */
+export const CACHE_CLEANUP_PREFIXES = {
+  chart: [
+    'v15:chart:',
+    'v16:chart:',
+    'v17:chart:',
+    'v18:chart:',
+    'v19:chart:',
+    `v${CHART_CACHE_VERSION}:chart:`,
+  ],
+  panchang: [`panchang:`],
+  atlas: [`atlas:`],
+  horoscope: [`horoscope:`],
+} as const
+
+export type CacheCleanupTarget = keyof typeof CACHE_CLEANUP_PREFIXES
+
 export function chartCacheKey(
   birthDate: string,
   birthTime: string,
@@ -304,10 +330,10 @@ export function chartCacheKey(
   gulikaMode: string,
   prashnaNumber: number = 0,
 ): string {
-  // v19: Parashara D30 arcs (odd Ma/Sa/Ju/Me/Ve 5/5/8/7/5 → odd own signs;
-  // even reversed → even own signs) + scaled D30 degrees. Invalidates v18
-  // caches that used wrong odd arcs (Sa 5–12, Me→Vi, Ve→Ta) and degree=0.
-  return `v19:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
+  // v20: Parashara/PVR Shodashavarga + extended varga formula corrections
+  // (D5/D6/D8/D20/D24/D27/D81/D144 and named variants). Invalidates v19
+  // caches that still held pre-fix D20/D24/D27 (and related) signs.
+  return `v${CHART_CACHE_VERSION}:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(
@@ -316,11 +342,19 @@ export function panchangCacheKey(
   lng: number,
 ): string {
   // v8: merged timeline segments + per-row guides
-  return `panchang:v8:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}`
+  return `panchang:v${PANCHANG_CACHE_VERSION}:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}`
 }
 
 export function atlasCacheKey(query: string): string {
-  return `atlas:${query.toLowerCase().trim()}`
+  return `atlas:v${ATLAS_CACHE_VERSION}:search:${query.toLowerCase().trim()}`
+}
+
+export function atlasReverseCacheKey(lat: number, lng: number): string {
+  return `atlas:v${ATLAS_CACHE_VERSION}:reverse:${lat.toFixed(2)},${lng.toFixed(2)}`
+}
+
+export function horoscopeCacheKey(date: string, lang: string = 'en'): string {
+  return `horoscope:rashi-daily:v${HOROSCOPE_CACHE_VERSION}:${date}:${lang}`
 }
 
 export const CACHE_TTL = {

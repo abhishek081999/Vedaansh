@@ -3,7 +3,7 @@
 **Store:** MongoDB Atlas via Mongoose (`src/lib/db/models/`)  
 **Cache:** Upstash Redis (ephemeral calc / atlas / rate limits — not durable domain state)  
 **Source of truth:** model files under `src/lib/db/models/`  
-**Synced:** 2026-10-31
+**Synced:** 2026-11-10
 
 ---
 
@@ -97,7 +97,7 @@ Separate from Chart so the chart document stays lean. Large `ChartOutput` blobs 
 |-------|------|-------|
 | chartId | ObjectId → Chart | |
 | ayanamsha | string | |
-| version | number | Bump to invalidate |
+| version | number | Default `20` (align with Redis `CHART_CACHE_VERSION`); Redis key prefix is the live invalidator |
 | data | ChartOutput (Mixed) | Full calculated chart |
 | expiresAt | Date | TTL index (`expireAfterSeconds: 0`) |
 
@@ -175,12 +175,14 @@ Singleton admin-editable pricing / coupons.
 
 | Pattern | Purpose |
 |---------|---------|
-| Chart cache keys (`chartCacheKey`) | Hot calculated chart JSON (gzip when large) |
-| `atlas:*` | Geocode / reverse |
+| Chart cache keys (`chartCacheKey`) | Hot calculated chart JSON (gzip when large). Current prefix `v20:chart:…` — bump `CHART_CACHE_VERSION` in `src/lib/redis.ts` when engine output changes |
+| `panchang:v8:*` | Daily panchang JSON |
+| `atlas:v2:search:*` / `atlas:v2:reverse:*` | Geocode / reverse |
+| `horoscope:rashi-daily:v7:*` | Daily Moon-sign horoscope |
 | `tz:*` | Timezone lookups |
 | Rate-limit buckets | Abuse control |
 
-Admin cleanup can clear chart / panchang / atlas namespaces. See `src/lib/redis.ts`.
+Admin cleanup (`CACHE_CLEANUP_PREFIXES`) clears chart (all known versions), panchang, atlas, and horoscope namespaces. See `src/lib/redis.ts`.
 
 ---
 

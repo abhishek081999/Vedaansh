@@ -17,15 +17,16 @@ import {
 } from '@/lib/engine/nakshatra'
 import type { GrahaId, Rashi } from '@/types/astrology'
 
-// ── Inline cache key helpers (avoid importing @upstash/redis) ──
+// ── Inline cache key helpers (avoid importing @upstash/redis)
+// Keep shapes aligned with src/lib/redis.ts versioned prefixes. ──
 
 function chartCacheKey(d: string, t: string, lat: number, lng: number, ay: string, nm: string, hs: string) {
-  return `chart:${d}:${t}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ay}:${nm}:${hs}`
+  return `v20:chart:${d}:${t}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ay}:${nm}:${hs}:7:phaladipika:0`
 }
 function panchangCacheKey(d: string, lat: number, lng: number) {
-  return `panchang:${d}:${lat.toFixed(2)}:${lng.toFixed(2)}`
+  return `panchang:v8:${d}:${lat.toFixed(2)}:${lng.toFixed(2)}`
 }
-function atlasCacheKey(q: string) { return `atlas:${q.toLowerCase().trim()}` }
+function atlasCacheKey(q: string) { return `atlas:v2:search:${q.toLowerCase().trim()}` }
 const CACHE_TTL = { CHART: 86400, PANCHANG: 86400, ATLAS: 604800, SESSION: 3600 }
 
 // ─────────────────────────────────────────────────────────────

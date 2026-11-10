@@ -43,7 +43,7 @@ export default function AdminPage() {
   }, [])
 
   async function runCleanup() {
-    if (!window.confirm('Clear Redis cache for charts, panchang, and atlas? This cannot be undone.')) return
+    if (!window.confirm('Clear Redis cache for charts, panchang, atlas, and horoscope? This cannot be undone.')) return
     setBusy('cleanup')
     setMessage(null)
     try {

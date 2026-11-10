@@ -4,7 +4,7 @@
 //  cached per IST date (same for every visitor, so one compute/day).
 // ─────────────────────────────────────────────────────────────
 
-import { redis } from '@/lib/redis'
+import { redis, horoscopeCacheKey as buildHoroscopeCacheKey } from '@/lib/redis'
 import { buildDailyHoroscopeSky, findMoonInSign } from '@/lib/engine/dailyHoroscopeSky'
 import {
   buildDailyHoroscopeReport,
@@ -17,7 +17,7 @@ import type { EngineLang } from '@/lib/engine/lang'
 const CACHE_TTL_SECONDS = 3 * 86_400
 
 export function horoscopeCacheKey(date: string, lang: EngineLang = 'en'): string {
-  return `horoscope:rashi-daily:v7:${date}:${lang}`
+  return buildHoroscopeCacheKey(date, lang)
 }
 
 /** Today's date in IST (YYYY-MM-DD) — the horoscope day runs 06:00 → 06:00 IST. */

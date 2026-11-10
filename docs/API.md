@@ -181,7 +181,7 @@ All require `requireAdmin()` (session + `role === 'admin'`). Also gated in `src/
 | GET | `/api/admin/revenue` | Revenue |
 | GET, PUT | `/api/admin/billing` | Prices / coupons |
 | POST | `/api/admin/broadcast` | Email blast |
-| GET, POST | `/api/admin/cleanup` | Redis / cache maintenance |
+| GET, POST | `/api/admin/cleanup` | Redis cache maintenance — targets `chart` (all known versions), `panchang`, `atlas`, `horoscope`, or `all` |
 
 ---
 

@@ -119,6 +119,7 @@ Filter production logs for `[security-event]`:
 | Action | How |
 |--------|-----|
 | Redis / cache cleanup | Admin UI or `POST /api/admin/cleanup` |
+| Invalidate chart calc cache after engine formula changes | Bump `CHART_CACHE_VERSION` in `src/lib/redis.ts` (currently `20`) so old Redis entries miss; admin Cleanup also wipes legacy `v15`–`v19` chart prefixes |
 | Billing prices / coupons | Admin billing (`/api/admin/billing`) |
 | User plan override | Admin users PATCH |
 | Rotate secrets | New `AUTH_SECRET`, Razorpay secrets; redeploy; re-auth users after AUTH_SECRET rotate |
