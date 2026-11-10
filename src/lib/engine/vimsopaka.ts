@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaData, GrahaId, Rashi, Dignity } from '@/types/astrology'
+import { getVargaPosition, VARGA_FUNCTIONS, type VargaName } from '@/lib/engine/vargas'
 
 export type { GrahaId }
 
@@ -208,74 +209,18 @@ const SHODASVARGA: [string, number][] = [
   ['D16', 0.5], ['D20', 0.5], ['D24', 0.5], ['D27', 1], ['D30', 1.5], ['D40', 1], ['D45', 1], ['D60', 3.5],
 ]
 
+/** Fallback when chart.vargas lacks a division — always use canonical vargas.ts. */
 function computeVargaRashi(longitude: number, varga: string): { rashi: number; degree: number } {
-  const lon = ((longitude % 360) + 360) % 360
-  if (isNaN(lon)) return { rashi: 1, degree: 0 }
-  const rashiSize = 30
-  const baseRashi = Math.min(12, Math.max(1, Math.floor(lon / rashiSize) + 1))
-  const deg = lon % rashiSize
-  switch (varga) {
-    case 'D1': return { rashi: baseRashi, degree: deg }
-    case 'D2': {
-      const isOdd = baseRashi % 2 === 1
-      if (isOdd) return deg < 15 ? { rashi: 5, degree: deg * 2 } : { rashi: 4, degree: (deg - 15) * 2 }
-      else return deg < 15 ? { rashi: 4, degree: deg * 2 } : { rashi: 5, degree: (deg - 15) * 2 }
+  if (!(varga in VARGA_FUNCTIONS)) {
+    const lon = ((longitude % 360) + 360) % 360
+    if (isNaN(lon)) return { rashi: 1, degree: 0 }
+    return {
+      rashi: Math.min(12, Math.max(1, Math.floor(lon / 30) + 1)),
+      degree: lon % 30,
     }
-    case 'D3': {
-      const drekNum = Math.floor(deg / 10)
-      const triplicities = [0, 4, 8]
-      const rashi = ((baseRashi - 1 + triplicities[drekNum]) % 12) + 1
-      return { rashi, degree: (deg % 10) * 3 }
-    }
-    case 'D4': return { rashi: ((baseRashi - 1 + Math.floor(deg / 7.5) * 3) % 12) + 1, degree: (deg % 7.5) * 4 }
-    case 'D7': {
-      const num = Math.floor(deg / (30 / 7))
-      const rashi = baseRashi % 2 === 1 ? ((baseRashi - 1 + num) % 12) + 1 : ((baseRashi - 1 + 6 + num) % 12) + 1
-      return { rashi, degree: (deg % (30 / 7)) * 7 }
-    }
-    case 'D9': {
-      const starts: Record<number, number> = { 1:1, 5:1, 9:1, 2:10, 6:10, 10:10, 3:7, 7:7, 11:7, 4:4, 8:4, 12:4 }
-      const rashi = (( (starts[baseRashi] ?? 1) - 1 + Math.floor(deg / (10 / 3)) ) % 12) + 1
-      return { rashi, degree: (deg % (10 / 3)) * 9 }
-    }
-    case 'D10': {
-      const num = Math.floor(deg / 3)
-      const rashi = baseRashi % 2 === 1 ? ((baseRashi - 1 + num) % 12) + 1 : ((baseRashi - 1 + 8 + num) % 12) + 1
-      return { rashi, degree: (deg % 3) * 10 }
-    }
-    case 'D12': return { rashi: ((baseRashi - 1 + Math.floor(deg / 2.5)) % 12) + 1, degree: (deg % 2.5) * 12 }
-    case 'D16': {
-      const starts: Record<number, number> = { 1:1, 5:1, 9:1, 2:10, 6:10, 10:10, 3:7, 7:7, 11:7, 4:4, 8:4, 12:4 }
-      const rashi = (( (starts[baseRashi] ?? 1) - 1 + Math.floor(deg / 1.875) ) % 12) + 1
-      return { rashi, degree: (deg % 1.875) * 16 }
-    }
-    case 'D20': {
-      const starts: Record<number, number> = { 1:1, 5:1, 9:1, 2:10, 6:10, 10:10, 3:7, 7:7, 11:7, 4:4, 8:4, 12:4 }
-      const rashi = (( (starts[baseRashi] ?? 1) - 1 + Math.floor(deg / 1.5) ) % 12) + 1
-      return { rashi, degree: (deg % 1.5) * 20 }
-    }
-    case 'D24': return { rashi: (( (baseRashi % 2 === 1 ? 5 : 8) - 1 + Math.floor(deg / 1.25) ) % 12) + 1, degree: (deg % 1.25) * 24 }
-    case 'D27': {
-      const starts: Record<number, number> = { 1:1, 5:1, 9:1, 2:10, 6:10, 10:10, 3:7, 7:7, 11:7, 4:4, 8:4, 12:4 }
-      const rashi = (( (starts[baseRashi] ?? 1) - 1 + Math.floor(deg / (10 / 9)) ) % 12) + 1
-      return { rashi, degree: (deg % (10 / 9)) * 27 }
-    }
-    case 'D30': {
-      const odd = [{lord:'Ma',f:0,t:5,s:1},{lord:'Sa',f:5,t:10,s:11},{lord:'Ju',f:10,t:18,s:9},{lord:'Me',f:18,t:25,s:3},{lord:'Ve',f:25,t:30,s:7}]
-      const even = [{lord:'Ve',f:0,t:5,s:2},{lord:'Me',f:5,t:12,s:6},{lord:'Ju',f:12,t:20,s:12},{lord:'Sa',f:20,t:25,s:10},{lord:'Ma',f:25,t:30,s:8}]
-      const table = baseRashi % 2 === 1 ? odd : even
-      const entry = table.find(e => deg >= e.f && deg < e.t) ?? table[table.length - 1]
-      return { rashi: entry.s, degree: (deg - entry.f) * (30 / (entry.t - entry.f)) }
-    }
-    case 'D40': return { rashi: (( (baseRashi % 2 === 1 ? 1 : 7) - 1 + Math.floor(deg / 0.75) ) % 12) + 1, degree: (deg % 0.75) * 40 }
-    case 'D45': {
-      const mod3 = (baseRashi - 1) % 3
-      const start = mod3 === 0 ? 1 : mod3 === 1 ? 5 : 9
-      return { rashi: ((start - 1 + Math.floor(deg / (2 / 3))) % 12) + 1, degree: (deg % (2 / 3)) * 45 }
-    }
-    case 'D60': return { rashi: ((baseRashi - 1 + Math.floor(deg / 0.5)) % 12) + 1, degree: (deg % 0.5) * 60 }
-    default: return { rashi: baseRashi, degree: deg }
   }
+  const pos = getVargaPosition(longitude, varga as VargaName)
+  return { rashi: pos.rashi, degree: pos.degree }
 }
 
 function planetVargaScore(id: GrahaId, varga: string, longitude: number, vargas: Record<string, GrahaData[]>, weight: number): { score: number; dignity: Dignity | null } {
