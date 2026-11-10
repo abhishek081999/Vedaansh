@@ -14,7 +14,7 @@ const gunzip = promisify(zlib.gunzip)
 
 const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
 const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
-/** Match current + legacy chart cache keys (v15/v18/…). Must stay in sync with chartCacheKey(). */
+/** Match current + legacy chart cache keys (v15/v18/v19/…). Must stay in sync with chartCacheKey(). */
 function isChartCacheKey(key: string): boolean {
   return key.includes(':chart:')
 }
@@ -304,8 +304,10 @@ export function chartCacheKey(
   gulikaMode: string,
   prashnaNumber: number = 0,
 ): string {
-  // v18: chart includes Sripati bhava madhya / sandhi / dasham madhya
-  return `v18:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
+  // v19: Parashara D30 arcs (odd Ma/Sa/Ju/Me/Ve 5/5/8/7/5 → odd own signs;
+  // even reversed → even own signs) + scaled D30 degrees. Invalidates v18
+  // caches that used wrong odd arcs (Sa 5–12, Me→Vi, Ve→Ta) and degree=0.
+  return `v19:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(
