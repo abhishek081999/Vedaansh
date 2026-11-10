@@ -93,21 +93,23 @@ export const D4 = (lon: number): number => {
 }
 
 /** D5 — Panchamsha (fame, authority)
- *  5 parts of 6°. Odd signs from Aries; even signs from Libra.
+ *  PVR / Saravali lords: odd → Ar,Aq,Sg,Ge,Li; even → Ta,Vi,Pi,Cp,Sc.
  */
 export const D5 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 5)  // 0–4
-  return isOdd(sign) ? mod12(1 + p) : mod12(7 + p)
+  const odd = [1, 11, 9, 3, 7] as const
+  const even = [2, 6, 12, 10, 8] as const
+  return (isOdd(sign) ? odd : even)[p]
 }
 
 /** D6 — Shashthamsha (health, enemies, debts)
- *  6 parts of 5°. Odd from own sign; even from 7th.
+ *  6 parts of 5°. Odd from Aries; even from Libra (PVR).
  */
 export const D6 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 6)  // 0–5
-  return isOdd(sign) ? mod12(sign + p) : mod12(sign + 6 + p)
+  return isOdd(sign) ? mod12(1 + p) : mod12(7 + p)
 }
 
 /** D7 — Saptamsha (children and grandchildren) */
@@ -118,12 +120,12 @@ export const D7 = (lon: number): number => {
 }
 
 /** D8 — Ashtamsha (longevity, unexpected events)
- *  8 parts of 3°45'. Movable→Aries, Fixed→Leo, Dual→Sagittarius.
+ *  8 parts of 3°45'. Movable→Aries, Fixed→Sagittarius, Dual→Leo (PVR).
  */
 export const D8 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 8)  // 0–7
-  const base = [1, 5, 9][(sign - 1) % 3]
+  const base = [1, 9, 5][(sign - 1) % 3]
   return mod12(base + p)
 }
 
@@ -153,27 +155,32 @@ export const D16 = (lon: number): number => {
   return mod12(base + p)
 }
 
-/** D20 — Vimshamsha (spiritual progress, upasana) */
+/** D20 — Vimshamsha (spiritual progress, upasana)
+ *  Parashara: Movable→Aries, Fixed→Sagittarius, Dual→Leo.
+ */
 export const D20 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 20)  // 0–19
-  if (isOdd(sign)) return mod12(1 + p)   // Odd → from Aries
-  return mod12(9 + p)                    // Even → from Sagittarius
+  const base = [1, 9, 5][(sign - 1) % 3]
+  return mod12(base + p)
 }
 
-/** D24 — Chaturvimshamsha (Siddhamsha: education, learning) */
+/** D24 — Chaturvimshamsha (Siddhamsha: education, learning)
+ *  Parashara: odd signs from Leo; even signs from Cancer (forward).
+ */
 export const D24 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 24)  // 0–23
-  return isOdd(sign) ? mod12(4 + p) : mod12(1 + p)
+  return isOdd(sign) ? mod12(5 + p) : mod12(4 + p)
 }
 
-/** D27 — Bhamsha / Nakshatramsha (strength, vitality) */
+/** D27 — Bhamsha / Nakshatramsha (strength, vitality)
+ *  Parashara: Fire→Ar(1), Earth→Cn(4), Air→Li(7), Water→Cp(10).
+ */
 export const D27 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 27)  // 0–26
-  // Fire→Ar(1), Earth→Cn(4), Air→Li(7), Water→Cp(10)
-  const base = [1, 10, 7, 4][(sign - 1) % 4]
+  const base = [1, 4, 7, 10][(sign - 1) % 4]
   return mod12(base + p)
 }
 
@@ -231,22 +238,27 @@ export const D45 = (lon: number): number => {
 
 // ── Tier 3 — Hora Vargas (41 total) ──────────────────────────
 
-/** D2 — Parivritti Dvaya (reverse alternating) */
-export const D2_Parivritti = (lon: number): number => {
-  const sign = signOf(lon)
-  const p = part(lon, 2)
-  return isOdd(sign) ? (p === 0 ? sign : mod12(sign + 6)) : (p === 0 ? mod12(sign + 6) : sign)
+/** D2 — Parivritti Dvaya (bicyclical): consecutive halves cycle the zodiac twice. */
+export const D2_Parivritti = (lon: number): number =>
+  (Math.floor(norm(lon) / 15) % 12) + 1
+
+/** Day-strong / night-strong sign of the occupied sign's lord (Kasinath / SJC). */
+const DAY_OWN: Record<number, number> = {
+  1: 8, 2: 7, 3: 6, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 12, 10: 11, 11: 11, 12: 12,
+}
+const NIGHT_OWN: Record<number, number> = {
+  1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 3, 7: 2, 8: 1, 9: 9, 10: 10, 11: 10, 12: 9,
 }
 
-/** D2 — Kasinath scheme (Su in Leo hora, Mo in Cancer hora always) */
+/** D2 — Kasinath: Sun-hora → day-strong of sign lord; Moon-hora → night-strong. */
 export const D2_Kasinath = (lon: number): number => {
   const sign = signOf(lon)
-  const deg  = degInSign(lon)
-  // First hora = sign's own half, second = opposite half
-  return deg < 15 ? sign : mod12(sign + 6)
+  const deg = degInSign(lon)
+  const sunHora = isOdd(sign) ? deg < 15 : deg >= 15
+  return sunHora ? DAY_OWN[sign] : NIGHT_OWN[sign]
 }
 
-/** D2 — Samasaptama (alternate forward/backward) */
+/** D2 — Samasaptama (1st / 7th halves by odd/even). */
 export const D2_Samasaptama = (lon: number): number => {
   const sign = signOf(lon)
   const deg = degInSign(lon)
@@ -254,76 +266,85 @@ export const D2_Samasaptama = (lon: number): number => {
   return deg < 15 ? mod12(sign + 6) : sign
 }
 
-/** D2 — Somanath (Moon-based hora) */
+/** D2 — Somanath (simplified Moon/Sun hora as Cancer/Leo only). */
 export const D2_Somanath = (lon: number): number => {
   const deg = degInSign(lon)
-  return deg < 15 ? 4 : 5   // Cancer=4 (first), Leo=5 (second)
+  return deg < 15 ? 4 : 5
 }
 
-/** D2 — Raman scheme */
+/** D2 — Raman Suprajarama hora table (day/night × 11th-lord hybrid). */
+const RAMAN_HORA: Record<number, [number, number]> = {
+  1: [8, 10], 2: [2, 12], 3: [6, 1], 4: [4, 7],
+  5: [5, 3], 6: [3, 4], 7: [7, 5], 8: [1, 6],
+  9: [12, 2], 10: [10, 8], 11: [11, 9], 12: [9, 11],
+}
 export const D2_Raman = (lon: number): number => {
   const sign = signOf(lon)
-  const deg = degInSign(lon)
-  return deg < 15 ? sign : mod12(sign + 1)
+  const half = degInSign(lon) < 15 ? 0 : 1
+  return RAMAN_HORA[sign][half]
 }
 
-/** D3 — Jagannath Drekkana */
+/** D3 — Jagannath Drekkana (trines; first always movable). */
 export const D3_Jagannath = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 3)
-  return mod12(sign + p * 4)
+  const kind = (sign - 1) % 3 // 0 movable, 1 fixed, 2 dual
+  if (kind === 0) return mod12(sign + p * 4)           // 1st, 5th, 9th
+  if (kind === 1) return [mod12(sign + 8), sign, mod12(sign + 4)][p] // 9th, 1st, 5th
+  return [mod12(sign + 4), mod12(sign + 8), sign][p]  // 5th, 9th, 1st
 }
 
-/** D3 — Somanath Drekkana */
+/** D3 — Somanath Drekkana (odd forward / even reverse hybrid cycle). */
+const SOMANATH_D3: Record<number, [number, number, number]> = {
+  1: [1, 2, 3], 2: [9, 8, 7], 3: [4, 5, 6], 4: [12, 11, 10],
+  5: [7, 8, 9], 6: [3, 2, 1], 7: [10, 11, 12], 8: [6, 5, 4],
+  9: [1, 2, 3], 10: [9, 8, 7], 11: [4, 5, 6], 12: [12, 11, 10],
+}
 export const D3_Somanath = (lon: number): number => {
-  const deg = degInSign(lon)
-  if (deg < 10) return 1    // Aries
-  if (deg < 20) return 9    // Sagittarius
-  return 5                   // Leo
+  const sign = signOf(lon)
+  const p = part(lon, 3)
+  return SOMANATH_D3[sign][p]
 }
 
-/** D3 — Nadi Drekkana (used in Nadi traditions) */
+/** D3 — Nadi Drekkana (elemental trine cycle). */
 export const D3_Nadi = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 3)
-  // Nadi: each decanate has fixed planetary association
   const nadiMap: Record<number, number[]> = {
-    1:[1,5,9], 2:[5,9,1], 3:[9,1,5], 4:[4,8,12],
-    5:[8,12,4], 6:[12,4,8], 7:[7,11,3], 8:[11,3,7],
-    9:[3,7,11], 10:[10,2,6], 11:[2,6,10], 12:[6,10,2]
+    1: [1, 5, 9], 2: [5, 9, 1], 3: [9, 1, 5], 4: [4, 8, 12],
+    5: [8, 12, 4], 6: [12, 4, 8], 7: [7, 11, 3], 8: [11, 3, 7],
+    9: [3, 7, 11], 10: [10, 2, 6], 11: [2, 6, 10], 12: [6, 10, 2],
   }
   return nadiMap[sign]?.[p] ?? sign
 }
 
-/** D4 — Parivritti Chaturthamsha */
-export const D4_Parivritti = (lon: number): number => {
-  const p = part(lon, 4)
-  return mod12(p * 3 + 1)   // Ar, Cn, Li, Cp
-}
+/** D4 — Parivritti Chaturthamsha (continuous 7°30′ cycle from Aries). */
+export const D4_Parivritti = (lon: number): number =>
+  (Math.floor(norm(lon) / 7.5) % 12) + 1
 
-/** D9 — Pada Navamsha (based on pada of nakshatra) */
-export const D9_Pada = (lon: number): number => {
-  const normalized = norm(lon)
-  const nakshatra = Math.floor(normalized / (360 / 27))
-  const pada = Math.floor((normalized % (360 / 27)) / (360 / 108)) // 0–3
-  return mod12(nakshatra % 12 + pada + 1)
-}
+/** D9 — Pada Navamsha: 108 equal padas from 0° Aries (= Parashara D9). */
+export const D9_Pada = (lon: number): number =>
+  (Math.floor(norm(lon) / (360 / 108)) % 12) + 1
 
-/** D9 — Nadi Navamsha */
-export const D9_Nadi = (lon: number): number => {
+/**
+ * Uniform Krishna Mishra / Somanatha Navamsha:
+ * Fire→Ar fwd, Earth→Vi rev, Air→Li fwd, Water→Pi rev.
+ */
+function krishnaMishraNavamsha(lon: number): number {
   const sign = signOf(lon)
   const p = part(lon, 9)
-  // Nadi: start depends on sign element
-  const bases = [1, 4, 7, 10]  // fire, earth, air, water
-  const element = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3][sign - 1]
-  return mod12(bases[element] + p)
+  const element = (sign - 1) % 4 // 0 fire, 1 earth, 2 air, 3 water
+  if (element === 0) return mod12(1 + p)       // Ar forward
+  if (element === 1) return mod12(6 - p)       // Vi reverse
+  if (element === 2) return mod12(7 + p)       // Li forward
+  return mod12(12 - p)                        // Pi reverse
 }
 
-/** D9 — Somanatha Navamsha */
-export const D9_Somanatha = (lon: number): number => {
-  const p = part(lon, 9)
-  return mod12(p + 1)   // always from Aries
-}
+/** D9 — Nadi Navamsha (Uniform Krishna Mishra). */
+export const D9_Nadi = (lon: number): number => krishnaMishraNavamsha(lon)
+
+/** D9 — Somanatha Navamsha (same Uniform Krishna Mishra / Kalpalata table). */
+export const D9_Somanatha = (lon: number): number => krishnaMishraNavamsha(lon)
 
 /** D12 — Ganaamsha (groups of 12) */
 export const D12_Ganaamsha = (lon: number): number => {
@@ -332,10 +353,14 @@ export const D12_Ganaamsha = (lon: number): number => {
   return mod12(sign + p)
 }
 
-/** D24 — Paravidya (higher learning variation) */
+/** D24 — Paravidya / Vedavahvamsha (para-vidya variation)
+ *  Odd signs: Leo forward (same as D24). Even signs: Cancer reverse.
+ */
 export const D24_Paravidya = (lon: number): number => {
+  const sign = signOf(lon)
   const p = part(lon, 24)
-  return mod12(p + 4)   // starts from Cancer
+  if (isOdd(sign)) return mod12(5 + p)
+  return mod12(4 - p)
 }
 
 /** D30 — Venkatesa Trimshamsha (alternate scheme) */
@@ -353,10 +378,9 @@ export const D60_Nadi = (lon: number): number => {
 
 /** D81 — Navanavamsha (Navamsha of Navamsha) */
 export const D81 = (lon: number): number => {
-  // Apply D9 twice
-  const d9Sign = D9(lon)
-  // Get a representative longitude in D9 sign
-  const d9Lon = (d9Sign - 1) * 30 + degInSign(lon)
+  const arc = 30 / 9
+  const frac = (degInSign(lon) % arc) / arc // 0–1 within the natal navamsha pada
+  const d9Lon = (D9(lon) - 1) * 30 + frac * 30
   return D9(d9Lon)
 }
 
@@ -378,11 +402,12 @@ export const D108_Shukra = (lon: number): number => {
   return mod12(p % 12 + 7)  // starts from Libra
 }
 
-/** D144 — Dwadashdwadashamsha (144 = 12×12) */
+/** D144 — Dwadashdwadashamsha (D12 applied twice, retaining intermediate degree). */
 export const D144 = (lon: number): number => {
-  const sign = signOf(lon)
-  const p = part(lon, 144)
-  return mod12(sign + (p % 12))
+  const arc = 30 / 12
+  const frac = (degInSign(lon) % arc) / arc
+  const d12Lon = (D12(lon) - 1) * 30 + frac * 30
+  return D12(d12Lon)
 }
 
 /** D150 — Nadi Panchadeshamsha */

@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
-import { redis, CACHE_TTL } from '@/lib/redis'
+import { redis, CACHE_TTL, atlasCacheKey, atlasReverseCacheKey } from '@/lib/redis'
 import { resolveTimezone } from '@/lib/geo/timezone'
 
 // ── Types ──────────────────────────────────────────────────────
@@ -62,9 +62,7 @@ export async function GET(req: NextRequest) {
       if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
         return NextResponse.json({ error: 'Invalid coordinates' }, { status: 400 })
       }
-      const roundedLat = lat.toFixed(2)
-      const roundedLng = lng.toFixed(2)
-      const reverseCacheKey = `atlas:v2:reverse:${roundedLat},${roundedLng}`
+      const reverseCacheKey = atlasReverseCacheKey(lat, lng)
 
       // Cached reverse lookups are cheap — do not count against rate limit
       const cached = await redis.get<LocationResult>(reverseCacheKey)
@@ -121,7 +119,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Global search cache to prevent redundant external Photon calls
-  const searchCacheKey = `atlas:v2:search:${q.toLowerCase()}`
+  const searchCacheKey = atlasCacheKey(q)
   const cachedResults = await redis.get<LocationResult[]>(searchCacheKey)
   if (cachedResults && cachedResults.length > 0) {
     return NextResponse.json(

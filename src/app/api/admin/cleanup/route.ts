@@ -2,19 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { abuseLimits } from '@/lib/security/rateLimitPolicy'
-import { redis } from '@/lib/redis'
+import {
+  redis,
+  CACHE_CLEANUP_PREFIXES,
+  type CacheCleanupTarget,
+} from '@/lib/redis'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
 
-const CleanupSchema = z.object({
-  targets: z.array(z.enum(['chart', 'panchang', 'atlas', 'all'])).min(1),
-})
+const TARGETS = Object.keys(CACHE_CLEANUP_PREFIXES) as CacheCleanupTarget[]
 
-const PREFIX_MAP = {
-  chart: 'v15:chart:',
-  panchang: 'panchang:',
-  atlas: 'atlas:',
-} as const
+const CleanupSchema = z.object({
+  targets: z.array(z.enum(['chart', 'panchang', 'atlas', 'horoscope', 'all'])).min(1),
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,16 +48,15 @@ export async function POST(req: NextRequest) {
     }
 
     const targets = parsed.data.targets.includes('all')
-      ? (['chart', 'panchang', 'atlas'] as const)
-      : parsed.data.targets.filter((t): t is keyof typeof PREFIX_MAP => t !== 'all')
+      ? TARGETS
+      : parsed.data.targets.filter((t): t is CacheCleanupTarget => t !== 'all')
 
     const cleared: string[] = []
     for (const target of targets) {
-      const prefix = PREFIX_MAP[target]
-      if (prefix) {
+      for (const prefix of CACHE_CLEANUP_PREFIXES[target]) {
         await redis.delByPrefix(prefix)
-        cleared.push(target)
       }
+      cleared.push(target)
     }
 
     await logAdminAction({

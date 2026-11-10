@@ -291,12 +291,14 @@ Also: login throttle, password policy, admin role checks, CSP nonces via proxy, 
 
 | Key pattern | Purpose |
 |-------------|---------|
-| Chart cache keys | Full calculated chart JSON (gzip when large) |
-| `atlas:*` | Geocode / reverse geocode |
+| Chart cache keys | Full calculated chart JSON (gzip when large). Versioned prefix from `chartCacheKey()` (`v20:chart:…`); bump `CHART_CACHE_VERSION` when engine output changes |
+| `panchang:v8:*` | Daily panchang |
+| `atlas:v2:*` | Geocode / reverse geocode |
+| `horoscope:rashi-daily:v7:*` | Daily Moon-sign horoscope |
 | `tz:*` | Timezone lookups |
 | Rate-limit buckets | Abuse control |
 
-Admin cleanup can clear chart / panchang / atlas Redis namespaces.
+Admin cleanup clears chart (legacy + current), panchang, atlas, and horoscope Redis namespaces via `CACHE_CLEANUP_PREFIXES`.
 
 ---
 
