@@ -517,6 +517,8 @@
     "refFull": "Full medical reference (27)",
     "refFullHeaders": ["#", "Nakshatra", "Dosha", "Primary Diseases", "Disease Nature"],
     "refDosha": "Dosha quick reference",
-    "refDoshaHeaders": ["Dosha", "Duration", "Count", "Characteristics", "Key Action"]
+    "refDoshaHeaders": ["Dosha", "Duration", "Count", "Characteristics", "Key Action"],
+    "bodyMapAria": "Kalapurusha body map",
+    "bodyParts": ["Head, brain", "Face, throat", "Shoulders, arms, lungs", "Chest, breasts", "Heart, upper abdomen", "Intestines, waist", "Lower abdomen, kidneys", "Genitals, excretory", "Hips, thighs", "Knees, joints", "Calves, ankles", "Feet"]
   }
 }

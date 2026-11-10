@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/ui/cn'
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -8,16 +9,17 @@ export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Spinner({
   size = 32,
-  label = 'Loading',
+  label,
   className,
   style,
   ...props
 }: SpinnerProps) {
+  const t = useTranslations('common.a11y')
   return (
     <div
       role="status"
       aria-live="polite"
-      aria-label={label}
+      aria-label={label ?? t('loading')}
       className={cn('spin-loader', className)}
       style={{
         width: size,

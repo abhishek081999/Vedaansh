@@ -416,7 +416,7 @@ export function SarvatobhadraChakra({
                     color:     'rgba(200,150,255,0.7)',
                     lineHeight:1,
                     pointerEvents: 'none',
-                  }} title="Planet with diagonal vedha">✦</div>
+                  }} title={t('diagonalHint')}>✦</div>
                 )}
               </div>
             )

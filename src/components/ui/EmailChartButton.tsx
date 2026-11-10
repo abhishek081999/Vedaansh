@@ -38,7 +38,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
 
   async function handleSend() {
     if (!email || !email.includes('@')) {
-      setErrorMsg('Please enter a valid email address.')
+      setErrorMsg(t('invalidEmail'))
       setStatus('error')
       return
     }

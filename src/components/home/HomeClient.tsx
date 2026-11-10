@@ -1137,7 +1137,7 @@ function HomeContent() {
         setCrmDone(true)
         setTimeout(() => setCrmDone(false), 4000)
       } else {
-        alert(json.error || 'Failed to add client to CRM')
+        alert(json.error || tAct('crmFailed'))
       }
     } catch (e) {
       console.error('CRM Save failed', e)

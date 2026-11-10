@@ -114,5 +114,12 @@
     "tryAgain": "Try Again",
     "goHome": "Go Home",
     "errorId": "Error ID: {digest}"
+  },
+  "a11y": {
+    "loading": "Loading",
+    "loadingPage": "Loading page",
+    "loadingBrand": "Loading Vedaansh",
+    "closeDialog": "Close dialog",
+    "closePanel": "Close panel"
   }
 }
