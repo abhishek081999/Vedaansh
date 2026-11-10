@@ -177,28 +177,40 @@ export const D27 = (lon: number): number => {
   return mod12(base + p)
 }
 
-/** D30 — Trimshamsha (Parashara: evils and misfortunes) */
-export const D30 = (lon: number): number => {
+interface D30Arc {
+  from: number
+  to: number
+  rashi: number
+}
+
+const D30_ODD_ARCS: readonly D30Arc[] = [
+  { from: 0,  to: 5,  rashi: 1 },   // Aries (Mars, 5°)
+  { from: 5,  to: 10, rashi: 11 },  // Aquarius (Saturn, 5°)
+  { from: 10, to: 18, rashi: 9 },   // Sagittarius (Jupiter, 8°)
+  { from: 18, to: 25, rashi: 3 },   // Gemini (Mercury, 7°)
+  { from: 25, to: 30, rashi: 7 },   // Libra (Venus, 5°)
+]
+
+const D30_EVEN_ARCS: readonly D30Arc[] = [
+  { from: 0,  to: 5,  rashi: 2 },   // Taurus (Venus, 5°)
+  { from: 5,  to: 12, rashi: 6 },   // Virgo (Mercury, 7°)
+  { from: 12, to: 20, rashi: 12 },  // Pisces (Jupiter, 8°)
+  { from: 20, to: 25, rashi: 10 },  // Capricorn (Saturn, 5°)
+  { from: 25, to: 30, rashi: 8 },   // Scorpio (Mars, 5°)
+]
+
+function getD30Arc(lon: number): { arc: D30Arc; deg: number } {
   const deg = degInSign(lon)
   const sign = signOf(lon)
+  const table = isOdd(sign) ? D30_ODD_ARCS : D30_EVEN_ARCS
+  const clamped = Math.max(0, Math.min(29.999999, deg))
+  const arc = table.find(a => clamped >= a.from && clamped < a.to) ?? table[table.length - 1]
+  return { arc, deg: clamped }
+}
 
-  if (isOdd(sign)) {
-    // Odd: Ma 0-5°, Sa 5-12°, Ju 12-20°, Me 20-25°, Ve 25-30°
-    // → Ar(1), Aq(11), Sg(9), Vi(6), Ta(2)
-    if (deg < 5)  return 1   // Aries (Ma)
-    if (deg < 12) return 11  // Aquarius (Sa)
-    if (deg < 20) return 9   // Sagittarius (Ju)
-    if (deg < 25) return 6   // Virgo (Me)
-    return 2                  // Taurus (Ve)
-  } else {
-    // Even: Ve 0-5°, Me 5-12°, Ju 12-20°, Sa 20-25°, Ma 25-30°
-    // → Li(7), Vi(6), Pi(12), Cp(10), Sc(8)
-    if (deg < 5)  return 7   // Libra (Ve)
-    if (deg < 12) return 6   // Virgo (Me) — Gemini alternate
-    if (deg < 20) return 12  // Pisces (Ju)
-    if (deg < 25) return 10  // Capricorn (Sa)
-    return 8                  // Scorpio (Ma)
-  }
+/** D30 — Trimshamsha (Parashara: evils and misfortunes) */
+export const D30 = (lon: number): number => {
+  return getD30Arc(lon).arc.rashi
 }
 
 /** D40 — Khavedamsha (Parashara: auspicious/inauspicious effects) */
@@ -507,11 +519,9 @@ export function getVargaPosition(lon: number, vname: VargaName): VargaPosition {
   if (n === 1) {
     degree = degInSign(lon)
   } else if (vname === 'D30') {
-    // For D30 (unequal), we just use the natal degree or 0? 
-    // Parashara Trimshamsha has unequal arcs. 
-    // Most software shows 0 or scales the specific arc.
-    // For now, we'll use 0 to avoid misleading degrees in D30.
-    degree = 0 
+    // Parashara Trimshamsha has unequal arcs: scale proportionally within the arc to 0-30°
+    const { arc, deg } = getD30Arc(lon)
+    degree = ((deg - arc.from) / (arc.to - arc.from)) * 30
   } else {
     // Equal divisions: (NatalLon % (30/N)) * N
     const arcSize = 30 / n

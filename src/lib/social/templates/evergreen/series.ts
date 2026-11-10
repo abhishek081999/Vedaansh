@@ -67,7 +67,8 @@ export const nakshatraSeries: TemplateDef = {
     const rem = NAKSHATRA_REMEDIES[i]
     const deep = getNakshatraDeepGuide(i)
     const span = `${RASHI_SANSKRIT[(Math.floor((i * 40) / 120) + 1) as Rashi]}`
-    const theory = deep ? brief(deep.theory[0] ?? '', 220) : brief(prof.coreMeaning, 200)
+    // Keep the theory slide inside the 4x5 content band (deep guides are long).
+    const theory = deep ? brief(deep.theory[0] ?? '', 170) : brief(prof.coreMeaning, 200)
     const slides: SlideSpec[] = [
       {
         type: 'cover',
@@ -108,8 +109,9 @@ export const nakshatraSeries: TemplateDef = {
         paragraphs: [theory],
         bullets: deep
           ? [
-              { title: 'Deity', items: [brief(deep.deityNotes[0] ?? '', 140)] },
-              { title: 'Padas', items: deep.padas.map((pd) => `${pd.pada}. ${pd.navamsa} — ${brief(pd.summary, 90)}`) },
+              // Padas first (kept); deity last so layout can drop it on short frames.
+              { title: 'Padas', items: deep.padas.map((pd) => `${pd.pada}. ${pd.navamsa} — ${brief(pd.summary, 68)}`) },
+              { title: 'Deity', items: [brief(deep.deityNotes[0] ?? '', 100)] },
             ]
           : [
               { title: 'Strength', tone: 'good', items: [brief(prof.hiddenPower, 120)] },
