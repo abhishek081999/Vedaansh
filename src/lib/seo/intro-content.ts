@@ -319,6 +319,22 @@ export const ABOUT_SEO: SeoIntroProps = {
 
 }
 
+/** FAQ copy shared between About JSON-LD and locale selector. */
+export const ABOUT_FAQ = [
+  {
+    q: 'What is Vedaansh?',
+    a: 'Vedaansh is a free Vedic astrology platform offering birth charts (Kundali), Dasha, 41 varga charts, Panchang, Nakshatra analysis, and Muhurta tools with Swiss Ephemeris precision.',
+  },
+  {
+    q: 'Is Vedaansh free to use?',
+    a: 'Core chart calculation, Panchang, and many Jyotish tools are free. Optional paid plans add saved charts, exports, and advanced features.',
+  },
+  {
+    q: 'Which ayanamsha does Vedaansh use?',
+    a: 'Vedaansh uses Lahiri (Chitrapaksha) ayanamsha by default, with Swiss Ephemeris for arc-second accurate planetary positions.',
+  },
+] as const
+
 export const SUPPORT_SEO: SeoIntroProps = {
   ariaLabel: 'Vedaansh Support',
   h1: 'Vedaansh Support — Billing, Account & Technical Help',

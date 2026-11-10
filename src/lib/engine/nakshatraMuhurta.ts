@@ -320,14 +320,15 @@ export const NAKSHATRA_FALL_EFFECTS: string[] = [
 export function getNakshatraMuhurtaMeta(index: number, pada: number = 1, lang: EngineLang = 'en'): NakshatraMuhurtaMeta {
   const i = ((index % 27) + 27) % 27
   const hi = lang === 'hi'
-  const chars = getNakshatraCharacteristics(i, pada)
+  const charsEn = getNakshatraCharacteristics(i, pada)
+  const chars = hi ? getNakshatraCharacteristics(i, pada, 'hi') : charsEn
   const groupId = GROUP_BY_INDEX[i]
   const mukhaId = MUKHA_BY_INDEX[i]
   const group = overlay(GROUPS[groupId], GROUPS_HI[groupId], lang)
   const mukha = overlay(MUKHAS[mukhaId], MUKHAS_HI[mukhaId], lang)
   const basicEnergy = hi
-    ? `${termHi(chars.gana)} · ${YONI_HI[chars.yoni] ?? chars.yoni} ${NAK_TEXT_HI.yoni} · ${SHAKTI_HI[i]}`
-    : `${chars.gana} · ${chars.yoni} yoni · ${NAKSHATRA_SHAKTI[i]}`
+    ? `${termHi(charsEn.gana)} · ${YONI_HI[charsEn.yoni] ?? charsEn.yoni} ${NAK_TEXT_HI.yoni} · ${SHAKTI_HI[i]}`
+    : `${charsEn.gana} · ${charsEn.yoni} yoni · ${NAKSHATRA_SHAKTI[i]}`
 
   return {
     index: i,

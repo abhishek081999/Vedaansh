@@ -27,9 +27,9 @@ npm run build         # for risky / infra changes
 ```
 
 - API routes: `guardRoute` + Zod + `{ success, error }`; enforce plans on the server. Route lists for `src/proxy.ts` live in `src/lib/security/proxyRules.ts`; handlers must still enforce plans themselves.
-- Engine: no React / Mongo / Redis / NextAuth imports under `src/lib/engine/**`.
-- UI: plan teasers are OK; API must still gate.
-- Docs: if a route, model, plan gate, or command changes, update `docs/` and [`SUBSCRIPTION_MATRIX.md`](./SUBSCRIPTION_MATRIX.md) in the same change. Trust `package.json` over version strings in prose.
+- Engine: no React / Mongo / Redis / NextAuth imports under `src/lib/engine/**`. User-visible engine prose takes optional `lang` with a `src/lib/engine/locale/*.hi.ts` overlay (English default unchanged).
+- UI: plan teasers are OK; API must still gate. New copy needs `messages/en` + `messages/hi` keys (`npm run test:engine` covers `__tests__/ui/i18n.test.ts`). Prefer `@/i18n/navigation` over `next/link`. Admin / Social Studio stay English.
+- Docs: if a route, model, plan gate, i18n surface, or command changes, update `docs/` and [`SUBSCRIPTION_MATRIX.md`](./SUBSCRIPTION_MATRIX.md) in the same change. Trust `package.json` over version strings in prose. i18n conventions: [`AGENTS.md`](./AGENTS.md).
 
 ## Commit messages
 

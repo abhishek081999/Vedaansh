@@ -1,5 +1,6 @@
 # Vedaansh — testing strategy
 
+**Synced:** 2026-11-10  
 **Runner:** Vitest (`npm run test:engine` → `vitest run`, the full configured suite)  
 **Suites:** `__tests__/engine/`, `__tests__/security/`, `__tests__/admin/`, `__tests__/ui/` (verify count with `find __tests__ -name '*.test.ts*' | wc -l`)  
 **Rule:** Engine tests must **not** import redis / mongoose / next-auth (Windows Vitest segfault risk). See `__tests__/engine/phase2.test.ts` and `.cursor/rules/tests.mdc`.  
@@ -42,7 +43,8 @@ Production deploy checklist: [SECURITY_DEPLOY.md](./SECURITY_DEPLOY.md).
 | **Engine** | `__tests__/engine/**` | Pure Jyotish math — dashas, yogas, muhurta, ashtakavarga, nakshatra, milan, interpretation hub aggregates (`interpretationHub.test.ts`), etc. No I/O. |
 | **Security** | `__tests__/security/**` | Rate limits, CSP, CSRF/origin, body limits, password policy, plan access, presets, tokens, login throttle |
 | **Admin** | `__tests__/admin/**` | Admin guards, user/chart query helpers |
-| **UI** | `__tests__/ui/**` | Design-system smoke (tokens / conventions) |
+| **UI** | `__tests__/ui/**` | Design-system smoke; **i18n parity** (`i18n.test.ts` — every `messages/en` key exists in `hi` with matching placeholders/list lengths); search corpus Hindi smoke where present |
+| **Engine HiLeak** | `__tests__/engine/*HiLeak.test.ts` | Hindi engine output has no unintended Latin; English output unchanged when `lang` omitted |
 
 There is **no** full E2E browser suite in-repo today. Rely on manual smoke from the runbook after deploy.
 
@@ -63,7 +65,8 @@ There is **no** full E2E browser suite in-repo today. Rely on manual smoke from 
 - [ ] Engine/security tests relevant to change pass
 - [ ] Plan gates match [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)
 - [ ] Manual smoke of touched user journey (calculate / save / paid path as applicable)
-- [ ] Docs updated if API, model, or ops behavior changed
+- [ ] Docs updated if API, model, ops, or i18n surface changed
+- [ ] New UI strings have `messages/en` + `messages/hi` keys (parity test green); new engine prose takes `lang` with a `.hi.ts` overlay when user-visible
 
 ---
 

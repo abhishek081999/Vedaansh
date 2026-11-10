@@ -184,7 +184,7 @@ export const CP_HI = {
     strengthClosing:
       'शक्ति पद को नहीं बदलती; पद कितने दबाव में रहेगा यह बताती है। शतबल, विंशोपक और भावबल एक साथ पढ़ें।',
     chainClosing: 'स्वामी श्रृंखला बताती है कि कर्म किस भाव विषय से पोषित होता है।',
-    prosperityClosing: 'समृद्धि योगी बिंदु, अवयोगी और एकादशेश से जुड़ी है — पद मिले तब धन का रास्ता।',
+    prosperityClosing: 'लाभ एकादश है, बचत द्वितीय है, और योगी बिंदु समृद्धि है। केपी उस चार्ट पर दशम लग्न का उपस्वामी जोड़ता है। इनमें से एक के बिना पद वह नाम है जिसका भुगतान अभी नहीं हुआ।',
     turnsClosing:
       'आरंभ पहला अध्याय। विराम रोकता है। परिवर्तन काम का स्वरूप बदलता है। नया अवसर द्वार खोलता है। उन्नति उसी क्षेत्र में चढ़ती है। समाप्ति अध्याय बंद। वापसी काम लौटाती है। केवल जो अर्जित हो उसे पढ़ें और दशा से समय दें।',
     ladderClosing: 'वर्ग सीढ़ी: D1 वादा, D9 धारण, D10 कार्यस्थल। अधिक वर्ग सूक्ष्म पुष्टि।',
@@ -266,6 +266,7 @@ export const CP_HI = {
     ['Good for career', 'करियर के लिए अनुकूल'],
     ['Mixed for career', 'करियर के लिए मिश्रित'],
     ['Poor for career', 'करियर के लिए अशुभ'],
+    ['KP 10th sub-lord', 'केपी दशम उपस्वामी'],
     ['10th house', 'दशम भाव'],
     ['10th lord', 'दशमेश'],
     ['Status', 'प्रतिष्ठा'],
@@ -300,6 +301,19 @@ export const CP_HI = {
   ] as [string, string][],
 
   detailPhrases: [
+    ['In KP the sub-lord decides the fruit.', 'केपी में उपस्वामी फल तय करता है।'],
+    ['rules a livelihood house, so the profession can fructify as work, service, or income.', 'आजीविका भाव का स्वामी है, इसलिए पेशा काम, सेवा या आय के रूप में फलित हो सकता है।'],
+    ['rules the 8th or the 12th, so the fruit leaves as change, cost, research, or a foreign posting.', 'अष्ट या द्वादश का स्वामी है, इसलिए फल परिवर्तन, लागत, शोध या विदेश पद के रूप में निकलता है।'],
+    ['touches both a livelihood house and a house of loss, or neither.', 'आजीविका भाव और हानि भाव दोनों को छूता है, या किसी को नहीं।'],
+    ['Name the fruit only in that planet’s period.', 'फल केवल उस ग्रह की अवधि में नाम दें।'],
+    ["Name the fruit only in that planet's period.", 'फल केवल उस ग्रह की अवधि में नाम दें।'],
+    ['as sign lord', 'राशि स्वामी के रूप में'],
+    ['as star lord', 'नक्षत्र स्वामी के रूप में'],
+    ['as sub-lord', 'उपस्वामी के रूप में'],
+    ['lets the 10th fructify', 'दशम को फलित होने देता है'],
+    ['spends the 10th', 'दशम को खर्च करता है'],
+    ['splits the fruit', 'फल बाँटता है'],
+    ['The 10th cusp runs ', 'दशम लग्न चलता है '],
     ['rules the 10th', 'दशम का स्वामी'],
     ['sits in the 10th', 'दशम में बैठा'],
     ['livelihood house', 'आजीविका भाव'],

@@ -1,0 +1,75 @@
+{
+  "gate": {
+    "title": "Exclusive Platinum Feature",
+    "body": "Finalize your professional practice with full CRM client management, session tracking, and white-label tools.",
+    "cta": "Upgrade to Platinum"
+  },
+  "header": {
+    "title": "Consultant",
+    "titleHighlight": "CRM",
+    "subtitle": "Client history search and transition monitoring.",
+    "add": "+ Add Client",
+    "calculator": "Open Calculator"
+  },
+  "stats": {
+    "total": "Total Clients",
+    "active": "Active Sessions",
+    "prospects": "Prospective"
+  },
+  "filterPh": "Filter by name, email, or tag...",
+  "emptyFilter": "No clients match your filter",
+  "emptyLibrary": "Your client library is currently empty",
+  "alerts": {
+    "title": "Transition Alerts ({count})",
+    "major": "Major",
+    "sub": "Sub",
+    "shift": "Shift → {lord}"
+  },
+  "sessions": {
+    "title": "Recent Sessions",
+    "none": "No recent activity."
+  },
+  "perk": {
+    "title": "Platinum Perk",
+    "body": "Use tags like <b>#career</b> or <b>#VIP</b> to categorize your clients. The Active Dasha track helps you know who is entering a challenging Sade Sati or Mahadasha shift."
+  },
+  "errors": {
+    "fetchFailed": "Failed to fetch clients",
+    "addFailed": "Failed to add client",
+    "updateFailed": "Failed to update client"
+  },
+  "modal": {
+    "addTitle": "Quick Add Client",
+    "editTitle": "Edit Client Details"
+  },
+  "card": {
+    "location": "Location",
+    "birthInfo": "Birth Info",
+    "lastSession": "Last Session",
+    "never": "Never",
+    "viewChart": "View Chart",
+    "editTitle": "Edit Details",
+    "notesTitle": "Session Notes",
+    "deleteTitle": "Delete Client",
+    "sessionLogs": "Session Logs ({count})",
+    "remedies": "Remedies ({count})",
+    "notePh": "New note...",
+    "save": "Save",
+    "remedyPh": "Gem, Mantra, etc...",
+    "add": "Add",
+    "followUp": "Follow-up",
+    "dasha": "Dasha",
+    "addTag": "+ Tag",
+    "tagPrompt": "Add new tag:",
+    "remedyStatus": {
+      "suggested": "Suggested",
+      "started": "Started",
+      "completed": "Completed",
+      "abandoned": "Abandoned"
+    },
+    "mdShift": "{lord} Mahadasha shift in {days} days",
+    "adShift": "{lord} Antardasha shift in {days} days"
+  },
+  "confirmDelete": "Are you sure you want to delete this client? All history will be lost.",
+  "addTag": "Add new tag:"
+}

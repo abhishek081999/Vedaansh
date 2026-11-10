@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 
 interface SavedChart {
   _id:        string
@@ -23,6 +24,8 @@ interface SavedChartSelectorProps {
 }
 
 export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProps) {
+  const t = useTranslations('library.selector')
+  const tf = useTranslations('library.filters')
   const { data: session, status } = useSession()
   const [charts, setCharts] = useState<SavedChart[]>([])
   const [clients, setClients] = useState<SavedChart[]>([])
@@ -75,7 +78,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
       ])
 
       if (chartRes.status === 401) {
-        setError('Please sign in to load your saved charts.')
+        setError(t('signInToLoad'))
         setCharts([])
         return
       }
@@ -84,7 +87,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
       if (chartJson.success) {
         setCharts(Array.isArray(chartJson.charts) ? chartJson.charts : [])
       } else {
-        setError(chartJson.error || 'Failed to load charts')
+        setError(chartJson.error || t('loadFailed'))
       }
 
       if (clientRes) {
@@ -100,11 +103,11 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
         }
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load charts')
+      setError(e instanceof Error ? e.message : t('loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [userPlan, isAuthed, status])
+  }, [userPlan, isAuthed, status, t])
 
   useEffect(() => {
     if (status === 'loading') return
@@ -126,10 +129,10 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
           .then(r => r.json())
           .then(json => {
             if (json.success) setCharts(json.charts)
-            else setError(json.error || 'Search failed')
+            else setError(json.error || t('searchFailed'))
           })
           .catch((e: unknown) => {
-            setError(e instanceof Error ? e.message : 'Search failed')
+            setError(e instanceof Error ? e.message : t('searchFailed'))
           })
           .finally(() => setLoading(false))
       }, 500)
@@ -137,7 +140,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
     }
 
     void fetchData()
-  }, [search, filterGender, filterStartDate, filterEndDate, fetchData, isAuthed, status])
+  }, [search, filterGender, filterStartDate, filterEndDate, fetchData, isAuthed, status, t])
 
   const currentList = tab === 'charts' ? charts : clients
   const filtered = currentList
@@ -180,13 +183,13 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
       >
         <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-2)' }}>
           <div>
-            <h3 id="saved-chart-selector-title" style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-primary)' }}>Select Chart</h3>
-            <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)', letterSpacing: '0.1em', fontWeight: 700 }}>VEDAANSH LIBRARY</p>
+            <h3 id="saved-chart-selector-title" style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-primary)' }}>{t('title')}</h3>
+            <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)', letterSpacing: '0.1em', fontWeight: 700 }}>{t('eyebrow')}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close chart selector"
+            aria-label={t('close')}
             style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', width: 32, height: 32, borderRadius: '50%', fontSize: '1rem', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             ×
@@ -200,14 +203,14 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
               onClick={() => setTab('charts')}
               style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === 'charts' ? 'var(--gold)' : 'transparent'}`, color: tab === 'charts' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: tab === 'charts' ? 700 : 400, cursor: 'pointer', fontSize: '0.85rem' }}
             >
-              My Charts ({charts.length})
+              {t('myCharts', { count: charts.length })}
             </button>
             <button
               type="button"
               onClick={() => setTab('clients')}
               style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === 'clients' ? 'var(--gold)' : 'transparent'}`, color: tab === 'clients' ? 'var(--gold)' : 'var(--text-muted)', fontWeight: tab === 'clients' ? 700 : 400, cursor: 'pointer', fontSize: '0.85rem' }}
             >
-              CRM Clients ({clients.length})
+              {t('clients', { count: clients.length })}
             </button>
           </div>
         )}
@@ -218,7 +221,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
               <div style={{ position: 'relative', flex: 1 }}>
                 <input
                   className="input"
-                  placeholder={`Search ${tab === 'charts' ? 'name, place, or hashtag' : 'clients'}...`}
+                  placeholder={tab === 'charts' ? t('searchCharts') : t('searchClients')}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   style={{ width: '100%', paddingLeft: '2.5rem', borderRadius: 'var(--r-md)' }}
@@ -235,7 +238,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
                   color: showFilters ? 'var(--gold)' : 'var(--text-muted)', cursor: 'pointer',
                 }}
               >
-                FILTERS
+                {t('filters')}
               </button>
             </div>
 
@@ -245,21 +248,21 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
                 background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)',
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gender</label>
+                  <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{tf('gender')}</label>
                   <select
                     value={filterGender}
                     onChange={e => setFilterGender(e.target.value)}
                     className="input"
                     style={{ fontSize: '0.75rem', padding: '0.35rem' }}
                   >
-                    <option value="all">All Genders</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="all">{tf('allGenders')}</option>
+                    <option value="male">{tf('male')}</option>
+                    <option value="female">{tf('female')}</option>
+                    <option value="other">{tf('other')}</option>
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date Range</label>
+                  <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('dateRange')}</label>
                   <div style={{ display: 'flex', gap: '0.25rem' }}>
                     <input
                       type="date"
@@ -286,16 +289,16 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
           {status === 'loading' || loading ? (
             <div style={{ padding: '3rem', textAlign: 'center' }}>
               <div className="spin-loader" style={{ width: 28, height: 28, margin: '0 auto', borderTopColor: 'var(--gold)' }} />
-              <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Fetching your library...</p>
+              <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('fetching')}</p>
             </div>
           ) : !isAuthed ? (
             <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.4 }}>🔐</div>
               <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                Sign in to pick a chart from your library.
+                {t('signInBody')}
               </p>
               <Link href="/login?callbackUrl=/compare" className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                Sign In
+                {t('signIn')}
               </Link>
             </div>
           ) : error ? (
@@ -303,7 +306,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
               <div>{error}</div>
               <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }} onClick={() => void fetchData()}>
-                Retry
+                {t('retry')}
               </button>
             </div>
           ) : filtered.length === 0 ? (
@@ -311,8 +314,8 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.3 }}>📂</div>
               <p>
                 {search.trim()
-                  ? <>No results found matching &quot;{search}&quot;</>
-                  : <>No saved charts yet. <Link href="/?new=true" style={{ color: 'var(--gold)' }}>Create one</Link></>}
+                  ? t('noMatch', { query: search })
+                  : t.rich('empty', { link: (chunks) => <Link href="/?new=true" style={{ color: 'var(--gold)' }}>{chunks}</Link> })}
               </p>
             </div>
           ) : (
@@ -342,7 +345,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{c.name}</span>
-                    {c.isClient && <span className="badge badge-gold" style={{ fontSize: '0.6rem' }}>CLIENT</span>}
+                    {c.isClient && <span className="badge badge-gold" style={{ fontSize: '0.6rem' }}>{t('clientBadge')}</span>}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                     <span>📅 {c.birthDate || '—'}</span>

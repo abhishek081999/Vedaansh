@@ -75,6 +75,23 @@ export function localizePath(pathname: string, locale: AppLocale): string {
 }
 
 /**
+ * Strip a locale prefix from a same-app path (optional ?query #hash).
+ * Use for Auth callbackUrl and next-intl router.push — those APIs expect
+ * unprefixed paths and would otherwise produce `/hi/hi/...`.
+ * Absolute URLs, protocol-relative URLs, and non-path values become `/`.
+ */
+export function toUnprefixedAppPath(path: string): string {
+  if (!path || !path.startsWith('/') || path.startsWith('//')) return '/'
+  const hashIdx = path.indexOf('#')
+  const withoutHash = hashIdx >= 0 ? path.slice(0, hashIdx) : path
+  const hash = hashIdx >= 0 ? path.slice(hashIdx) : ''
+  const qIdx = withoutHash.indexOf('?')
+  const pathOnly = qIdx >= 0 ? withoutHash.slice(0, qIdx) : withoutHash
+  const search = qIdx >= 0 ? withoutHash.slice(qIdx) : ''
+  return `${splitLocalePath(pathOnly).pathname}${search}${hash}`
+}
+
+/**
  * Paths that are never localized: APIs, framework assets, files.
  * The proxy neither prefixes nor redirects these.
  */

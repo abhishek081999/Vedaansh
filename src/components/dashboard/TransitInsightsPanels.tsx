@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import {
@@ -10,6 +11,8 @@ import {
   type PositionVerdict,
 } from '@/lib/engine/transitMomentAnalysis'
 import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import styles from './transit-scrubber.module.css'
 
@@ -21,49 +24,58 @@ const LABEL_STYLE: Record<MomentLabel, { bg: string; border: string; color: stri
   Avoid:     { bg: 'rgba(224,123,142,0.12)', border: 'rgba(224,123,142,0.35)', color: 'var(--rose)' },
 }
 
-const VERDICT_STYLE: Record<PositionVerdict, { label: string; className: string }> = {
-  good:    { label: 'Favorable', className: styles.verdictGood },
-  mixed:   { label: 'Mixed', className: styles.verdictMixed },
-  caution: { label: 'Caution', className: styles.verdictCaution },
+const VERDICT_CLASS: Record<PositionVerdict, string> = {
+  good: styles.verdictGood,
+  mixed: styles.verdictMixed,
+  caution: styles.verdictCaution,
+}
+
+function momentTimeKey(label: MomentLabel): 'good' | 'mixed' | 'caution' {
+  if (label === 'Excellent' || label === 'Good') return 'good'
+  if (label === 'Avoid' || label === 'Challenging') return 'caution'
+  return 'mixed'
 }
 
 function VerdictBadge({ verdict }: { verdict: PositionVerdict }) {
-  const v = VERDICT_STYLE[verdict]
-  return <span className={`${styles.verdictBadge} ${v.className}`}>{v.label}</span>
+  const t = useTranslations('transit.scrubber.insights')
+  return <span className={`${styles.verdictBadge} ${VERDICT_CLASS[verdict]}`}>{t(`verdict.${verdict}`)}</span>
 }
 
 function PlanetInterpCard({ p }: { p: PlanetMomentAnalysis }) {
+  const t = useTranslations('transit.scrubber.insights')
+  const { hi } = useLang()
   const [open, setOpen] = useState(false)
   const hasClassical =
     p.houseClassical.length > 0 || p.signClassical.length > 0 || p.dignityClassical.length > 0
+  const graha = hi ? (GRAHA_HI[p.planetId] ?? p.planetId) : (GRAHA_NAMES[p.planetId] ?? p.planetId)
+  const rashi = hi ? RASHI_HI[p.transitRashi] : RASHI_NAMES[p.transitRashi]
+  const dignity = (d: string) => (hi ? dignityHi(d) : d)
 
   return (
     <article className={styles.planetCard}>
       <div className={styles.planetCardHeader}>
         <span className={styles.planetCardName}>
-          {GRAHA_NAMES[p.planetId]}
+          {graha}
           <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: '0.3rem' }}>({p.planetId})</span>
           {p.isRetro && <span className={styles.retroMark}> ℞</span>}
         </span>
         <VerdictBadge verdict={p.transitVerdict} />
       </div>
       <div className={styles.planetCardMeta}>
-        <span>Natal H{p.natalHouse} · {p.natalDignity}</span>
+        <span>{t('natalMeta', { house: p.natalHouse, dignity: dignity(p.natalDignity) })}</span>
         <span>→</span>
-        <span>
-          Gochar H{p.transitHouse} · {RASHI_NAMES[p.transitRashi]} · {p.transitDignity}
-        </span>
+        <span>{t('gocharMeta', { house: p.transitHouse, rashi, dignity: dignity(p.transitDignity) })}</span>
       </div>
       <p className={styles.planetPrediction}>{p.prediction}</p>
       {p.teachingSummary ? (
         <p className={styles.planetTeaching}>
-          <span className={styles.planetTeachingLabel}>Teaching</span>
+          <span className={styles.planetTeachingLabel}>{t('teaching')}</span>
           {p.teachingSummary}
         </p>
       ) : null}
       <p className={styles.planetDetail}>{p.detail}</p>
       <div className={styles.planetVerdictRow}>
-        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Natal position</span>
+        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('natalPosition')}</span>
         <VerdictBadge verdict={p.natalVerdict} />
       </div>
       {hasClassical ? (
@@ -74,19 +86,19 @@ function PlanetInterpCard({ p }: { p: PlanetMomentAnalysis }) {
             onClick={() => setOpen(v => !v)}
             aria-expanded={open}
           >
-            {open ? 'Hide classical phalita' : 'Show classical phalita'}
+            {open ? t('hideClassical') : t('showClassical')}
           </button>
           {open ? (
             <div className={styles.planetClassicalBody}>
               <ClassicalNotesList
-                title={`Classical · ${GRAHA_NAMES[p.planetId]} in house ${p.transitHouse} (gochar)`}
+                title={t('classicalHouse', { graha, house: p.transitHouse })}
                 notes={p.houseClassical}
               />
               <ClassicalNotesList
-                title={`Classical · ${GRAHA_NAMES[p.planetId]} in ${RASHI_NAMES[p.transitRashi]}`}
+                title={t('classicalSign', { graha, rashi })}
                 notes={p.signClassical}
               />
-              <ClassicalNotesList title="Dignity / vakri" notes={p.dignityClassical} />
+              <ClassicalNotesList title={t('classicalDignity')} notes={p.dignityClassical} />
             </div>
           ) : null}
         </div>
@@ -101,6 +113,7 @@ interface TransitInsightsPanelsProps {
 }
 
 export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsightsPanelsProps) {
+  const t = useTranslations('transit.scrubber.insights')
   const { lang } = useLang()
   const analysis = useMemo(() => {
     if (!transitChart) return null
@@ -111,7 +124,7 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
     return (
       <div className={styles.insightsSection}>
         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-          Scrub date and time to generate good/bad time analysis and predictions.
+          {t('empty')}
         </p>
       </div>
     )
@@ -121,7 +134,6 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
 
   return (
     <section className={styles.insightsSection}>
-      {/* Moment verdict */}
       <div
         className={styles.momentBanner}
         style={{ background: ls.bg, borderColor: ls.border }}
@@ -129,14 +141,14 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-              This moment
+              {t('thisMoment')}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem', flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', fontWeight: 700, color: ls.color }}>
-                {analysis.label === 'Excellent' || analysis.label === 'Good' ? 'Good time' : analysis.label === 'Avoid' || analysis.label === 'Challenging' ? 'Caution time' : 'Mixed time'}
+                {t(`time.${momentTimeKey(analysis.label)}`)}
               </span>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                Score {analysis.score}/100
+                {t('score', { score: analysis.score })}
               </span>
             </div>
             <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, maxWidth: 640 }}>
@@ -164,10 +176,9 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
         </div>
       </div>
 
-      {/* Good / caution columns */}
       <div className={styles.factorsGrid}>
         <div className={`${styles.factorsCard} ${styles.factorsGood}`}>
-          <h4 className={styles.factorsTitle}>Supportive factors</h4>
+          <h4 className={styles.factorsTitle}>{t('supportive')}</h4>
           {analysis.goodFactors.length > 0 ? (
             <ul className={styles.factorsList}>
               {analysis.goodFactors.map((f, i) => (
@@ -175,11 +186,11 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
               ))}
             </ul>
           ) : (
-            <p className={styles.factorsEmpty}>No strong supportive factors at this exact moment.</p>
+            <p className={styles.factorsEmpty}>{t('supportiveEmpty')}</p>
           )}
         </div>
         <div className={`${styles.factorsCard} ${styles.factorsCaution}`}>
-          <h4 className={styles.factorsTitle}>Caution factors</h4>
+          <h4 className={styles.factorsTitle}>{t('caution')}</h4>
           {analysis.cautionFactors.length > 0 ? (
             <ul className={styles.factorsList}>
               {analysis.cautionFactors.map((f, i) => (
@@ -187,17 +198,15 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
               ))}
             </ul>
           ) : (
-            <p className={styles.factorsEmpty}>No major caution flags detected.</p>
+            <p className={styles.factorsEmpty}>{t('cautionEmpty')}</p>
           )}
         </div>
       </div>
 
-      {/* Per-planet predictions + classical phalita */}
       <div className={styles.predictionsBlock}>
-        <h3 className={styles.compareTitle}>Planet-by-planet interpretations</h3>
+        <h3 className={styles.compareTitle}>{t('planetsTitle')}</h3>
         <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Teaching summaries and classical graha-in-bhava / graha-in-rashi notes for each gochar house from natal lagna.
-          Temporary colouring — weigh with Vimshottari before acting.
+          {t('planetsHint')}
         </p>
         <div className={styles.planetGrid}>
           {analysis.planets.map(p => (

@@ -7,6 +7,7 @@
 
 import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   BookOpen,
   Flame,
@@ -22,15 +23,22 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { RASHI_NAMES } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 
 type SubTab = 'overview' | 'kalas' | 'ahamkara' | 'pastlife'
 
-const SUB_TABS: { id: SubTab; label: string; Icon: typeof SunIcon; free?: boolean }[] = [
-  { id: 'overview', label: 'Overview', Icon: SunIcon, free: true },
-  { id: 'kalas', label: '12 Kalas', Icon: Sparkles },
-  { id: 'ahamkara', label: 'Seven Ahamkara', Icon: UserRound },
-  { id: 'pastlife', label: 'Past Life & Grahan', Icon: BookOpen },
+const SUB_TABS: { id: SubTab; labelKey: 'tabOverview' | 'tabKalas' | 'tabAhamkara' | 'tabPastLife'; Icon: typeof SunIcon; free?: boolean }[] = [
+  { id: 'overview', labelKey: 'tabOverview', Icon: SunIcon, free: true },
+  { id: 'kalas', labelKey: 'tabKalas', Icon: Sparkles },
+  { id: 'ahamkara', labelKey: 'tabAhamkara', Icon: UserRound },
+  { id: 'pastlife', labelKey: 'tabPastLife', Icon: BookOpen },
 ]
+
+const DIGNITY_EN: Record<string, string> = {
+  exalted: 'Exalted', moolatrikona: 'Moolatrikona', own: 'Own sign', great_friend: 'Great friend',
+  friend: 'Friend', neutral: 'Neutral', enemy: 'Enemy', great_enemy: 'Great enemy', debilitated: 'Debilitated',
+}
 
 interface SunKalasAhamkaraPanelProps {
   chart: ChartOutput
@@ -38,9 +46,11 @@ interface SunKalasAhamkaraPanelProps {
 }
 
 export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAhamkaraPanelProps) {
+  const t = useTranslations('chartTools.sunKalas')
+  const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
-  const data = useMemo(() => analyzeSunKalasAhamkara(chart), [chart])
+  const data = useMemo(() => analyzeSunKalasAhamkara(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -52,7 +62,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Sun data unavailable for this chart.
+        {t('unavailable')}
       </div>
     )
   }
@@ -61,6 +71,10 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
     if (!showFull && id !== 'overview') return
     setSub(id)
   }
+
+  const rashiLabel = hi ? RASHI_HI[data.sun.rashi] : data.sun.rashiName
+  const nakLabel = hi ? (NAKSHATRA_HI[data.sun.nakshatraIndex] ?? data.sun.nakshatraName) : data.sun.nakshatraName
+  const dignity = hi ? termHi(DIGNITY_EN[data.sun.dignity] ?? data.sun.dignity) : data.sun.dignity
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -77,21 +91,20 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: active solar kala and primary ahamkara.
-            Gold unlocks all 12 kalas, seven ahamkara stages with remedies, grahan yoga, and past-life Sun flags.
+            {t('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{data.sun.rashiName} · H{data.sun.house}</Pill>
-        <Pill>{data.sun.nakshatraName} P{data.sun.pada}</Pill>
-        <Pill>{data.sun.dignity}</Pill>
-        <Pill gold>Kala {data.activeKala.number}: {data.activeKala.name}</Pill>
-        {data.grahanYoga.active && <Pill warn>Grahan Yoga</Pill>}
+        <Pill gold>{rashiLabel} · {t('house', { n: data.sun.house })}</Pill>
+        <Pill>{nakLabel} {t('pada', { n: data.sun.pada })}</Pill>
+        <Pill>{dignity}</Pill>
+        <Pill gold>{t('kalaPill', { n: data.activeKala.number, name: data.activeKala.name })}</Pill>
+        {data.grahanYoga.active && <Pill warn>{t('grahanYoga')}</Pill>}
       </div>
 
       <div
@@ -107,19 +120,19 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Sun analysis sections"
+        aria-label={t('sectionsAria')}
       >
-        {SUB_TABS.map(t => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map(tab => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 flex: '1 1 auto',
                 padding: '0.42rem 0.55rem',
@@ -138,8 +151,8 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
                 whiteSpace: 'nowrap',
               }}
             >
-              <t.Icon size={13} aria-hidden />
-              {t.label}
+              <tab.Icon size={13} aria-hidden />
+              {t(tab.labelKey)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -149,7 +162,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Active Kala (birth Sun)</Label>
+            <Label>{t('activeKala')}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.activeKala.number}. {data.activeKala.name}
             </div>
@@ -157,7 +170,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
               {data.activeKala.meaning}
             </p>
             <p style={{ margin: '0.55rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-              Sun in {data.sun.rashiName} lights this Aditya kala · {data.worshipNote}
+              {t('sunLights', { rashi: rashiLabel, note: data.worshipNote })}
             </p>
             <div style={{ maxWidth: 240, margin: '0.6rem auto 0' }}>
               <SegmentRing
@@ -173,13 +186,13 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
                 size={180}
                 centerValue={data.activeKala.number}
                 centerLabel={data.activeKala.name}
-                ariaLabel={`Solar kala ${data.activeKala.number} of 12: ${data.activeKala.name}`}
+                ariaLabel={t('ariaKala', { n: data.activeKala.number, name: data.activeKala.name })}
               />
             </div>
           </Card>
 
           <Card>
-            <Label>Primary Ahamkara</Label>
+            <Label>{t('primaryAhamkara')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
               {data.primaryAhamkara.name}
             </div>
@@ -188,18 +201,18 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
             </p>
             {data.ahamkaraScores[0]?.reasons.length > 0 && (
               <div style={{ marginTop: '0.5rem', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                Why: {data.ahamkaraScores[0].reasons.join(' · ')}
+                {t('why', { reasons: data.ahamkaraScores[0].reasons.join(' · ') })}
               </div>
             )}
             {!showFull && (
               <div style={{ marginTop: '0.55rem', fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Full seven stages + remedies on Gold
+                <Lock size={12} aria-hidden /> {t('goldStages')}
               </div>
             )}
           </Card>
 
           <Card>
-            <Label>Solar significations</Label>
+            <Label>{t('significations')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.psychology.positive.slice(0, showFull ? 99 : 4).map(p => <li key={p}>{p}</li>)}
             </ul>
@@ -209,11 +222,11 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Sun Kalas & Ahamkara full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('featureName')}>
               <div style={{ minHeight: 120, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('lockedTitle')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  All 12 kalas · seven ahamkara + remedies · grahan yoga · past-life Sun combinations
+                  {t('lockedBody')}
                 </div>
               </div>
             </PlanGate>
@@ -224,8 +237,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
       {showFull && sub === 'kalas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Full 12 solar kalas — one Aditya ray per rashi. Active kala for this chart highlighted.
-            {data.traditionNote}
+            {t('kalasLead')} {data.traditionNote}
           </p>
           <div style={{
             display: 'grid',
@@ -247,10 +259,10 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
                     <span style={{ fontWeight: 800, fontSize: '0.78rem', color: active ? 'var(--text-gold)' : 'var(--text-primary)' }}>
                       {k.number}. {k.name}
-                      {active && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>ACTIVE</span>}
+                      {active && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{t('active')}</span>}
                     </span>
                     <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>
-                      {RASHI_NAMES[k.rashi]}
+                      {hi ? RASHI_HI[k.rashi] : RASHI_NAMES[k.rashi]}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
@@ -261,7 +273,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
             })}
           </div>
           <Card>
-            <Label>Worship note</Label>
+            <Label>{t('worship')}</Label>
             <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.worshipNote}
             </p>
@@ -272,8 +284,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
       {showFull && sub === 'ahamkara' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            All seven ahamkara stages. Primary for this chart is highlighted.
-            Remedies belong in daily life — not only mantra.
+            {t('ahamkaraLead')}
           </p>
           {data.ahamkaraStages.map(stage => {
             const score = data.ahamkaraScores.find(s => s.id === stage.id)
@@ -293,24 +304,24 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <div style={{ fontWeight: 800, fontSize: '0.88rem', color: isPrimary ? 'var(--text-gold)' : 'var(--text-primary)' }}>
                     {stage.name}
-                    {isPrimary && <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700 }}>PRIMARY</span>}
+                    {isPrimary && <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700 }}>{t('primary')}</span>}
                     {!isPrimary && isActive && (
-                      <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700, color: 'var(--teal)' }}>ACTIVE</span>
+                      <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700, color: 'var(--teal)' }}>{t('active')}</span>
                     )}
                   </div>
                   <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                    Score {score?.score ?? 0}
+                    {t('score', { n: score?.score ?? 0 })}
                   </span>
                 </div>
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                   {stage.meaning}
                 </p>
                 <div style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-                  Planets: {stage.planets}
+                  {t('planets', { list: stage.planets })}
                 </div>
                 {score && score.reasons.length > 0 && (
                   <div style={{ marginTop: 4, fontSize: '0.66rem', color: 'var(--teal, #4fd1c5)' }}>
-                    Chart: {score.reasons.join(' · ')}
+                    {t('chartReasons', { reasons: score.reasons.join(' · ') })}
                   </div>
                 )}
                 <div style={{
@@ -323,14 +334,14 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
                   lineHeight: 1.4,
                 }}>
                   <Flame size={12} style={{ verticalAlign: '-2px', marginRight: 4 }} aria-hidden />
-                  Remedy: {stage.remedy}
+                  {t('remedy', { text: stage.remedy })}
                 </div>
               </div>
             )
           })}
 
           <Card>
-            <Label>When the Sun is under pressure</Label>
+            <Label>{t('pressure')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.psychology.negativeWhenAfflicted.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -341,7 +352,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
       {showFull && sub === 'pastlife' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Grahan Yoga</Label>
+            <Label>{t('grahanYoga')}</Label>
             <p style={{
               margin: 0,
               fontSize: '0.78rem',
@@ -376,7 +387,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
                     textTransform: 'uppercase',
                     color: f.active ? 'var(--rose)' : 'var(--text-muted)',
                   }}>
-                    {f.active ? 'Active' : 'Not indicated'}
+                    {f.active ? t('flagActive') : t('flagOff')}
                   </span>
                 </div>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -387,7 +398,7 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
           </div>
 
           <Card>
-            <Label>Reading emphasis</Label>
+            <Label>{t('reading')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.chartReadingTips.map(t => <li key={t}>{t}</li>)}
             </ul>

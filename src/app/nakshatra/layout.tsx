@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { nakshatraIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -28,13 +28,14 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/nakshatra', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/nakshatra', locale, metadataEn, {
     title: 'नक्षत्र विश्लेषण — वैदिक ज्योतिष',
     description: 'गहन नक्षत्र विश्लेषण: पाद, अधिष्ठातृ देवता, ग्रह, अनुकूलता, उपाय, योगिनी दशा और गोचर सक्रियण। सभी २७ नक्षत्रों के लिए स्विस एफ़ेमेरिस सटीकता।',
     ogTitle: 'नक्षत्र विश्लेषण — Vedaansh',
     ogDescription: 'सभी २७ नक्षत्र — पाद, देवता, ग्रह, योगिनी दशा और उपाय। स्विस एफ़ेमेरिस सटीकता।',
     keywords: ['नक्षत्र', 'वैदिक नक्षत्र', 'जन्म नक्षत्र', 'पाद', 'योगिनी दशा', 'नक्षत्र अनुकूलता', 'अश्विनी', 'रोहिणी', 'हस्त'],
-  })
+  }), locale, '/nakshatra/opengraph-image', 'नक्षत्र विश्लेषण — Vedaansh')
 }
 
 export default async function NakshatraLayout({ children }: { children: React.ReactNode }) {

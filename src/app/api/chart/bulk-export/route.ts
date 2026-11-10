@@ -15,6 +15,7 @@ import { Chart } from '@/lib/db/models/Chart'
 import { User } from '@/lib/db/models/User'
 import { calculateChart } from '@/lib/engine/calculator'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
+import { engineLangFromRequest } from '@/lib/requestLang'
 import JSZip from 'jszip'
 import { requirePlanGate } from '@/lib/security/planAccess'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
@@ -48,10 +49,15 @@ export async function POST(req: NextRequest) {
     const userId = session?.user?.id
     
     // 1. Fetch user branding
-    const user = await User.findById(userId).select('brandName brandLogo').lean()
+    const user = await User.findById(userId).select('brandName brandLogo language').lean() as {
+      brandName?: string
+      brandLogo?: string
+      language?: string
+    } | null
+    const lang = engineLangFromRequest(req, user?.language)
     const branding = {
-      brandName: (user as any)?.brandName,
-      brandLogo: (user as any)?.brandLogo
+      brandName: user?.brandName,
+      brandLogo: user?.brandLogo
     }
 
     // 2. Fetch all charts from DB
@@ -107,9 +113,9 @@ export async function POST(req: NextRequest) {
           const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
           const { buildRashiChapterHtml } = await import('@/lib/pdf/rashiChapter')
           const html = generateChartHTML(chartData, branding as any, {
-            gocharChapterHtml: buildGocharChapterHtml(chartData),
-            rashiChapterHtml: buildRashiChapterHtml(chartData),
-          })
+            gocharChapterHtml: buildGocharChapterHtml(chartData, lang),
+            rashiChapterHtml: buildRashiChapterHtml(chartData, lang),
+          }, lang)
           
           // Add to ZIP (escaped filename)
           const filename = `${sc.name.replace(/[^a-z0-9]/gi, '_')}.html`

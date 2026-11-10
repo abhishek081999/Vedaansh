@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 
 export type ChartScope = 'chart' | 'all'
 
@@ -18,14 +19,15 @@ export interface ChartScopeToggleProps {
 }
 
 export function ChartScopeToggle({ value, onChange, chartCount, totalCount }: ChartScopeToggleProps) {
+  const t = useTranslations('planetsB.common')
   const options: { id: ChartScope; label: string }[] = [
-    { id: 'chart', label: `Your chart (${chartCount})` },
-    { id: 'all', label: `All · reference (${totalCount})` },
+    { id: 'chart', label: t('scopeChart', { count: chartCount }) },
+    { id: 'all', label: t('scopeAll', { count: totalCount }) },
   ]
   return (
     <div
       role="radiogroup"
-      aria-label="Show content for"
+      aria-label={t('scopeAria')}
       style={{
         display: 'inline-flex',
         gap: 3,

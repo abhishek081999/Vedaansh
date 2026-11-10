@@ -451,5 +451,9 @@
       "intensityLow": "LOW",
       "intensityNone": "NONE"
     }
+  },
+  "lagnaPair": {
+    "title": "Ascendant pair",
+    "caveat": "Pair notes summarise tendencies from teaching material and cover only some ascendant pairs; the full charts (Moon, Venus, 7th house, dashas) decide the actual relationship."
   }
 }

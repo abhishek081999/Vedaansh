@@ -90,7 +90,17 @@
     "nakshatras": "Nakshatras",
     "rashi": "Rashi",
     "moonNote": "Moon in <strong>{name}</strong> pada {pada}",
-    "moonLord": "Lord {lord}"
+    "moonLord": "Lord {lord}",
+    "wheelAria": "All 27 nakshatras, clockwise from Ashwini",
+    "birthStarAria": ", birth star",
+    "janmaPada": "Janma · pada {pada}",
+    "padaHub": "Pada {pada}",
+    "birthStarPada": "Birth star · pada {pada}",
+    "lordWord": "Lord",
+    "emptyStar": "No planet or lagna in this star.",
+    "occupant": "{name} pada {pada}",
+    "legendBirth": "Birth star",
+    "legendPanchaka": "Panchaka"
   },
   "tabs": {
     "analysisAria": "Nakshatra analysis",

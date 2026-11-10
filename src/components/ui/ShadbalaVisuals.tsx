@@ -5,7 +5,10 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ShadbalaResult, ShadbalaPlanet } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 
 // ── Constants & Helpers ────────────────────────────────────────
 
@@ -107,6 +110,7 @@ function RadarChart({ data, color, size = 120 }: { data: number[], color: string
  * Multi-planet comparison visual
  */
 function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
+  const t = useTranslations('chartTools.shadbala.visual')
   const maxTotal = useMemo(() => Math.max(...ORDER.map(id => planets[id]?.total || 0), 12), [planets])
 
   return (
@@ -114,9 +118,9 @@ function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ width: 4, height: 16, background: 'var(--gold)', borderRadius: 2 }} />
-          <h4 className="label-caps" style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.8rem' }}>Planetary Power Index (Actual vs Required)</h4>
+          <h4 className="label-caps" style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.8rem' }}>{t('powerIndex')}</h4>
         </div>
-        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>1 Rupa = 60 Shastiamsas</span>
+        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t('rupaNote')}</span>
       </div>
 
       <div className="flex items-end gap-2 md:gap-8 px-2 md:px-6 pt-6" style={{ height: 220 }}>
@@ -175,7 +179,20 @@ function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> 
 
 // ── Main Component ────────────────────────────────────────────
 
+const VIS_COMP: Record<string, 'comp.sthana' | 'comp.dig' | 'comp.kala' | 'comp.chesta' | 'comp.naisargika' | 'comp.drik'> = {
+  sthanaBala: 'comp.sthana',
+  digBala: 'comp.dig',
+  kalaBala: 'comp.kala',
+  chestaBala: 'comp.chesta',
+  naisargikaBala: 'comp.naisargika',
+  drikBala: 'comp.drik',
+}
+
 export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
+  const t = useTranslations('chartTools.shadbala')
+  const tv = useTranslations('chartTools.shadbala.visual')
+  const { hi } = useLang()
+  const planetName = (id: string) => (hi ? (GRAHA_HI[id as keyof typeof GRAHA_HI] ?? PLANET_NAMES[id]) : PLANET_NAMES[id])
   const { planets, strongest, weakest } = shadbala
   const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null)
 
@@ -198,9 +215,9 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
             {PLANET_SYMBOL[strongest]}
           </div>
           <div>
-            <div className="label-caps" style={{ color: 'var(--teal)', marginBottom: 2 }}>Dominant Graha</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 500, fontFamily: 'var(--font-display)' }}>{PLANET_NAMES[strongest]}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{planets[strongest]?.total} Rupas · ({planets[strongest]?.ratio.toFixed(2)}x)</div>
+            <div className="label-caps" style={{ color: 'var(--teal)', marginBottom: 2 }}>{tv('dominant')}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 500, fontFamily: 'var(--font-display)' }}>{planetName(strongest)}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{tv('rupasLine', { total: planets[strongest]?.total ?? 0, ratio: planets[strongest]?.ratio.toFixed(2) ?? '0' })}</div>
           </div>
         </div>
 
@@ -217,9 +234,9 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
             {PLANET_SYMBOL[weakest]}
           </div>
           <div>
-            <div className="label-caps" style={{ color: 'var(--rose)', marginBottom: 2 }}>Inhibited Graha</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 500, fontFamily: 'var(--font-display)' }}>{PLANET_NAMES[weakest]}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{planets[weakest]?.total} Rupas · Needs Remedy</div>
+            <div className="label-caps" style={{ color: 'var(--rose)', marginBottom: 2 }}>{tv('inhibited')}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 500, fontFamily: 'var(--font-display)' }}>{planetName(weakest)}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{tv('needsRemedy', { total: planets[weakest]?.total ?? 0 })}</div>
           </div>
         </div>
 
@@ -265,8 +282,8 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                    <div style={{ fontSize: '1.5rem', color: col }}>{PLANET_SYMBOL[id]}</div>
                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{PLANET_NAMES[id]}</h3>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Planetary Power</div>
+                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{planetName(id)}</h3>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tv('power')}</div>
                    </div>
                 </div>
                 
@@ -274,7 +291,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: p.isStrong ? col : 'var(--rose)', fontFamily: 'var(--font-mono)' }}>
                      {p.total.toFixed(2)}
                    </div>
-                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>/ {p.required} Rupas</div>
+                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{tv('ofRequired', { required: p.required })}</div>
                 </div>
               </div>
 
@@ -287,14 +304,14 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {COMPONENTS.slice(0, 3).map(c => (
                     <div key={c.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
-                       <span style={{ color: 'var(--text-muted)' }}>{c.label}</span>
+                       <span style={{ color: 'var(--text-muted)' }}>{t(VIS_COMP[c.key])}</span>
                        <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{ (p[c.key as keyof ShadbalaPlanet] as number).toFixed(2) }</span>
                     </div>
                   ))}
                   <div style={{ height: 1, background: 'var(--border-soft)', margin: '2px 0' }} />
                   {COMPONENTS.slice(3, 6).map(c => (
                     <div key={c.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
-                       <span style={{ color: 'var(--text-muted)' }}>{c.label}</span>
+                       <span style={{ color: 'var(--text-muted)' }}>{t(VIS_COMP[c.key])}</span>
                        <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{ (p[c.key as keyof ShadbalaPlanet] as number).toFixed(2) }</span>
                     </div>
                   ))}
@@ -314,7 +331,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
                 border: `1px solid ${p.isStrong ? 'rgba(78,205,196,0.15)' : 'rgba(224,123,142,0.15)'}`,
                 letterSpacing: '0.02em'
               }}>
-                {p.isStrong ? '✓ CAPACITY EXCEEDS REQUIREMENT' : '⚠ FALLS BELOW REQUIRED STRENGTH'}
+                {p.isStrong ? tv('exceeds') : tv('below')}
               </div>
 
             </div>
@@ -324,8 +341,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
 
       <div style={{ textAlign: 'center', paddingTop: '1rem', borderTop: '1px solid var(--border-soft)' }}>
         <p style={{ fontSize: '0.75rem', fontStyle: 'italic', margin: 0 }}>
-          Visualized using the Shatkala methodology. 1 Rupa = 60 Shashtiamsas. 
-          Radar shows relative distribution across Sthana, Dig, Kala, Chesta, Naisargika, and Drik Balas.
+          {tv('footer')}
         </p>
       </div>
 

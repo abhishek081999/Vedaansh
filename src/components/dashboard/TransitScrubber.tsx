@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useId } from 'react'
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, DashaNode, DashaSystem, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { fromZonedTime } from 'date-fns-tz'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
-import { DASHA_LEVEL_SHORT } from '@/lib/engine/dasha/vimshottari'
 import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
 import { TransitNatalWheel } from './TransitNatalWheel'
@@ -20,16 +22,18 @@ import { RashiSkyFigure, wheelRashiName, type RashiSkySlice, type SkyGrahaMark }
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
 
-const TRANSIT_DASHA_SYSTEMS: { id: DashaSystem; label: string }[] = [
-  { id: 'vimshottari', label: 'Vimshottari' },
-  { id: 'yogini', label: 'Yogini' },
-  { id: 'chara', label: 'Chara (K.N. Rao)' },
-  { id: 'chara_fe', label: 'Chara (Rangacharya FE)' },
-  { id: 'mandook', label: 'Mandook (K.N. Rao)' },
-  { id: 'sthir', label: 'Sthir' },
-  { id: 'ashtottari', label: 'Ashtottari' },
-  { id: 'kalachakra', label: 'Kalachakra' },
-]
+const TRANSIT_DASHA_SYSTEMS = [
+  'vimshottari',
+  'yogini',
+  'chara',
+  'chara_fe',
+  'mandook',
+  'sthir',
+  'ashtottari',
+  'kalachakra',
+] as const satisfies readonly DashaSystem[]
+
+const DASHA_LEVEL_KEY = ['', 'md', 'ad', 'pd', 'sd', 'prd', 'dd'] as const
 
 const EMPTY_DASHA_NODES: DashaNode[] = []
 
@@ -134,10 +138,10 @@ function formatDisplayTime(t: string): string {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
-function formatDashaEnd(value: Date | string, tz: string): string {
+function formatDashaEnd(value: Date | string, tz: string, tag = 'en-IN'): string {
   const d = value instanceof Date ? value : new Date(value)
   if (!Number.isFinite(d.getTime())) return '—'
-  return d.toLocaleString('en-IN', {
+  return d.toLocaleString(tag, {
     timeZone: tz,
     day: 'numeric',
     month: 'short',
@@ -145,7 +149,27 @@ function formatDashaEnd(value: Date | string, tz: string): string {
   })
 }
 
+function fmtIsoDate(dateStr: string, tag: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr
+  const d = new Date(`${dateStr.slice(0, 10)}T12:00:00Z`)
+  if (!Number.isFinite(d.getTime())) return dateStr
+  return new Intl.DateTimeFormat(tag, {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  }).format(d)
+}
+
+function fmtIsoTime(t: string, tag: string): string {
+  const match = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+  if (!match) return t.slice(0, 8)
+  const d = new Date(Date.UTC(2020, 0, 1, Number(match[1]), Number(match[2]), Number(match[3] ?? 0)))
+  return new Intl.DateTimeFormat(tag, {
+    hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC',
+  }).format(d)
+}
+
 export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubberProps) {
+  const t = useTranslations('transit.scrubber.chrome')
+  const { lang, tag, hi } = useLang()
   const fieldId = useId()
   const tz = natalChart.meta.timezone || 'Asia/Kolkata'
 
@@ -194,11 +218,11 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
       setTransitData(json.data.grahas)
       onTransitChange(json.data.grahas)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Calculation failed')
+      setError(e instanceof Error ? e.message : t('calcFailed'))
     } finally {
       setLoading(false)
     }
-  }, [natalChart, onTransitChange, tz])
+  }, [natalChart, onTransitChange, t, tz])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -254,16 +278,26 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
     [dashaNodes, asOf],
   )
   const activeDashaDeepest = activeDashaPath[activeDashaPath.length - 1] ?? null
-  const dashaSystemLabel =
-    TRANSIT_DASHA_SYSTEMS.find(s => s.id === dashaSystem)?.label ?? dashaSystem
+  const dashaSystemKey = TRANSIT_DASHA_SYSTEMS.find(s => s === dashaSystem) ?? 'vimshottari'
+  const dashaSystemLabel = t(`systems.${dashaSystemKey}`)
+  const showDate = (d: string) => (hi ? fmtIsoDate(d, tag) : formatDisplayDate(d))
+  const showTime = (time: string) => (hi ? fmtIsoTime(time, tag) : formatDisplayTime(time))
+  const levelLabel = (level: number) => {
+    const key = DASHA_LEVEL_KEY[level]
+    return key ? t(`levels.${key}`) : `L${level}`
+  }
+  const lordName = (lord: string) => {
+    const id = lord as GrahaId
+    return (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]) ?? lord
+  }
 
   // Transit lagnas + upagrahas for the house overlay (planets come from transitData).
   const transitExtraPoints = useMemo(() => {
     if (!transitChart) return []
-    return buildPointGroups(natalChart, transitChart)
+    return buildPointGroups(natalChart, transitChart, lang)
       .filter(g => g.kind !== 'graha')
       .flatMap(g => g.rows)
-  }, [natalChart, transitChart])
+  }, [natalChart, transitChart, lang])
 
   const chartSize = isMobile
     ? (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 420) : 360)
@@ -278,11 +312,11 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
           <section className={styles.panel}>
             <div className={styles.momentHeader}>
               <div>
-                <div className={styles.momentLabel}>Transit moment</div>
+                <div className={styles.momentLabel}>{t('momentLabel')}</div>
                 <div className={styles.momentValue}>
-                  {formatDisplayDate(targetDate)}
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 400, margin: '0 0.3rem' }}>at</span>
-                  {formatDisplayTime(targetTime)}
+                  {showDate(targetDate)}
+                  <span style={{ color: 'var(--text-muted)', fontWeight: 400, margin: '0 0.3rem' }}>{t('at')}</span>
+                  {showTime(targetTime)}
                 </div>
                 <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '0.15rem' }} title={tz}>
                   {tz}
@@ -290,14 +324,14 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
               </div>
               {offsetDays !== 0 && (
                 <span className={`${styles.offsetChip} ${offsetDays > 0 ? styles.offsetChipFuture : styles.offsetChipPast}`}>
-                  {offsetDays > 0 ? `+${offsetDays}` : offsetDays}d
+                  {t('offsetDays', { n: offsetDays > 0 ? `+${offsetDays}` : String(offsetDays) })}
                 </span>
               )}
             </div>
 
             <div className={styles.datetimeRow}>
               <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor={`${fieldId}-date`}>Date</label>
+                <label className={styles.fieldLabel} htmlFor={`${fieldId}-date`}>{t('date')}</label>
                 <input
                   id={`${fieldId}-date`}
                   type="date"
@@ -307,7 +341,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                 />
               </div>
               <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor={`${fieldId}-time`}>Time</label>
+                <label className={styles.fieldLabel} htmlFor={`${fieldId}-time`}>{t('time')}</label>
                 <input
                   id={`${fieldId}-time`}
                   type="time"
@@ -319,19 +353,19 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
               </div>
               <div className={styles.nowBtnInline}>
                 <button type="button" onClick={resetToNow} className={`btn btn-primary ${styles.nowBtn}`}>
-                  Now
+                  {t('now')}
                 </button>
               </div>
             </div>
 
             <div className={styles.scrubberBlock}>
-              <span className={styles.scrubberBlockLabel}>Date</span>
+              <span className={styles.scrubberBlockLabel}>{t('date')}</span>
               <div className={styles.scrubberRow}>
                 <div className={styles.stepGroup}>
-                  <button type="button" onClick={() => shiftMonths(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1mo</button>
-                  <button type="button" onClick={() => shiftDays(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1d</button>
-                  <button type="button" onClick={() => shiftDays(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1d</button>
-                  <button type="button" onClick={() => shiftMonths(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1mo</button>
+                  <button type="button" onClick={() => shiftMonths(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepMonthMinus')}</button>
+                  <button type="button" onClick={() => shiftDays(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepDayMinus')}</button>
+                  <button type="button" onClick={() => shiftDays(1)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepDayPlus')}</button>
+                  <button type="button" onClick={() => shiftMonths(1)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepMonthPlus')}</button>
                 </div>
                 <div className={styles.sliderWrap}>
                   <input
@@ -341,12 +375,12 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                     max={365}
                     value={sliderValue}
                     onChange={e => handleSlider(parseInt(e.target.value, 10))}
-                    aria-label="Shift transit date relative to today"
+                    aria-label={t('ariaDateSlider')}
                   />
                   <div className={styles.rangeLabels}>
-                    <span>-1y</span>
-                    <span>Today</span>
-                    <span>+1y</span>
+                    <span>{t('rangeYearMinus')}</span>
+                    <span>{t('today')}</span>
+                    <span>{t('rangeYearPlus')}</span>
                   </div>
                 </div>
               </div>
@@ -355,13 +389,13 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
             <div className={styles.scrubberDivider} />
 
             <div className={styles.scrubberBlock}>
-              <span className={styles.scrubberBlockLabel}>Time</span>
+              <span className={styles.scrubberBlockLabel}>{t('time')}</span>
               <div className={styles.timeScrubberRow}>
                 <div className={styles.stepGroup}>
-                  <button type="button" onClick={() => shiftHours(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1h</button>
-                  <button type="button" onClick={() => shiftTimeMinutes(-15)} className={`btn btn-ghost ${styles.stepBtn}`}>-15m</button>
-                  <button type="button" onClick={() => shiftTimeMinutes(15)} className={`btn btn-ghost ${styles.stepBtn}`}>+15m</button>
-                  <button type="button" onClick={() => shiftHours(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1h</button>
+                  <button type="button" onClick={() => shiftHours(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepHourMinus')}</button>
+                  <button type="button" onClick={() => shiftTimeMinutes(-15)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepMinMinus')}</button>
+                  <button type="button" onClick={() => shiftTimeMinutes(15)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepMinPlus')}</button>
+                  <button type="button" onClick={() => shiftHours(1)} className={`btn btn-ghost ${styles.stepBtn}`}>{t('stepHourPlus')}</button>
                 </div>
                 <div className={styles.timeSliderWrap}>
                   <input
@@ -372,7 +406,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                     step={1}
                     value={timeSliderMinutes}
                     onChange={e => handleTimeSlider(parseInt(e.target.value, 10))}
-                    aria-label="Scrub time through the day"
+                    aria-label={t('ariaTimeSlider')}
                   />
                   <div className={styles.rangeLabels}>
                     <span>00</span>
@@ -389,15 +423,15 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
 
             <div className={styles.activeDashaBlock}>
               <div className={styles.activeDashaHeader}>
-                <span className={styles.scrubberBlockLabel}>Active dasha</span>
+                <span className={styles.scrubberBlockLabel}>{t('activeDasha')}</span>
                 <select
                   className={styles.dashaSelectCompact}
                   value={dashaSystem}
                   onChange={e => setDashaSystem(e.target.value as DashaSystem)}
-                  aria-label="Dasha system for active period"
+                  aria-label={t('ariaDashaSystem')}
                 >
-                  {TRANSIT_DASHA_SYSTEMS.map(s => (
-                    <option key={s.id} value={s.id}>{s.label}</option>
+                  {TRANSIT_DASHA_SYSTEMS.map(id => (
+                    <option key={id} value={id}>{t(`systems.${id}`)}</option>
                   ))}
                 </select>
               </div>
@@ -409,9 +443,9 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                         {i > 0 && <span className={styles.activeDashaSep} aria-hidden>/</span>}
                         <span className={styles.activeDashaChip}>
                           <span className={styles.activeDashaLevel}>
-                            {DASHA_LEVEL_SHORT[node.level] || `L${node.level}`}
+                            {levelLabel(node.level)}
                           </span>
-                          {GRAHA_NAMES[node.lord as GrahaId] ?? node.lord}
+                          {lordName(node.lord)}
                         </span>
                       </React.Fragment>
                     ))}
@@ -420,15 +454,15 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                     <div className={styles.activeDashaMeta}>
                       {dashaSystemLabel}
                       <span aria-hidden> · </span>
-                      until {formatDashaEnd(activeDashaDeepest.end, tz)}
+                      {t('until', { date: formatDashaEnd(activeDashaDeepest.end, tz, hi ? tag : 'en-IN') })}
                     </div>
                   )}
                 </>
               ) : (
                 <p className={styles.activeDashaEmpty}>
                   {dashaNodes.length
-                    ? 'No running period at this moment'
-                    : 'Recalculate natal chart to load dashas'}
+                    ? t('noPeriod')
+                    : t('recalcDashas')}
                 </p>
               )}
             </div>
@@ -436,7 +470,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
             {loading && (
               <div className={styles.loadingRow}>
                 <span className="spin-loader" style={{ width: 12, height: 12, borderWidth: 2 }} />
-                Calculating…
+                {t('calculating')}
               </div>
             )}
             {error && (
@@ -448,16 +482,20 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
         {/* Chart beside controls on desktop */}
         <section className={styles.chartCol}>
           <div className={styles.skyBlock}>
-            <div className={styles.momentLabel}>Sidereal sky</div>
+            <div className={styles.momentLabel}>{t('sky')}</div>
             <RashiSkyFigure
               sky={transitChart ? skyFromTransit(transitChart) : null}
               natal={skyMarks(natalChart)}
               accent="#c9a84c"
               wheelId="transit"
               source={transitChart
-                ? `${formatDisplayDate(targetDate)} · ${formatDisplayTime(targetTime)} · ${natalChart.meta.birthPlace || natalChart.meta.timezone}`
+                ? t('skySource', {
+                    date: showDate(targetDate),
+                    time: showTime(targetTime),
+                    place: natalChart.meta.birthPlace || tz,
+                  })
                 : null}
-              emptyLabel={error ? 'Sky unavailable for this moment' : 'Reading this sky…'}
+              emptyLabel={error ? t('skyUnavailable') : t('skyReading')}
             />
           </div>
           <div style={{ width: '100%' }}>
@@ -493,9 +531,13 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
       <section className={styles.dashaSection}>
         <div className={styles.dashaSectionHeader}>
           <div>
-            <h3 className={styles.dashaSectionTitle}>Dasha at this moment</h3>
+            <h3 className={styles.dashaSectionTitle}>{t('dashaTitle')}</h3>
             <p className={styles.dashaSectionHint}>
-              {dashaSystemLabel} · natal periods highlighted for {formatDisplayDate(targetDate)} at {formatDisplayTime(targetTime)}
+              {t('dashaHint', {
+                system: dashaSystemLabel,
+                date: showDate(targetDate),
+                time: showTime(targetTime),
+              })}
             </p>
           </div>
         </div>
@@ -508,7 +550,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
           />
         ) : (
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            Recalculate the natal chart to load this dasha system.
+            {t('recalcSystem')}
           </p>
         )}
       </section>
@@ -527,7 +569,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1.25rem' }}>
         <div className="card" style={{ padding: isMobile ? '1.25rem' : '1.75rem' }}>
           <h3 style={{ marginBottom: '1.25rem', fontSize: '1.05rem', color: 'var(--text-gold)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
-            Transit–natal overlay
+            {t('overlayTitle')}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
             {Array.from({ length: 12 }, (_, i) => {
@@ -550,8 +592,8 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-muted)' }}>H{house}</span>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-gold)' }}>{RASHI_SHORT[houseRashi]}</span>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-muted)' }}>{t('house', { n: house })}</span>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-gold)' }}>{hi ? RASHI_HI[houseRashi] : RASHI_SHORT[houseRashi]}</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                     {planets.map(p => (
@@ -590,7 +632,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
         borderRadius: 'var(--r-lg)',
         lineHeight: 1.5,
       }}>
-        Slow movers (Saturn, Jupiter, Rahu/Ketu) often mark 1.5–2.5 year shifts when they change houses. Use exact time for Moon and ascendant-sensitive transits.
+        {t('footnote')}
       </p>
     </div>
   )

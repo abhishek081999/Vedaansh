@@ -447,7 +447,18 @@
     "tithiVal": "{name} ({n}/30) · {paksha}",
     "nakVal": "{name} · Pada {pada}",
     "computationRequired": "{system} computation required.",
-    "vimsopakaRecalc": "Vimsopaka data unavailable — recalculate chart."
+    "vimsopakaRecalc": "Vimsopaka data unavailable — recalculate chart.",
+    "activeHouses": "Active Houses",
+    "bhavaArudhas": "Bhava Arudhas",
+    "shadbalaStrength": "Shadbala Strength",
+    "ashtakavargaIntelligence": "Ashtakavarga Intelligence",
+    "tara": "Tara",
+    "mode": "Mode",
+    "standard": "Standard",
+    "tribhagi": "Tribhagi",
+    "tribhagiTitle": "Tribhagi: each period ÷3, full sequence repeated 3× (40+40+40 years)",
+    "requiresGold": "Requires Gold plan",
+    "dashaUnavailable": "Not available for this chart."
   },
   "dashaTree": {
     "tara": "Tara·{n} {name}",
@@ -854,6 +865,7 @@
     "statSpecial": "Special Points",
     "statSpecialHint": "Lagna · PP · IL · BB",
     "yogiNA": "Yogi Point is not available for this chart.",
+    "noNarrative": "No narrative interpretation on this chart yet.",
     "tab_overview": "Overview",
     "tabShort_overview": "Overview",
     "tab_details": "Planet Details",
@@ -895,5 +907,92 @@
     "ofGrahas": "of {n} grahas",
     "tabsAria": "Planets sections",
     "lagnaOf": "{sign} lagna"
+  },
+  "public": {
+    "breadcrumb": {
+      "home": "Home",
+      "chart": "Vedic Chart"
+    },
+    "profileDescription": "Vedic Jyotish birth chart generated on Vedaansh",
+    "brandAlt": "Brand",
+    "nav": {
+      "panchang": "Panchang",
+      "newChart": "+ New Chart"
+    },
+    "facts": {
+      "ascendant": "Ascendant",
+      "ayanamsha": "Ayanamsha"
+    },
+    "badge": {
+      "verified": "Verified Consultant",
+      "preparedBy": "Prepared for you by <b>{name}</b>",
+      "public": "Public Chart",
+      "shared": "Shared via Vedaansh · Calculate your own chart free"
+    },
+    "tabs": {
+      "chart": "Chart",
+      "planets": "Planets",
+      "interpretation": "Interpretation",
+      "tattva": "Tattva",
+      "dasha": "Dasha",
+      "shadbala": "Shadbala",
+      "bhavaBala": "Bhava Bala",
+      "vimsopaka": "Vimsopaka",
+      "panchang": "Panchang",
+      "arudhas": "Arudhas"
+    },
+    "panels": {
+      "interpretation": "Interpretation · Free teaser",
+      "tattva": "Tattva Prediction · Free teaser",
+      "arudhas": "Bhava Arudhas",
+      "dasha": "Vimshottari Dasha",
+      "panchang": "Natal Panchang",
+      "shadbala": "Shadbala — Six-fold Strength",
+      "bhavaBala": "Bhava Bala — House Strength",
+      "bhavaUnavailable": "Bhava Bala is unavailable for this chart.",
+      "vimsopakaUnavailable": "Vimsopaka data unavailable."
+    },
+    "arudha": {
+      "bphsOn": "BPHS exception-corrected",
+      "bphsOff": "Raw pada (no exceptions)",
+      "applyBphs": "Apply BPHS exceptions",
+      "items": {
+        "AL": { "label": "Arudha Lagna", "desc": "Image of self" },
+        "A2": { "label": "Dhana Pada", "desc": "Wealth" },
+        "A3": { "label": "Vikrama Pada", "desc": "Courage" },
+        "A4": { "label": "Matri Pada", "desc": "Home & mother" },
+        "A5": { "label": "Mantra Pada", "desc": "Intellect" },
+        "A6": { "label": "Roga Pada", "desc": "Enemies & debts" },
+        "A7": { "label": "Dara Pada", "desc": "Spouse" },
+        "A8": { "label": "Mrityu Pada", "desc": "Longevity" },
+        "A9": { "label": "Pitri Pada", "desc": "Father & fortune" },
+        "A10": { "label": "Karma Pada", "desc": "Career" },
+        "A11": { "label": "Labha Pada", "desc": "Gains" },
+        "UL": { "label": "Upapada Lagna", "desc": "Marriage" }
+      }
+    },
+    "weekdays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "am": "AM",
+    "pm": "PM",
+    "cta": {
+      "title": "Explore your own chart",
+      "body": "Free forever — all varga charts, Dasha tree, Arudhas & Panchang",
+      "button": "Calculate My Chart →"
+    },
+    "footerLine": "Powered by <gold>Swiss Ephemeris</gold> · Free forever ·",
+    "meta": {
+      "notFoundTitle": "Chart Not Found",
+      "notFoundDescription": "This chart is private or does not exist.",
+      "title": "{name} — Vedic Birth Chart",
+      "description": "Vedic Jyotish chart for {name}, born {date}{place}. Includes Rashi chart, Navamsha, Dasha, Arudhas & Panchang.",
+      "inPlace": " in {place}",
+      "ogAlt": "{name} — Vedic Chart",
+      "fallbackTitle": "Vedic Chart — Vedaansh",
+      "fallbackDescription": "View this Vedic Jyotish birth chart on Vedaansh.",
+      "ogBadge": "Vedic Birth Analysis",
+      "ogFallbackName": "Vedic Chart"
+    }
   }
 }

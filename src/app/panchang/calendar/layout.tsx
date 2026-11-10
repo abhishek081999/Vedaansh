@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { panchangCalendarIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -26,12 +26,13 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/panchang/calendar', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/panchang/calendar', locale, metadataEn, {
     title: 'मासिक पंचांग कैलेंडर — तिथि, नक्षत्र और पर्व',
     description: 'मासिक वैदिक पंचांग कैलेंडर: हर दिन की तिथि, नक्षत्र, योग, करण, पर्व, एकादशी, अमावस्या और पूर्णिमा। स्विस एफ़ेमेरिस की सटीकता।',
     ogTitle: 'मासिक पंचांग कैलेंडर — Vedaansh',
     keywords: ['पंचांग कैलेंडर', 'हिंदू कैलेंडर', 'तिथि कैलेंडर', 'एकादशी', 'पूर्णिमा', 'अमावस्या', 'मासिक पंचांग'],
-  })
+  }), locale, '/panchang/calendar/opengraph-image', 'मासिक पंचांग कैलेंडर — Vedaansh')
 }
 
 const jsonLd = {

@@ -90,7 +90,17 @@
     "nakshatras": "नक्षत्र",
     "rashi": "राशि",
     "moonNote": "चंद्र <strong>{name}</strong> में पाद {pada}",
-    "moonLord": "स्वामी {lord}"
+    "moonLord": "स्वामी {lord}",
+    "wheelAria": "सभी 27 नक्षत्र, अश्विनी से दक्षिणावर्त",
+    "birthStarAria": ", जन्म तारा",
+    "janmaPada": "जन्म · पद {pada}",
+    "padaHub": "पद {pada}",
+    "birthStarPada": "जन्म तारा · पद {pada}",
+    "lordWord": "स्वामी",
+    "emptyStar": "इस तारे में कोई ग्रह या लग्न नहीं।",
+    "occupant": "{name} पद {pada}",
+    "legendBirth": "जन्म तारा",
+    "legendPanchaka": "पंचक"
   },
   "tabs": {
     "analysisAria": "नक्षत्र विश्लेषण",

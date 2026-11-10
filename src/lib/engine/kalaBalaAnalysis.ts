@@ -7,6 +7,8 @@
 
 import type { DashaNode, GrahaData, GrahaId, Rashi, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { applyKalaHi } from '@/lib/engine/locale/kalaBalaAnalysis.hi'
 import { DEBILITATION_SIGN } from '@/lib/engine/dignity'
 import { D3, D4, D7, D9, D10, D27 } from '@/lib/engine/vargas'
 
@@ -592,6 +594,8 @@ export interface AnalyzeKalaBalaOptions {
   grahas?: GrahaData[]
   ascRashi?: Rashi
   asOf?: Date
+  /** Display language. Omitted and 'en' keep the English sentences. */
+  lang?: EngineLang
 }
 
 /**
@@ -718,7 +722,7 @@ export function analyzeKalaBala(
         ? `Weak Kaal profile (mean ${meanVirupas.toFixed(0)}, ${dipCount} dips). Focus remedies on ${GRAHA_NAMES[weakestId]}.`
         : `Fluctuating Kaal (mean ${meanVirupas.toFixed(0)}; spread ${spreadVirupas.toFixed(0)}). Strongest ${GRAHA_NAMES[strongestId]}, weakest ${GRAHA_NAMES[weakestId]}.`
 
-  return {
+  const result: KalaBalaAnalysis = {
     profile,
     profileNote,
     summary,
@@ -739,6 +743,8 @@ export function analyzeKalaBala(
     goldenRule:
       'When Kaal is strong, work for yourself. When Kaal is weak, partner with or hire people whose time luck is running well.',
   }
+  if ((opts.lang ?? 'en') !== 'hi') return result
+  return applyKalaHi(result)
 }
 
 export function kalaSoftBandColor(band: KalaSoftBand | 'unscored'): string {

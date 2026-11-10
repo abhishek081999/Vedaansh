@@ -1,11 +1,13 @@
 'use client'
 
+import { useLang } from '@/i18n/useLang'
 import {
-  ANDROID_PLAY_STORE_NOTE,
   type InstallPlatform,
   type PlatformInstallGuide,
   detectInstallPlatform,
   getInstallGuides,
+  playStoreChrome,
+  playStoreNote,
 } from '@/lib/pwa/installGuide'
 
 interface PwaInstallGuideProps {
@@ -30,24 +32,26 @@ function InstallStepsList({ steps }: { steps: PlatformInstallGuide['steps'] }) {
 }
 
 export function PwaInstallGuide({ platform, compact = false }: PwaInstallGuideProps) {
+  const { lang } = useLang()
   const resolvedPlatform =
     platform ??
     (typeof navigator !== 'undefined'
       ? detectInstallPlatform(navigator.userAgent, navigator.maxTouchPoints)
       : 'unknown')
 
-  const guides = getInstallGuides(resolvedPlatform)
+  const guides = getInstallGuides(resolvedPlatform, lang)
   const showPlayCallout =
     resolvedPlatform === 'android' || resolvedPlatform === 'unknown' || resolvedPlatform === 'desktop'
+  const play = playStoreChrome(lang)
 
   return (
     <div className={`pwa-install-guide${compact ? ' pwa-install-guide--compact' : ''}`}>
       {showPlayCallout ? (
         <p className="pwa-install-play-note">
-          <strong>Google Play</strong>
-          <span className="pwa-install-coming-soon">Coming soon</span>
+          <strong>{play.strong}</strong>
+          <span className="pwa-install-coming-soon">{play.soon}</span>
           {' — '}
-          {ANDROID_PLAY_STORE_NOTE}
+          {playStoreNote(lang)}
         </p>
       ) : null}
 

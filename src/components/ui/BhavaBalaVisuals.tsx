@@ -1,23 +1,33 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { BhavaBalaHouse, BhavaBalaResult, Rashi } from '@/types/astrology'
-import { RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { RASHI_NAMES } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { RASHI_HI } from '@/i18n/jyotish'
 import { BarChart3, LayoutGrid, List, Sparkles, TrendingUp, Shield, Map, Eye } from 'lucide-react'
 
-const HOUSE_LABELS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']
-const HOUSE_NAMES = [
-  'First (Lagna)', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth',
-  'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth'
-]
-
-type ViewMode = 'modern' | 'classic'
-
 const COMPONENTS = [
-  { key: 'adhipatiBala', label: 'Adhipati (Lord)', icon: <Shield size={14} />, color: 'var(--teal)' },
-  { key: 'digBala', label: 'Dig (Directional)', icon: <Map size={14} />, color: 'var(--amber)' },
-  { key: 'drishtiBala', label: 'Drishti (Aspect)', icon: <Eye size={14} />, color: 'var(--rose)' },
+  { key: 'adhipatiBala' as const, short: 'comp.adhipati' as const, full: 'comp.adhipatiFull' as const, icon: <Shield size={14} />, color: 'var(--teal)' },
+  { key: 'digBala' as const, short: 'comp.dig' as const, full: 'comp.digFull' as const, icon: <Map size={14} />, color: 'var(--amber)' },
+  { key: 'drishtiBala' as const, short: 'comp.drishti' as const, full: 'comp.drishtiFull' as const, icon: <Eye size={14} />, color: 'var(--rose)' },
 ]
+
+const METRICS = [
+  { key: 'adhipatiBala' as const, title: 'metric.adhipatiBala' as const, scale: 1, decimals: 1, color: 'var(--amber)' },
+  { key: 'digBala' as const, title: 'metric.digBala' as const, scale: 1, decimals: 1, color: 'var(--text-gold)' },
+  { key: 'drishtiBala' as const, title: 'metric.drishtiBala' as const, scale: 1, decimals: 1, color: 'var(--rose)' },
+  { key: 'totalShash' as const, title: 'metric.totalShash' as const, scale: 1, decimals: 0, color: 'var(--teal)' },
+  { key: 'totalRupa' as const, title: 'metric.totalRupa' as const, scale: 1, decimals: 2, color: 'var(--text-gold)' },
+]
+
+function statusKey(rupa: number): 'excellent' | 'strong' | 'average' | 'weak' {
+  if (rupa >= 9) return 'excellent'
+  if (rupa >= 7.5) return 'strong'
+  if (rupa >= 6) return 'average'
+  return 'weak'
+}
 
 function statusColor(rupa: number) {
   if (rupa >= 9) return 'var(--teal)'
@@ -26,25 +36,12 @@ function statusColor(rupa: number) {
   return 'var(--rose)'
 }
 
-function statusText(rupa: number) {
-  if (rupa >= 9) return 'Excellent'
-  if (rupa >= 7.5) return 'Strong'
-  if (rupa >= 6) return 'Average'
-  return 'Weak'
-}
-
 function ClassicMetricCharts({ houses }: { houses: Record<number, BhavaBalaHouse> }) {
-  const metrics = [
-    { key: 'adhipatiBala' as const, title: 'Adhipati Bala', scale: 1, decimals: 1, color: 'var(--amber)' },
-    { key: 'digBala' as const, title: 'Dig Bala', scale: 1, decimals: 1, color: 'var(--text-gold)' },
-    { key: 'drishtiBala' as const, title: 'Drishti Bala', scale: 1, decimals: 1, color: 'var(--rose)' },
-    { key: 'totalShash' as const, title: 'Total (Sh)', scale: 1, decimals: 0, color: 'var(--teal)' },
-    { key: 'totalRupa' as const, title: 'Total (R)', scale: 1, decimals: 2, color: 'var(--text-gold)' },
-  ]
+  const t = useTranslations('chartTools.bhavaBala')
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-      {metrics.map((metric) => {
+      {METRICS.map((metric) => {
         const vals = Array.from({ length: 12 }).map((_, i) => (houses[i + 1]?.[metric.key] as number) ?? 0)
         const max = Math.max(...vals.map((v) => Math.abs(v)), 1)
         
@@ -65,7 +62,7 @@ function ClassicMetricCharts({ houses }: { houses: Record<number, BhavaBalaHouse
               textTransform: 'uppercase', 
               letterSpacing: '0.1em'
             }}>
-              {metric.title}
+              {t(metric.title)}
             </div>
             
             <div style={{ 
@@ -171,6 +168,7 @@ function ClassicMetricCharts({ houses }: { houses: Record<number, BhavaBalaHouse
 }
 
 function HouseRadar({ house }: { house: BhavaBalaHouse }) {
+  const t = useTranslations('chartTools.bhavaBala')
   const size = 200
   const center = size / 2
   const radius = 70
@@ -201,7 +199,7 @@ function HouseRadar({ house }: { house: BhavaBalaHouse }) {
         const ty = center + Math.sin(angle) * (radius + 20)
         return (
           <text key={i} x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 700 }}>
-            {c.label.split(' ')[0]}
+            {t(c.short)}
           </text>
         )
       })}
@@ -210,6 +208,9 @@ function HouseRadar({ house }: { house: BhavaBalaHouse }) {
 }
 
 export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaResult, chart?: any }) {
+  const t = useTranslations('chartTools.bhavaBala')
+  const { hi } = useLang()
+  const signName = (rashi: Rashi) => (hi ? RASHI_HI[rashi] : RASHI_NAMES[rashi])
   const [viewMode, setViewMode] = useState<'charts' | 'classic' | 'modern'>('charts')
   const [activeHouse, setActiveHouse] = useState<number>(1)
   const { houses } = bhavaBala
@@ -249,19 +250,19 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.5rem' }}>Bhava Bala Analysis</div>
+            <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.5rem' }}>{t('title')}</div>
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Strongest</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--teal)' }}>House {bhavaBala.strongestHouse}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{t('strongest')}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--teal)' }}>{t('houseN', { n: String(bhavaBala.strongestHouse) })}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Weakest</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--rose)' }}>House {bhavaBala.weakestHouse}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{t('weakest')}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--rose)' }}>{t('houseN', { n: String(bhavaBala.weakestHouse) })}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Avg Strength</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>{avgStrength.toFixed(2)} Rupas</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{t('avgStrength')}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>{t('rupas', { n: avgStrength.toFixed(2) })}</div>
               </div>
             </div>
           </div>
@@ -271,21 +272,21 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                onClick={() => setViewMode('charts')}
                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: 700 }}
              >
-               <BarChart3 size={14} /> Charts
+               <BarChart3 size={14} /> {t('charts')}
              </button>
              <button 
                className={`btn btn-sm ${viewMode === 'classic' ? 'active' : 'btn-ghost'}`} 
                onClick={() => setViewMode('classic')}
                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: 700 }}
              >
-               <LayoutGrid size={14} /> Worksheet
+               <LayoutGrid size={14} /> {t('worksheet')}
              </button>
              <button 
                className={`btn btn-sm ${viewMode === 'modern' ? 'active' : 'btn-ghost'}`} 
                onClick={() => setViewMode('modern')}
                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: 700 }}
              >
-               <TrendingUp size={14} /> Analytics
+               <TrendingUp size={14} /> {t('analytics')}
              </button>
           </div>
         </div>
@@ -293,11 +294,11 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
 
       {viewMode === 'charts' && (
         <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div className="label-caps">Comparative Component Charts</div>
+          <div className="label-caps">{t('comparative')}</div>
           <ClassicMetricCharts houses={houses} />
           {savData && (
             <div className="card" style={{ padding: '1rem', background: 'var(--surface-1)' }}>
-              <div style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ashtakavarga Strength (SAV)</div>
+              <div style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('sav')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '2px', alignItems: 'end', minHeight: 100 }}>
                 {savData.map((v, idx) => {
                   const h = Math.max(4, (v / 40) * 80)
@@ -348,8 +349,8 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                     cursor: 'pointer'
                   }}
                 >
-                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>H{h.house}</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: active ? 'var(--text-gold)' : 'var(--text-primary)' }}>{HOUSE_LABELS[i]}</div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>{t('hShort', { n: String(h.house) })}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: active ? 'var(--text-gold)' : 'var(--text-primary)' }}>{t(`ord.${i + 1}`)}</div>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: statusColor(h.totalRupa), marginTop: '0.2rem' }}>{h.totalRupa.toFixed(1)}R</div>
                 </button>
               )
@@ -360,17 +361,17 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
           <div className="card" style={{ padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                <div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Detailed Analysis</div>
-                  <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>{HOUSE_NAMES[activeHouse-1]} House</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('detailed')}</div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>{t('houseName', { name: t(`name.${activeHouse}`) })}</div>
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-                    <span className="badge badge-outline" style={{ borderColor: 'var(--teal)', color: 'var(--teal)', fontSize: '0.65rem' }}>{RASHI_NAMES[currentHouse.rashi]}</span>
-                    <span className="badge badge-outline" style={{ borderColor: 'var(--amber)', color: 'var(--amber)', fontSize: '0.65rem' }}>{statusText(currentHouse.totalRupa)} Strength</span>
+                    <span className="badge badge-outline" style={{ borderColor: 'var(--teal)', color: 'var(--teal)', fontSize: '0.65rem' }}>{signName(currentHouse.rashi)}</span>
+                    <span className="badge badge-outline" style={{ borderColor: 'var(--amber)', color: 'var(--amber)', fontSize: '0.65rem' }}>{t('strengthBadge', { status: t(`status.${statusKey(currentHouse.totalRupa)}`) })}</span>
                   </div>
                </div>
                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>TOTAL RUPAS</div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>{t('totalRupas')}</div>
                   <div style={{ fontSize: '2.5rem', fontWeight: 900, color: statusColor(currentHouse.totalRupa), lineHeight: 1 }}>{currentHouse.totalRupa.toFixed(3)}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{currentHouse.totalShash.toFixed(2)} Shashtiamsas</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{t('shashtiamsas', { n: currentHouse.totalShash.toFixed(2) })}</div>
                </div>
             </div>
 
@@ -389,11 +390,11 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', alignItems: 'center' }}>
                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <div style={{ color: c.color, background: `${c.color}15`, padding: '0.4rem', borderRadius: 'var(--r-sm)' }}>{c.icon}</div>
-                              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{c.label}</span>
+                              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{t(c.full)}</span>
                            </div>
                            <div style={{ textAlign: 'right' }}>
                               <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{val.toFixed(2)}</div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{(val/60).toFixed(2)} Rupas</div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t('rupaEach', { n: (val/60).toFixed(2) })}</div>
                            </div>
                         </div>
                         <div style={{ height: 10, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
@@ -418,19 +419,19 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
            {/* Classical Table - JHora / Parashara Style */}
            <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-bright)' }}>
              <div style={{ background: 'var(--surface-2)', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-bright)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Classical Bhava Bala Worksheet</span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Values in Shashtiamsas (60 Sh = 1 Rupa)</span>
+                <span style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('classicalTitle')}</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('valuesNote')}</span>
              </div>
              <div style={{ overflowX: 'auto' }}>
                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                  <thead>
                    <tr style={{ background: 'var(--surface-3)', borderBottom: '2px solid var(--border-bright)' }}>
-                     <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 800, borderRight: '1px solid var(--border-soft)' }}>House</th>
-                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, color: 'var(--text-gold)', borderRight: '1px solid var(--border-soft)' }}>Total (Sh)</th>
-                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, color: 'var(--teal)', borderRight: '1px solid var(--border-soft)' }}>Total (Rupa)</th>
-                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, borderRight: '1px solid var(--border-soft)' }}>Lord&apos;s Bala</th>
-                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, borderRight: '1px solid var(--border-soft)' }}>Dig Bala</th>
-                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800 }}>Drig Bala</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 800, borderRight: '1px solid var(--border-soft)' }}>{t('colHouse')}</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, color: 'var(--text-gold)', borderRight: '1px solid var(--border-soft)' }}>{t('colTotalSh')}</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, color: 'var(--teal)', borderRight: '1px solid var(--border-soft)' }}>{t('colTotalRupa')}</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, borderRight: '1px solid var(--border-soft)' }}>{t('colLord')}</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, borderRight: '1px solid var(--border-soft)' }}>{t('colDig')}</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800 }}>{t('colDrig')}</th>
                    </tr>
                  </thead>
                  <tbody>
@@ -444,7 +445,7 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                          borderBottom: '1px solid var(--border-soft)',
                          transition: 'background 0.2s ease'
                        }}>
-                         <td style={{ padding: '0.75rem 1rem', fontWeight: 800, color: 'var(--rose)', borderRight: '1px solid var(--border-soft)' }}>{HOUSE_LABELS[i]}</td>
+                         <td style={{ padding: '0.75rem 1rem', fontWeight: 800, color: 'var(--rose)', borderRight: '1px solid var(--border-soft)' }}>{t(`ord.${i + 1}`)}</td>
                          <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--font-mono)', borderRight: '1px solid var(--border-soft)' }}>{h.totalShash.toFixed(2)}</td>
                          <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--font-mono)', color: statusColor(h.totalRupa), borderRight: '1px solid var(--border-soft)' }}>{h.totalRupa.toFixed(3)}</td>
                          <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', borderRight: '1px solid var(--border-soft)' }}>{h.adhipatiBala.toFixed(2)}</td>
@@ -464,25 +465,25 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                  <div style={{ background: 'var(--gold)', color: '#000', padding: '0.4rem', borderRadius: '50%', display: 'flex' }}>
                    <List size={16} />
                  </div>
-                 <div style={{ fontWeight: 800, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>House Strength Ranking</div>
+                 <div style={{ fontWeight: 800, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('ranking')}</div>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--border-bright)' }}>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 800 }}>Rank</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 800 }}>House</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 800 }}>Sign</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800 }}>Strength (R)</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800 }}>Status</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 800 }}>{t('rank')}</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 800 }}>{t('colHouse')}</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 800 }}>{t('sign')}</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800 }}>{t('strengthR')}</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800 }}>{t('statusCol')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ranked.map((h, i) => (
                       <tr key={h.house} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                         <td style={{ padding: '0.65rem 0.5rem', fontWeight: 800, color: 'var(--text-muted)' }}>#{i + 1}</td>
-                        <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>{HOUSE_NAMES[h.house - 1]}</td>
-                        <td style={{ padding: '0.65rem 0.5rem', fontSize: '0.75rem' }}>{RASHI_NAMES[h.rashi]}</td>
+                        <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>{t(`name.${h.house}`)}</td>
+                        <td style={{ padding: '0.65rem 0.5rem', fontSize: '0.75rem' }}>{signName(h.rashi)}</td>
                         <td style={{ padding: '0.65rem 0.5rem', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--font-mono)', color: statusColor(h.totalRupa) }}>{h.totalRupa.toFixed(3)}</td>
                         <td style={{ padding: '0.65rem 0.5rem', textAlign: 'right' }}>
                           <span className="badge badge-sm" style={{ 
@@ -492,7 +493,7 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                             fontSize: '0.65rem',
                             fontWeight: 800
                           }}>
-                            {statusText(h.totalRupa)}
+                            {t(`status.${statusKey(h.totalRupa)}`)}
                           </span>
                         </td>
                       </tr>

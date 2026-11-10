@@ -1,5 +1,7 @@
 /** Public site search corpus — tools, guides, and key pages. */
-import { GUIDES } from '@/lib/seo/guides'
+import type { AppLocale } from '@/i18n/config'
+import { listGuides } from '@/lib/seo/guides.hi'
+import { TOOL_DOCS_HI } from '@/lib/seo/search-index.hi'
 
 export type SearchDocType = 'tool' | 'guide' | 'page'
 
@@ -168,8 +170,8 @@ const TOOL_DOCS: SearchDoc[] = [
   },
 ]
 
-function guideDocs(): SearchDoc[] {
-  return GUIDES.map((g) => ({
+function guideDocs(locale: AppLocale = 'en'): SearchDoc[] {
+  return listGuides(locale).map((g) => ({
     title: g.title,
     description: g.description,
     url: `/guides/${g.slug}`,
@@ -178,8 +180,26 @@ function guideDocs(): SearchDoc[] {
   }))
 }
 
-export function getSearchCorpus(): SearchDoc[] {
-  return [...TOOL_DOCS, ...guideDocs()]
+/** English tool/page docs, or Hindi title, description, and added Devanagari keywords. */
+function toolDocs(locale: AppLocale = 'en'): SearchDoc[] {
+  if (locale !== 'hi') return TOOL_DOCS
+  return TOOL_DOCS.map((doc) => {
+    const hi = TOOL_DOCS_HI[doc.url]
+    if (!hi) return doc
+    const seen = new Set(doc.keywords.map((k) => k.toLowerCase()))
+    const keywords = [...doc.keywords]
+    for (const keyword of hi.keywords) {
+      const key = keyword.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      keywords.push(keyword)
+    }
+    return { ...doc, title: hi.title, description: hi.description, keywords }
+  })
+}
+
+export function getSearchCorpus(locale: AppLocale = 'en'): SearchDoc[] {
+  return [...toolDocs(locale), ...guideDocs(locale)]
 }
 
 function tokenize(q: string): string[] {
@@ -191,11 +211,11 @@ function tokenize(q: string): string[] {
 }
 
 /** Ranked search over the static corpus. Empty query → empty results. */
-export function searchSite(query: string, limit = 24): SearchDoc[] {
+export function searchSite(query: string, limit = 24, locale: AppLocale = 'en'): SearchDoc[] {
   const tokens = tokenize(query)
   if (tokens.length === 0) return []
 
-  const scored = getSearchCorpus().map((doc) => {
+  const scored = getSearchCorpus(locale).map((doc) => {
     const hay = `${doc.title} ${doc.description} ${doc.keywords.join(' ')}`.toLowerCase()
     let score = 0
     for (const t of tokens) {

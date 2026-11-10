@@ -3,6 +3,9 @@
 //  Kakshya Ashtakavarga — degree-level transit timing (JHora order)
 // ─────────────────────────────────────────────────────────────
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { kakshyaNoteHi } from '@/lib/engine/locale/ashtakavargaKakshya.hi'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import type { AshtakavargaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
 
@@ -160,7 +163,17 @@ export function aggregateKakshyaTimeline(
   }))
 }
 
-export function kakshyaNote(row: KakshyaTransitRow): string {
+export function kakshyaNote(row: KakshyaTransitRow, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    const lord = row.kakshyaLord === 'As' ? 'लग्न' : (GRAHA_HI[row.kakshyaLord as GrahaId] ?? row.kakshyaLord)
+    return kakshyaNoteHi({
+      planet: GRAHA_HI[row.planet] ?? row.planet,
+      degree: row.degreeInSign.toFixed(1),
+      sign: RASHI_HI[row.rashi],
+      lord,
+      hasBindu: row.hasBindu,
+    })
+  }
   const sign = RASHI_SHORT[row.rashi]
   const lord = row.kakshyaLord === 'As' ? 'Lagna' : row.kakshyaLord
   if (row.hasBindu) {

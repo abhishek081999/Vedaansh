@@ -4,6 +4,7 @@
 // PayPal invoice / Wise / UPI details and activates the plan once paid.
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type Plan = 'gold' | 'platinum'
 type Interval = 'monthly' | 'yearly'
@@ -11,13 +12,7 @@ type Currency = 'INR' | 'USD'
 type Method = 'paypal' | 'wise' | 'upi' | 'bank' | 'other'
 export type PaymentHelpReason = 'checkout_failed' | 'international' | 'other'
 
-const METHODS: Array<{ value: Method; label: string; hint: string }> = [
-  { value: 'paypal', label: 'PayPal', hint: 'Invoice payable by PayPal or card' },
-  { value: 'wise', label: 'Wise', hint: 'International bank transfer' },
-  { value: 'upi', label: 'UPI', hint: 'India only' },
-  { value: 'bank', label: 'Bank transfer', hint: 'NEFT / IMPS / SWIFT' },
-  { value: 'other', label: 'Other', hint: 'Tell us in the message' },
-]
+const METHOD_VALUES: Method[] = ['paypal', 'wise', 'upi', 'bank', 'other']
 
 export function PaymentHelpRequest({
   open,
@@ -36,6 +31,7 @@ export function PaymentHelpRequest({
   reason: PaymentHelpReason
   failureNote?: string | null
 }) {
+  const t = useTranslations('pricing.help')
   const [plan, setPlan] = useState<Plan>(defaultPlan)
   const [interval, setBillingInterval] = useState<Interval>(defaultInterval)
   const [currency, setCurrency] = useState<Currency>(defaultCurrency)
@@ -92,15 +88,15 @@ export function PaymentHelpRequest({
           failureNote: (failureNote ?? '').slice(0, 300),
         }),
       })
-      const json = await res.json().catch(() => ({ success: false, error: 'Could not send your request.' }))
+      const json = await res.json().catch(() => ({ success: false, error: t('sendFailed') }))
       if (res.status === 401) {
         window.location.href = '/login?callbackUrl=%2Fpricing%3Fhelp%3D1'
         return
       }
-      if (!json.success) throw new Error(json.error ?? 'Could not send your request.')
+      if (!json.success) throw new Error(json.error ?? t('sendFailed'))
       setSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not send your request.')
+      setError(err instanceof Error ? err.message : t('sendFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -133,12 +129,12 @@ export function PaymentHelpRequest({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
           <h2 id="payment-help-title" style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-primary)' }}>
-            {sent ? 'Request sent' : 'Get your plan set up by our team'}
+            {sent ? t('titleSent') : t('title')}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('close')}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.2rem', cursor: 'pointer', lineHeight: 1 }}
           >
             ×
@@ -148,94 +144,94 @@ export function PaymentHelpRequest({
         {sent ? (
           <div style={{ marginTop: '1rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
             <p style={{ margin: '0 0 0.75rem' }}>
-              Thanks! The Vedaansh team will email you payment details, usually within 1–2 business days.
+              {t('thanks')}
             </p>
             <p style={{ margin: '0 0 1.25rem' }}>
-              Once your payment is confirmed we&apos;ll activate your plan and send a confirmation email.
-              You don&apos;t need to pay anything until you hear from us.
+              {t('activation')}
             </p>
-            <button type="button" className="btn btn-primary" onClick={onClose} style={{ width: '100%' }}>Done</button>
+            <button type="button" className="btn btn-primary" onClick={onClose} style={{ width: '100%' }}>{t('done')}</button>
           </div>
         ) : (
           <form onSubmit={submit} style={{ display: 'grid', gap: '0.85rem', marginTop: '0.75rem' }}>
             <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              {reason === 'checkout_failed'
-                ? 'Sorry your payment didn’t go through. Tell us how you’d like to pay and we’ll send you an invoice or payment details.'
-                : 'Paying from outside India, or prefer to pay another way? Tell us how and we’ll send you an invoice or payment details.'}
+              {reason === 'checkout_failed' ? t('introFailed') : t('introOther')}
             </p>
 
             {existing && (
               <div style={{ fontSize: '0.8rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', padding: '0.6rem 0.75rem', color: 'var(--text-secondary)' }}>
-                You already have a request with our team ({existing.status}, sent {new Date(existing.createdAt).toLocaleDateString()}).
-                Sending this form again updates it.
+                {t('existing', {
+                  status: existing.status,
+                  date: new Date(existing.createdAt).toLocaleDateString(),
+                })}
               </div>
             )}
 
             {failureNote && (
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Error you saw: <span style={{ color: 'var(--text-danger)' }}>{failureNote}</span>
+                {t('errorSeen')}{' '}
+                <span style={{ color: 'var(--text-danger)' }}>{failureNote}</span>
               </div>
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-              <Labeled label="Plan">
+              <Labeled label={t('plan')}>
                 <select value={plan} onChange={e => setPlan(e.target.value as Plan)} style={inputStyle}>
-                  <option value="gold">Gold</option>
-                  <option value="platinum">Platinum</option>
+                  <option value="gold">{t('plans.gold')}</option>
+                  <option value="platinum">{t('plans.platinum')}</option>
                 </select>
               </Labeled>
-              <Labeled label="Billing">
+              <Labeled label={t('billing')}>
                 <select value={interval} onChange={e => setBillingInterval(e.target.value as Interval)} style={inputStyle}>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
+                  <option value="monthly">{t('monthly')}</option>
+                  <option value="yearly">{t('yearly')}</option>
                 </select>
               </Labeled>
-              <Labeled label="Pay in">
+              <Labeled label={t('payIn')}>
                 <select value={currency} onChange={e => setCurrency(e.target.value as Currency)} style={inputStyle}>
-                  <option value="USD">USD ($)</option>
-                  <option value="INR">INR (₹)</option>
+                  <option value="USD">{t('usd')}</option>
+                  <option value="INR">{t('inr')}</option>
                 </select>
               </Labeled>
-              <Labeled label="Country">
-                <input value={country} onChange={e => setCountry(e.target.value)} maxLength={60} placeholder="e.g. United States" style={inputStyle} />
+              <Labeled label={t('country')}>
+                <input value={country} onChange={e => setCountry(e.target.value)} maxLength={60} placeholder={t('countryPlaceholder')} style={inputStyle} />
               </Labeled>
             </div>
 
             <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.4rem' }}>
-              <legend style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>How would you like to pay?</legend>
+              <legend style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>{t('methodLegend')}</legend>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                {METHODS.map(m => (
+                {METHOD_VALUES.map(value => (
                   <button
-                    key={m.value}
+                    key={value}
                     type="button"
-                    onClick={() => setMethod(m.value)}
-                    aria-pressed={method === m.value}
-                    title={m.hint}
+                    onClick={() => setMethod(value)}
+                    aria-pressed={method === value}
+                    title={t(`methods.${value}.hint`)}
                     style={{
                       padding: '0.4rem 0.8rem', borderRadius: 99, cursor: 'pointer',
                       fontFamily: 'var(--font-display)', fontSize: '0.8rem',
-                      border: `1px solid ${method === m.value ? 'var(--gold)' : 'var(--border)'}`,
-                      background: method === m.value ? 'rgba(201,168,76,0.12)' : 'transparent',
-                      color: method === m.value ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontWeight: method === m.value ? 700 : 400,
+                      border: `1px solid ${method === value ? 'var(--gold)' : 'var(--border)'}`,
+                      background: method === value ? 'rgba(201,168,76,0.12)' : 'transparent',
+                      color: method === value ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      fontWeight: method === value ? 700 : 400,
                     }}
                   >
-                    {m.label}
+                    {t(`methods.${value}.label`)}
                   </button>
                 ))}
               </div>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                {METHODS.find(m => m.value === method)?.hint}
+                {t(`methods.${method}.hint`)}
               </span>
             </fieldset>
 
-            <Labeled label="Message (optional)">
+            <Labeled label={t('message')}>
               <textarea
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 maxLength={1000}
                 rows={3}
-                placeholder="Anything we should know, e.g. your PayPal email if it differs from your account email"
+                placeholder={t('messagePlaceholder')}
                 style={{ ...inputStyle, resize: 'vertical' }}
               />
             </Labeled>
@@ -243,10 +239,10 @@ export function PaymentHelpRequest({
             {error && <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-danger)' }}>{error}</p>}
 
             <button type="submit" className="btn btn-primary" disabled={submitting} style={{ width: '100%' }}>
-              {submitting ? 'Sending…' : 'Send request to Vedaansh team'}
+              {submitting ? t('submitting') : t('submit')}
             </button>
             <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-              We&apos;ll reply to your account email. No payment is taken now.
+              {t('replyNote')}
             </p>
           </form>
         )}

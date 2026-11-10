@@ -5,6 +5,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Spinner } from '@/components/ui/primitives/Spinner'
 import { ASHTAKAVARGA_CONTRIBUTORS } from '@/lib/engine/ashtakavarga'
 import {
@@ -13,8 +14,10 @@ import {
   kakshyaNote,
 } from '@/lib/engine/ashtakavargaKakshya'
 import { analyzeSodhyaPindas } from '@/lib/engine/ashtakavargaSodhyaGuide'
-import type { AshtakavargaResult, GrahaData, Rashi } from '@/types/astrology'
+import type { AshtakavargaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
 
 const BAV_PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'As'] as const
@@ -32,8 +35,14 @@ const COLOR = {
   secondary: 'var(--text-secondary, #cbd5e1)',
 } as const
 
-function rashiLabel(i: number): string {
-  return RASHI_SHORT[(i + 1) as Rashi] ?? String(i + 1)
+function signName(rashi: number, hi: boolean): string {
+  const r = rashi as Rashi
+  return hi ? (RASHI_HI[r] ?? String(rashi)) : (RASHI_SHORT[r] ?? String(rashi))
+}
+
+function contributorName(id: string, hi: boolean): string {
+  if (id === 'As') return hi ? 'लग्न' : 'Lagna'
+  return hi ? (GRAHA_HI[id as GrahaId] ?? CONTRIBUTOR_LABELS[id] ?? id) : (CONTRIBUTOR_LABELS[id] ?? id)
 }
 
 export function PrastaraTable({
@@ -45,13 +54,15 @@ export function PrastaraTable({
   ascRashi: number
   columnMode: 'rasi' | 'house'
 }) {
+  const t = useTranslations('ashtakavarga')
+  const { hi } = useLang()
   const [planet, setPlanet] = useState<BavPlanet>('Su')
   const prastara = ashtakavarga.prastara?.[planet]
 
   if (!ashtakavarga.prastara) {
     return (
       <div className="card" style={{ padding: '0.8rem', color: COLOR.muted, fontSize: '0.78rem' }}>
-        Recalculate the chart to load Prastara Ashtakavarga contributor grids.
+        {t('extended.recalcPrastara')}
       </div>
     )
   }
@@ -60,9 +71,9 @@ export function PrastaraTable({
   const colLabel = (i: number) => {
     if (columnMode === 'house') {
       const rashi = ((ascRashi - 1 + i) % 12) + 1
-      return `H${i + 1}\n${RASHI_SHORT[rashi as Rashi]}`
+      return `${hi ? t('insights.house', { n: i + 1 }) : `H${i + 1}`}\n${signName(rashi, hi)}`
     }
-    return rashiLabel(i)
+    return signName(i + 1, hi)
   }
 
   const reorderFlags = (flags: number[]) => {
@@ -77,7 +88,7 @@ export function PrastaraTable({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div className="card" style={{ padding: '0.75rem' }}>
         <p style={{ fontSize: '0.72rem', color: COLOR.secondary, marginBottom: '0.55rem', lineHeight: 1.45, marginTop: 0 }}>
-          Prastara shows which of the 8 contributors (Su–Sa + Lagna) gave each bindu.
+          {t('extended.prastaraIntro')}
         </p>
         <div className={styles.planetGrid}>
           {BAV_PLANET_ORDER.map((p) => (
@@ -95,14 +106,14 @@ export function PrastaraTable({
 
       {prastara ? (
         <div className={`card no-scrollbar ${styles.tableWrap}`}>
-          <div className={styles.tableHint}>Swipe horizontally to see all columns</div>
+          <div className={styles.tableHint}>{t('table.swipe')}</div>
           <p style={{ fontSize: '0.78rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem', marginTop: 0 }}>
-            {planet} Prastara — contributor flags
+            {t('extended.prastaraTitle', { planet })}
           </p>
           <table className={styles.dataTable}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <th style={{ textAlign: 'left', padding: '0.35rem', position: 'sticky', left: 0, background: 'var(--surface-1)' }}>Contributor</th>
+                <th style={{ textAlign: 'left', padding: '0.35rem', position: 'sticky', left: 0, background: 'var(--surface-1)' }}>{t('extended.contributor')}</th>
                 {colIndices.map((i) => (
                   <th key={i} style={{ textAlign: 'center', padding: '0.35rem', fontSize: '0.65rem', whiteSpace: 'pre-line', lineHeight: 1.2 }}>
                     {colLabel(i)}
@@ -116,7 +127,7 @@ export function PrastaraTable({
                 return (
                   <tr key={c} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                     <td style={{ padding: '0.35rem', fontWeight: 700, position: 'sticky', left: 0, background: 'var(--surface-1)' }}>
-                      {c} <span style={{ color: COLOR.muted, fontWeight: 500 }}>({CONTRIBUTOR_LABELS[c]})</span>
+                      {c} <span style={{ color: COLOR.muted, fontWeight: 500 }}>({contributorName(c, hi)})</span>
                     </td>
                     {flags.map((v, i) => (
                       <td
@@ -157,13 +168,14 @@ export function RekhasView({
     size?: number
   }>
 }) {
+  const t = useTranslations('ashtakavarga')
   const rekhas = ashtakavarga.rekhas
   const [view, setView] = useState<'rekhas' | 'bindus'>('rekhas')
 
   if (!rekhas) {
     return (
       <div className="card" style={{ padding: '0.8rem', color: COLOR.muted, fontSize: '0.78rem' }}>
-        Recalculate the chart to load Rekha (56 − SAV) values.
+        {t('extended.recalcRekha')}
       </div>
     )
   }
@@ -175,7 +187,7 @@ export function RekhasView({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div className="card" style={{ padding: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontSize: '0.72rem', color: COLOR.secondary }}>
-          Rekhas = 56 − SAV bindus per sign (resistance measure).
+          {t('extended.rekhaExplain')}
         </span>
         <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: '0.35rem' }}>
           {(['rekhas', 'bindus'] as const).map((v) => (
@@ -194,26 +206,28 @@ export function RekhasView({
                 fontSize: '0.68rem',
               }}
             >
-              {v === 'rekhas' ? 'Rekhas' : 'SAV Bindus'}
+              {v === 'rekhas' ? t('extended.rekhas') : t('extended.savBindus')}
             </button>
           ))}
         </span>
       </div>
-      <NorthIndianChart valuesByRashi={display} ascRashi={ascRashi} title={view === 'rekhas' ? 'Rekha Chart (56 − SAV)' : 'SAV Bindu Chart'} size={320} />
+      <NorthIndianChart valuesByRashi={display} ascRashi={ascRashi} title={view === 'rekhas' ? t('extended.rekhaChart') : t('extended.savChart')} size={320} />
       <div className="card" style={{ padding: '0.75rem', fontSize: '0.78rem', color: COLOR.secondary }}>
-        Total {view === 'rekhas' ? 'Rekhas' : 'SAV'}: <b style={{ color: COLOR.teal }}>{total}</b>
+        {t('extended.total', { what: view === 'rekhas' ? t('extended.rekhas') : t('tabs.sav') })} <b style={{ color: COLOR.teal }}>{total}</b>
       </div>
     </div>
   )
 }
 
 export function SodhyaGuidePanel({ ashtakavarga }: { ashtakavarga: AshtakavargaResult }) {
-  const guide = useMemo(() => analyzeSodhyaPindas(ashtakavarga), [ashtakavarga])
+  const t = useTranslations('ashtakavarga')
+  const { lang } = useLang()
+  const guide = useMemo(() => analyzeSodhyaPindas(ashtakavarga, lang), [ashtakavarga, lang])
 
   if (!guide) {
     return (
       <div className="card" style={{ padding: '0.8rem', color: COLOR.muted, fontSize: '0.78rem' }}>
-        Recalculate the chart to load Sodhya Pinda interpretations.
+        {t('extended.recalcSodhya')}
       </div>
     )
   }
@@ -227,7 +241,7 @@ export function SodhyaGuidePanel({ ashtakavarga }: { ashtakavarga: AshtakavargaR
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div className="card" style={{ padding: '0.85rem' }}>
-        <p style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.35rem', marginTop: 0 }}>Sodhya Pinda Guide</p>
+        <p style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.35rem', marginTop: 0 }}>{t('extended.sodhyaTitle')}</p>
         <p style={{ fontSize: '0.72rem', color: COLOR.secondary, lineHeight: 1.5, margin: 0 }}>{guide.summary}</p>
       </div>
       <div className={styles.sodhyaGrid}>
@@ -256,6 +270,8 @@ export function KakshyaTimeline({
   transitGrahas?: GrahaData[]
   ayanamsha?: string
 }) {
+  const t = useTranslations('ashtakavarga')
+  const { lang } = useLang()
   const [timeline, setTimeline] = useState<ReturnType<typeof aggregateKakshyaTimeline> | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -296,7 +312,7 @@ export function KakshyaTimeline({
   if (!ashtakavarga.prastara) {
     return (
       <div className="card" style={{ padding: '0.8rem', color: COLOR.muted, fontSize: '0.78rem' }}>
-        Recalculate the chart to enable Kakshya degree-level transit timing.
+        {t('extended.recalcKakshya')}
       </div>
     )
   }
@@ -304,12 +320,12 @@ export function KakshyaTimeline({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div className="card" style={{ padding: '0.85rem' }}>
-        <p style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.35rem', marginTop: 0 }}>Kakshya Transit Watch (Now)</p>
+        <p style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.35rem', marginTop: 0 }}>{t('extended.kakshyaNow')}</p>
         <p style={{ fontSize: '0.68rem', color: COLOR.muted, marginBottom: '0.45rem', lineHeight: 1.4, marginTop: 0 }}>
-          Each sign has 8 kakshyas (3°45′ each). Favorable when the kakshya lord contributed a bindu in the planet BAV.
+          {t('extended.kakshyaExplain')}
         </p>
         {currentRows.length === 0 ? (
-          <p style={{ fontSize: '0.78rem', color: COLOR.secondary, margin: 0 }}>Transit data unavailable.</p>
+          <p style={{ fontSize: '0.78rem', color: COLOR.secondary, margin: 0 }}>{t('extended.transitMissing')}</p>
         ) : (
           <div className={styles.cardGrid}>
             {currentRows.map((row) => (
@@ -325,10 +341,10 @@ export function KakshyaTimeline({
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
                   <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>{row.planet}</span>
                   <span style={{ fontSize: '0.72rem', fontWeight: 800, color: row.hasBindu ? COLOR.teal : COLOR.rose }}>
-                    {row.hasBindu ? 'Bindu' : 'No bindu'}
+                    {row.hasBindu ? t('extended.bindu') : t('extended.noBindu')}
                   </span>
                 </div>
-                <p style={{ fontSize: '0.68rem', color: COLOR.secondary, lineHeight: 1.4, margin: 0 }}>{kakshyaNote(row)}</p>
+                <p style={{ fontSize: '0.68rem', color: COLOR.secondary, lineHeight: 1.4, margin: 0 }}>{kakshyaNote(row, lang)}</p>
               </div>
             ))}
           </div>
@@ -336,14 +352,14 @@ export function KakshyaTimeline({
       </div>
 
       <div className="card" style={{ padding: '0.85rem' }}>
-        <p style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem', marginTop: 0 }}>Kakshya Timeline (90 days)</p>
+        <p style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem', marginTop: 0 }}>{t('extended.timeline')}</p>
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: COLOR.secondary }}>
-            <Spinner size={18} label="Loading kakshya timeline" />
-            Loading kakshya timeline…
+            <Spinner size={18} label={t('extended.loading')} />
+            {t('extended.loadingDots')}
           </div>
         ) : !timeline ? (
-          <p style={{ fontSize: '0.78rem', color: COLOR.secondary, margin: 0 }}>Timeline unavailable.</p>
+          <p style={{ fontSize: '0.78rem', color: COLOR.secondary, margin: 0 }}>{t('extended.timelineMissing')}</p>
         ) : (
           <div className={styles.statGrid}>
             {timeline.map((row) => {
@@ -355,9 +371,9 @@ export function KakshyaTimeline({
                     <span style={{ fontSize: '0.68rem', fontWeight: 800, color: c }}>{row.score}</span>
                   </div>
                   <p style={{ fontSize: '0.62rem', color: COLOR.muted, margin: '0 0 2px' }}>
-                    {row.favorableCount} favorable · {row.unfavorableCount} weak
+                    {t('extended.favLine', { fav: row.favorableCount, unfav: row.unfavorableCount })}
                   </p>
-                  <p style={{ fontSize: '0.62rem', color: c, fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>{row.tag}</p>
+                  <p style={{ fontSize: '0.62rem', color: c, fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>{t(`read.tag.${row.tag}`)}</p>
                 </div>
               )
             })}

@@ -1,7 +1,7 @@
 # Vedaansh — documentation index
 
 **Source of truth:** live code (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`). Prefer code when docs disagree.  
-**Synced:** 2026-11-03 against `jyotish-platform` v2.6.0 (Next.js 16.4.2, Zod 4.6.7, 63 API handlers, 52 pages). Default prices: Gold ₹168 / Platinum ₹336. Interpretation hub Free teaser documented in [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md).
+**Synced:** 2026-11-10 against `jyotish-platform` v2.6.0 (Next.js 16.4.2, Zod 4.6.7). Default prices: Gold ₹168 / Platinum ₹336. Public Hindi i18n is complete (admin / Social Studio English). Interpretation hub Free teaser documented in [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md).
 
 | Doc | Purpose |
 |-----|---------|
@@ -19,7 +19,7 @@
 | File | Purpose |
 |------|---------|
 | [../README.md](../README.md) | Product overview, features, setup |
-| [../AGENTS.md](../AGENTS.md) | Conventions for humans + coding agents |
+| [../AGENTS.md](../AGENTS.md) | Conventions for humans + coding agents (includes Hindi / i18n) |
 | [../SUBSCRIPTION_MATRIX.md](../SUBSCRIPTION_MATRIX.md) | Enforced entitlements by plan |
 | [../CHANGELOG.md](../CHANGELOG.md) | User-facing release notes |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Branch, PR, quality bar |

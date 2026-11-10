@@ -7,6 +7,8 @@
 
 import type { DashaNode, GrahaData, GrahaId, Rashi, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { applySthanaHi } from '@/lib/engine/locale/sthanaBalaAnalysis.hi'
 
 const ORDER: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
 
@@ -293,6 +295,8 @@ export interface AnalyzeSthanaBalaOptions {
   dashaNodes?: DashaNode[]
   grahas?: GrahaData[]
   asOf?: Date
+  /** Display language. Omitted and 'en' keep the English sentences. */
+  lang?: EngineLang
 }
 
 /**
@@ -402,7 +406,7 @@ export function analyzeSthanaBala(
         ? `Struggling Sthana profile (mean ${meanVirupas.toFixed(0)}, ${dipCount} weak dips). Focus remedies on ${GRAHA_NAMES[weakestId]}.`
         : `Mixed Sthana (mean ${meanVirupas.toFixed(0)} Virupas; range ${minVirupas.toFixed(0)}–${maxVirupas.toFixed(0)}). Strongest ${GRAHA_NAMES[strongestId]}, weakest ${GRAHA_NAMES[weakestId]}.`
 
-  return {
+  const result: SthanaBalaAnalysis = {
     profile,
     profileNote,
     summary,
@@ -418,6 +422,8 @@ export function analyzeSthanaBala(
     predictions,
     applications,
   }
+  if ((opts.lang ?? 'en') !== 'hi') return result
+  return applySthanaHi(result)
 }
 
 function timingLordLabel(cue: SthanaDashaCue): string {

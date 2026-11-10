@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { transitIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -28,12 +28,13 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/transit/scrubber', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/transit/scrubber', locale, metadataEn, {
     title: 'गोचर हब — लाइव गोचर और फलादेश | Vedaansh',
     description: 'व्यक्तिगत वैदिक गोचर हब: लाइव गोचर स्क्रबर, फलादेश, चंद्र संक्रमण और विंशोत्तरी दशा ओवरले सहित कॉस्मिक रोडमैप।',
     ogTitle: 'गोचर हब | Vedaansh',
     keywords: ['वैदिक गोचर', 'गोचर', 'ग्रह गोचर', 'दशा समयरेखा', 'ज्योतिष रोडमैप', 'गोचर कैलेंडर', 'व्यक्तिगत ज्योतिष फलादेश', 'चंद्र गोचर'],
-  })
+  }), locale, '/transit/opengraph-image', 'गोचर हब — Vedaansh')
 }
 
 export default async function TransitLayout({ children }: { children: React.ReactNode }) {

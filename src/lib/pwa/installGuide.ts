@@ -1,3 +1,11 @@
+import type { EngineLang } from '@/lib/engine/lang'
+import {
+  ANDROID_BROWSER_STEPS_HI,
+  ANDROID_PLAY_STORE_NOTE_HI,
+  INSTALL_LABEL_HI,
+  IOS_STEPS_HI,
+} from './installGuide.hi'
+
 export type InstallPlatform = 'ios' | 'android' | 'desktop' | 'unknown'
 
 export interface InstallStep {
@@ -24,6 +32,15 @@ export const IOS_STEPS: InstallStep[] = [
   { text: 'Tap Add' },
 ]
 
+export function playStoreNote(lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? ANDROID_PLAY_STORE_NOTE_HI : ANDROID_PLAY_STORE_NOTE
+}
+
+export function playStoreChrome(lang: EngineLang = 'en'): { strong: string; soon: string } {
+  if (lang === 'hi') return { strong: INSTALL_LABEL_HI.playStrong, soon: INSTALL_LABEL_HI.comingSoon }
+  return { strong: 'Google Play', soon: 'Coming soon' }
+}
+
 export function detectInstallPlatform(userAgent: string, maxTouchPoints = 0): InstallPlatform {
   const ua = userAgent
   const isIos =
@@ -40,15 +57,22 @@ export function isMobileInstallEligible(userAgent: string, maxTouchPoints = 0): 
   return platform === 'ios' || platform === 'android'
 }
 
-export function getInstallGuides(platform: InstallPlatform): PlatformInstallGuide[] {
-  if (platform === 'ios') {
-    return [{ platform: 'ios', label: 'iPhone & iPad', steps: IOS_STEPS }]
+export function getInstallGuides(
+  platform: InstallPlatform,
+  lang: EngineLang = 'en',
+): PlatformInstallGuide[] {
+  const hi = lang === 'hi'
+  const android: PlatformInstallGuide = {
+    platform: 'android',
+    label: hi ? INSTALL_LABEL_HI.android : 'Android',
+    steps: hi ? ANDROID_BROWSER_STEPS_HI : ANDROID_BROWSER_STEPS,
   }
-  if (platform === 'android') {
-    return [{ platform: 'android', label: 'Android', steps: ANDROID_BROWSER_STEPS }]
+  const ios: PlatformInstallGuide = {
+    platform: 'ios',
+    label: hi ? INSTALL_LABEL_HI.ios : 'iPhone & iPad',
+    steps: hi ? IOS_STEPS_HI : IOS_STEPS,
   }
-  return [
-    { platform: 'android', label: 'Android', steps: ANDROID_BROWSER_STEPS },
-    { platform: 'ios', label: 'iPhone & iPad', steps: IOS_STEPS },
-  ]
+  if (platform === 'ios') return [ios]
+  if (platform === 'android') return [android]
+  return [android, ios]
 }

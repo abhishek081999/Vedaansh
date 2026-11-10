@@ -3,7 +3,17 @@
 //  Classical readouts for Sodhya Pinda values (JHora method)
 // ─────────────────────────────────────────────────────────────
 
-import type { AshtakavargaResult } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import {
+  SODHYA_BAND_HI,
+  SODHYA_MISSING_HI,
+  SODHYA_SIG_HI,
+  sodhyaEventHi,
+  sodhyaReadingHi,
+  sodhyaSummaryHi,
+} from '@/lib/engine/locale/ashtakavargaSodhya.hi'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import type { AshtakavargaResult, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 
 export type SodhyaStrengthBand = 'exceptional' | 'strong' | 'moderate' | 'weak'
@@ -57,7 +67,8 @@ const SIGNIFICATIONS: Record<string, string> = {
   Sa: 'discipline, longevity, karma',
 }
 
-function eventNoteFor(planet: string, band: SodhyaStrengthBand, ageYear: number): string {
+function eventNoteFor(planet: string, band: SodhyaStrengthBand, ageYear: number, lang: EngineLang): string {
+  if (lang === 'hi') return sodhyaEventHi(SODHYA_SIG_HI[planet] ?? 'अर्थ', band, ageYear)
   const sig = SIGNIFICATIONS[planet] ?? 'significations'
   if (band === 'exceptional' || band === 'strong') {
     return `Favorable for ${sig} when dasha/transit aligns. Age-cycle year ${ageYear} may mark notable ${sig} events.`
@@ -68,7 +79,7 @@ function eventNoteFor(planet: string, band: SodhyaStrengthBand, ageYear: number)
   return `Mixed delivery for ${sig}; combine with BAV gochar and dasha for timing. Cycle year ${ageYear}.`
 }
 
-export function analyzeSodhyaPindas(ashtakavarga: AshtakavargaResult): SodhyaGuideResult | null {
+export function analyzeSodhyaPindas(ashtakavarga: AshtakavargaResult, lang: EngineLang = 'en'): SodhyaGuideResult | null {
   if (!ashtakavarga.sodhyaPindas) return null
 
   const pindas = PLANETS.map((p) => ashtakavarga.sodhyaPindas![p].sodhyaPinda)
@@ -77,17 +88,20 @@ export function analyzeSodhyaPindas(ashtakavarga: AshtakavargaResult): SodhyaGui
     const band = bandForPinda(row.sodhyaPinda, pindas)
     const ageCycleYear = row.sodhyaPinda % 12 || 12
     const name = GRAHA_NAMES[planet as keyof typeof GRAHA_NAMES] ?? planet
+    const nameHi = GRAHA_HI[planet as GrahaId] ?? name
     return {
       planet,
-      name,
+      name: lang === 'hi' ? nameHi : name,
       rasiPinda: row.rasiPinda,
       grahaPinda: row.grahaPinda,
       sodhyaPinda: row.sodhyaPinda,
       band,
-      bandLabel: BAND_LABELS[band],
+      bandLabel: lang === 'hi' ? SODHYA_BAND_HI[band] : BAND_LABELS[band],
       ageCycleYear,
-      reading: `${name} Sodhya Pinda ${row.sodhyaPinda} (${BAND_LABELS[band].toLowerCase()}). Rasi ${row.rasiPinda} + Graha ${row.grahaPinda}.`,
-      eventNote: eventNoteFor(planet, band, ageCycleYear),
+      reading: lang === 'hi'
+        ? sodhyaReadingHi(nameHi, row.sodhyaPinda, band, row.rasiPinda, row.grahaPinda)
+        : `${name} Sodhya Pinda ${row.sodhyaPinda} (${BAND_LABELS[band].toLowerCase()}). Rasi ${row.rasiPinda} + Graha ${row.grahaPinda}.`,
+      eventNote: eventNoteFor(planet, band, ageCycleYear, lang),
     }
   })
 
@@ -96,8 +110,10 @@ export function analyzeSodhyaPindas(ashtakavarga: AshtakavargaResult): SodhyaGui
   const weakest = sorted[sorted.length - 1] ?? null
 
   const summary = strongest && weakest
-    ? `Strongest sodhya delivery: ${strongest.name} (${strongest.sodhyaPinda}). Weakest: ${weakest.name} (${weakest.sodhyaPinda}). Use with reduced BAV for event timing.`
-    : 'Sodhya Pinda analysis requires recalculated chart data.'
+    ? (lang === 'hi'
+        ? sodhyaSummaryHi(strongest.name, strongest.sodhyaPinda, weakest.name, weakest.sodhyaPinda)
+        : `Strongest sodhya delivery: ${strongest.name} (${strongest.sodhyaPinda}). Weakest: ${weakest.name} (${weakest.sodhyaPinda}). Use with reduced BAV for event timing.`)
+    : (lang === 'hi' ? SODHYA_MISSING_HI : 'Sodhya Pinda analysis requires recalculated chart data.')
 
   return { readings, strongest, weakest, summary }
 }

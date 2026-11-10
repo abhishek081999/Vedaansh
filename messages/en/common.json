@@ -98,5 +98,21 @@
     "useBirth": "Use birth location: {place}",
     "birth": "✦ Birth: {place}",
     "search": "Search city…"
+  },
+  "notFoundPage": {
+    "eyebrow": "404 · Page Not Found",
+    "title": "This page doesn't exist",
+    "body": "The chart you're looking for may have been made private, or the link is incorrect.",
+    "newChart": "✦ New Chart",
+    "panchang": "Daily Panchang",
+    "mark": "VEDAANSH · vedaansh.com"
+  },
+  "errorPage": {
+    "eyebrow": "Something went wrong",
+    "title": "An unexpected error occurred",
+    "body": "The stars aligned unexpectedly. Refreshing usually fixes it.",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home",
+    "errorId": "Error ID: {digest}"
   }
 }

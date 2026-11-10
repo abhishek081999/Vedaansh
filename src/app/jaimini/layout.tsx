@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { jaiminiIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -27,13 +27,14 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/jaimini', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/jaimini', locale, metadataEn, {
     title: 'जैमिनी ज्योतिष — चर दशा और कारक',
     description: 'आपकी वैदिक कुंडली पर जैमिनी ज्योतिष: आत्मकारक, अमात्यकारक, चर दशा, जैमिनी दृष्टि, आरूढ़ लग्न, पद और स्फुट गणना।',
     ogTitle: 'जैमिनी ज्योतिष — चर दशा और कारक | Vedaansh',
     ogDescription: 'आत्मकारक, चर दशा, जैमिनी दृष्टि और आरूढ़ लग्न व पद — आपकी वैदिक जन्म कुंडली पर।',
     keywords: ['जैमिनी ज्योतिष', 'चर दशा', 'आत्मकारक', 'अमात्यकारक', 'जैमिनी कारक', 'जैमिनी दृष्टि', 'आरूढ़ लग्न', 'कारकांश', 'अर्गला'],
-  })
+  }), locale, '/jaimini/opengraph-image', 'जैमिनी ज्योतिष — Vedaansh')
 }
 
 export default async function JaiminiLayout({ children }: { children: React.ReactNode }) {

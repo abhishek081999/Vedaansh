@@ -20,6 +20,7 @@ import {
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { isDowngradePurchase } from '@/lib/subscription/paymentRules'
 import { sendPaymentRequestReceivedEmail, sendPaymentRequestTeamEmail } from '@/lib/email'
+import { engineLangFromRequest } from '@/lib/requestLang'
 import { LEGAL_CONTACT } from '@/lib/legal/content'
 
 export const runtime = 'nodejs'
@@ -92,11 +93,12 @@ export async function POST(req: NextRequest) {
     const input = parsed.data
 
     await connectDB()
-    const user = await User.findById(session.user.id).select('name email plan planExpiresAt').lean() as {
+    const user = await User.findById(session.user.id).select('name email plan planExpiresAt language').lean() as {
       name?: string
       email?: string
       plan?: string
       planExpiresAt?: Date | null
+      language?: string
     } | null
     if (!user?.email) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
@@ -151,7 +153,7 @@ export async function POST(req: NextRequest) {
     // Emails are best effort: the request is saved and visible in admin either way.
     const [teamResult] = await Promise.all([
       sendPaymentRequestTeamEmail(teamRecipients(), emailData),
-      sendPaymentRequestReceivedEmail(user.email, fields),
+      sendPaymentRequestReceivedEmail(user.email, fields, engineLangFromRequest(req, user.language)),
     ])
     if (!teamResult.success) {
       console.error('[payment/request] Team notification email failed')

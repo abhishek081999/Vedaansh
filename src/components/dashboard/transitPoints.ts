@@ -7,6 +7,8 @@
 import type { ChartOutput, GrahaId, LagnaData, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
+import type { EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, termHi } from '@/i18n/jyotish'
 
 const GRAHA_ORDER: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke', 'Ur', 'Ne', 'Pl']
 
@@ -56,7 +58,11 @@ export interface PointGroup {
   rows: PointRow[]
 }
 
-function posFromLon(lon: number | undefined): PointPos | null {
+function displayName(name: string, lang: EngineLang): string {
+  return lang === 'hi' ? termHi(name) : name
+}
+
+function posFromLon(lon: number | undefined, lang: EngineLang): PointPos | null {
   if (lon == null || !Number.isFinite(lon)) return null
   const norm = ((lon % 360) + 360) % 360
   const nak = getNakshatra(norm)
@@ -64,47 +70,60 @@ function posFromLon(lon: number | undefined): PointPos | null {
     lon: norm,
     rashi: (Math.floor(norm / 30) + 1) as Rashi,
     degree: norm % 30,
-    nakshatraName: nak.name,
+    nakshatraName: displayName(nak.name, lang),
     pada: nak.pada,
   }
 }
 
 /** Arudha Lagna carries only a sign; reuse the lagna's degree like the Planetary Details table. */
-function arudhaPos(chart: ChartOutput | null): PointPos | null {
+function arudhaPos(chart: ChartOutput | null, lang: EngineLang): PointPos | null {
   const al = chart?.arudhas?.AL
   if (!chart || !al) return null
-  return posFromLon((al - 1) * 30 + (chart.lagnas.ascDegree % 30))
+  return posFromLon((al - 1) * 30 + (chart.lagnas.ascDegree % 30), lang)
 }
 
-export function buildPointGroups(natal: ChartOutput, transit: ChartOutput | null): PointGroup[] {
+/** Display labels follow `lang`. Kind titles stay English; the scrubber translates them. */
+export function buildPointGroups(natal: ChartOutput, transit: ChartOutput | null, lang: EngineLang = 'en'): PointGroup[] {
   const grahaRows: PointRow[] = GRAHA_ORDER.flatMap(id => {
     const n = natal.grahas.find(g => g.id === id)
     if (!n) return []
     const t = transit?.grahas.find(g => g.id === id)
     const toPos = (g: typeof n): PointPos => ({
-      lon: g.lonSidereal, rashi: g.rashi, degree: g.degree, nakshatraName: g.nakshatraName, pada: g.pada, isRetro: g.isRetro,
+      lon: g.lonSidereal,
+      rashi: g.rashi,
+      degree: g.degree,
+      nakshatraName: displayName(g.nakshatraName, lang),
+      pada: g.pada,
+      isRetro: g.isRetro,
     })
-    return [{ key: id, label: GRAHA_NAMES[id], code: id, natal: toPos(n), transit: t ? toPos(t) : null, grahaId: id }]
+    return [{
+      key: id,
+      label: lang === 'hi' ? GRAHA_HI[id] : GRAHA_NAMES[id],
+      code: id,
+      natal: toPos(n),
+      transit: t ? toPos(t) : null,
+      grahaId: id,
+    }]
   })
 
   const lagnaRows: PointRow[] = [
     {
-      key: 'Asc', label: 'Lagna', code: 'As',
-      natal: posFromLon(natal.lagnas.ascDegree),
-      transit: posFromLon(transit?.lagnas.ascDegree),
+      key: 'Asc', label: displayName('Lagna', lang), code: 'As',
+      natal: posFromLon(natal.lagnas.ascDegree, lang),
+      transit: posFromLon(transit?.lagnas.ascDegree, lang),
     },
-    { key: 'AL', label: 'Arudha Lagna', code: 'AL', natal: arudhaPos(natal), transit: arudhaPos(transit) },
+    { key: 'AL', label: displayName('Arudha Lagna', lang), code: 'AL', natal: arudhaPos(natal, lang), transit: arudhaPos(transit, lang) },
     ...SPECIAL_LAGNAS.map(({ key, label, code }) => ({
-      key, label, code,
-      natal: posFromLon(natal.lagnas[key] as number | undefined),
-      transit: posFromLon(transit?.lagnas[key] as number | undefined),
+      key, label: displayName(label, lang), code,
+      natal: posFromLon(natal.lagnas[key] as number | undefined, lang),
+      transit: posFromLon(transit?.lagnas[key] as number | undefined, lang),
     })),
   ].filter(r => r.natal)
 
   const upagrahaRows: PointRow[] = Object.entries(natal.upagrahas ?? {}).map(([key, u]) => ({
-    key, label: u.name, code: UPAGRAHA_CODE[key] ?? key,
-    natal: posFromLon(u.lonSidereal),
-    transit: posFromLon(transit?.upagrahas?.[key]?.lonSidereal),
+    key, label: displayName(u.name, lang), code: UPAGRAHA_CODE[key] ?? key,
+    natal: posFromLon(u.lonSidereal, lang),
+    transit: posFromLon(transit?.upagrahas?.[key]?.lonSidereal, lang),
   }))
 
   const groups: PointGroup[] = [

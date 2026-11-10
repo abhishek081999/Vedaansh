@@ -6,7 +6,7 @@
 
 A full-featured Vedic astrology (Jyotish) web platform in TypeScript: arc-second ephemeris, dashas, divisional charts, Ashtakavarga, Shadbala, muhurta, SVG chakras — powered by Swiss Ephemeris via the **`sweph`** npm package.
 
-**Status:** v2.6.0 live. Remaining: full i18n rollout; Research UI; Stripe checkout (schema only).
+**Status:** v2.6.0 live. Public Hindi (`/hi/...`) is complete; admin / Social Studio stay English. Remaining: Research UI; Stripe checkout (schema only); further locales.
 
 **Docs:** [`docs/README.md`](./docs/README.md) — system design, API, data model, product, runbook, testing, ADRs. When versions disagree, trust `package.json` and live code.
 
@@ -207,7 +207,7 @@ Testing strategy: [`docs/TESTING.md`](./docs/TESTING.md). Contributing: [`CONTRI
 
 ### Remaining
 
-- [ ] Full i18n (Hindi / Sanskrit / etc.)
+- [x] Public Hindi (`/hi/...` — UI, SEO, guides, PDF/emails, engine readings). Admin / Social Studio stay English; further locales (Sanskrit, etc.) not started
 - [ ] Research workspace UI (`/research` gated; not shipped)
 - [ ] Stripe checkout (schema reserved; live billing is Razorpay)
 

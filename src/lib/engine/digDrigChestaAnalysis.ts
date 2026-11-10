@@ -7,6 +7,8 @@
 
 import type { DashaNode, GrahaData, GrahaId, Rashi, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { applyDigDrigChestaHi } from '@/lib/engine/locale/digDrigChestaAnalysis.hi'
 import { signModality, type SignModality } from '@/lib/engine/dashamsaClassical'
 import { D9 } from '@/lib/engine/vargas'
 
@@ -237,6 +239,8 @@ export interface AnalyzeDigDrigChestaOptions {
   grahas?: GrahaData[]
   ascRashi?: Rashi
   asOf?: Date
+  /** Display language. Omitted and 'en' keep the English sentences. */
+  lang?: EngineLang
 }
 
 export function analyzeDigDrigChesta(
@@ -423,7 +427,7 @@ export function analyzeDigDrigChesta(
     libraConfusionCue,
   })
 
-  return {
+  const result: DigDrigChestaAnalysis = {
     dig: {
       strongestId: digStrong.id,
       weakestId: digWeak.id,
@@ -454,6 +458,8 @@ export function analyzeDigDrigChesta(
     predictions,
     libraConfusionCue,
   }
+  if ((opts.lang ?? 'en') !== 'hi') return result
+  return applyDigDrigChestaHi(result)
 }
 
 function buildPredictions(input: {

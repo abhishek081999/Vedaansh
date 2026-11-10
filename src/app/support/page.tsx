@@ -2,9 +2,12 @@
 
 import { Link } from '@/i18n/navigation'
 import React from 'react'
-import { LEGAL_CONTACT, LEGAL_NAV_LINKS } from '@/lib/legal/content'
+import { useTranslations } from 'next-intl'
+import { LEGAL_CONTACT } from '@/lib/legal/content'
 
 export default function SupportPage() {
+  const t = useTranslations('support')
+
   return (
     <div
       className="fade-up"
@@ -17,7 +20,7 @@ export default function SupportPage() {
     >
       <header style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <span className="badge-accent" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
-          Help
+          {t('header.badge')}
         </span>
         <h1
           style={{
@@ -28,20 +31,19 @@ export default function SupportPage() {
             color: 'var(--text-gold)',
           }}
         >
-          Support
+          {t('header.title')}
         </h1>
         <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-          Billing, account, and technical help for Vedaansh
+          {t('header.subtitle')}
         </p>
       </header>
 
       <section className="card" style={{ marginBottom: '1rem' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', margin: '0 0 0.75rem' }}>
-          Contact us
+          {t('contact.title')}
         </h2>
         <p style={{ margin: '0 0 1rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-          We usually reply within 3–5 business days. Include your registered email and, for billing issues,
-          your Razorpay payment ID or receipt.
+          {t('contact.body')}
         </p>
         <p style={{ margin: 0, lineHeight: 1.8 }}>
           <a href={`mailto:${LEGAL_CONTACT.primary}`} style={{ color: 'var(--gold)' }}>
@@ -56,29 +58,37 @@ export default function SupportPage() {
 
       <section className="card" style={{ marginBottom: '1rem' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', margin: '0 0 0.75rem' }}>
-          Common topics
+          {t('topics.title')}
         </h2>
         <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.85, color: 'var(--text-secondary)' }}>
           <li>
-            <strong>Subscriptions & refunds</strong> — see our{' '}
-            <Link href="/refund" style={{ color: 'var(--gold)' }}>Refund Policy</Link>
+            {t.rich('topics.subscriptions', {
+              b: (chunks) => <strong>{chunks}</strong>,
+              refund: (chunks) => <Link href="/refund" style={{ color: 'var(--gold)' }}>{chunks}</Link>,
+            })}
           </li>
           <li>
-            <strong>Payment failed or paying from outside India</strong> — on{' '}
-            <Link href="/pricing?help=1" style={{ color: 'var(--gold)' }}>Pricing</Link>, choose
-            “Request help with payment”. We&apos;ll send a PayPal invoice or Wise / UPI details and activate your plan once paid.
+            {t.rich('topics.payment', {
+              b: (chunks) => <strong>{chunks}</strong>,
+              pricing: (chunks) => <Link href="/pricing?help=1" style={{ color: 'var(--gold)' }}>{chunks}</Link>,
+            })}
           </li>
           <li>
-            <strong>Cancel renewal</strong> — Account → Billing & privacy → Cancel renewal
+            {t.rich('topics.cancel', {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
           <li>
-            <strong>Export or delete your data</strong> — Account → Billing & privacy
+            {t.rich('topics.export', {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
           <li>
-            <strong>Privacy & terms</strong> —{' '}
-            <Link href="/privacy" style={{ color: 'var(--gold)' }}>Privacy</Link>
-            {' · '}
-            <Link href="/terms" style={{ color: 'var(--gold)' }}>Terms</Link>
+            {t.rich('topics.legal', {
+              b: (chunks) => <strong>{chunks}</strong>,
+              privacy: (chunks) => <Link href="/privacy" style={{ color: 'var(--gold)' }}>{chunks}</Link>,
+              terms: (chunks) => <Link href="/terms" style={{ color: 'var(--gold)' }}>{chunks}</Link>,
+            })}
           </li>
         </ul>
       </section>
@@ -93,13 +103,17 @@ export default function SupportPage() {
         }}
       >
         <Link href="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-          ← Home
+          {t('nav.home')}
         </Link>
-        {LEGAL_NAV_LINKS.map((link) => (
-          <Link key={link.href} href={link.href} style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            {link.label}
-          </Link>
-        ))}
+        <Link href="/terms" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          {t('nav.terms')}
+        </Link>
+        <Link href="/privacy" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          {t('nav.privacy')}
+        </Link>
+        <Link href="/refund" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          {t('nav.refunds')}
+        </Link>
       </nav>
     </div>
   )

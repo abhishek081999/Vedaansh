@@ -1,10 +1,13 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import type { DashaNode, GrahaData, Rashi, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import type { DashaNode, GrahaData, GrahaId, Rashi, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
 import { SthanaBalaAnalysisPanel } from '@/components/ui/SthanaBalaAnalysisPanel'
 import { KalaBalaAnalysisPanel } from '@/components/ui/KalaBalaAnalysisPanel'
 import { DigDrigChestaAnalysisPanel } from '@/components/ui/DigDrigChestaAnalysisPanel'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 
 const ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 type PlanetCode = (typeof ORDER)[number]
@@ -46,11 +49,20 @@ function statusColor(ratio: number) {
   return 'var(--rose)'
 }
 
-function statusText(ratio: number) {
-  if (ratio >= 1.2) return 'Excellent'
-  if (ratio >= 1.0) return 'Strong'
-  if (ratio >= 0.85) return 'Average'
-  return 'Weak'
+function statusKey(ratio: number): 'excellent' | 'strong' | 'average' | 'weak' {
+  if (ratio >= 1.2) return 'excellent'
+  if (ratio >= 1.0) return 'strong'
+  if (ratio >= 0.85) return 'average'
+  return 'weak'
+}
+
+function bandText(
+  t: (key: string) => string,
+  band: string | undefined,
+  ratio: number,
+) {
+  const known = band === 'excellent' || band === 'strong' || band === 'average' || band === 'weak'
+  return known ? t(`quality.${band}`) : t(`status.${statusKey(ratio)}`)
 }
 
 function toShash(rupa: number) {
@@ -58,16 +70,17 @@ function toShash(rupa: number) {
 }
 
 function ClassicMetricCharts({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
+  const t = useTranslations('chartTools.shadbala')
   const metrics = [
-    { key: 'sthanaBala' as const, title: 'Sthana Bala', scale: 60, decimals: 1 },
-    { key: 'kalaBala' as const, title: 'Kala Bala', scale: 60, decimals: 1 },
-    { key: 'digBala' as const, title: 'Dig Bala', scale: 60, decimals: 1 },
-    { key: 'chestaBala' as const, title: 'Chesta Bala', scale: 60, decimals: 1 },
-    { key: 'drikBala' as const, title: 'Drik Bala', scale: 60, decimals: 1 },
-    { key: 'naisargikaBala' as const, title: 'Naisargika Bala', scale: 60, decimals: 1 },
-    { key: 'totalShash' as const, title: 'Shadbala (Sh)', scale: 1, decimals: 0 },
-    { key: 'total' as const, title: 'Shadbala (R)', scale: 1, decimals: 2 },
-    { key: 'ratio' as const, title: 'Ratio (%)', scale: 100, decimals: 0 },
+    { key: 'sthanaBala' as const, title: t('metric.sthanaBala'), scale: 60, decimals: 1 },
+    { key: 'kalaBala' as const, title: t('metric.kalaBala'), scale: 60, decimals: 1 },
+    { key: 'digBala' as const, title: t('metric.digBala'), scale: 60, decimals: 1 },
+    { key: 'chestaBala' as const, title: t('metric.chestaBala'), scale: 60, decimals: 1 },
+    { key: 'drikBala' as const, title: t('metric.drikBala'), scale: 60, decimals: 1 },
+    { key: 'naisargikaBala' as const, title: t('metric.naisargikaBala'), scale: 60, decimals: 1 },
+    { key: 'totalShash' as const, title: t('metric.totalShash'), scale: 1, decimals: 0 },
+    { key: 'total' as const, title: t('metric.total'), scale: 1, decimals: 2 },
+    { key: 'ratio' as const, title: t('metric.ratio'), scale: 100, decimals: 0 },
   ]
 
   return (
@@ -110,44 +123,47 @@ type WkRow =
   | { kind: 'item'; label: string; get: (p: ShadbalaPlanet) => number }
   | { kind: 'subtotal'; label: string; get: (p: ShadbalaPlanet) => number }
 
-type SummaryRow = { label: string; get: (p: ShadbalaPlanet) => number; fmt: (n: number) => string; strong?: boolean }
+type SummaryRow = { label: string; get: (p: ShadbalaPlanet) => number; fmt: (n: number) => string; strong?: boolean; ratio?: boolean }
 
 function PLWorksheet({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
+  const t = useTranslations('chartTools.shadbala')
+  const { hi } = useLang()
+  const planetName = (id: PlanetCode) => (hi ? GRAHA_HI[id] : PLANET_NAMES[id])
   const rows: WkRow[] = [
-    { kind: 'section', label: 'Sthana (Positional) Bala' },
-    { kind: 'item', label: 'Ochcha Bala', get: (p) => SH(p.details?.sthana?.uccha) },
-    { kind: 'item', label: 'Sapta-vargaja Bala', get: (p) => SH(p.details?.sthana?.saptavargaja) },
-    { kind: 'item', label: 'Ojhayugma Bala', get: (p) => SH(p.details?.sthana?.ojhayugma) },
-    { kind: 'item', label: 'Kendradi Bala', get: (p) => SH(p.details?.sthana?.kendradi) },
-    { kind: 'item', label: 'Drekkana Bala', get: (p) => SH(p.details?.sthana?.drekkana) },
-    { kind: 'subtotal', label: '1. Sthana Bala', get: (p) => SH(p.componentShash?.sthana) },
-    { kind: 'subtotal', label: '2. Dig Bala', get: (p) => SH(p.componentShash?.dig) },
-    { kind: 'section', label: 'Kaala (Temporal) Bala' },
-    { kind: 'item', label: 'Nata-Unnata Bala', get: (p) => SH(p.details?.kala?.natha) },
-    { kind: 'item', label: 'Paksha Bala', get: (p) => SH(p.details?.kala?.paksha) },
-    { kind: 'item', label: 'Tri-Bhaga Bala', get: (p) => SH(p.details?.kala?.tribhaga) },
-    { kind: 'item', label: 'Varsha (Abda) Bala', get: (p) => SH(p.details?.kala?.varsha) },
-    { kind: 'item', label: 'Maasa Bala', get: (p) => SH(p.details?.kala?.maasa) },
-    { kind: 'item', label: 'Vaara Bala', get: (p) => SH(p.details?.kala?.vaara) },
-    { kind: 'item', label: 'Hora Bala', get: (p) => SH(p.details?.kala?.hora) },
-    { kind: 'item', label: 'Ayana Bala', get: (p) => SH(p.details?.kala?.ayana) },
-    { kind: 'item', label: 'Yuddha Bala', get: (p) => SH(p.details?.kala?.yuddha) },
-    { kind: 'subtotal', label: '3. Kaala Bala', get: (p) => SH(p.componentShash?.kala) },
-    { kind: 'subtotal', label: '4. Chesta Bala', get: (p) => SH(p.componentShash?.chesta) },
-    { kind: 'subtotal', label: '5. Naisargika Bala', get: (p) => SH(p.componentShash?.naisargika) },
-    { kind: 'subtotal', label: '6. Drig Bala', get: (p) => SH(p.componentShash?.drik) },
+    { kind: 'section', label: t('wk.sthanaSection') },
+    { kind: 'item', label: t('wk.uccha'), get: (p) => SH(p.details?.sthana?.uccha) },
+    { kind: 'item', label: t('wk.saptavargaja'), get: (p) => SH(p.details?.sthana?.saptavargaja) },
+    { kind: 'item', label: t('wk.ojhayugma'), get: (p) => SH(p.details?.sthana?.ojhayugma) },
+    { kind: 'item', label: t('wk.kendradi'), get: (p) => SH(p.details?.sthana?.kendradi) },
+    { kind: 'item', label: t('wk.drekkana'), get: (p) => SH(p.details?.sthana?.drekkana) },
+    { kind: 'subtotal', label: t('wk.sthanaSub'), get: (p) => SH(p.componentShash?.sthana) },
+    { kind: 'subtotal', label: t('wk.digSub'), get: (p) => SH(p.componentShash?.dig) },
+    { kind: 'section', label: t('wk.kalaSection') },
+    { kind: 'item', label: t('wk.nata'), get: (p) => SH(p.details?.kala?.natha) },
+    { kind: 'item', label: t('wk.paksha'), get: (p) => SH(p.details?.kala?.paksha) },
+    { kind: 'item', label: t('wk.tribhaga'), get: (p) => SH(p.details?.kala?.tribhaga) },
+    { kind: 'item', label: t('wk.varsha'), get: (p) => SH(p.details?.kala?.varsha) },
+    { kind: 'item', label: t('wk.maasa'), get: (p) => SH(p.details?.kala?.maasa) },
+    { kind: 'item', label: t('wk.vaara'), get: (p) => SH(p.details?.kala?.vaara) },
+    { kind: 'item', label: t('wk.hora'), get: (p) => SH(p.details?.kala?.hora) },
+    { kind: 'item', label: t('wk.ayana'), get: (p) => SH(p.details?.kala?.ayana) },
+    { kind: 'item', label: t('wk.yuddha'), get: (p) => SH(p.details?.kala?.yuddha) },
+    { kind: 'subtotal', label: t('wk.kalaSub'), get: (p) => SH(p.componentShash?.kala) },
+    { kind: 'subtotal', label: t('wk.chestaSub'), get: (p) => SH(p.componentShash?.chesta) },
+    { kind: 'subtotal', label: t('wk.naisargikaSub'), get: (p) => SH(p.componentShash?.naisargika) },
+    { kind: 'subtotal', label: t('wk.drigSub'), get: (p) => SH(p.componentShash?.drik) },
   ]
 
   const summary: SummaryRow[] = [
-    { label: 'Total Shadbala', get: (p) => SH(p.totalShash), fmt: (n) => n.toFixed(2), strong: true },
-    { label: 'Shadbala in Rupas', get: (p) => SH(p.total), fmt: (n) => n.toFixed(2), strong: true },
-    { label: 'Minimum requirements', get: (p) => SH(p.required) * 60, fmt: (n) => n.toFixed(0) },
-    { label: '% of required', get: (p) => SH(p.ratio), fmt: (n) => n.toFixed(2) },
-    { label: 'Sthana Bala % req.', get: (p) => SH(p.componentShash?.sthana) / COMPONENT_MIN_SHASH.sthana, fmt: (n) => n.toFixed(2) },
-    { label: 'Dig Bala % req.', get: (p) => SH(p.componentShash?.dig) / COMPONENT_MIN_SHASH.dig, fmt: (n) => n.toFixed(2) },
-    { label: 'Kaala Bala % req.', get: (p) => SH(p.componentShash?.kala) / COMPONENT_MIN_SHASH.kala, fmt: (n) => n.toFixed(2) },
-    { label: 'Chesta Bala % req.', get: (p) => SH(p.componentShash?.chesta) / COMPONENT_MIN_SHASH.chesta, fmt: (n) => n.toFixed(2) },
-    { label: 'Ayana Bala % req.', get: (p) => SH(p.details?.kala?.ayana) / COMPONENT_MIN_SHASH.ayana, fmt: (n) => n.toFixed(2) },
+    { label: t('wk.total'), get: (p) => SH(p.totalShash), fmt: (n) => n.toFixed(2), strong: true },
+    { label: t('wk.rupas'), get: (p) => SH(p.total), fmt: (n) => n.toFixed(2), strong: true },
+    { label: t('wk.minimum'), get: (p) => SH(p.required) * 60, fmt: (n) => n.toFixed(0), ratio: true },
+    { label: t('wk.pctRequired'), get: (p) => SH(p.ratio), fmt: (n) => n.toFixed(2), ratio: true },
+    { label: t('wk.sthanaPct'), get: (p) => SH(p.componentShash?.sthana) / COMPONENT_MIN_SHASH.sthana, fmt: (n) => n.toFixed(2), ratio: true },
+    { label: t('wk.digPct'), get: (p) => SH(p.componentShash?.dig) / COMPONENT_MIN_SHASH.dig, fmt: (n) => n.toFixed(2), ratio: true },
+    { label: t('wk.kalaPct'), get: (p) => SH(p.componentShash?.kala) / COMPONENT_MIN_SHASH.kala, fmt: (n) => n.toFixed(2), ratio: true },
+    { label: t('wk.chestaPct'), get: (p) => SH(p.componentShash?.chesta) / COMPONENT_MIN_SHASH.chesta, fmt: (n) => n.toFixed(2), ratio: true },
+    { label: t('wk.ayanaPct'), get: (p) => SH(p.details?.kala?.ayana) / COMPONENT_MIN_SHASH.ayana, fmt: (n) => n.toFixed(2), ratio: true },
   ]
 
   const cell = (v: number, opts?: { strong?: boolean }) => (
@@ -170,10 +186,10 @@ function PLWorksheet({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem', minWidth: 640 }}>
         <thead>
           <tr style={{ borderBottom: '2px solid var(--border-bright)' }}>
-            <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem', position: 'sticky', left: 0, background: 'var(--surface-1)' }}>Bala (Shashtiamsas)</th>
+            <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem', position: 'sticky', left: 0, background: 'var(--surface-1)' }}>{t('balaHeader')}</th>
             {ORDER.map((id) => (
               <th key={id} style={{ textAlign: 'center', padding: '0.35rem 0.3rem', color: 'var(--text-gold)', fontWeight: 700 }}>
-                {PLANET_NAMES[id]}
+                {planetName(id)}
               </th>
             ))}
           </tr>
@@ -220,7 +236,7 @@ function PLWorksheet({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
               {ORDER.map((id) => {
                 const p = planets[id]
                 const v = p ? row.get(p) : 0
-                const isReqRatio = row.label.includes('%') || row.label.includes('required')
+                const isReqRatio = Boolean(row.ratio)
                 const color = isReqRatio && v < 1 ? 'var(--rose)' : row.strong ? 'var(--text-primary)' : 'var(--text-secondary)'
                 return (
                   <td key={`${row.label}-${id}`} style={{ textAlign: 'center', padding: '0.28rem 0.3rem', fontFamily: 'var(--font-mono)', fontWeight: row.strong ? 700 : 500, color, whiteSpace: 'nowrap' }}>
@@ -233,11 +249,19 @@ function PLWorksheet({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
         </tbody>
       </table>
       <div style={{ marginTop: '0.5rem', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-        Values in Shashtiamsas (1 Rupa = 60). Minimum required per bala — Sthana 165, Dig 35, Kaala 112, Chesta 50, Ayana 30.
-        A ratio below 1.00 (shown in red) means the planet/bala is under the classical requirement.
+        {t('footnote')}
       </div>
     </div>
   )
+}
+
+const COMP_LABEL: Record<string, 'comp.sthana' | 'comp.dig' | 'comp.kala' | 'comp.chesta' | 'comp.naisargika' | 'comp.drik'> = {
+  sthanaBala: 'comp.sthana',
+  digBala: 'comp.dig',
+  kalaBala: 'comp.kala',
+  chestaBala: 'comp.chesta',
+  naisargikaBala: 'comp.naisargika',
+  drikBala: 'comp.drik',
 }
 
 function PolarHex({
@@ -245,6 +269,7 @@ function PolarHex({
 }: {
   planet?: ShadbalaPlanet
 }) {
+  const t = useTranslations('chartTools.shadbala')
   const values = COMPONENTS.map((c) => Math.max(0, Number(planet?.[c.key] ?? 0)))
   const size = 170
   const center = size / 2
@@ -276,7 +301,7 @@ function PolarHex({
         const y = center + Math.sin(angle) * (radius + 12)
         return (
           <text key={c.key as string} x={x} y={y} textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--text-muted)', fontSize: 9, fontWeight: 700 }}>
-            {c.label}
+            {t(COMP_LABEL[c.key as string])}
           </text>
         )
       })}
@@ -312,6 +337,13 @@ export function ShadbalaTable({
   showKalaAnalysis?: boolean
   showDigDrigChestaAnalysis?: boolean
 }) {
+  const t = useTranslations('chartTools.shadbala')
+  const { hi } = useLang()
+  const planetName = (id: string) => {
+    const code = id as PlanetCode
+    return hi && code in GRAHA_HI ? GRAHA_HI[code as GrahaId] : (PLANET_NAMES[code] ?? id)
+  }
+  const labelOf = (band: string | undefined, ratio: number) => bandText((key) => t(key as 'status.excellent'), band, ratio)
   const [viewMode, setViewMode] = useState<ViewMode>(preferClassicCharts ? 'classic' : 'modern')
   const [active, setActive] = useState<PlanetCode>('Su')
   const [chartView, setChartView] = useState<'component' | 'classic_graphs'>(preferClassicCharts ? 'classic_graphs' : 'component')
@@ -333,18 +365,18 @@ export function ShadbalaTable({
   if (variant === 'widget') {
     return (
       <div className="card" style={{ padding: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-        <div className="label-caps">Shadbala Snapshot</div>
+        <div className="label-caps">{t('snapshot')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: '0.45rem' }}>
           <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', padding: '0.45rem' }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Strongest</div>
-            <div style={{ marginTop: '0.15rem', fontWeight: 700 }}>{PLANET_NAMES[strongest]}</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{t('strongest')}</div>
+            <div style={{ marginTop: '0.15rem', fontWeight: 700 }}>{planetName(strongest)}</div>
           </div>
           <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', padding: '0.45rem' }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Weakest</div>
-            <div style={{ marginTop: '0.15rem', fontWeight: 700 }}>{PLANET_NAMES[weakest]}</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{t('weakest')}</div>
+            <div style={{ marginTop: '0.15rem', fontWeight: 700 }}>{planetName(weakest)}</div>
           </div>
           <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', padding: '0.45rem' }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Avg Ratio</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{t('avgRatio')}</div>
             <div style={{ marginTop: '0.15rem', fontWeight: 700 }}>{avgRatio.toFixed(2)}x</div>
           </div>
         </div>
@@ -382,12 +414,12 @@ export function ShadbalaTable({
       <div className="card" style={{ padding: '0.85rem 1rem', background: viewMode === 'classic' ? 'linear-gradient(135deg, rgba(132,27,27,0.12), rgba(166,124,0,0.08))' : 'linear-gradient(135deg, rgba(139,124,246,0.12), rgba(201,168,76,0.08))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
-            <div className="label-caps">{viewMode === 'classic' ? 'Classical Shadbala Worksheet (R-Sync)' : 'Shadbala Analytics (R-Sync)'}</div>
+            <div className="label-caps">{viewMode === 'classic' ? t('classicalTitle') : t('analyticsTitle')}</div>
             <div style={{ marginTop: '0.2rem', fontWeight: 700, fontSize: '0.9rem' }}>
-              Strongest: {PLANET_NAMES[strongest]} · Weakest: {PLANET_NAMES[weakest]} · Mean ratio: {avgRatio.toFixed(2)}x
+              {t('summary', { strong: planetName(strongest), weak: planetName(weakest), ratio: avgRatio.toFixed(2) })}
             </div>
             <div style={{ marginTop: '0.1rem', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>
-              Profile: {shadbala.generatedProfile ?? 'balanced'}
+              {t('profile', { name: t(`profileName.${shadbala.generatedProfile ?? 'balanced'}`) })}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
@@ -416,8 +448,8 @@ export function ShadbalaTable({
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.8rem' }}>{PLANET_SYMBOL[id]} {PLANET_NAMES[id]}</div>
-                <div style={{ fontSize: '0.66rem', fontWeight: 700, color: statusColor(p.ratio) }}>{statusText(p.ratio)}</div>
+                <div style={{ fontWeight: 700, fontSize: '0.8rem' }}>{PLANET_SYMBOL[id]} {planetName(id)}</div>
+                <div style={{ fontSize: '0.66rem', fontWeight: 700, color: statusColor(p.ratio) }}>{labelOf(undefined, p.ratio)}</div>
               </div>
               <div style={{ marginTop: '0.15rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: statusColor(p.ratio) }}>
                 {p.total.toFixed(3)} R
@@ -432,7 +464,7 @@ export function ShadbalaTable({
         <ClassicMetricCharts planets={planets} />
       ) : (
         <div className="card" style={{ padding: '0.8rem' }}>
-          <div className="label-caps" style={{ marginBottom: '0.45rem' }}>Component graph · {PLANET_NAMES[active]}</div>
+          <div className="label-caps" style={{ marginBottom: '0.45rem' }}>{t('componentGraph', { planet: planetName(active) })}</div>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 items-center">
             <div style={{ display: 'flex', justifyContent: 'center' }}><PolarHex planet={activePlanet} /></div>
             <div style={{ display: 'grid', gap: '0.38rem' }}>
@@ -442,7 +474,7 @@ export function ShadbalaTable({
                 return (
                   <div key={c.key as string}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
-                      <span style={{ fontWeight: 700 }}>{c.label}</span>
+                      <span style={{ fontWeight: 700 }}>{t(COMP_LABEL[c.key as string])}</span>
                       <span style={{ fontFamily: 'var(--font-mono)' }}>{val.toFixed(3)} R ({toShash(val).toFixed(1)} Sh)</span>
                     </div>
                     <div style={{ marginTop: '0.15rem', height: 8, borderRadius: 99, background: 'var(--surface-3)', overflow: 'hidden' }}>
@@ -459,7 +491,7 @@ export function ShadbalaTable({
       <div className="card" style={{ padding: '0.8rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.55rem' }}>
           <div className="label-caps">
-            {matrixView === 'worksheet' ? 'Shadbala Worksheet · Parashara (Shashtiamsas)' : 'Classical matrix (Rupas)'}
+            {matrixView === 'worksheet' ? t('worksheetTitle') : t('rupasTitle')}
           </div>
           <div style={{ display: 'inline-flex', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
             {(['worksheet', 'rupas'] as const).map((m) => (
@@ -476,7 +508,7 @@ export function ShadbalaTable({
                   color: matrixView === m ? 'var(--text-gold)' : 'var(--text-muted)',
                 }}
               >
-                {m === 'worksheet' ? 'Full worksheet' : 'Rupas summary'}
+                {m === 'worksheet' ? t('fullWorksheet') : t('rupasSummary')}
               </button>
             ))}
           </div>
@@ -488,7 +520,7 @@ export function ShadbalaTable({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-bright)' }}>
-                <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem' }}>Component</th>
+                <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem' }}>{t('component')}</th>
                 {ORDER.map((id) => (
                   <th key={id} style={{ textAlign: 'center', padding: '0.35rem 0.25rem' }}>{id}</th>
                 ))}
@@ -502,24 +534,24 @@ export function ShadbalaTable({
                 </tr>
               ))}
               <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>Total (Rupas)</td>
+                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>{t('totalRupas')}</td>
                 {ORDER.map((id) => <td key={`t-${id}`} style={{ textAlign: 'center', padding: '0.35rem 0.25rem', fontWeight: 700, color: statusColor(planets[id]?.ratio ?? 0) }}>{(planets[id]?.total ?? 0).toFixed(3)}</td>)}
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>Total (Sh)</td>
+                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>{t('totalSh')}</td>
                 {ORDER.map((id) => <td key={`sh-${id}`} style={{ textAlign: 'center', padding: '0.35rem 0.25rem' }}>{(planets[id]?.totalShash ?? 0).toFixed(1)}</td>)}
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>Required</td>
+                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>{t('required')}</td>
                 {ORDER.map((id) => <td key={`r-${id}`} style={{ textAlign: 'center', padding: '0.35rem 0.25rem' }}>{(planets[id]?.required ?? 0).toFixed(2)}</td>)}
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>Ratio</td>
+                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>{t('ratio')}</td>
                 {ORDER.map((id) => <td key={`ra-${id}`} style={{ textAlign: 'center', padding: '0.35rem 0.25rem', color: statusColor(planets[id]?.ratio ?? 0), fontWeight: 700 }}>{(planets[id]?.ratio ?? 0).toFixed(3)}x</td>)}
               </tr>
               <tr>
-                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>Band</td>
-                {ORDER.map((id) => <td key={`b-${id}`} style={{ textAlign: 'center', padding: '0.35rem 0.25rem', fontWeight: 700 }}>{planets[id]?.qualityBand ?? statusText(planets[id]?.ratio ?? 0)}</td>)}
+                <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>{t('band')}</td>
+                {ORDER.map((id) => <td key={`b-${id}`} style={{ textAlign: 'center', padding: '0.35rem 0.25rem', fontWeight: 700 }}>{labelOf(planets[id]?.qualityBand, planets[id]?.ratio ?? 0)}</td>)}
               </tr>
             </tbody>
           </table>
@@ -529,30 +561,30 @@ export function ShadbalaTable({
 
       {!hideDetails && (
         <div className="card" style={{ padding: '0.8rem' }}>
-          <div className="label-caps" style={{ marginBottom: '0.45rem' }}>Planet rankings</div>
+          <div className="label-caps" style={{ marginBottom: '0.45rem' }}>{t('rankings')}</div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-bright)' }}>
-                  <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem' }}>Rank</th>
-                  <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem' }}>Planet</th>
-                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>Total (R)</th>
-                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>Total (Sh)</th>
-                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>Required</th>
-                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>Ratio</th>
-                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>Band</th>
+                  <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem' }}>{t('rank')}</th>
+                  <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem' }}>{t('planet')}</th>
+                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>{t('totalR')}</th>
+                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>{t('totalSh')}</th>
+                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>{t('required')}</th>
+                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>{t('ratio')}</th>
+                  <th style={{ textAlign: 'right', padding: '0.35rem 0.45rem' }}>{t('band')}</th>
                 </tr>
               </thead>
               <tbody>
                 {ranked.map((p, i) => (
                   <tr key={p.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                     <td style={{ padding: '0.35rem 0.45rem', fontWeight: 700 }}>#{i + 1}</td>
-                    <td style={{ padding: '0.35rem 0.45rem' }}>{PLANET_NAMES[p.id as PlanetCode]}</td>
+                    <td style={{ padding: '0.35rem 0.45rem' }}>{planetName(p.id)}</td>
                     <td style={{ padding: '0.35rem 0.45rem', textAlign: 'right', fontWeight: 700 }}>{p.total.toFixed(3)}</td>
                     <td style={{ padding: '0.35rem 0.45rem', textAlign: 'right' }}>{p.totalShash.toFixed(1)}</td>
                     <td style={{ padding: '0.35rem 0.45rem', textAlign: 'right' }}>{p.required.toFixed(2)}</td>
                     <td style={{ padding: '0.35rem 0.45rem', textAlign: 'right', color: statusColor(p.ratio), fontWeight: 700 }}>{p.ratio.toFixed(3)}x</td>
-                    <td style={{ padding: '0.35rem 0.45rem', textAlign: 'right', color: statusColor(p.ratio), fontWeight: 700 }}>{p.qualityBand ?? statusText(p.ratio)}</td>
+                    <td style={{ padding: '0.35rem 0.45rem', textAlign: 'right', color: statusColor(p.ratio), fontWeight: 700 }}>{labelOf(p.qualityBand, p.ratio)}</td>
                   </tr>
                 ))}
               </tbody>

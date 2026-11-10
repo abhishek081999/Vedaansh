@@ -4,7 +4,7 @@ import { IntlScope } from '@/components/providers/IntlScope'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { numerologyIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -28,13 +28,14 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/numerology', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/numerology', locale, metadataEn, {
     title: 'वैदिक अंक ज्योतिष — फल, उपाय और नाम अंक कैलकुलेटर',
     description: 'पूरा अंक ज्योतिष: फल, उपाय, मूलांक/भाग्यांक/नामांक, लो शु, कुआ, शिशु नाम, व्यवसाय मिलान, दशा समय, विवाह खिड़कियाँ, दैनिक अंक मुहूर्त, ब्रांड/प्लेट अंक, यंत्र और पीडीएफ निर्यात।',
     ogTitle: 'वैदिक अंक ज्योतिष — पूरा अंक ज्योतिष | Vedaansh',
     ogDescription: 'वैदिक अंक ज्योतिष से फल, उपाय, उन्नत उपकरण, दैनिक अंक मुहूर्त और पीडीएफ रिपोर्ट।',
     keywords: ['वैदिक अंक ज्योतिष', 'अंक ज्योतिष', 'मूलांक', 'भाग्यांक', 'नामांक', 'अंक फल', 'अंक उपाय', 'कैल्डियन अंक', 'लो शु ग्रिड', 'कुआ अंक', 'व्यक्तिगत वर्ष', 'शिशु नाम अंक', 'वाहन अंक', 'यंत्र', 'अंक मुहूर्त'],
-  })
+  }), locale, '/numerology/opengraph-image', 'वैदिक अंक ज्योतिष — Vedaansh')
 }
 
 export default async function NumerologyLayout({ children }: { children: React.ReactNode }) {

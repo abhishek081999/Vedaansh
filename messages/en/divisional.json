@@ -817,7 +817,8 @@
       "tenthLordPill": "10L {name} D10 {points}",
       "lagnaLordPill": "AL {name} D10 {points}",
       "openSolarReturn": " · Open Solar Return for full Varshaphal D10.",
-      "asOf": "As of {date}"
+      "asOf": "As of {date}",
+      "live": "Live"
     },
     "adv": {
       "title": "Advanced technical",

@@ -1,5 +1,6 @@
 'use client'
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import React, { useEffect } from 'react'
 import Image from 'next/image'
 export default function GlobalError({
@@ -9,6 +10,7 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const t = useTranslations('common.errorPage')
   useEffect(() => {
     console.error('[Vedaansh error]', error)
   }, [error])
@@ -35,7 +37,7 @@ export default function GlobalError({
           textTransform: 'uppercase',
           margin: 0,
         }}>
-          Something went wrong
+          {t('eyebrow')}
         </p>
         <h1 style={{
           fontFamily: 'var(--font-display, "Newsreader", serif)',
@@ -45,7 +47,7 @@ export default function GlobalError({
           margin: 0,
           lineHeight: 1.2,
         }}>
-          An unexpected error occurred
+          {t('title')}
         </h1>
         <p style={{
           color: 'var(--text-muted, #7a7498)',
@@ -54,7 +56,7 @@ export default function GlobalError({
           margin: '0.25rem auto 0',
           lineHeight: 1.6,
         }}>
-          The stars aligned unexpectedly. Refreshing usually fixes it.
+          {t('body')}
         </p>
       </div>
 
@@ -73,7 +75,7 @@ export default function GlobalError({
             letterSpacing: '0.02em',
           }}
         >
-          Try Again
+          {t('tryAgain')}
         </button>
         <Link
           href="/"
@@ -88,13 +90,13 @@ export default function GlobalError({
             textDecoration: 'none',
           }}
         >
-          Go Home
+          {t('goHome')}
         </Link>
       </div>
 
       {error.digest && (
         <p style={{ fontSize: '0.72rem', color: 'var(--text-muted, #7a7498)', fontFamily: 'monospace', marginTop: '0.5rem' }}>
-          Error ID: {error.digest}
+          {t('errorId', { digest: error.digest ?? '' })}
         </p>
       )}
     </div>

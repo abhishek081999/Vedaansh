@@ -7,6 +7,9 @@
 
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { RASHI_HI } from '@/i18n/jyotish'
+import { overlay, type EngineLang } from '@/lib/engine/lang'
+import { LAGNA_PAIR_NOTES_HI, LAGNA_RELATIONS_HI } from '@/lib/engine/locale/lagnaPairDynamics.hi'
 
 export type LagnaRelationKind =
   | 'same'
@@ -78,7 +81,7 @@ function signDistance(a: Rashi, b: Rashi): number {
   return (b - a + 12) % 12
 }
 
-export function getLagnaRelation(a: Rashi, b: Rashi): LagnaRelation {
+export function getLagnaRelation(a: Rashi, b: Rashi, lang: EngineLang = 'en'): LagnaRelation {
   const d = signDistance(a, b)
   let kind: LagnaRelationKind
   if (d === 0) kind = 'same'
@@ -88,7 +91,7 @@ export function getLagnaRelation(a: Rashi, b: Rashi): LagnaRelation {
   else if (d === 4 || d === 8) kind = 'trine'
   else if (d === 5 || d === 7) kind = 'six-eight'
   else kind = 'opposite'
-  return { kind, ...RELATIONS[kind] }
+  return { kind, ...overlay(RELATIONS[kind], LAGNA_RELATIONS_HI[kind], lang) }
 }
 
 /** Notes provided in the ascendant teaching sessions. Extend as more pairs are provided. */
@@ -106,19 +109,21 @@ export const LAGNA_PAIR_NOTES: LagnaPairNote[] = [
   { pair: [9, 12], text: 'Sagittarius often seeks emotional comfort from Pisces and in return asks Pisces for clarity, direction and courage.' },
 ]
 
-export function getLagnaPairNotes(a: Rashi, b: Rashi): string[] {
+export function getLagnaPairNotes(a: Rashi, b: Rashi, lang: EngineLang = 'en'): string[] {
   const lo = Math.min(a, b)
   const hi = Math.max(a, b)
-  return LAGNA_PAIR_NOTES.filter((n) => n.pair[0] === lo && n.pair[1] === hi).map((n) => n.text)
+  return LAGNA_PAIR_NOTES
+    .filter((n) => n.pair[0] === lo && n.pair[1] === hi)
+    .map((n) => (lang === 'hi' ? LAGNA_PAIR_NOTES_HI[`${lo}-${hi}`] ?? n.text : n.text))
 }
 
-export function getLagnaPairDynamics(a: Rashi, b: Rashi): LagnaPairDynamics {
+export function getLagnaPairDynamics(a: Rashi, b: Rashi, lang: EngineLang = 'en'): LagnaPairDynamics {
   return {
     a,
     b,
-    nameA: RASHI_NAMES[a],
-    nameB: RASHI_NAMES[b],
-    relation: getLagnaRelation(a, b),
-    notes: getLagnaPairNotes(a, b),
+    nameA: lang === 'hi' ? RASHI_HI[a] : RASHI_NAMES[a],
+    nameB: lang === 'hi' ? RASHI_HI[b] : RASHI_NAMES[b],
+    relation: getLagnaRelation(a, b, lang),
+    notes: getLagnaPairNotes(a, b, lang),
   }
 }

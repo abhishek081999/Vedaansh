@@ -218,7 +218,7 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
               <article key={w.id} className={cn(styles.insightCard, w.live ? styles.insightHighlight : styles.insightInfo)}>
                 <h4 className={styles.insightTitle}>
                   {w.title}
-                  {w.live && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>Live</span>}
+                  {w.live && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{t('live')}</span>}
                 </h4>
                 <p style={{ margin: '0 0 0.35rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   {w.start} → {w.end}

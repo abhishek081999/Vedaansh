@@ -1,9 +1,10 @@
 # Vedaansh — System Design
 
 **Product:** `jyotish-platform` v2.6.0 · Next.js 16.4.2 · Zod 4.6.7  
-**Synced:** 2026-11-03  
+**Synced:** 2026-11-10  
 **App:** Vedic astrology (Jyotish) SaaS — birth charts, dashas, vargas, panchang, muhurta, CRM, admin  
-**Source of truth:** live codebase (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`)
+**Source of truth:** live codebase (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`)  
+**i18n:** Public Hindi via `/hi/...` (`src/proxy.ts` + `x-vedaansh-locale`); catalogues in `messages/{en,hi}/`; engine overlays in `src/lib/engine/locale/*.hi.ts`. Admin / Social Studio remain English.
 
 ---
 
@@ -95,15 +96,16 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 
 Runs before matched requests, including RSC/prefetch flight requests (those skip only the CSP step):
 
-1. Rate-limit sign-in POSTs (`/api/auth/callback/credentials`, `/api/auth/signin`)
-2. Admin pages/APIs → require `role === 'admin'`
-3. Protected APIs → require session
-4. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`)
-5. Platinum APIs/pages → platinum only (`/research`, `/api/research` — **reserved; no route files and no UI**)
-6. Protected pages → login redirect
-7. `withDocumentCsp` — per-request CSP nonces
+1. Locale: strip `/hi` prefix, rewrite to the same page, set `x-vedaansh-locale` (and honor `NEXT_LOCALE` cookie on unprefixed links). Pages are **not** under `app/[locale]`.
+2. Rate-limit sign-in POSTs (`/api/auth/callback/credentials`, `/api/auth/signin`)
+3. Admin pages/APIs → require `role === 'admin'`
+4. Protected APIs → require session
+5. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`)
+6. Platinum APIs/pages → platinum only (`/research`, `/api/research` — **reserved; no route files and no UI**)
+7. Protected pages → login redirect
+8. `withDocumentCsp` — per-request CSP nonces
 
-Protected page prefixes: `/my`, `/muhurta`, `/research`, `/account`. `/chart/[slug]` share links are public.
+Protected page prefixes: `/my`, `/muhurta`, `/research`, `/account`. `/chart/[slug]` share links are public. Public visitor chrome is bilingual (`messages/{en,hi}/` + engine locale overlays); admin / Social Studio remain English.
 
 Route lists live in `src/lib/security/proxyRules.ts` and match whole path segments. `/api/subscription/*` and the ACG, relocate, and varshaphal APIs are public. `/api/milan/*` and `/api/marriage/gochar-windows` are gated in the route handlers.
 

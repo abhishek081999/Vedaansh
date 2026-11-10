@@ -91,16 +91,21 @@ export async function enforceRateLimit(
 
   try {
     const current = await client.incr(key)
-    if (current === 1) {
+    // Always ensure a TTL. If `expire` failed after the first incr (or a
+    // concurrent request raced past current===1), the counter would stick
+    // forever and permanently 429 the IP — that blanked panchang/rashifal
+    // and the live graha strip once the key lost its expiry.
+    let ttl = await client.ttl(key)
+    if (current === 1 || ttl < 0) {
       await client.expire(key, config.windowSeconds)
+      ttl = config.windowSeconds
     }
-    const ttl = Math.max(0, await client.ttl(key))
     const remaining = Math.max(0, config.limit - current)
     return {
       allowed: current <= config.limit,
       limit: config.limit,
       remaining,
-      retryAfterSeconds: ttl,
+      retryAfterSeconds: Math.max(0, ttl),
     }
   } catch (err) {
     const msg = (typeof err === 'object' && err !== null ? (err as { message?: string }).message : '') || ''

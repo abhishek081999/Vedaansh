@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   GRAHA_NAMES,
   NAKSHATRA_NAMES,
@@ -15,7 +16,7 @@ import {
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
 import type { EngineLang } from '@/lib/engine/lang'
-import { termHi } from '@/i18n/jyotish'
+import { GRAHA_HI, NAKSHATRA_HI, NAKSHATRA_SHORT_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { cn } from '@/lib/ui/cn'
 import styles from './NakshatraWheel.module.css'
 
@@ -53,16 +54,21 @@ function upright(mid: number): number {
   return mid > 90 && mid < 270 ? mid + 180 : mid
 }
 
-function signsFor(index: number): string {
+function rashiLabel(rashi: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? RASHI_HI[rashi] : RASHI_NAMES[rashi]
+}
+
+function signsFor(index: number, lang: EngineLang): string {
   const start = index * SPAN
   const end = start + SPAN - 1e-6
   const a = ((Math.floor(start / 30) % 12) + 1) as Rashi
   const b = ((Math.floor(end / 30) % 12) + 1) as Rashi
-  return a === b ? RASHI_NAMES[a] : `${RASHI_NAMES[a]} · ${RASHI_NAMES[b]}`
+  return a === b ? rashiLabel(a, lang) : `${rashiLabel(a, lang)} · ${rashiLabel(b, lang)}`
 }
 
-function markerName(id: string): string {
-  if (id === 'As') return 'Lagna'
+function markerName(id: string, lang: EngineLang): string {
+  if (id === 'As') return lang === 'hi' ? termHi('Lagna') : 'Lagna'
+  if (lang === 'hi') return GRAHA_HI[id as GrahaId] ?? id
   return GRAHA_NAMES[id as GrahaId] ?? id
 }
 
@@ -83,9 +89,11 @@ export function NakshatraWheel({
   markers: NakshatraMarker[]
   lang?: EngineLang
 }) {
+  const t = useTranslations('nakshatra.chart')
   const [selected, setSelected] = useState(birthIndex)
   const active = ((selected % 27) + 27) % 27
   const label = (en: string) => (lang === 'hi' ? termHi(en) : en)
+  const hi = lang === 'hi'
   const chars = useMemo(() => {
     const pada = active === birthIndex ? birthPada : (markers.find(m => m.nakshatraIndex === active)?.pada ?? 1)
     return getNakshatraCharacteristics(active, pada, lang)
@@ -107,7 +115,7 @@ export function NakshatraWheel({
 
   return (
     <div className={styles.wrap}>
-      <svg className={styles.wheel} width="100%" viewBox="-48 -48 536 536" role="group" aria-label="All 27 nakshatras, clockwise from Ashwini">
+      <svg className={styles.wheel} width="100%" viewBox="-48 -48 536 536" role="group" aria-label={t('wheelAria')}>
         {Array.from({ length: 12 }, (_, i) => {
           const a0 = i * 30
           const mid = a0 + 15
@@ -123,7 +131,7 @@ export function NakshatraWheel({
                 dominantBaseline="middle"
                 transform={`rotate(${upright(mid)} ${lx} ${ly})`}
               >
-                {RASHI_SHORT[(i + 1) as Rashi]}
+                {hi ? RASHI_HI[(i + 1) as Rashi] : RASHI_SHORT[(i + 1) as Rashi]}
               </text>
             </g>
           )
@@ -151,7 +159,7 @@ export function NakshatraWheel({
                 tabIndex={0}
                 role="button"
                 aria-pressed={on}
-                aria-label={`${name}${birth ? ', birth star' : ''}`}
+                aria-label={`${hi ? NAKSHATRA_HI[i] : name}${birth ? t('birthStarAria') : ''}`}
                 onClick={() => setSelected(i)}
                 onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -160,7 +168,7 @@ export function NakshatraWheel({
                   }
                 }}
               >
-                <title>{name}</title>
+                <title>{hi ? NAKSHATRA_HI[i] : name}</title>
               </path>
               <text
                 className={cn(styles.starLabel, birth && styles.starLabelBirth, on && styles.starLabelOn)}
@@ -171,7 +179,7 @@ export function NakshatraWheel({
                 transform={`rotate(${upright(mid)} ${lx} ${ly})`}
                 pointerEvents="none"
               >
-                {NAKSHATRA_SHORT[i]}
+                {hi ? NAKSHATRA_SHORT_HI[i] : NAKSHATRA_SHORT[i]}
               </text>
               {occupants.slice(0, 3).map((marker, n) => {
                 const [px, py] = pt(mid, STAR_INNER + 14 + n * 11)
@@ -198,32 +206,32 @@ export function NakshatraWheel({
           {chars.name}
         </text>
         <text className={styles.hubSub} x={CX} y={CY + 14} textAnchor="middle">
-          {active === birthIndex ? `Janma · pada ${birthPada}` : hubPada ? `Pada ${hubPada}` : GRAHA_NAMES[chars.lord]}
+          {active === birthIndex ? t('janmaPada', { pada: birthPada }) : hubPada ? t('padaHub', { pada: hubPada }) : (hi ? GRAHA_HI[chars.lord] : GRAHA_NAMES[chars.lord])}
         </text>
       </svg>
 
       <div className={styles.meta}>
         <div className={styles.metaTop}>
           <span className={styles.metaName}>{chars.name}</span>
-          {active === birthIndex && <span className={styles.metaPada}>Birth star · pada {birthPada}</span>}
+          {active === birthIndex && <span className={styles.metaPada}>{t('birthStarPada', { pada: birthPada })}</span>}
         </div>
         <p className={styles.metaLine}>
-          Lord <strong>{label(GRAHA_NAMES[chars.lord])}</strong>
-          {' · '}{signsFor(active)}
+          {t('lordWord')} <strong>{hi ? GRAHA_HI[chars.lord] : label(GRAHA_NAMES[chars.lord])}</strong>
+          {' · '}{signsFor(active, lang)}
           {' · '}{label(chars.gana)}
           {' · '}{chars.deity}
         </p>
         <p className={styles.metaLine}>
           {here.length === 0
-            ? 'No planet or lagna in this star.'
-            : here.map(m => `${markerName(m.id)} pada ${m.pada}`).join(' · ')}
+            ? t('emptyStar')
+            : here.map(m => t('occupant', { name: markerName(m.id, lang), pada: m.pada })).join(' · ')}
         </p>
       </div>
 
       <div className={styles.legend}>
-        <span className={styles.legendItem}><span className={cn(styles.swatch, styles.swatchBirth)} /> Birth star</span>
-        <span className={styles.legendItem}><span className={cn(styles.swatch, styles.swatchPanchaka)} /> Panchaka</span>
-        <span className={styles.legendItem}>Mo Moon · As Lagna</span>
+        <span className={styles.legendItem}><span className={cn(styles.swatch, styles.swatchBirth)} /> {t('legendBirth')}</span>
+        <span className={styles.legendItem}><span className={cn(styles.swatch, styles.swatchPanchaka)} /> {t('legendPanchaka')}</span>
+        <span className={styles.legendItem}>Mo {hi ? GRAHA_HI.Mo : 'Moon'} · As {hi ? termHi('Lagna') : 'Lagna'}</span>
       </div>
     </div>
   )

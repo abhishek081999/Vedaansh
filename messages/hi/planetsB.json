@@ -89,6 +89,23 @@
       "natal": "जन्मकालीन",
       "houses": "भाव",
       "signs": "राशियाँ"
+    },
+    "scopeAria": "किसके लिए दिखाएँ",
+    "scopeChart": "आपकी कुंडली ({count})",
+    "scopeAll": "सभी · संदर्भ ({count})",
+    "profile": {
+      "dignity": "गरिमा",
+      "houseDrishti": "भाव {n} · दृष्टि",
+      "aspects": "दृष्टि {houses}",
+      "nakshatra": "नक्षत्र",
+      "shadbala": "षड्बल",
+      "rupa": "/ {n} रूप",
+      "strengthOf": "आवश्यक बल का {n}%",
+      "pada": "पद",
+      "wheelAria": "भाव {house} में; भाव {houses} पर दृष्टि",
+      "nakshatraN": "नक्षत्र {n}",
+      "starPada": "{name} पद {pada}",
+      "lagnaUp": "लग्न ↑"
     }
   },
   "energy": {

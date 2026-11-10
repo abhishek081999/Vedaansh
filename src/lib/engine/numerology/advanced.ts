@@ -8,7 +8,15 @@
 
 import type { GrahaId, Rashi } from '@/types/astrology'
 import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
 import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { grahaName, nakshatraName, rashiName } from '@/i18n/jyotish'
+import {
+  ADVANCED_HI,
+  BODY_ZONE_HI,
+  INCLUSION_EFFECT_HI,
+  YANTRA_NAME_HI,
+} from '@/lib/engine/locale/numerologyExtras.hi'
 import {
   getNumberFriendship,
   numberHarmony,
@@ -107,16 +115,26 @@ export interface CheiroLabels {
   note: string
 }
 
-export function getCheiroLabels(moolank: CoreNumber, bhagyank: CoreNumber): CheiroLabels {
+export function getCheiroLabels(moolank: CoreNumber, bhagyank: CoreNumber, lang: EngineLang = 'en'): CheiroLabels {
   const essence = reduceToCore(moolank + bhagyank) as CoreNumber
+  const hi = lang === 'hi'
+  const p = (n: CoreNumber) => getNumberProfile(n, lang).planet
   return {
     driver: moolank,
     conductor: bhagyank,
     essence,
-    driverLabel: `Driver ${moolank} — how you act (${NUMBER_PROFILES[moolank].planet})`,
-    conductorLabel: `Conductor ${bhagyank} — how life responds (${NUMBER_PROFILES[bhagyank].planet})`,
-    essenceLabel: `Essence ${essence} — combined vibration (${NUMBER_PROFILES[essence].planet})`,
-    note: 'Cheiro terms: Driver = birth-day root (Moolank), Conductor = full-date root (Bhagyank), Essence = Driver + Conductor.',
+    driverLabel: hi
+      ? fill(ADVANCED_HI.cheiroDriver, { n: moolank, planet: p(moolank) })
+      : `Driver ${moolank} — how you act (${NUMBER_PROFILES[moolank].planet})`,
+    conductorLabel: hi
+      ? fill(ADVANCED_HI.cheiroConductor, { n: bhagyank, planet: p(bhagyank) })
+      : `Conductor ${bhagyank} — how life responds (${NUMBER_PROFILES[bhagyank].planet})`,
+    essenceLabel: hi
+      ? fill(ADVANCED_HI.cheiroEssence, { n: essence, planet: p(essence) })
+      : `Essence ${essence} — combined vibration (${NUMBER_PROFILES[essence].planet})`,
+    note: hi
+      ? ADVANCED_HI.cheiroNote
+      : 'Cheiro terms: Driver = birth-day root (Moolank), Conductor = full-date root (Bhagyank), Essence = Driver + Conductor.',
   }
 }
 
@@ -136,14 +154,20 @@ export interface LagnaNumberInfo {
   note: string
 }
 
-export function getLagnaNumber(ascRashi: Rashi): LagnaNumberInfo {
+export function getLagnaNumber(ascRashi: Rashi, lang: EngineLang = 'en'): LagnaNumberInfo {
   const value = lagnaNumberFromRashi(ascRashi)
+  const hi = lang === 'hi'
+  const locale = hi ? 'hi' : 'en'
+  const rashi = rashiName(ascRashi, locale, RASHI_NAMES[ascRashi])
+  const planet = getNumberProfile(value, lang).planet
   return {
     rashi: ascRashi,
-    rashiName: RASHI_NAMES[ascRashi],
+    rashiName: rashi,
     value,
-    planet: NUMBER_PROFILES[value].planet,
-    note: `Lagna in ${RASHI_NAMES[ascRashi]} maps to number ${value} (${NUMBER_PROFILES[value].planet}) — a fourth core number when the chart is loaded.`,
+    planet,
+    note: hi
+      ? fill(ADVANCED_HI.lagnaNote, { rashi, n: value, planet })
+      : `Lagna in ${RASHI_NAMES[ascRashi]} maps to number ${value} (${NUMBER_PROFILES[value].planet}) — a fourth core number when the chart is loaded.`,
   }
 }
 
@@ -156,17 +180,24 @@ export interface InclusionCell {
   effect: string
 }
 
-export function buildInclusionTable(counts: Record<CoreNumber, number>): InclusionCell[] {
+export function buildInclusionTable(counts: Record<CoreNumber, number>, lang: EngineLang = 'en'): InclusionCell[] {
+  const hi = lang === 'hi'
+  const effectsEn = [
+    'Missing — cultivate via remedies and friendly dates.',
+    'Present once — balanced expression.',
+    'Doubled — intensified trait; watch excess.',
+    'Strong repetition — dominant theme; channel constructively.',
+  ]
   return CORE_NUMBERS.map(n => {
     const count = counts[n] ?? 0
     const intensity = count === 0 ? 'absent' : count === 1 ? 'single' : count === 2 ? 'double' : 'strong'
-    const effects = [
-      'Missing — cultivate via remedies and friendly dates.',
-      'Present once — balanced expression.',
-      'Doubled — intensified trait; watch excess.',
-      'Strong repetition — dominant theme; channel constructively.',
-    ]
-    return { number: n, count, intensity, effect: effects[Math.min(count, 3)]! }
+    const idx = Math.min(count, 3)
+    return {
+      number: n,
+      count,
+      intensity,
+      effect: hi ? INCLUSION_EFFECT_HI[idx]! : effectsEn[idx]!,
+    }
   })
 }
 
@@ -196,27 +227,33 @@ export function getHealthAlerts(input: {
   missing: CoreNumber[]
   personalYear: CoreNumber
   enemiesOfMoolank: CoreNumber[]
+  lang?: EngineLang
 }): HealthAlert[] {
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const zone = (n: CoreNumber) => (hi ? BODY_ZONE_HI[n] : BODY_ZONE[n])
   const alerts: HealthAlert[] = []
   alerts.push({
     number: input.moolank,
-    zone: BODY_ZONE[input.moolank],
-    reason: 'Primary Moolank constitution — lifelong care zone.',
+    zone: zone(input.moolank),
+    reason: hi ? ADVANCED_HI.healthPrimary : 'Primary Moolank constitution — lifelong care zone.',
     priority: 'support',
   })
   for (const n of input.missing) {
     alerts.push({
       number: n,
-      zone: BODY_ZONE[n],
-      reason: 'Missing from grid — weak expression; support with remedies.',
+      zone: zone(n),
+      reason: hi ? ADVANCED_HI.healthMissing : 'Missing from grid — weak expression; support with remedies.',
       priority: 'watch',
     })
   }
   if (input.enemiesOfMoolank.includes(input.personalYear)) {
     alerts.push({
       number: input.personalYear,
-      zone: BODY_ZONE[input.personalYear],
-      reason: `Personal year ${input.personalYear} conflicts with Moolank — extra caution this year.`,
+      zone: zone(input.personalYear),
+      reason: hi
+        ? fill(ADVANCED_HI.healthYear, { n: input.personalYear })
+        : `Personal year ${input.personalYear} conflicts with Moolank — extra caution this year.`,
       priority: 'watch',
     })
   }
@@ -239,10 +276,31 @@ export function getMarriageTimingYears(input: {
   partnerDob: ParsedDate
   fromYear: number
   count?: number
+  lang?: EngineLang
 }): MarriageTimingYear[] {
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
   const count = input.count ?? 12
   const ym = reduceToCore(input.yourDob.day) as CoreNumber
   const pm = reduceToCore(input.partnerDob.day) as CoreNumber
+  const noteFor = (verdict: MarriageTimingYear['verdict']): string => {
+    if (!hi) {
+      return verdict === 'excellent'
+        ? 'Strong dual personal-year support for marriage / commitment.'
+        : verdict === 'good'
+          ? 'Favourable — good for engagement or wedding with muhurta check.'
+          : verdict === 'fair'
+            ? 'Usable if other charts agree; avoid forcing dates.'
+            : 'Prefer waiting; numbers show friction.'
+    }
+    return verdict === 'excellent'
+      ? ADVANCED_HI.marriageExcellent
+      : verdict === 'good'
+        ? ADVANCED_HI.marriageGood
+        : verdict === 'fair'
+          ? ADVANCED_HI.marriageFair
+          : ADVANCED_HI.marriageAvoid
+  }
   const out: MarriageTimingYear[] = []
   for (let y = input.fromYear; y < input.fromYear + count; y++) {
     const yourPY = reduceToCore(sumDigits(input.yourDob.day) + sumDigits(input.yourDob.month) + sumDigits(y)) as CoreNumber
@@ -261,13 +319,7 @@ export function getMarriageTimingYears(input: {
       partnerPY,
       score,
       verdict,
-      note: verdict === 'excellent'
-        ? 'Strong dual personal-year support for marriage / commitment.'
-        : verdict === 'good'
-          ? 'Favourable — good for engagement or wedding with muhurta check.'
-          : verdict === 'fair'
-            ? 'Usable if other charts agree; avoid forcing dates.'
-            : 'Prefer waiting; numbers show friction.',
+      note: noteFor(verdict),
     })
   }
   return out.sort((a, b) => b.score - a.score)
@@ -357,14 +409,24 @@ export function scoreBrandOrSignature(
   text: string,
   moolank: CoreNumber,
   bhagyank: CoreNumber,
+  lang: EngineLang = 'en',
 ): BrandScore | null {
   const nam = chaldeanTotal(text)
   if (!nam) return null
+  const hi = lang === 'hi'
   const score = supportScore(nam.root, moolank, bhagyank)
-  const compoundMeaning = getCompoundMeaning(nam.compound)
+  const compoundMeaning = getCompoundMeaning(nam.compound, lang)
   const tips: string[] = []
-  if (score < 63) tips.push('Adjust spelling or add a word so the Chaldean total reduces to a friend of both Moolank and Bhagyank.')
-  if (compoundMeaning?.quality === 'warning') tips.push(`Compound ${nam.compound} (${compoundMeaning.title}) is cautionary for a public brand.`)
+  if (score < 63) {
+    tips.push(hi
+      ? ADVANCED_HI.brandTipSpell
+      : 'Adjust spelling or add a word so the Chaldean total reduces to a friend of both Moolank and Bhagyank.')
+  }
+  if (compoundMeaning?.quality === 'warning') {
+    tips.push(hi
+      ? fill(ADVANCED_HI.brandTipCompound, { compound: nam.compound, title: compoundMeaning.title })
+      : `Compound ${nam.compound} (${compoundMeaning.title}) is cautionary for a public brand.`)
+  }
   return {
     text,
     compound: nam.compound,
@@ -388,19 +450,28 @@ export interface PlateSuggestion {
 }
 
 /** Suggest 4-digit endings that support Moolank + Bhagyank. */
-export function suggestPlateEndings(moolank: CoreNumber, bhagyank: CoreNumber, count = 12): PlateSuggestion[] {
+export function suggestPlateEndings(
+  moolank: CoreNumber,
+  bhagyank: CoreNumber,
+  count = 12,
+  lang: EngineLang = 'en',
+): PlateSuggestion[] {
+  const hi = lang === 'hi'
   const out: PlateSuggestion[] = []
   for (let n = 1000; n <= 9999 && out.length < count * 3; n++) {
     const root = reduceToCore(sumDigits(n)) as CoreNumber
     const score = supportScore(root, moolank, bhagyank)
     if (score < 76) continue
     if (numberHarmony(root, moolank) === 'challenging') continue
+    const planet = getNumberProfile(root, lang).planet
     out.push({
       pattern: String(n).padStart(4, '0'),
       digitSum: sumDigits(n),
       root,
       score,
-      note: `Root ${root} (${NUMBER_PROFILES[root].planet}) supports your core numbers.`,
+      note: hi
+        ? fill(ADVANCED_HI.plateNote, { root, planet })
+        : `Root ${root} (${NUMBER_PROFILES[root].planet}) supports your core numbers.`,
     })
   }
   // Prefer diverse roots
@@ -460,7 +531,13 @@ const NAK_SOUNDS: string[][] = [
   ['De', 'Do', 'Cha', 'Chi'], // Revati
 ]
 
-export function getNakshatraLetterBridge(nakshatraIndex: number, pada: number): NakshatraLetterBridge {
+export function getNakshatraLetterBridge(
+  nakshatraIndex: number,
+  pada: number,
+  lang: EngineLang = 'en',
+): NakshatraLetterBridge {
+  const hi = lang === 'hi'
+  const locale = hi ? 'hi' : 'en'
   const idx = ((nakshatraIndex % 27) + 27) % 27
   const p = Math.min(4, Math.max(1, pada))
   const lord = NAKSHATRA_LORDS[idx]!
@@ -470,16 +547,24 @@ export function getNakshatraLetterBridge(nakshatraIndex: number, pada: number): 
   const preferredLetters = Object.entries(CHALDEAN_VALUES)
     .filter(([, v]) => lordNumber != null && v === lordNumber)
     .map(([l]) => l)
+  const enName = NAKSHATRA_NAMES[idx] ?? `Nakshatra ${idx}`
+  const lordEn = GRAHA_NAMES[lord]
+  const lordHi = grahaName(lord, locale, lordEn)
+  const lordNum = lordNumber != null
+    ? (hi ? fill(ADVANCED_HI.nakLordNum, { n: lordNumber }) : ` / number ${lordNumber}`)
+    : ''
   return {
     nakshatraIndex: idx,
-    nakshatraName: NAKSHATRA_NAMES[idx] ?? `Nakshatra ${idx}`,
+    nakshatraName: nakshatraName(idx, locale, enName),
     pada: p,
     lord,
-    lordName: GRAHA_NAMES[lord],
+    lordName: lordHi,
     lordNumber,
     sounds,
     preferredLetters,
-    note: `Pada ${p} sound “${padaSound}”. Names starting with this phoneme (or Chaldean letters of lord ${GRAHA_NAMES[lord]}${lordNumber ? ` / number ${lordNumber}` : ''}) are traditionally favoured.`,
+    note: hi
+      ? fill(ADVANCED_HI.nakNote, { pada: p, sound: padaSound, lord: lordHi, lordNum })
+      : `Pada ${p} sound “${padaSound}”. Names starting with this phoneme (or Chaldean letters of lord ${lordEn}${lordNumber ? ` / number ${lordNumber}` : ''}) are traditionally favoured.`,
   }
 }
 
@@ -586,17 +671,22 @@ const YANTRA_NAME: Record<CoreNumber, string> = {
   9: 'Mangala Yantra',
 }
 
-export function getYantraPacks(focus: CoreNumber[]): YantraPack[] {
+export function getYantraPacks(focus: CoreNumber[], lang: EngineLang = 'en'): YantraPack[] {
+  const hi = lang === 'hi'
   return focus.map(n => {
-    const p = NUMBER_PROFILES[n]
+    const p = getNumberProfile(n, lang)
     return {
       number: n,
       planet: p.planet,
-      yantraName: YANTRA_NAME[n],
+      yantraName: hi ? YANTRA_NAME_HI[n] : YANTRA_NAME[n],
       beej: p.beejMantra,
-      placement: `Keep in ${p.direction} of altar / workspace`,
+      placement: hi
+        ? fill(ADVANCED_HI.yantraPlace, { dir: p.direction })
+        : `Keep in ${NUMBER_PROFILES[n].direction} of altar / workspace`,
       day: p.fastingDay,
-      note: `Energize on ${p.fastingDay} with ${p.beejMantra} (108×). Metal base: ${p.metal}.`,
+      note: hi
+        ? fill(ADVANCED_HI.yantraNote, { day: p.fastingDay, beej: p.beejMantra, metal: p.metal })
+        : `Energize on ${NUMBER_PROFILES[n].fastingDay} with ${NUMBER_PROFILES[n].beejMantra} (108×). Metal base: ${NUMBER_PROFILES[n].metal}.`,
     }
   })
 }
@@ -613,15 +703,26 @@ export interface VastuKuaHint {
 export function getVastuKuaHints(input: {
   moolank: CoreNumber
   kua: { value: CoreNumber; directions: { success: string; health: string; love: string; growth: string } } | null
+  lang?: EngineLang
 }): VastuKuaHint {
-  const p = NUMBER_PROFILES[input.moolank]
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const p = getNumberProfile(input.moolank, lang)
   const tips = [
-    `Moolank desk/puja facing ${p.direction} strengthens ${p.planet}.`,
-    'Align bedroom head direction with Kua growth/love when available.',
-    'Open Astro Vastu for full directional chart overlay.',
+    hi
+      ? fill(ADVANCED_HI.vastuDesk, { dir: p.direction, planet: p.planet })
+      : `Moolank desk/puja facing ${NUMBER_PROFILES[input.moolank].direction} strengthens ${NUMBER_PROFILES[input.moolank].planet}.`,
+    hi ? ADVANCED_HI.vastuBedroom : 'Align bedroom head direction with Kua growth/love when available.',
+    hi ? ADVANCED_HI.vastuOpen : 'Open Astro Vastu for full directional chart overlay.',
   ]
   if (input.kua) {
-    tips.unshift(`Kua ${input.kua.value}: success ${input.kua.directions.success}, health ${input.kua.directions.health}.`)
+    tips.unshift(hi
+      ? fill(ADVANCED_HI.vastuKua, {
+        n: input.kua.value,
+        success: input.kua.directions.success,
+        health: input.kua.directions.health,
+      })
+      : `Kua ${input.kua.value}: success ${input.kua.directions.success}, health ${input.kua.directions.health}.`)
   }
   return {
     kua: input.kua?.value ?? null,
@@ -634,18 +735,23 @@ export function getVastuKuaHints(input: {
 // ── Devanagari name values ────────────────────────────────────
 // Transliterated to Indian English spelling, then scored on Chaldean.
 
-export function scoreDevanagariName(text: string, moolank: CoreNumber, bhagyank: CoreNumber): (BrandScore & { latin: string }) | null {
+export function scoreDevanagariName(
+  text: string,
+  moolank: CoreNumber,
+  bhagyank: CoreNumber,
+  lang: EngineLang = 'en',
+): (BrandScore & { latin: string }) | null {
   const latin = devanagariToLatin(text)
   if (!latin) return null
-  const scored = scoreBrandOrSignature(latin, moolank, bhagyank)
+  const scored = scoreBrandOrSignature(latin, moolank, bhagyank, lang)
   if (!scored) return null
+  const tip = lang === 'hi'
+    ? fill(ADVANCED_HI.devanagariTip, { latin })
+    : `Read as "${latin}". Spelling conventions vary — compare variants in Name → Spelling comparison.`
   return {
     ...scored,
     latin,
-    tips: [
-      ...scored.tips,
-      `Read as "${latin}". Spelling conventions vary — compare variants in Name → Spelling comparison.`,
-    ],
+    tips: [...scored.tips, tip],
   }
 }
 
@@ -659,13 +765,21 @@ export interface YearGocharaHint {
   tip: string
 }
 
-export function getYearGocharaHint(personalYear: CoreNumber): YearGocharaHint {
-  const p = NUMBER_PROFILES[personalYear]
+export function getYearGocharaHint(personalYear: CoreNumber, lang: EngineLang = 'en'): YearGocharaHint {
+  const hi = lang === 'hi'
+  const p = getNumberProfile(personalYear, lang)
+  const en = NUMBER_PROFILES[personalYear]
   return {
     personalYear,
     yearPlanet: p.planet,
-    amplifyWhen: `When ${p.planet} is strong by gochara (own/exalt sign, good house from Moon/Lagna)`,
-    cautionWhen: `When ${p.planet} is under pressure by Saturn/Rahu transit or combust`,
-    tip: `Personal year ${personalYear} is an ${p.planet} year — watch ${p.planet} gochara and dasha overlap for amplification (see Predictions → Dasha Timing).`,
+    amplifyWhen: hi
+      ? fill(ADVANCED_HI.gocharaAmp, { planet: p.planet })
+      : `When ${en.planet} is strong by gochara (own/exalt sign, good house from Moon/Lagna)`,
+    cautionWhen: hi
+      ? fill(ADVANCED_HI.gocharaCaution, { planet: p.planet })
+      : `When ${en.planet} is under pressure by Saturn/Rahu transit or combust`,
+    tip: hi
+      ? fill(ADVANCED_HI.gocharaTip, { n: personalYear, planet: p.planet })
+      : `Personal year ${personalYear} is an ${en.planet} year — watch ${en.planet} gochara and dasha overlap for amplification (see Predictions → Dasha Timing).`,
   }
 }

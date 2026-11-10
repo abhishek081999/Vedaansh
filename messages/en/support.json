@@ -1,0 +1,29 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "support": "Support"
+  },
+  "header": {
+    "badge": "Help",
+    "title": "Support",
+    "subtitle": "Billing, account, and technical help for Vedaansh"
+  },
+  "contact": {
+    "title": "Contact us",
+    "body": "We usually reply within 3–5 business days. Include your registered email and, for billing issues, your Razorpay payment ID or receipt."
+  },
+  "topics": {
+    "title": "Common topics",
+    "subscriptions": "<b>Subscriptions & refunds</b> — see our <refund>Refund Policy</refund>",
+    "payment": "<b>Payment failed or paying from outside India</b> — on <pricing>Pricing</pricing>, choose “Request help with payment”. We'll send a PayPal invoice or Wise / UPI details and activate your plan once paid.",
+    "cancel": "<b>Cancel renewal</b> — Account → Billing & privacy → Cancel renewal",
+    "export": "<b>Export or delete your data</b> — Account → Billing & privacy",
+    "legal": "<b>Privacy & terms</b> — <privacy>Privacy</privacy> · <terms>Terms</terms>"
+  },
+  "nav": {
+    "home": "← Home",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "refunds": "Refunds"
+  }
+}

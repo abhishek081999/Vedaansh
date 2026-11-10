@@ -6,6 +6,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link } from '@/i18n/navigation'
+import { useLang } from '@/i18n/useLang'
+import { rashiName } from '@/i18n/jyotish'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
@@ -27,6 +30,7 @@ const TattvaPredictionPanel = dynamic(
 
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES }      from '@/types/astrology'
+import type { AppLocale } from '@/i18n/config'
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -50,59 +54,71 @@ interface Branding {
 
 type Tab = 'chart' | 'planets' | 'interpretation' | 'tattva' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'bhava-bala' | 'vimsopaka'
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'chart',   label: 'Chart',    emoji: '◯' },
-  { id: 'planets', label: 'Planets',  emoji: '✦' },
-  { id: 'interpretation', label: 'Interpretation', emoji: '✧' },
-  { id: 'tattva',  label: 'Tattva',   emoji: '◎' },
-  { id: 'dasha',   label: 'Dasha',     emoji: '⏳' },
-  { id: 'shadbala',label: 'Shadbala',  emoji: '⚖' },
-  { id: 'bhava-bala', label: 'Bhava Bala', emoji: '⌗' },
-  { id: 'vimsopaka',label: 'Vimsopaka',emoji: '⑳' },
-  { id: 'panchang',label: 'Panchang', emoji: '📅' },
-  { id: 'arudhas', label: 'Arudhas',  emoji: '☯' },
+const TABS: { id: Tab; labelKey: string; emoji: string }[] = [
+  { id: 'chart',   labelKey: 'tabs.chart',    emoji: '◯' },
+  { id: 'planets', labelKey: 'tabs.planets',  emoji: '✦' },
+  { id: 'interpretation', labelKey: 'tabs.interpretation', emoji: '✧' },
+  { id: 'tattva',  labelKey: 'tabs.tattva',   emoji: '◎' },
+  { id: 'dasha',   labelKey: 'tabs.dasha',     emoji: '⏳' },
+  { id: 'shadbala',labelKey: 'tabs.shadbala',  emoji: '⚖' },
+  { id: 'bhava-bala', labelKey: 'tabs.bhavaBala', emoji: '⌗' },
+  { id: 'vimsopaka',labelKey: 'tabs.vimsopaka',emoji: '⑳' },
+  { id: 'panchang',labelKey: 'tabs.panchang', emoji: '📅' },
+  { id: 'arudhas', labelKey: 'tabs.arudhas',  emoji: '☯' },
+]
+
+const ARUDHAS: { key: string; dataKey: string }[] = [
+  { key: 'AL', dataKey: 'AL' },
+  { key: 'A2', dataKey: 'A2' },
+  { key: 'A3', dataKey: 'A3' },
+  { key: 'A4', dataKey: 'A4' },
+  { key: 'A5', dataKey: 'A5' },
+  { key: 'A6', dataKey: 'A6' },
+  { key: 'A7', dataKey: 'A7' },
+  { key: 'A8', dataKey: 'A8' },
+  { key: 'A9', dataKey: 'A9' },
+  { key: 'A10', dataKey: 'A10' },
+  { key: 'A11', dataKey: 'A11' },
+  { key: 'UL', dataKey: 'A12' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────
 
-const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-const MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December']
-
-function fmtDate(str: string): string {
+function fmtDate(str: string, weekdays: string[], months: string[]): string {
   const d = new Date(str + 'T12:00:00Z')
-  return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  return `${weekdays[d.getUTCDay()]}, ${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
-function fmtTime(str: string): string {
+function fmtTime(str: string, am: string, pm: string): string {
   const [h, m] = str.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`
+  const suffix = h >= 12 ? pm : am
+  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${suffix}`
+}
+
+function signName(rashi: number, lang: AppLocale): string {
+  const r = rashi as Rashi
+  return rashiName(r, lang, RASHI_NAMES[r] ?? String(rashi))
 }
 
 // ── Arudha Panel ──────────────────────────────────────────────
 
-function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']; arudhasBphs?: ChartOutput['arudhasBphs'] }) {
+function ArudhaPanel({
+  arudhas,
+  arudhasBphs,
+  lang,
+}: {
+  arudhas: ChartOutput['arudhas']
+  arudhasBphs?: ChartOutput['arudhasBphs']
+  lang: AppLocale
+}) {
+  const t = useTranslations('chart.public')
   const [useBphsExceptions, setUseBphsExceptions] = useState(false)
   const display = useBphsExceptions && arudhasBphs ? arudhasBphs : arudhas
-  const items = [
-    { key: 'AL',  label: 'Arudha Lagna',   desc: 'Image of self' },
-    { key: 'A2',  label: 'Dhana Pada',      desc: 'Wealth' },
-    { key: 'A3',  label: 'Vikrama Pada',    desc: 'Courage' },
-    { key: 'A4',  label: 'Matri Pada',      desc: 'Home & mother' },
-    { key: 'A5',  label: 'Mantra Pada',     desc: 'Intellect' },
-    { key: 'A6',  label: 'Roga Pada',       desc: 'Enemies & debts' },
-    { key: 'A7',  label: 'Dara Pada',       desc: 'Spouse' },
-    { key: 'A8',  label: 'Mrityu Pada',     desc: 'Longevity' },
-    { key: 'A9',  label: 'Pitri Pada',      desc: 'Father & fortune' },
-    { key: 'A10', label: 'Karma Pada',      desc: 'Career' },
-    { key: 'A11', label: 'Labha Pada',      desc: 'Gains' },
-    { key: 'UL',  label: 'Upapada Lagna',   desc: 'Marriage' },
-  ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-          {useBphsExceptions ? 'BPHS exception-corrected' : 'Raw pada (no exceptions)'}
+          {useBphsExceptions ? t('arudha.bphsOn') : t('arudha.bphsOff')}
         </span>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
           <input
@@ -110,14 +126,15 @@ function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']
             checked={useBphsExceptions}
             onChange={(e) => setUseBphsExceptions(e.target.checked)}
           />
-          Apply BPHS exceptions
+          {t('arudha.applyBphs')}
         </label>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.55rem' }}>
-      {items.map(({ key, label, desc }) => {
-        const dataKey = key === 'UL' ? 'A12' : key
+      {ARUDHAS.map(({ key, dataKey }) => {
         const rashi = (display as unknown as Record<string, number>)[dataKey]
         if (!rashi) return null
+        const label = t(`arudha.items.${key}.label`)
+        const desc = t(`arudha.items.${key}.desc`)
         return (
           <div key={key} style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -136,7 +153,7 @@ function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']
               color: key === 'AL' ? 'var(--text-gold)' : 'var(--text-secondary)',
               textAlign: 'right', minWidth: 60,
             }}>
-              {RASHI_NAMES[rashi as keyof typeof RASHI_NAMES] ?? rashi}
+              {signName(rashi, lang)}
             </div>
           </div>
         )
@@ -157,10 +174,14 @@ export function PublicChartClient({
   saved: SavedChart; 
   branding: Branding | null 
 }) {
+  const t = useTranslations('chart.public')
+  const { lang } = useLang()
+  const weekdays = t.raw('weekdays') as string[]
+  const months = t.raw('months') as string[]
   const [tab,     setTab]     = useState<Tab>('chart')
   const [tabKey,  setTabKey]  = useState(0)
 
-  function switchTab(t: Tab) { setTab(t); setTabKey(k => k + 1) }
+  function switchTab(next: Tab) { setTab(next); setTabKey(k => k + 1) }
 
   const ascRashi: Rashi = chart.lagnas.ascDegree
     ? ((Math.ceil(((chart.lagnas.ascDegree % 360) + 360) % 360 / 30) || 1) as Rashi)
@@ -180,7 +201,7 @@ export function PublicChartClient({
           {branding?.brandLogo ? (
             <Image 
               src={branding.brandLogo} 
-              alt={branding.brandName || 'Brand'} 
+              alt={branding.brandName || t('brandAlt')} 
               style={{ height: '1.8rem', width: 'auto' }} 
               height={28}
               width={100}
@@ -202,10 +223,10 @@ export function PublicChartClient({
         </Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-            Panchang
+            {t('nav.panchang')}
           </Link>
           <Link href="/?new=true" className="btn btn-primary btn-sm" style={{ fontSize: '0.82rem' }}>
-            + New Chart
+            {t('nav.newChart')}
           </Link>
           <ThemeToggle />
         </nav>
@@ -232,7 +253,7 @@ export function PublicChartClient({
             </h1>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               <span suppressHydrationWarning style={{ fontFamily: 'var(--font-mono)' }}>
-                {fmtDate(saved.birthDate)} · {fmtTime(saved.birthTime.slice(0, 5))}
+                {fmtDate(saved.birthDate, weekdays, months)} · {fmtTime(saved.birthTime.slice(0, 5), t('am'), t('pm'))}
               </span>
               <span>📍 {saved.birthPlace}</span>
               <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>{saved.timezone}</span>
@@ -242,8 +263,8 @@ export function PublicChartClient({
           {/* Key chart facts */}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             {[
-              { label: 'Ascendant', value: RASHI_NAMES[ascRashi] },
-              { label: 'Ayanamsha', value: `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(2)}°` },
+              { label: t('facts.ascendant'), value: signName(ascRashi, lang) },
+              { label: t('facts.ayanamsha'), value: `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(2)}°` },
             ].map(({ label, value }) => (
               <div key={label} style={{
                 padding: '0.5rem 0.85rem',
@@ -266,13 +287,13 @@ export function PublicChartClient({
               padding: '0.2rem 0.65rem',
               background: 'rgba(201,168,76,0.10)', border: '1px solid rgba(201,168,76,0.30)',
               borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
-              letterSpacing: '0.07em', textTransform: 'uppercase',
+              letterSpacing: lang === 'hi' ? '0.01em' : '0.07em', textTransform: lang === 'hi' ? 'none' : 'uppercase',
               color: 'var(--gold)', fontFamily: 'var(--font-display)',
             }}>
-              💎 Verified Consultant
+              💎 {t('badge.verified')}
             </span>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-              Prepared for you by <strong>{branding.brandName}</strong>
+              {t.rich('badge.preparedBy', { name: branding.brandName, b: (chunks) => <strong>{chunks}</strong> })}
             </span>
           </div>
         ) : (
@@ -281,27 +302,27 @@ export function PublicChartClient({
               padding: '0.2rem 0.65rem',
               background: 'rgba(78,205,196,0.10)', border: '1px solid rgba(78,205,196,0.30)',
               borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
-              letterSpacing: '0.07em', textTransform: 'uppercase',
+              letterSpacing: lang === 'hi' ? '0.01em' : '0.07em', textTransform: lang === 'hi' ? 'none' : 'uppercase',
               color: 'var(--teal)', fontFamily: 'var(--font-display)',
             }}>
-              🔗 Public Chart
+              🔗 {t('badge.public')}
             </span>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-              Shared via Vedaansh · Calculate your own chart free
+              {t('badge.shared')}
             </span>
           </div>
         )}
 
         {/* Tab bar */}
         <div className="tab-bar">
-          {TABS.map(({ id, label, emoji }) => (
+          {TABS.map(({ id, labelKey, emoji }) => (
             <button
               key={id}
               className={`tab-btn${tab === id ? ' active' : ''}`}
               onClick={() => switchTab(id)}
             >
               <span style={{ marginRight: '0.35rem', opacity: 0.75 }}>{emoji}</span>
-              {label}
+              {t(labelKey)}
             </button>
           ))}
         </div>
@@ -336,7 +357,7 @@ export function PublicChartClient({
           {tab === 'interpretation' && (
             <div className="card">
               <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
-                Interpretation · Free teaser
+                {t('panels.interpretation')}
               </div>
               <InterpretationHub chart={chart} userPlan="free" />
             </div>
@@ -345,7 +366,7 @@ export function PublicChartClient({
           {tab === 'tattva' && (
             <div className="card">
               <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
-                Tattva Prediction · Free teaser
+                {t('panels.tattva')}
               </div>
               <TattvaPredictionPanel chart={chart} userPlan="free" />
             </div>
@@ -353,14 +374,14 @@ export function PublicChartClient({
 
           {tab === 'arudhas' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Bhava Arudhas</div>
-              <ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} />
+              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>{t('panels.arudhas')}</div>
+              <ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} lang={lang} />
             </div>
           )}
 
           {tab === 'dasha' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Vimshottari Dasha</div>
+              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>{t('panels.dasha')}</div>
               <DashaTree
                 nodes={chart.dashas.vimshottari ?? []}
                 birthDate={new Date(chart.meta.birthDate)}
@@ -370,14 +391,14 @@ export function PublicChartClient({
 
           {tab === 'panchang' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '1rem' }}>Natal Panchang</div>
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>{t('panels.panchang')}</div>
               <NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} chart={chart} />
             </div>
           )}
 
           {tab === 'shadbala' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '1rem' }}>Shadbala — Six-fold Strength</div>
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>{t('panels.shadbala')}</div>
               <ShadbalaTable
                 shadbala={chart.shadbala}
                 preferClassicCharts
@@ -390,12 +411,12 @@ export function PublicChartClient({
 
           {tab === 'bhava-bala' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '1rem' }}>Bhava Bala — House Strength</div>
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>{t('panels.bhavaBala')}</div>
               {chart.bhavaBala ? (
                 <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
               ) : (
                 <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Bhava Bala is unavailable for this chart.
+                  {t('panels.bhavaUnavailable')}
                 </div>
               )}
             </div>
@@ -405,7 +426,7 @@ export function PublicChartClient({
             <div className="card" style={{ padding: '0.1rem' }}>
               {chart.vimsopaka
                 ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} />
-                : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Vimsopaka data unavailable.</div>
+                : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>{t('panels.vimsopakaUnavailable')}</div>
               }
             </div>
           )}
@@ -419,13 +440,13 @@ export function PublicChartClient({
           borderRadius: 'var(--r-lg)',
         }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-            Explore your own chart
+            {t('cta.title')}
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1rem' }}>
-            Free forever — all varga charts, Dasha tree, Arudhas & Panchang
+            {t('cta.body')}
           </div>
           <Link href="/?new=true" className="btn btn-primary">
-            Calculate My Chart →
+            {t('cta.button')}
           </Link>
         </div>
       </main>
@@ -435,8 +456,8 @@ export function PublicChartClient({
         textAlign: 'center', color: 'var(--text-muted)',
         fontFamily: 'var(--font-display)', fontSize: '0.8rem',
       }}>
-        Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
-        {' '}· Free forever ·{' '}
+        {t.rich('footerLine', { gold: (chunks) => <span style={{ color: 'var(--text-gold)' }}>{chunks}</span> })}
+        {' '}
         <Link href="/" style={{ color: 'var(--text-gold)', textDecoration: 'none' }}>Vedaansh</Link>
       </footer>
     </div>

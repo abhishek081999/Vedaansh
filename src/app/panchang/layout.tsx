@@ -3,7 +3,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { panchangIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -27,12 +27,13 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/panchang', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/panchang', locale, metadataEn, {
     title: 'आज का पंचांग — तिथि, नक्षत्र, राहु काल (निःशुल्क)',
     description: 'निःशुल्क दैनिक वैदिक पंचांग: तिथि, वार, नक्षत्र, योग, करण, राहु काल, गुलिक और अभिजित मुहूर्त। स्विस एफ़ेमेरिस से वास्तविक सूर्योदय/सूर्यास्त।',
     ogTitle: 'आज का पंचांग — Vedaansh',
     keywords: ['आज का पंचांग', 'दैनिक पंचांग', 'तिथि', 'नक्षत्र', 'राहु काल', 'अभिजित मुहूर्त', 'चौघड़िया', 'होरा', 'हिंदू पंचांग'],
-  })
+  }), locale, '/panchang/opengraph-image', 'आज का पंचांग — Vedaansh')
 }
 
 const jsonLd = breadcrumbJsonLd([

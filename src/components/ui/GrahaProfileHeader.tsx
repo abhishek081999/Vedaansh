@@ -6,7 +6,9 @@
 'use client'
 
 import React, { useMemo } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId } from '@/types/astrology'
+import { NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import { DIGNITY_MAX, dignityRank } from '@/lib/ui/dignityScale'
 import { lordColor } from '@/components/dasha/dashaPalette'
@@ -18,14 +20,26 @@ const DIGNITY_LABEL: Record<string, string> = {
 }
 
 /** 12 houses in a ring, Lagna at the top; occupied house gold, aspected houses accent. */
-function HouseAspectWheel({ house, aspected, color }: { house: number; aspected: number[]; color: string }) {
+function HouseAspectWheel({
+  house,
+  aspected,
+  color,
+  ariaLabel,
+  centerLabel,
+}: {
+  house: number
+  aspected: number[]
+  color: string
+  ariaLabel: string
+  centerLabel: string
+}) {
   const size = 150
   const c = size / 2
   const rO = 66
   const rI = 38
   const step = (Math.PI * 2) / 12
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ maxWidth: size, display: 'block', margin: '0 auto' }} role="img" aria-label={`In house ${house}; aspects houses ${aspected.join(', ')}`}>
+    <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ maxWidth: size, display: 'block', margin: '0 auto' }} role="img" aria-label={ariaLabel}>
       {Array.from({ length: 12 }, (_, i) => {
         const h = i + 1
         // House 1 centred at the top, counting counter-clockwise like a chart wheel
@@ -55,13 +69,15 @@ function HouseAspectWheel({ house, aspected, color }: { house: number; aspected:
         return <line key={h} x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="var(--accent)" strokeWidth={1.2} strokeDasharray="3 2" />
       })}
       <text x={c} y={c} textAnchor="middle" dominantBaseline="middle" fontSize={10} fill="var(--text-muted)">
-        Lagna ↑
+        {centerLabel}
       </text>
     </svg>
   )
 }
 
 export function GrahaProfileHeader({ chart, id }: { chart: ChartOutput; id: GrahaId }) {
+  const tp = useTranslations('planetsB.common.profile')
+  const hi = useLocale() === 'hi'
   const g = chart.grahas.find((x) => x.id === id)
   const info = useMemo(() => {
     if (!g) return null
@@ -77,6 +93,12 @@ export function GrahaProfileHeader({ chart, id }: { chart: ChartOutput; id: Grah
 
   if (!g || !info) return null
   const color = lordColor(id)
+  const dignityText = g.dignity
+    ? (hi ? termHi(DIGNITY_LABEL[g.dignity] ?? g.dignity) : (DIGNITY_LABEL[g.dignity] ?? g.dignity))
+    : '—'
+  const nakName = hi ? (NAKSHATRA_HI[g.nakshatraIndex] ?? g.nakshatraName) : g.nakshatraName
+  const rashiName = hi ? (RASHI_HI[g.rashi] ?? g.rashiName) : g.rashiName
+  const aspectList = info.aspected.map((h) => `H${h}`).join(', ')
 
   return (
     <div
@@ -90,27 +112,33 @@ export function GrahaProfileHeader({ chart, id }: { chart: ChartOutput; id: Grah
         borderRadius: 'var(--r-lg)',
       }}
     >
-      <Cell title="Dignity">
+      <Cell title={tp('dignity')}>
         {info.rank !== null ? (
-          <Gauge value={info.rank} max={DIGNITY_MAX} valueText={DIGNITY_LABEL[g.dignity] ?? g.dignity} size={170} />
+          <Gauge value={info.rank} max={DIGNITY_MAX} valueText={dignityText} size={170} />
         ) : (
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1.5rem 0' }}>{g.dignity ?? '—'}</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1.5rem 0' }}>{dignityText}</div>
         )}
         <div style={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {g.isRetro && <Flag color="var(--rose)">Retrograde</Flag>}
-          {g.isCombust && <Flag color="var(--amber)">Combust</Flag>}
+          {g.isRetro && <Flag color="var(--rose)">{hi ? termHi('Retrograde') : 'Retrograde'}</Flag>}
+          {g.isCombust && <Flag color="var(--amber)">{hi ? termHi('Combust') : 'Combust'}</Flag>}
           {g.avastha?.baladi && <Flag color="var(--text-secondary)">{g.avastha.baladi}</Flag>}
         </div>
       </Cell>
 
-      <Cell title={`House ${info.house} · drishti`}>
-        <HouseAspectWheel house={info.house} aspected={info.aspected} color={color} />
+      <Cell title={tp('houseDrishti', { n: info.house })}>
+        <HouseAspectWheel
+          house={info.house}
+          aspected={info.aspected}
+          color={color}
+          ariaLabel={tp('wheelAria', { house: info.house, houses: aspectList })}
+          centerLabel={tp('lagnaUp')}
+        />
         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-          Aspects {info.aspected.map((h) => `H${h}`).join(', ')}
+          {tp('aspects', { houses: aspectList })}
         </div>
       </Cell>
 
-      <Cell title="Nakshatra">
+      <Cell title={tp('nakshatra')}>
         <SegmentRing
           segments={Array.from({ length: 27 }, (_, i) => ({
             label: String(i + 1),
@@ -118,30 +146,30 @@ export function GrahaProfileHeader({ chart, id }: { chart: ChartOutput; id: Grah
             max: 1,
             color,
             active: i === g.nakshatraIndex,
-            title: i === g.nakshatraIndex ? `${g.nakshatraName} pada ${g.pada}` : `Nakshatra ${i + 1}`,
+            title: i === g.nakshatraIndex ? tp('starPada', { name: nakName, pada: g.pada }) : tp('nakshatraN', { n: i + 1 }),
           }))}
           showLabels={false}
           thickness={12}
           gapDeg={1}
           size={120}
           centerValue={g.pada}
-          centerLabel="pada"
+          centerLabel={tp('pada')}
         />
         <div style={{ fontSize: '0.74rem', textAlign: 'center', color: 'var(--text-primary)', fontWeight: 700 }}>
-          {g.nakshatraName}
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {g.rashiName} {g.degree.toFixed(1)}°</span>
+          {nakName}
+          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {rashiName} {g.degree.toFixed(1)}°</span>
         </div>
       </Cell>
 
       {info.shad && (
-        <Cell title="Shadbala">
+        <Cell title={tp('shadbala')}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', textAlign: 'center', color: info.shad.isStrong ? 'var(--teal)' : 'var(--rose)' }}>
             {info.shad.total.toFixed(2)}
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}> / {info.shad.required} rupa</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}> {tp('rupa', { n: info.shad.required })}</span>
           </div>
           <Meter value={info.shad.total} max={Math.max(info.shad.required * 1.6, info.shad.total)} threshold={info.shad.required} height={8} />
           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            {(info.shad.ratio * 100).toFixed(0)}% of the required strength
+            {tp('strengthOf', { n: (info.shad.ratio * 100).toFixed(0) })}
           </div>
         </Cell>
       )}

@@ -5,6 +5,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Compass,
   Home,
@@ -27,6 +28,8 @@ import {
 } from '@/lib/engine/ashtakavargaInsights'
 import type { AshtakavargaResult, GrahaData, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
 import { Heatmap } from '@/components/ui/viz'
 
@@ -373,6 +376,8 @@ export function AshtakavargaAdvancedInsights({
   grahas?: GrahaData[]
   janmaNakshatraIndex?: number
 }) {
+  const t = useTranslations('ashtakavarga')
+  const { lang, hi } = useLang()
   const [subTab, setSubTab] = useState<SubTab>('overview')
   const [focusHouse, setFocusHouse] = useState(10)
 
@@ -389,13 +394,14 @@ export function AshtakavargaAdvancedInsights({
       ascRashi,
       grahas: (grahas ?? []).map((g) => ({ id: g.id, rashi: g.rashi })),
       janmaNakshatraIndex: moonNak,
+      lang,
     })
-  }, [ashtakavarga.sav, ascRashi, grahas, moonNak])
+  }, [ashtakavarga.sav, ascRashi, grahas, moonNak, lang])
 
   const bb = useMemo(() => {
     if (!insights) return null
-    return bhavaBhaavam(insights.houseSav, focusHouse)
-  }, [insights, focusHouse])
+    return bhavaBhaavam(insights.houseSav, focusHouse, lang)
+  }, [insights, focusHouse, lang])
 
   if (!insights) {
     return (
@@ -408,7 +414,7 @@ export function AshtakavargaAdvancedInsights({
           textAlign: 'center',
         }}
       >
-        Recalculate the chart to load Advanced Ashtakavarga insights.
+        {t('insights.recalc')}
       </div>
     )
   }
@@ -460,24 +466,24 @@ export function AshtakavargaAdvancedInsights({
                 marginBottom: '0.25rem',
               }}
             >
-              Advanced Ashtakavarga
+              {t('insights.kicker')}
             </div>
             <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               SAV {insights.savTotal}
               <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: 8 }}>
-                house-ordered bindus
+                {t('insights.houseOrdered')}
               </span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
             {insights.khandas.bandhuBusiness ? (
-              <Badge tone="good" icon={<Briefcase size={12} />} text="Business potential" />
+              <Badge tone="good" icon={<Briefcase size={12} />} text={t('insights.business')} />
             ) : null}
             {insights.khandas.ghatakCaution ? (
-              <Badge tone="warn" icon={<AlertTriangle size={12} />} text="Ghatak caution" />
+              <Badge tone="warn" icon={<AlertTriangle size={12} />} text={t('insights.ghatak')} />
             ) : null}
             {insights.yogas.strongLagna ? (
-              <Badge tone="good" icon={<CheckCircle2 size={12} />} text="Strong Lagna" />
+              <Badge tone="good" icon={<CheckCircle2 size={12} />} text={t('insights.strongLagna')} />
             ) : null}
           </div>
         </div>
@@ -490,31 +496,31 @@ export function AshtakavargaAdvancedInsights({
           }}
         >
           <StatTile
-            label="Dominant khanda"
+            label={t('insights.dominantKhanda')}
             value={dominantKhanda?.name.replace(' Khanda', '') ?? '—'}
-            detail={`Score ${dominantKhanda?.total ?? '—'}`}
+            detail={t('insights.score', { n: dominantKhanda?.total ?? '—' })}
             accent="var(--text-gold)"
             active
           />
           <StatTile
-            label="Peak life stage"
+            label={t('insights.peakStage')}
             value={peakStage?.name.split(' ')[0] ?? '—'}
-            detail={`${peakStage?.total ?? '—'} bindus`}
+            detail={t('insights.bindus', { n: peakStage?.total ?? '—' })}
             accent="var(--teal)"
           />
           <StatTile
-            label="Best direction"
+            label={t('insights.bestDirection')}
             value={peakDir?.name.split(' ')[0] ?? '—'}
-            detail={`${peakDir?.total ?? '—'} bindus`}
+            detail={t('insights.bindus', { n: peakDir?.total ?? '—' })}
             accent="var(--blue, #60a5fa)"
           />
           <StatTile
-            label="Active yogas"
+            label={t('insights.activeYogas')}
             value={activeYogaCount}
             detail={
               insights.promotion
-                ? `Promo: ${insights.promotion.targetNakshatraName}`
-                : 'Timing formulas below'
+                ? t('insights.promo', { name: insights.promotion.targetNakshatraName })
+                : t('insights.timingBelow')
             }
           />
         </div>
@@ -523,17 +529,17 @@ export function AshtakavargaAdvancedInsights({
       {/* Sub-nav */}
       <div className={styles.subTabScroll}>
         <div className={styles.subTabRow}>
-        {SUB_TABS.map((t) => {
-          const on = subTab === t.id
+        {SUB_TABS.map((tab) => {
+          const on = subTab === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
-              onClick={() => setSubTab(t.id)}
+              onClick={() => setSubTab(tab.id)}
               className={`${styles.subTabBtn} ${on ? styles.subTabBtnActive : ''}`}
             >
-              {t.icon}
-              {t.label}
+              {tab.icon}
+              {t(`insights.sub.${tab.id}`)}
             </button>
           )
         })}
@@ -544,14 +550,14 @@ export function AshtakavargaAdvancedInsights({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
           <div className="card" style={{ padding: '1rem' }}>
             <SectionHead
-              title="Internal vs External"
-              subtitle="Internal = 1,4,5,7,9,10 · External = 2,3,6,8,11,12"
+              title={t('insights.ieTitle')}
+              subtitle={t('insights.ieSub')}
               icon={<CircleDot size={16} />}
             />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Internal nature</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{t('insights.internal')}</span>
                   <b style={{ color: 'var(--teal)', fontVariantNumeric: 'tabular-nums' }}>
                     {insights.internalExternal.internal}
                   </b>
@@ -560,7 +566,7 @@ export function AshtakavargaAdvancedInsights({
               </div>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>External nature</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{t('insights.external')}</span>
                   <b style={{ color: 'var(--blue, #60a5fa)', fontVariantNumeric: 'tabular-nums' }}>
                     {insights.internalExternal.external}
                   </b>
@@ -574,17 +580,17 @@ export function AshtakavargaAdvancedInsights({
           </div>
 
           <div className="card" style={{ padding: '1rem' }}>
-            <SectionHead title="Growth direction" subtitle="Highest directional total = best growth axis" icon={<Compass size={16} />} />
+            <SectionHead title={t('insights.directionTitle')} subtitle={t('insights.directionSub')} icon={<Compass size={16} />} />
             <DirectionCompass directions={insights.directions} peakId={insights.directionPeak} />
           </div>
 
           <div className="card" style={{ padding: '1rem' }}>
-            <SectionHead title="Life stages" subtitle="Houses 1–4 · 5–8 · 9–12" icon={<TrendingUp size={16} />} />
+            <SectionHead title={t('insights.stagesTitle')} subtitle={t('insights.stagesSub')} icon={<TrendingUp size={16} />} />
             <CompareRow items={insights.lifeStages} peakId={insights.lifeStagePeak} accent="var(--teal)" />
           </div>
 
           <div className="card" style={{ padding: '1rem' }}>
-            <SectionHead title="Ashrams" subtitle="1–4 · 5–8 · 9–11 · 12" icon={<Layers size={16} />} />
+            <SectionHead title={t('insights.ashramsTitle')} subtitle={t('insights.ashramsSub')} icon={<Layers size={16} />} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.5rem' }}>
               {insights.ashrams.map((a) => {
                 const peak = a.id === insights.ashramPeak
@@ -605,7 +611,7 @@ export function AshtakavargaAdvancedInsights({
                       {a.total}
                     </div>
                     <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                      H{a.houses.join('+')}
+                      {t('insights.housesLine', { list: a.houses.join('+') })}
                     </div>
                   </div>
                 )
@@ -616,8 +622,8 @@ export function AshtakavargaAdvancedInsights({
           {insights.houseReadings.length > 0 ? (
             <div className="card" style={{ padding: '1rem', gridColumn: '1 / -1' }}>
               <SectionHead
-                title="House comparison readings"
-                subtitle={`Relative to ~${insights.averagePerHouse} SAV average — class Part 4 patterns`}
+                title={t('insights.compareTitle')}
+                subtitle={t('insights.compareSub', { avg: insights.averagePerHouse })}
                 icon={<Scale size={16} />}
               />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
@@ -653,7 +659,7 @@ export function AshtakavargaAdvancedInsights({
                           text={r.title}
                         />
                         <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-                          H{r.houses.join(', H')}
+                          {t('insights.housesLine', { list: r.houses.join(', ') })}
                         </span>
                       </div>
                       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -671,8 +677,8 @@ export function AshtakavargaAdvancedInsights({
       {subTab === 'structure' ? (
         <div className="card" style={{ padding: '1rem' }}>
           <SectionHead
-            title="Four Khandas"
-            subtitle="Bandhu · Sevak · Poshak · Ghatak — from original Lagna SAV"
+            title={t('insights.khandaTitle')}
+            subtitle={t('insights.khandaSub')}
             icon={<Layers size={16} />}
           />
           <div
@@ -706,7 +712,7 @@ export function AshtakavargaAdvancedInsights({
                     </div>
                   </div>
                   <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', margin: '0.25rem 0 0.55rem' }}>
-                    Houses {k.houses.join(' + ')}
+                    {t('insights.housesLine', { list: k.houses.join(' + ') })}
                   </div>
                   <Meter value={k.total} max={khandaMax} color={isDom ? 'var(--gold)' : 'var(--teal)'} height={9} />
                   <p style={{ margin: '0.65rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -719,11 +725,11 @@ export function AshtakavargaAdvancedInsights({
           {(insights.khandas.bandhuBusiness || insights.khandas.ghatakCaution) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {insights.khandas.bandhuBusiness ? (
-                <Callout tone="good">Bandhu ≥ 88 — strong self-earned / business potential.</Callout>
+                <Callout tone="good">{t('insights.bandhuCallout')}</Callout>
               ) : null}
               {insights.khandas.ghatakCaution ? (
                 <Callout tone="warn">
-                  Ghatak &gt; 73 — caution with loans, hidden enemies, and excess display; correlate with lifestyle.
+                  {t('insights.ghatakCallout')}
                 </Callout>
               ) : null}
             </div>
@@ -735,21 +741,21 @@ export function AshtakavargaAdvancedInsights({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div className="card" style={{ padding: '1rem' }}>
             <SectionHead
-              title="House bindu heatmap"
-              subtitle="28+ functional · ≤23 weak · 30 clean · 34–40 strong · 41+ abundant"
+              title={t('insights.heatmapTitle')}
+              subtitle={t('insights.heatmapSub')}
               icon={<Home size={16} />}
             />
             <HouseHeatStrip ratings={insights.houseRatings} />
           </div>
           <div className="card" style={{ padding: '1rem' }}>
             <SectionHead
-              title="Planet × house bindus (BAV)"
-              subtitle="Each planet's Bhinnashtakavarga in house order from the Lagna · 4+ supports, ≤3 strains"
+              title={t('insights.planetHouseTitle')}
+              subtitle={t('insights.planetHouseSub')}
               icon={<Home size={16} />}
             />
             <Heatmap
               rows={BAV_ORDER.filter((id) => ashtakavarga.bav[id]).map((id) => id)}
-              cols={Array.from({ length: 12 }, (_, i) => `H${i + 1}`)}
+              cols={Array.from({ length: 12 }, (_, i) => (hi ? String(i + 1) : `H${i + 1}`))}
               values={BAV_ORDER.filter((id) => ashtakavarga.bav[id]).map((id) =>
                 Array.from({ length: 12 }, (_, h) => ashtakavarga.bav[id].bindus[(ascRashi - 1 + h) % 12] ?? null),
               )}
@@ -757,8 +763,12 @@ export function AshtakavargaAdvancedInsights({
               max={8}
               mid={4}
               highlightCols={[focusHouse - 1]}
-              cellTitle={(r, c, v) => `${BAV_ORDER.filter((id) => ashtakavarga.bav[id])[r]} in H${c + 1}: ${v ?? '—'} bindus`}
-              ariaLabel="Bhinnashtakavarga bindus by planet and house"
+              cellTitle={(r, c, v) => t('insights.cellTitle', {
+                planet: BAV_ORDER.filter((id) => ashtakavarga.bav[id])[r],
+                house: c + 1,
+                value: v ?? '—',
+              })}
+              ariaLabel={t('insights.heatmapAria')}
             />
           </div>
           <div
@@ -779,7 +789,7 @@ export function AshtakavargaAdvancedInsights({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>House {h.house}</span>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>{t('insights.house', { n: h.house })}</span>
                   <span
                     style={{
                       fontSize: '0.95rem',
@@ -807,7 +817,7 @@ export function AshtakavargaAdvancedInsights({
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{h.label}</div>
                 {[6, 8, 12].includes(h.house) ? (
                   <div style={{ marginTop: 8, fontSize: '0.64rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                    {negativeHouseNotes(h.house, h.bindus)[0]}
+                    {negativeHouseNotes(h.house, h.bindus, lang)[0]}
                   </div>
                 ) : null}
               </div>
@@ -820,8 +830,8 @@ export function AshtakavargaAdvancedInsights({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div className="card" style={{ padding: '1rem' }}>
             <SectionHead
-              title="Bhava-Bhaavam"
-              subtitle="Make any house the Lagna: that house = BODY of the topic; the other 11 = LIFE of that topic only."
+              title={t('insights.bhavaTitle')}
+              subtitle={t('insights.bhavaSub')}
               icon={<Scale size={16} />}
             />
 
@@ -845,7 +855,7 @@ export function AshtakavargaAdvancedInsights({
                       minHeight: 36,
                     }}
                   >
-                    H{p.house} · {p.label}
+                    {t('insights.house', { n: p.house })} · {t(`insights.focus.${p.house}`)}
                   </button>
                 )
               })}
@@ -877,7 +887,7 @@ export function AshtakavargaAdvancedInsights({
               })}
             </div>
 
-            <Callout tone="warn">{bb?.caution ?? 'Compare bindus (strength points) inside this topic only — not against other natal houses.'}</Callout>
+            <Callout tone="warn">{bb?.caution ?? t('insights.fallbackCaution')}</Callout>
           </div>
 
           {bb ? (
@@ -901,7 +911,7 @@ export function AshtakavargaAdvancedInsights({
                     marginBottom: '0.35rem',
                   }}
                 >
-                  Body of {bb.topicShort} · relative H1 (= natal H{bb.body.originalHouse})
+                  {t('insights.bodyLine', { topic: bb.topicShort, house: bb.body.originalHouse })}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   <div>
@@ -926,7 +936,7 @@ export function AshtakavargaAdvancedInsights({
 
               {/* Guided summary */}
               <div className="card" style={{ padding: '1rem' }}>
-                <SectionHead title="Guided reading" subtitle="Compare only inside this rotated topic" icon={<Sparkles size={16} />} />
+                <SectionHead title={t('insights.guidedTitle')} subtitle={t('insights.guidedSub')} icon={<Sparkles size={16} />} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                   {bb.summary.map((line, i) => (
                     <div
@@ -950,8 +960,8 @@ export function AshtakavargaAdvancedInsights({
               {/* Key life houses */}
               <div className="card" style={{ padding: '1rem' }}>
                 <SectionHead
-                  title="Key life houses"
-                  subtitle="Body · Resources · Struggle · Support · Sudden · Gains — class essentials"
+                  title={t('insights.keyTitle')}
+                  subtitle={t('insights.keySub')}
                   icon={<Layers size={16} />}
                 />
                 <div
@@ -980,8 +990,8 @@ export function AshtakavargaAdvancedInsights({
                         </span>
                       </div>
                       <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
-                        Rel H{row.relativeHouse}
-                        <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> · natal H{row.originalHouse}</span>
+                        {t('insights.rel', { n: row.relativeHouse })}
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> · {t('insights.natal', { n: row.originalHouse })}</span>
                       </div>
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{row.label}</div>
                     </div>
@@ -992,8 +1002,8 @@ export function AshtakavargaAdvancedInsights({
               {/* Full life map */}
               <div className="card" style={{ padding: '1rem' }}>
                 <SectionHead
-                  title={`Life of ${bb.topicShort}`}
-                  subtitle="All 12 relative houses — meanings are for this topic only"
+                  title={t('insights.lifeOf', { topic: bb.topicShort })}
+                  subtitle={t('insights.allSub')}
                   icon={<Home size={16} />}
                 />
                 <div
@@ -1017,8 +1027,8 @@ export function AshtakavargaAdvancedInsights({
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
                           <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>
-                            Rel H{row.relativeHouse}
-                            <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> · natal H{row.originalHouse}</span>
+                            {t('insights.rel', { n: row.relativeHouse })}
+                            <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> · {t('insights.natal', { n: row.originalHouse })}</span>
                           </span>
                           <span style={{ fontSize: '0.9rem', fontWeight: 800, color: bandColor(row.band), fontVariantNumeric: 'tabular-nums' }}>
                             {row.bindus}
@@ -1054,8 +1064,8 @@ export function AshtakavargaAdvancedInsights({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div className="card" style={{ padding: '1rem' }}>
             <SectionHead
-              title="Special yogas"
-              subtitle="Indicative classical bindu yogas — correlate with dasha and transit"
+              title={t('insights.yogasTitle')}
+              subtitle={t('insights.yogasSub')}
               icon={<Sparkles size={16} />}
             />
             <div
@@ -1067,18 +1077,18 @@ export function AshtakavargaAdvancedInsights({
             >
               <YogaCard
                 active={insights.yogas.growthAt37}
-                title="Growth ~37"
-                detail="H1, H10, and H11 all ≥ 30"
+                title={t('insights.growthTitle')}
+                detail={t('insights.growthDetail')}
               />
               <YogaCard
                 active={insights.yogas.wealthAt40}
-                title="Wealth ~40"
-                detail="H4 and H11 both ≥ 30"
+                title={t('insights.wealthTitle')}
+                detail={t('insights.wealthDetail')}
               />
               <YogaCard
                 active={insights.yogas.strongLagna}
-                title="Strong Lagna"
-                detail="H1 ≥ 40 — person can weather weak houses"
+                title={t('insights.lagnaTitle')}
+                detail={t('insights.lagnaDetail')}
               />
             </div>
           </div>
@@ -1092,25 +1102,26 @@ export function AshtakavargaAdvancedInsights({
           >
             <div className="card" style={{ padding: '1rem' }}>
               <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Troubled year (Saturn)
+                {t('insights.troubled')}
               </div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--rose)', marginTop: 4, lineHeight: 1 }}>
                 {insights.ages.saturnChallengeAge != null ? `~${insights.ages.saturnChallengeAge}` : '—'}
               </div>
               <p style={{ margin: '0.55rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {insights.ages.saturnHouse != null
-                  ? `Sum of SAV from H1 through H${insights.ages.saturnHouse} × 7 ÷ 27${
-                      insights.ages.saturnChallengeRaw != null
+                  ? t('insights.troubledBody', {
+                      house: insights.ages.saturnHouse,
+                      raw: insights.ages.saturnChallengeRaw != null
                         ? ` (= ${insights.ages.saturnChallengeRaw.toFixed(2)})`
-                        : ''
-                    } — indicative challenge age`
-                  : 'Saturn house unavailable'}
+                        : '',
+                    })
+                  : t('insights.saturnMissing')}
               </p>
             </div>
 
             <div className="card" style={{ padding: '1rem' }}>
               <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Prosperous year (Ju + Ve)
+                {t('insights.prosperous')}
               </div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--teal)', marginTop: 4, lineHeight: 1 }}>
                 {insights.ages.jupiterVenusProsperityAge != null
@@ -1119,20 +1130,22 @@ export function AshtakavargaAdvancedInsights({
               </div>
               <p style={{ margin: '0.55rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {insights.ages.jupiterHouse != null && insights.ages.venusHouse != null
-                  ? `SAV of Ju (H${insights.ages.jupiterHouse}) + Ve (H${insights.ages.venusHouse}) × 7 ÷ 27${
-                      insights.ages.jupiterVenusProsperityRaw != null
+                  ? t('insights.prosperousBody', {
+                      ju: insights.ages.jupiterHouse,
+                      ve: insights.ages.venusHouse,
+                      raw: insights.ages.jupiterVenusProsperityRaw != null
                         ? ` (= ${insights.ages.jupiterVenusProsperityRaw.toFixed(2)})`
-                        : ''
-                    } — indicative prosperity age`
-                  : 'Jupiter / Venus houses unavailable'}
+                        : '',
+                    })
+                  : t('insights.juveMissing')}
               </p>
             </div>
           </div>
 
           <div className="card" style={{ padding: '1rem' }}>
             <SectionHead
-              title="Promotion timing"
-              subtitle="(H10 + H6) mod janma-nakshatra number → count remainder from birth nakshatra"
+              title={t('insights.promoTitle')}
+              subtitle={t('insights.promoSub')}
               icon={<Briefcase size={16} />}
             />
             {insights.promotion ? (
@@ -1153,28 +1166,32 @@ export function AshtakavargaAdvancedInsights({
                   }}
                 >
                   <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                    Target nakshatra
+                    {t('insights.target')}
                   </div>
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-gold)', marginTop: 4 }}>
                     {insights.promotion.targetNakshatraName}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 6, lineHeight: 1.45 }}>
-                    Watch {GRAHA_NAMES.Su} or{' '}
-                    {GRAHA_NAMES[insights.promotion.tenthLord as GrahaId] ?? insights.promotion.tenthLord} transit here.
+                    {t('insights.watchLords', {
+                      sun: hi ? GRAHA_HI.Su : GRAHA_NAMES.Su,
+                      lord: hi
+                        ? (GRAHA_HI[insights.promotion.tenthLord as GrahaId] ?? insights.promotion.tenthLord)
+                        : (GRAHA_NAMES[insights.promotion.tenthLord as GrahaId] ?? insights.promotion.tenthLord),
+                    })}
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.45rem' }}>
-                  <MiniMetric label="H10 + H6" value={String(insights.promotion.sum)} />
-                  <MiniMetric label="Janma #" value={String(insights.promotion.janmaNakshatraNumber)} />
-                  <MiniMetric label="Remainder" value={String(insights.promotion.remainder)} />
+                  <MiniMetric label={t('insights.sumLabel')} value={String(insights.promotion.sum)} />
+                  <MiniMetric label={t('insights.janmaLabel')} value={String(insights.promotion.janmaNakshatraNumber)} />
+                  <MiniMetric label={t('insights.remainder')} value={String(insights.promotion.remainder)} />
                   <div style={{ gridColumn: '1 / -1', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.45, paddingTop: 2 }}>
-                    H10 = {insights.houseSav[9]} · H6 = {insights.houseSav[5]}
+                    {t('insights.housePair', { h10: insights.houseSav[9], h6: insights.houseSav[5] })}
                   </div>
                 </div>
               </div>
             ) : (
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Promotion timing needs birth nakshatra.
+                {t('insights.promoMissing')}
               </p>
             )}
           </div>
@@ -1237,6 +1254,7 @@ function Callout({ tone, children }: { tone: 'good' | 'warn'; children: React.Re
 }
 
 function YogaCard({ active, title, detail }: { active: boolean; title: string; detail: string }) {
+  const t = useTranslations('ashtakavarga')
   return (
     <div
       style={{
@@ -1262,7 +1280,7 @@ function YogaCard({ active, title, detail }: { active: boolean; title: string; d
         }}
       >
         {active ? <CheckCircle2 size={12} /> : <CircleDot size={12} />}
-        {active ? 'Active' : 'Inactive'}
+        {active ? t('insights.active') : t('insights.inactive')}
       </div>
       <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)' }}>{title}</div>
       <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>{detail}</div>

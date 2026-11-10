@@ -5,6 +5,30 @@
 // ─────────────────────────────────────────────────────────────
 
 import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
+import type { EngineLang } from '@/lib/engine/lang'
+import {
+  BHAVA_CAUTION_HI,
+  BHAVA_NOTE_HI,
+  BHAVA_TOPICS_HI,
+  BINDU_CLEAN_GOOD_HI,
+  BINDU_LABEL_HI,
+  IE_HI,
+  NAMED_HI,
+  NEGATIVE_CLASSICAL_HIGH_HI,
+  NEGATIVE_CLASSICAL_LOW_HI,
+  NEGATIVE_MODERN_HI,
+  ROLE_LABEL_HI,
+  fallbackLabelHi,
+  fallbackTopicHi,
+  houseReadingHi,
+  khandaHi,
+  nakshatraNameHi,
+  phaseLineHi,
+  promotionNoteHi,
+  relativeHi,
+  summaryExtraHi,
+} from '@/lib/engine/locale/ashtakavargaInsights.hi'
+import { GRAHA_HI } from '@/i18n/jyotish'
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES } from '@/types/astrology'
 
@@ -160,6 +184,8 @@ export interface AshtakavargaInsightsInput {
   grahas: Array<{ id: string; rashi: number }>
   /** 0–26 Moon birth nakshatra index */
   janmaNakshatraIndex: number
+  /** Display language. Omitted and 'en' keep the English sentences. */
+  lang?: EngineLang
 }
 
 const RASHI_LORD: Record<number, GrahaId> = {
@@ -462,35 +488,36 @@ export function ageFromBinduSum(binduSum: number): number {
   return (binduSum * 7) / 27
 }
 
-export function rateBindus(bindus: number): { band: BinduBand; label: string } {
+export function rateBindus(bindus: number, lang: EngineLang = 'en'): { band: BinduBand; label: string } {
+  const hi = lang === 'hi'
   if (bindus < 14) {
-    return { band: 'critical', label: 'Extremely rare; life-threatening for this house’s domain' }
+    return { band: 'critical', label: hi ? BINDU_LABEL_HI.critical : 'Extremely rare; life-threatening for this house’s domain' }
   }
   if (bindus === 15) {
-    return { band: 'authority', label: 'Fear from government / police / tax authorities' }
+    return { band: 'authority', label: hi ? BINDU_LABEL_HI.authority : 'Fear from government / police / tax authorities' }
   }
   if (bindus === 21) {
-    return { band: 'loss', label: 'Financial loss, illness, or setbacks for this house' }
+    return { band: 'loss', label: hi ? BINDU_LABEL_HI.loss : 'Financial loss, illness, or setbacks for this house' }
   }
   if (bindus <= 23) {
-    return { band: 'weak', label: 'Completely weak house' }
+    return { band: 'weak', label: hi ? BINDU_LABEL_HI.weak : 'Completely weak house' }
   }
   if (bindus < 28) {
-    return { band: 'neutral', label: 'Neutral / somewhat weak — mixed results' }
+    return { band: 'neutral', label: hi ? BINDU_LABEL_HI.neutral : 'Neutral / somewhat weak — mixed results' }
   }
   if (bindus < 30) {
-    return { band: 'functional', label: 'Average / functional — house is operating' }
+    return { band: 'functional', label: hi ? BINDU_LABEL_HI.functional : 'Average / functional — house is operating' }
   }
   if (bindus === 30) {
-    return { band: 'clean', label: 'Clean & auspicious — honor, money, respect' }
+    return { band: 'clean', label: hi ? BINDU_LABEL_HI.clean : 'Clean & auspicious — honor, money, respect' }
   }
   if (bindus <= 33) {
-    return { band: 'clean', label: 'Good results — material benefits likely' }
+    return { band: 'clean', label: hi ? BINDU_CLEAN_GOOD_HI : 'Good results — material benefits likely' }
   }
   if (bindus <= 40) {
-    return { band: 'strong', label: 'Strong — pleasures, growth, and wealth manifest well' }
+    return { band: 'strong', label: hi ? BINDU_LABEL_HI.strong : 'Strong — pleasures, growth, and wealth manifest well' }
   }
-  return { band: 'abundant', label: 'Multiple income sources / extraordinary gains' }
+  return { band: 'abundant', label: hi ? BINDU_LABEL_HI.abundant : 'Multiple income sources / extraordinary gains' }
 }
 
 /**
@@ -540,7 +567,8 @@ function buildNamedTotals(
   return { items, peakId }
 }
 
-function khandaInterpretation(id: string, total: number, isPeak: boolean): string {
+function khandaInterpretation(id: string, total: number, isPeak: boolean, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return khandaHi(id, total, isPeak)
   switch (id) {
     case 'bandhu':
       return total >= 88
@@ -567,8 +595,9 @@ function khandaInterpretation(id: string, total: number, isPeak: boolean): strin
   }
 }
 
-function relativeStrengthReading(role: BhavaRole, bindus: number, topicShort: string): string {
+function relativeStrengthReading(role: BhavaRole, bindus: number, topicShort: string, lang: EngineLang = 'en'): string {
   const { band } = rateBindus(bindus)
+  if (lang === 'hi') return relativeHi(role, bindus, topicShort)
   const strong = bindus >= 30
   const weak = bindus <= 23
   const mid = !strong && !weak
@@ -627,7 +656,7 @@ function relativeStrengthReading(role: BhavaRole, bindus: number, topicShort: st
   }
 }
 
-function buildBhavaSummary(topicShort: string, houses: BhavaBhaavamHouse[]): string[] {
+function buildBhavaSummary(topicShort: string, houses: BhavaBhaavamHouse[], lang: EngineLang = 'en'): string[] {
   const byRel = (r: number) => houses.find((h) => h.relativeHouse === r)!
   const body = byRel(1)
   const resources = byRel(2)
@@ -638,6 +667,10 @@ function buildBhavaSummary(topicShort: string, houses: BhavaBhaavamHouse[]): str
   const lines: string[] = []
 
   lines.push(body.reading)
+  if (lang === 'hi') {
+    lines.push(...summaryExtraHi(topicShort, body.bindus, resources.bindus, struggle.bindus, support.bindus, sudden.bindus, gains.bindus))
+    return lines
+  }
 
   if (gains.bindus > body.bindus && gains.bindus >= 28) {
     lines.push(
@@ -683,11 +716,12 @@ function buildBhavaSummary(topicShort: string, houses: BhavaBhaavamHouse[]): str
  *   it means homeland-vs-abroad / comfort *of career*.
  * - Compare bindus inside this rotated topic; do not rank Career body against natal Lagna.
  */
-export function bhavaBhaavam(houseSav: number[], focusHouse: number): BhavaBhaavamView {
+export function bhavaBhaavam(houseSav: number[], focusHouse: number, lang: EngineLang = 'en'): BhavaBhaavamView {
   const focus = Math.min(12, Math.max(1, Math.round(focusHouse)))
-  const topicDef = BHAVA_BHAAVAM_TOPICS[focus]
-  const topic = topicDef?.topic ?? `House ${focus} as Lagna`
-  const topicShort = topicDef?.topicShort ?? `H${focus}`
+  const hi = lang === 'hi'
+  const topicDef = hi ? BHAVA_TOPICS_HI[focus] : BHAVA_BHAAVAM_TOPICS[focus]
+  const topic = topicDef?.topic ?? (hi ? fallbackTopicHi(focus).topic : `House ${focus} as Lagna`)
+  const topicShort = topicDef?.topicShort ?? (hi ? fallbackTopicHi(focus).topicShort : `H${focus}`)
   const labels = topicDef?.labels
 
   const houses: BhavaBhaavamHouse[] = Array.from({ length: 12 }, (_, i) => {
@@ -696,23 +730,25 @@ export function bhavaBhaavam(houseSav: number[], focusHouse: number): BhavaBhaav
     const bindus = houseSav[originalHouse - 1] ?? 0
     const { role, roleLabel } = BHAVA_ROLES[i]
     const { band } = rateBindus(bindus)
-    const label = labels?.[i] ?? `Relative house ${relativeHouse} (natal H${originalHouse})`
+    const label = labels?.[i] ?? (hi
+      ? fallbackLabelHi(relativeHouse, originalHouse)
+      : `Relative house ${relativeHouse} (natal H${originalHouse})`)
     return {
       relativeHouse,
       originalHouse,
       bindus,
       role,
-      roleLabel,
+      roleLabel: hi ? ROLE_LABEL_HI[role] : roleLabel,
       label,
       band,
-      reading: relativeStrengthReading(role, bindus, topicShort),
+      reading: relativeStrengthReading(role, bindus, topicShort, lang),
     }
   })
 
   const body = houses[0]
   const life = houses.slice(1)
   const keyHouses = BHAVA_KEY_RELATIVE.map((r) => houses[r - 1])
-  const summary = buildBhavaSummary(topicShort, houses)
+  const summary = buildBhavaSummary(topicShort, houses, lang)
 
   return {
     focusHouse: focus,
@@ -723,21 +759,25 @@ export function bhavaBhaavam(houseSav: number[], focusHouse: number): BhavaBhaav
     houses,
     keyHouses,
     summary,
-    note:
-      'Bhava-Bhaavam: the chosen house becomes the BODY of that topic; the other eleven houses describe only the LIFE of that topic.',
-    caution:
-      'Do not keep original D1 meanings after rotation (e.g. 4th from Career ≠ personal property). Compare bindus (strength points) inside this topic — not Career vs natal Lagna.',
+    note: hi
+      ? BHAVA_NOTE_HI
+      : 'Bhava-Bhaavam: the chosen house becomes the BODY of that topic; the other eleven houses describe only the LIFE of that topic.',
+    caution: hi
+      ? BHAVA_CAUTION_HI
+      : 'Do not keep original D1 meanings after rotation (e.g. 4th from Career ≠ personal property). Compare bindus (strength points) inside this topic — not Career vs natal Lagna.',
   }
 }
 
-export function negativeHouseNotes(house: number, bindus: number): string[] {
+export function negativeHouseNotes(house: number, bindus: number, lang: EngineLang = 'en'): string[] {
   if (![6, 8, 12].includes(house)) return []
+  const hi = lang === 'hi'
   const classical =
     bindus < 28
-      ? 'Classical: lower score here means fewer obstacles / shocks / wasteful expenses.'
-      : 'Classical: higher score here increases struggle themes for this dusthana (difficult houses: 6, 8, 12).'
-  const modern =
-    'Modern view: strength in 3/6/8/11 also supports effort, competitiveness, recovery, and gains — correlate with the whole chart.'
+      ? (hi ? NEGATIVE_CLASSICAL_LOW_HI : 'Classical: lower score here means fewer obstacles / shocks / wasteful expenses.')
+      : (hi ? NEGATIVE_CLASSICAL_HIGH_HI : 'Classical: higher score here increases struggle themes for this dusthana (difficult houses: 6, 8, 12).')
+  const modern = hi
+    ? NEGATIVE_MODERN_HI
+    : 'Modern view: strength in 3/6/8/11 also supports effort, competitiveness, recovery, and gains — correlate with the whole chart.'
   return [classical, modern]
 }
 
@@ -748,6 +788,7 @@ export function negativeHouseNotes(house: number, bindus: number): string[] {
 export function buildHouseComparisonReadings(
   houseSav: number[],
   avg = SAV_HOUSE_AVERAGE,
+  lang: EngineLang = 'en',
 ): HouseComparisonReading[] {
   const h = (n: number) => houseSav[n - 1] ?? 0
   const out: HouseComparisonReading[] = []
@@ -886,15 +927,23 @@ export function buildHouseComparisonReadings(
     })
   }
 
-  return out
+  if (lang !== 'hi') return out
+  return out.map((reading) => {
+    const hi = houseReadingHi(reading.id, {
+      houses: reading.houses.join(', '),
+      h8, lagna, h10, h11, h5, h12, h7,
+    })
+    return hi ? { ...reading, title: hi.title, detail: hi.detail } : reading
+  })
 }
 
 export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): AshtakavargaInsights {
+  const lang = input.lang ?? 'en'
   const houseSav = toHousesFromLagna(input.savByRashi, input.ascRashi)
   const savTotal = houseSav.reduce((a, b) => a + b, 0)
 
   const houseRatings: HouseBinduRating[] = houseSav.map((bindus, i) => {
-    const { band, label } = rateBindus(bindus)
+    const { band, label } = rateBindus(bindus, lang)
     return { house: i + 1, bindus, band, label }
   })
 
@@ -908,11 +957,13 @@ export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): A
     external,
     dominant: dominantIe,
     interpretation:
-      dominantIe === 'internal'
-        ? 'Internal > External — builds wealth through karma, experience, knowledge, and wisdom; often generous.'
-        : dominantIe === 'external'
-          ? 'External > Internal — builds wealth more through outer circumstances and material-world interactions.'
-          : 'Internal and External nearly equal — balanced inner wisdom and outer drive.',
+      lang === 'hi'
+        ? IE_HI[dominantIe]
+        : dominantIe === 'internal'
+          ? 'Internal > External — builds wealth through karma, experience, knowledge, and wisdom; often generous.'
+          : dominantIe === 'external'
+            ? 'External > Internal — builds wealth more through outer circumstances and material-world interactions.'
+            : 'Internal and External nearly equal — balanced inner wisdom and outer drive.',
   }
 
   const bandhuTotal = sumHouses(houseSav, KHANDAS.bandhu.houses)
@@ -929,10 +980,10 @@ export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): A
 
   const makeKhanda = (key: keyof typeof KHANDAS, total: number): NamedTotal => ({
     id: KHANDAS[key].id,
-    name: KHANDAS[key].name,
+    name: lang === 'hi' ? (NAMED_HI[key] ?? KHANDAS[key].name) : KHANDAS[key].name,
     houses: [...KHANDAS[key].houses],
     total,
-    interpretation: khandaInterpretation(key, total, key === dominantKhanda),
+    interpretation: khandaInterpretation(key, total, key === dominantKhanda, lang),
   })
 
   const khandas: KhandaAnalysis = {
@@ -945,14 +996,22 @@ export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): A
     ghatakCaution: ghatakTotal > 73,
   }
 
-  const stages = buildNamedTotals(houseSav, LIFE_STAGES, (id, _t, isPeak) =>
-    isPeak ? 'Peak life stage — strongest bindu support in this phase.' : `${id} phase total.`,
+  const localizeNames = <T extends { id: string; name: string }>(defs: readonly T[]): T[] =>
+    defs.map((d) => (lang === 'hi' ? { ...d, name: NAMED_HI[d.id] ?? d.name } : { ...d }))
+  const stages = buildNamedTotals(houseSav, localizeNames(LIFE_STAGES), (id, _t, isPeak) =>
+    lang === 'hi'
+      ? phaseLineHi('stage', id, isPeak)
+      : isPeak ? 'Peak life stage — strongest bindu support in this phase.' : `${id} phase total.`,
   )
-  const dirs = buildNamedTotals(houseSav, DIRECTIONS, (id, _t, isPeak) =>
-    isPeak ? 'Best growth direction for career, relocation, and business.' : `${id} direction total.`,
+  const dirs = buildNamedTotals(houseSav, localizeNames(DIRECTIONS), (id, _t, isPeak) =>
+    lang === 'hi'
+      ? phaseLineHi('direction', id, isPeak)
+      : isPeak ? 'Best growth direction for career, relocation, and business.' : `${id} direction total.`,
   )
-  const ashramBuilt = buildNamedTotals(houseSav, ASHRAMS, (id, _t, isPeak) =>
-    isPeak ? 'Strongest ashram / life-phase block.' : `${id} block total.`,
+  const ashramBuilt = buildNamedTotals(houseSav, localizeNames(ASHRAMS), (id, _t, isPeak) =>
+    lang === 'hi'
+      ? phaseLineHi('ashram', id, isPeak)
+      : isPeak ? 'Strongest ashram / life-phase block.' : `${id} block total.`,
   )
 
   const yogas: YogaFlags = {
@@ -1004,16 +1063,20 @@ export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): A
     janmaNakshatraNumber: janmaNumber,
     remainder,
     targetNakshatraIndex,
-    targetNakshatraName: NAKSHATRA_NAMES[targetNakshatraIndex] ?? `Nakshatra ${targetNakshatraIndex + 1}`,
+    targetNakshatraName: lang === 'hi'
+      ? nakshatraNameHi(targetNakshatraIndex)
+      : (NAKSHATRA_NAMES[targetNakshatraIndex] ?? `Nakshatra ${targetNakshatraIndex + 1}`),
     tenthLord,
-    note: `When Sun or ${tenthLord} (10th lord) transits ${NAKSHATRA_NAMES[targetNakshatraIndex]}, promotion yoga is strong (indicative).`,
+    note: lang === 'hi'
+      ? promotionNoteHi(GRAHA_HI[tenthLord] ?? tenthLord, targetNakshatraIndex)
+      : `When Sun or ${tenthLord} (10th lord) transits ${NAKSHATRA_NAMES[targetNakshatraIndex]}, promotion yoga is strong (indicative).`,
   }
 
   const deadZones = houseSav
     .map((v, i) => (v === 0 ? i + 1 : null))
     .filter((x): x is number => x != null)
 
-  const houseReadings = buildHouseComparisonReadings(houseSav, SAV_HOUSE_AVERAGE)
+  const houseReadings = buildHouseComparisonReadings(houseSav, SAV_HOUSE_AVERAGE, lang)
 
   return {
     houseSav,
