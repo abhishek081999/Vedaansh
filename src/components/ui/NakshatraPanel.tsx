@@ -227,7 +227,7 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const lordName = nm(GRAHA_NAMES[chars.lord])
 
   const planetPos = useMemo(() => {
-    const base = getGraNakPositions(chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)))
+    const base = getGraNakPositions(chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)), lang)
     const ascDeg = chart.lagnas.ascDegree
     const lagNakIdx = Math.floor(ascDeg / (360 / 27))
     const lagNakPada = Math.floor(((ascDeg % (360 / 27)) / (360 / 27)) * 4) + 1
@@ -236,7 +236,7 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
       grahaId: 'As',
       grahaName: tPlanet('lagna'),
       nakshatraIndex: lagNakIdx,
-      nakshatraName: NAK_NAMES[lagNakIdx],
+      nakshatraName: lagChars.name,
       pada: lagNakPada,
       lord: lagChars.lord,
       gana: lagChars.gana,

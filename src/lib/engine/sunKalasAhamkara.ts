@@ -6,6 +6,17 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { fill, overlay, type EngineLang } from '@/lib/engine/lang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  AHAMKARA_HI,
+  PAST_LIFE_HI,
+  PSYCHOLOGY_NEGATIVE_HI,
+  PSYCHOLOGY_POSITIVE_HI,
+  SUN_KALAS_HI,
+  SUN_TEXT_HI,
+} from '@/lib/engine/locale/sunKalasAhamkara.hi'
 
 export interface SunKalaDef {
   number: number
@@ -199,16 +210,33 @@ function sameSignOrConjunct(a: GrahaData, b: GrahaData, orb = 8): boolean {
   return a.rashi === b.rashi || angularSep(a.lonSidereal, b.lonSidereal) <= orb
 }
 
+/** Twelve solar kalas in `lang` (numbers and rashis unchanged). */
+export function sunKalas(lang: EngineLang = 'en'): SunKalaDef[] {
+  if (lang !== 'hi') return SUN_KALAS
+  return SUN_KALAS.map((k, i) => overlay(k, SUN_KALAS_HI[i], 'hi'))
+}
+
+/** Seven ahamkara stages in `lang` (ids, nakshatra indexes, houses unchanged). */
+export function ahamkaraStages(lang: EngineLang = 'en'): AhamkaraStageDef[] {
+  if (lang !== 'hi') return AHAMKARA_STAGES
+  return AHAMKARA_STAGES.map(s => overlay(s, AHAMKARA_HI[s.id], 'hi'))
+}
+
 /** Active solar kala from natal Sun rashi (1–12). */
-export function kalaFromSunRashi(rashi: Rashi): SunKalaDef {
-  return SUN_KALAS[rashi - 1] ?? SUN_KALAS[0]
+export function kalaFromSunRashi(rashi: Rashi, lang: EngineLang = 'en'): SunKalaDef {
+  const list = sunKalas(lang)
+  return list[rashi - 1] ?? list[0]
 }
 
 function scoreAhamkara(
   sun: GrahaData,
   grahas: GrahaData[],
   house: number,
+  lang: EngineLang = 'en',
 ): Array<{ id: AhamkaraId; score: number; reasons: string[] }> {
+  const hi = lang === 'hi'
+  const R = SUN_TEXT_HI.reasons
+  const reason = (en: string, hiText: string) => (hi ? hiText : en)
   const byId = Object.fromEntries(grahas.map(g => [g.id, g])) as Partial<Record<GrahaId, GrahaData>>
   const scores: Record<AhamkaraId, { score: number; reasons: string[] }> = {
     deha: { score: 0, reasons: [] },
@@ -223,11 +251,17 @@ function scoreAhamkara(
   for (const stage of AHAMKARA_STAGES) {
     if (stage.nakshatraIndexes.includes(sun.nakshatraIndex)) {
       scores[stage.id].score += 3
-      scores[stage.id].reasons.push(`Sun in ${NAKSHATRA_NAMES[sun.nakshatraIndex]}`)
+      scores[stage.id].reasons.push(reason(
+        `Sun in ${NAKSHATRA_NAMES[sun.nakshatraIndex]}`,
+        fill(R.nak, { nak: NAKSHATRA_HI[sun.nakshatraIndex] }),
+      ))
     }
     if (stage.houses?.includes(house)) {
       scores[stage.id].score += 2
-      scores[stage.id].reasons.push(`Sun in house ${house}`)
+      scores[stage.id].reasons.push(reason(
+        `Sun in house ${house}`,
+        fill(R.house, { house }),
+      ))
     }
   }
 
@@ -240,51 +274,54 @@ function scoreAhamkara(
 
   if (ma && sameSignOrConjunct(sun, ma)) {
     scores.deha.score += 2
-    scores.deha.reasons.push('Sun with Mars')
+    scores.deha.reasons.push(reason('Sun with Mars', R.mars))
     scores.karya.score += 3
-    scores.karya.reasons.push('Sun with Mars')
+    scores.karya.reasons.push(reason('Sun with Mars', R.mars))
   }
   if (me && sameSignOrConjunct(sun, me)) {
     scores.nama.score += 3
-    scores.nama.reasons.push('Sun with Mercury')
+    scores.nama.reasons.push(reason('Sun with Mercury', R.mercury))
   }
   if (sa && sameSignOrConjunct(sun, sa)) {
     scores.karya.score += 2
-    scores.karya.reasons.push('Sun with Saturn')
+    scores.karya.reasons.push(reason('Sun with Saturn', R.saturn))
   }
   if (ju && sameSignOrConjunct(sun, ju)) {
     scores.pitri.score += 3
-    scores.pitri.reasons.push('Sun with Jupiter')
+    scores.pitri.reasons.push(reason('Sun with Jupiter', R.jupiter))
     scores.atma.score += 2
-    scores.atma.reasons.push('Sun with Jupiter')
+    scores.atma.reasons.push(reason('Sun with Jupiter', R.jupiter))
   }
   if (ra && sameSignOrConjunct(sun, ra)) {
     scores.abhimana.score += 3
-    scores.abhimana.reasons.push('Sun with Rahu')
+    scores.abhimana.reasons.push(reason('Sun with Rahu', R.rahu))
   }
   if (ke && sameSignOrConjunct(sun, ke)) {
     scores.ishwara.score += 3
-    scores.ishwara.reasons.push('Sun with Ketu')
+    scores.ishwara.reasons.push(reason('Sun with Ketu', R.ketu))
   }
   if (sun.dignity === 'exalted' || sun.dignity === 'own' || sun.dignity === 'moolatrikona') {
     scores.atma.score += 3
-    scores.atma.reasons.push(`Strong Sun (${sun.dignity})`)
+    scores.atma.reasons.push(reason(
+      `Strong Sun (${sun.dignity})`,
+      fill(R.strong, { dignity: dignityHi(sun.dignity) }),
+    ))
   }
   if (sun.dignity === 'debilitated') {
     scores.abhimana.score += 1
-    scores.abhimana.reasons.push('Debilitated Sun — pride wounds')
+    scores.abhimana.reasons.push(reason('Debilitated Sun — pride wounds', R.debilPride))
     scores.pitri.score += 1
-    scores.pitri.reasons.push('Debilitated Sun — father / lineage strain')
+    scores.pitri.reasons.push(reason('Debilitated Sun — father / lineage strain', R.debilFather))
   }
   if (house === 10) {
     scores.nama.score += 2
-    scores.nama.reasons.push('Sun in 10th')
+    scores.nama.reasons.push(reason('Sun in 10th', R.tenth))
   }
   if (house === 1) {
     scores.deha.score += 1
-    scores.deha.reasons.push('Sun in Lagna')
+    scores.deha.reasons.push(reason('Sun in Lagna', R.lagna))
     scores.atma.score += 1
-    scores.atma.reasons.push('Sun in Lagna')
+    scores.atma.reasons.push(reason('Sun in Lagna', R.lagna))
   }
 
   return (Object.keys(scores) as AhamkaraId[])
@@ -292,13 +329,15 @@ function scoreAhamkara(
     .sort((a, b) => b.score - a.score)
 }
 
-export function analyzeSunKalasAhamkara(chart: ChartOutput): SunKalasAhamkaraResult | null {
+export function analyzeSunKalasAhamkara(chart: ChartOutput, lang: EngineLang = 'en'): SunKalasAhamkaraResult | null {
   const sun = chart.grahas.find(g => g.id === 'Su')
   if (!sun) return null
 
   const asc = chart.lagnas.ascRashi as Rashi
+  const hi = lang === 'hi'
   const house = wholeSignHouse(sun.rashi, asc)
-  const activeKala = kalaFromSunRashi(sun.rashi)
+  const activeKala = kalaFromSunRashi(sun.rashi, lang)
+  const stages = ahamkaraStages(lang)
 
   const ninthRashi = ((((asc - 1 + 8) % 12) + 1) as Rashi)
   const ninthLord = SIGN_LORD[ninthRashi]
@@ -324,7 +363,7 @@ export function analyzeSunKalasAhamkara(chart: ChartOutput): SunKalasAhamkaraRes
   const grahanActive = withRahu || withKetu
   const grahanWith: 'Ra' | 'Ke' | null = withRahu ? 'Ra' : withKetu ? 'Ke' : null
 
-  const pastLifeFlags: SunPastLifeFlag[] = [
+  const pastLifeFlagsEn: SunPastLifeFlag[] = [
     {
       id: 'sun_ketu',
       title: 'Sun + Ketu',
@@ -375,36 +414,54 @@ export function analyzeSunKalasAhamkara(chart: ChartOutput): SunKalasAhamkaraRes
     },
   ]
 
-  const ahamkaraScores = scoreAhamkara(sun, chart.grahas, house)
-  const primary = AHAMKARA_STAGES.find(s => s.id === ahamkaraScores[0]?.id) ?? AHAMKARA_STAGES[0]
+  const pastLifeFlags = hi
+    ? pastLifeFlagsEn.map(f => overlay(f, PAST_LIFE_HI[f.id], 'hi'))
+    : pastLifeFlagsEn
+
+  const ahamkaraScores = scoreAhamkara(sun, chart.grahas, house, lang)
+  const primary = stages.find(s => s.id === ahamkaraScores[0]?.id) ?? stages[0]
   const secondary = ahamkaraScores
     .slice(1, 3)
     .filter(s => s.score > 0)
-    .map(s => AHAMKARA_STAGES.find(m => m.id === s.id)!)
+    .map(s => stages.find(m => m.id === s.id)!)
     .filter(Boolean)
+
+  const H = SUN_TEXT_HI
+  const worshipEn =
+    sun.rashi === 5 || sun.dignity === 'exalted' || sun.dignity === 'own'
+      ? 'Natal Sun is strong — Surya worship (Aditya Hridayam, arghya at sunrise) amplifies already bright kalas; keep ego soft with seva.'
+      : debil || grahanActive
+        ? 'Natal Sun is strained — gentle Sunday practices, humility toward father/elders, and consistent sunrise awareness help restore solar kalas.'
+        : 'Sunday sunrise arghya and honest self-leadership keep the active solar kala clean.'
+  const grahanEn = grahanActive
+    ? `Surya grahan yoga: Sun with ${grahanWith === 'Ra' ? 'Rahu' : 'Ketu'} — eclipsed will, father/authority confusion, and past-life status rina.`
+    : 'No Sun–Rahu/Ketu grahan yoga in the natal chart (same-sign / close conjunction).'
 
   return {
     activeKala,
-    allKalas: SUN_KALAS,
+    allKalas: hi ? sunKalas('hi') : SUN_KALAS,
     sun: {
       rashi: sun.rashi,
-      rashiName: RASHI_NAMES[sun.rashi],
+      rashiName: hi ? RASHI_HI[sun.rashi] : RASHI_NAMES[sun.rashi],
       nakshatraIndex: sun.nakshatraIndex,
-      nakshatraName: NAKSHATRA_NAMES[sun.nakshatraIndex],
+      nakshatraName: hi ? NAKSHATRA_HI[sun.nakshatraIndex] : NAKSHATRA_NAMES[sun.nakshatraIndex],
       pada: sun.pada,
       house,
       dignity: sun.dignity,
       degreeInSign: sun.degree,
     },
-    psychology: {
-      positive: PSYCHOLOGY_POSITIVE,
-      negativeWhenAfflicted: PSYCHOLOGY_NEGATIVE,
-      fireNote:
-        'Sun is Agni Tattva. Will and identity burn like fire — illuminating when steady, scorching when under pressure.',
-    },
-    traditionNote:
-      'In Tantra / Aditya traditions Surya has 12 kalas — one ray per rashi. The natal Sun sign lights that kala for the person. Parallel to Chandra’s 16 kalas, but solar light is fixed to the zodiac arc rather than lunar elongation.',
-    ahamkaraStages: AHAMKARA_STAGES,
+    psychology: hi
+      ? { positive: [...PSYCHOLOGY_POSITIVE_HI], negativeWhenAfflicted: [...PSYCHOLOGY_NEGATIVE_HI], fireNote: H.fireNote }
+      : {
+          positive: PSYCHOLOGY_POSITIVE,
+          negativeWhenAfflicted: PSYCHOLOGY_NEGATIVE,
+          fireNote:
+            'Sun is Agni Tattva. Will and identity burn like fire — illuminating when steady, scorching when under pressure.',
+        },
+    traditionNote: hi
+      ? H.traditionNote
+      : 'In Tantra / Aditya traditions Surya has 12 kalas — one ray per rashi. The natal Sun sign lights that kala for the person. Parallel to Chandra’s 16 kalas, but solar light is fixed to the zodiac arc rather than lunar elongation.',
+    ahamkaraStages: stages,
     primaryAhamkara: primary,
     secondaryAhamkara: secondary,
     ahamkaraScores,
@@ -412,24 +469,26 @@ export function analyzeSunKalasAhamkara(chart: ChartOutput): SunKalasAhamkaraRes
     grahanYoga: {
       active: grahanActive,
       with: grahanWith,
-      detail: grahanActive
-        ? `Surya grahan yoga: Sun with ${grahanWith === 'Ra' ? 'Rahu' : 'Ketu'} — eclipsed will, father/authority confusion, and past-life status rina.`
-        : 'No Sun–Rahu/Ketu grahan yoga in the natal chart (same-sign / close conjunction).',
+      detail: hi
+        ? (grahanActive ? fill(H.grahan.active, { node: grahanWith === 'Ra' ? 'राहु' : 'केतु' }) : H.grahan.none)
+        : grahanEn,
     },
-    chartReadingTips: [
+    chartReadingTips: hi ? [...H.tips] : [
       'Never ignore Sun — check rashi, nakshatra, house, and dignity for atma and father themes.',
       'Read ego pattern (ahamkara stage) before predicting career or status events.',
       'Strong Sun ≠ kind ego; check aspects and nodes for how authority is used.',
       'Pitri blessings and debts often speak through Sun more than any other graha.',
       'Sunday sunrise practice strengthens solar kalas in lived experience.',
     ],
-    gocharNote:
-      'Lagna gochar shows events of status and authority. Sun gochar / transit to natal Sun shows vitality, confidence, and father-related weather.',
-    worshipNote:
-      sun.rashi === 5 || sun.dignity === 'exalted' || sun.dignity === 'own'
-        ? 'Natal Sun is strong — Surya worship (Aditya Hridayam, arghya at sunrise) amplifies already bright kalas; keep ego soft with seva.'
-        : debil || grahanActive
-          ? 'Natal Sun is strained — gentle Sunday practices, humility toward father/elders, and consistent sunrise awareness help restore solar kalas.'
-          : 'Sunday sunrise arghya and honest self-leadership keep the active solar kala clean.',
+    gocharNote: hi
+      ? H.gocharNote
+      : 'Lagna gochar shows events of status and authority. Sun gochar / transit to natal Sun shows vitality, confidence, and father-related weather.',
+    worshipNote: hi
+      ? (sun.rashi === 5 || sun.dignity === 'exalted' || sun.dignity === 'own'
+          ? H.worship.strong
+          : debil || grahanActive
+            ? H.worship.strained
+            : H.worship.neutral)
+      : worshipEn,
   }
 }

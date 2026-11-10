@@ -6,6 +6,7 @@
 
 import { Link } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
 import { moonLitPath } from '@/lib/panchang/moon-phase'
 import {
@@ -38,9 +39,9 @@ function toneTextClass(tone: MoonContactTone): string {
   return styles.toneMixed
 }
 
-function fmtWhen(iso: string, tz: string): string {
+function fmtWhen(iso: string, tz: string, tag: string): string {
   try {
-    return new Intl.DateTimeFormat('en-IN', {
+    return new Intl.DateTimeFormat(tag, {
       timeZone: tz,
       weekday: 'short',
       day: 'numeric',
@@ -50,7 +51,7 @@ function fmtWhen(iso: string, tz: string): string {
       hour12: true,
     }).format(new Date(iso))
   } catch {
-    return new Date(iso).toLocaleString('en-IN')
+    return new Date(iso).toLocaleString(tag)
   }
 }
 
@@ -98,23 +99,25 @@ function MoonDisc({ elongation }: { elongation: number }) {
 }
 
 function ContactRow({ c, tz }: { c: MoonContact; tz: string }) {
+  const t = useTranslations('transit.passages')
+  const { tag } = useLang()
   return (
     <li className={`${styles.row} ${toneClass(c.tone)}`}>
-      <span className={styles.kind}>{c.kind}</span>
+      <span className={styles.kind}>{t(`kind.${c.kind}`)}</span>
       <div className={styles.rowMain}>
         <p className={styles.rowLabel}>
           {c.label}
-          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · H{c.natalHouse}</span>
+          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {t('houseMeta', { house: c.natalHouse })}</span>
         </p>
         <p className={styles.rowMeta}>
           {c.code}
-          {c.activeNow ? ' · within 3° now' : ''}
+          {c.activeNow ? ` · ${t('withinNow')}` : ''}
         </p>
         <p className={styles.rowText}>{c.text}</p>
       </div>
       <div className={styles.rowWhen}>
-        <div>{fmtWhen(c.atIso, tz)}</div>
-        {c.activeNow ? <span className={styles.nowBadge}>Now</span> : null}
+        <div>{fmtWhen(c.atIso, tz, tag)}</div>
+        {c.activeNow ? <span className={styles.nowBadge}>{t('now')}</span> : null}
       </div>
     </li>
   )
@@ -131,9 +134,11 @@ export function MoonPassagesList({
   limit?: number
   showText?: boolean
 }) {
+  const t = useTranslations('transit.passages')
+  const { tag } = useLang()
   const rows = limit ? report.nearTerm.slice(0, limit) : report.nearTerm
   if (rows.length === 0) {
-    return <p className={styles.empty}>No exact Moon crossings in the next 72 hours.</p>
+    return <p className={styles.empty}>{t('empty72')}</p>
   }
   return (
     <ul className={styles.list}>
@@ -142,12 +147,12 @@ export function MoonPassagesList({
           <ContactRow key={`${c.key}-${c.atIso}`} c={c} tz={tz} />
         ) : (
           <li key={`${c.key}-${c.atIso}`} className={`${styles.row} ${toneClass(c.tone)}`}>
-            <span className={styles.kind}>{c.kind}</span>
+            <span className={styles.kind}>{t(`kind.${c.kind}`)}</span>
             <div className={styles.rowMain}>
               <p className={styles.rowLabel}>{c.label}</p>
-              <p className={styles.rowMeta}>H{c.natalHouse} · {c.tone}</p>
+              <p className={styles.rowMeta}>{t('toneMeta', { house: c.natalHouse, tone: t(`tone.${c.tone}`) })}</p>
             </div>
-            <div className={styles.rowWhen}>{fmtWhen(c.atIso, tz)}</div>
+            <div className={styles.rowWhen}>{fmtWhen(c.atIso, tz, tag)}</div>
           </li>
         ),
       )}
@@ -161,7 +166,8 @@ export function MoonTransitPanel({
   compact = false,
   className,
 }: MoonTransitPanelProps) {
-  const { lang } = useLang()
+  const t = useTranslations('transit.passages')
+  const { lang, tag } = useLang()
   const tz = natalChart.meta.timezone || 'Asia/Kolkata'
   const [transitChart, setTransitChart] = useState<ChartOutput | null>(transitProp ?? null)
   const [loading, setLoading] = useState(!transitProp)
@@ -228,27 +234,36 @@ export function MoonTransitPanel({
 
   const taraChip = report?.moon.taraIsHard ? styles.chipCaution : styles.chipGold
 
+  const errorText =
+    error === 'Calculation failed' ? t('calcFailed')
+      : error === 'Failed to load Moon transit' ? t('loadFailed')
+        : error
+
   if (loading && !report) {
-    return <p className={styles.status}>Loading Moon passages…</p>
+    return <p className={styles.status}>{t('loading')}</p>
   }
-  if (error && !report) {
-    return <p className={styles.error}>{error}</p>
+  if (errorText && !report) {
+    return <p className={styles.error}>{errorText}</p>
   }
   if (!report) {
-    return <p className={styles.empty}>Moon passage data unavailable.</p>
+    return <p className={styles.empty}>{t('unavailable')}</p>
   }
 
   if (compact) {
     return (
       <div className={`${styles.compact} ${className ?? ''}`}>
         <div className={styles.compactHead}>
-          <h3 className={styles.sectionTitle}>Moon passages</h3>
+          <h3 className={styles.sectionTitle}>{t('passages')}</h3>
           <Link className={styles.compactLink} href="/transit/moon">
-            Open full Moon cycle →
+            {t('openFull')}
           </Link>
         </div>
         <p className={styles.sectionHint}>
-          {report.moon.rashiName} · {report.moon.nakshatraName} P{report.moon.pada} · next 72h
+          {t('compactHint', {
+            rashi: report.moon.rashiName,
+            nak: report.moon.nakshatraName,
+            pada: report.moon.pada,
+          })}
         </p>
         <MoonPassagesList report={report} tz={tz} limit={5} showText={false} />
       </div>
@@ -262,32 +277,35 @@ export function MoonTransitPanel({
         <div className={styles.heroMeta}>
           <p className={styles.eyebrow}>
             <span className={styles.liveDot} aria-hidden />
-            Moon passages
+            {t('passages')}
           </p>
           <h2 className={styles.title}>
             {report.moon.rashiName} · {report.moon.nakshatraName}
           </h2>
           <div className={styles.chips}>
-            <span className={styles.chip}>Pada {report.moon.pada}</span>
+            <span className={styles.chip}>{t('pada', { n: report.moon.pada })}</span>
             <span className={styles.chip}>
-              {report.moon.speedDegPerDay.toFixed(2)}°/day
+              {t('speed', { n: report.moon.speedDegPerDay.toFixed(2) })}
             </span>
             <span className={chandraChip}>
-              Chandra H{report.moon.chandraPosition} · {report.moon.chandraQuality}
+              {t('chandra', {
+                house: report.moon.chandraPosition,
+                quality: t(`quality.${report.moon.chandraQuality}`),
+              })}
             </span>
             <span className={taraChip}>
-              Tara {report.moon.taraName}
+              {t('tara', { name: report.moon.taraName })}
             </span>
-            <span className={styles.chip}>From Lagna H{report.moon.lagnaHouse}</span>
+            <span className={styles.chip}>{t('fromLagna', { house: report.moon.lagnaHouse })}</span>
           </div>
         </div>
       </div>
 
       {report.activeNow.length > 0 && (
-        <section className={styles.section} aria-label="Active Moon contacts">
+        <section className={styles.section} aria-label={t('ariaActive')}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Active now</h3>
-            <p className={styles.sectionHint}>Within 3° of exact</p>
+            <h3 className={styles.sectionTitle}>{t('activeNow')}</h3>
+            <p className={styles.sectionHint}>{t('withinExact')}</p>
           </div>
           <ul className={styles.list}>
             {report.activeNow.map(c => (
@@ -297,26 +315,26 @@ export function MoonTransitPanel({
         </section>
       )}
 
-      <section className={styles.section} aria-label="Next 72 hours">
+      <section className={styles.section} aria-label={t('aria72')}>
         <div className={styles.sectionHead}>
-          <h3 className={styles.sectionTitle}>Next 72 hours</h3>
-          <p className={styles.sectionHint}>Timed Moon → natal point (approx. ±15–30 min)</p>
+          <h3 className={styles.sectionTitle}>{t('next72')}</h3>
+          <p className={styles.sectionHint}>{t('next72Hint')}</p>
         </div>
         <MoonPassagesList report={report} tz={tz} />
       </section>
 
-      <section className={styles.section} aria-label="27-day Moon cycle">
+      <section className={styles.section} aria-label={t('ariaCycle')}>
         <div className={styles.sectionHead}>
-          <h3 className={styles.sectionTitle}>27-day cycle</h3>
-          <p className={styles.sectionHint}>Next hit of each natal graha, lagna, and upagraha</p>
+          <h3 className={styles.sectionTitle}>{t('cycle')}</h3>
+          <p className={styles.sectionHint}>{t('cycleHint')}</p>
         </div>
         <div className={styles.cycleGrid}>
           {report.cycle.map(c => (
             <article key={`cycle-${c.key}`} className={styles.cycleCard}>
-              <p className={styles.cycleLabel}>{c.kind}</p>
+              <p className={styles.cycleLabel}>{t(`kind.${c.kind}`)}</p>
               <p className={styles.cycleName}>{c.label}</p>
-              <p className={styles.cycleWhen}>{fmtWhen(c.atIso, tz)}</p>
-              <p className={`${styles.cycleTone} ${toneTextClass(c.tone)}`}>{c.tone}</p>
+              <p className={styles.cycleWhen}>{fmtWhen(c.atIso, tz, tag)}</p>
+              <p className={`${styles.cycleTone} ${toneTextClass(c.tone)}`}>{t(`tone.${c.tone}`)}</p>
             </article>
           ))}
         </div>

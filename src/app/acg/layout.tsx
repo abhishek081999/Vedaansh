@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { acgIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -28,13 +28,14 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/acg', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/acg', locale, metadataEn, {
     title: 'एस्ट्रोकार्टोग्राफी — वैदिक स्थान कुंडली',
     description: 'वैदिक एस्ट्रोकार्टोग्राफी (ACG): ग्रह रेखाओं, परिवर्तना क्षेत्रों और स्थानांतरण-कुंडली के बल विश्लेषण से विश्व भर में अपने शक्ति-स्थान खोजें।',
     ogTitle: 'एस्ट्रोकार्टोग्राफी — वैदिक स्थान कुंडली | Vedaansh',
     ogDescription: 'वैदिक ग्रह रेखाओं और स्थानांतरण-कुंडली विश्लेषण से विश्व भर में अपने शक्ति-स्थान खोजें।',
     keywords: ['एस्ट्रोकार्टोग्राफी', 'वैदिक स्थान कुंडली', 'ACG', 'ग्रह रेखाएँ', 'स्थानांतरण ज्योतिष', 'शक्ति स्थान', 'ज्योतिष ACG'],
-  })
+  }), locale, '/acg/opengraph-image', 'एस्ट्रोकार्टोग्राफी — Vedaansh')
 }
 
 export default async function ACGLayout({ children }: { children: React.ReactNode }) {

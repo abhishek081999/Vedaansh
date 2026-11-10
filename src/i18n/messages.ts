@@ -12,7 +12,7 @@ import { DEFAULT_LOCALE } from './config'
 export const NAMESPACES = [
   'common', 'nav', 'home', 'panchang', 'horoscope', 'today', 'chart',
   // Chart workspace tabs, one file per area so parallel work never edits the same JSON.
-  'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools',
+  'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools', 'ashtakavarga',
   'relationshipMarriage',
   'careerProfession',
   'compare',
@@ -28,6 +28,18 @@ export const NAMESPACES = [
   'acg',
   'sbc',
   'numerology',
+  'about',
+  'support',
+  'pricing',
+  'legal',
+  'install',
+  'search',
+  'account',
+  'clients',
+  'guides',
+  // Saved charts, notes, tags, bulk import, and saved numerology.
+  // Also shipped on the root bundle: ChartTagsInput is inside BirthForm.
+  'library',
 ] as const
 export type Namespace = (typeof NAMESPACES)[number]
 
@@ -37,9 +49,12 @@ export type Namespace = (typeof NAMESPACES)[number]
  * NextIntlClientProvider (see IntlScope) instead of growing this list.
  */
 // 'chart' holds the birth form and chart widgets, which appear on many pages.
+// 'panchang' is on the root bundle because NatalPanchangPanel (home, public chart, compare)
+// reads panchang.natal plus the vishesh and sanskara strings.
 export const ROOT_CLIENT_NAMESPACES: Namespace[] = [
-  'common', 'nav', 'home', 'horoscope', 'chart',
-  'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools',
+  'common', 'nav', 'home', 'panchang', 'horoscope', 'chart',
+  'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools', 'ashtakavarga',
+  'library',
 ]
 
 export type Messages = Record<string, unknown>

@@ -77,6 +77,13 @@ describe('career Hindi leak smoke', () => {
     expect(reading).not.toBeNull()
     const leaks = findEnglishLeaks(collectStrings(reading))
     expect(leaks, `English leaks (${leaks.length}):\n${leaks.join('\n---\n')}`).toEqual([])
+    expect(reading!.advanced.prosperity.closing).toContain('उपस्वामी')
+    expect(reading!.advanced.prosperity.closing).not.toMatch(/sub-lord|fructify/)
+    const kp = reading!.advanced.prosperity.notes.find(n => n.id === 'kp-sub')
+    expect(kp, 'fixture chart should include the KP 10th sub-lord note').toBeTruthy()
+    expect(kp!.title).toBe('केपी दशम उपस्वामी')
+    expect(kp!.reading).not.toMatch(/sub-lord|sign lord|fructify|foreign posting/)
+    expect(kp!.answer).not.toMatch(/fructify|spends the 10th|splits the fruit/)
   })
 
   it('analyzeCareerMethod (lang=hi) avoids English sentence leaks', () => {

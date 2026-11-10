@@ -1017,8 +1017,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                   <h4 className={styles.insightTitle}>
                     {f.name}
                     {f.active
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Active</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Ref</span>}
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('active')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('ref')}</span>}
                   </h4>
                   <p className={styles.insightText}>{f.nature}</p>
                 </article>

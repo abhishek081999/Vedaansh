@@ -462,6 +462,7 @@ function VimshottariDashaBlock({
   onTara: (id: string) => void
   onTribhagi: (on: boolean) => void
 }) {
+  const tw = useTranslations('chart.workspace')
   const chipStyle = (active: boolean, locked = false): React.CSSProperties => ({
     padding: '0.1rem 0.3rem',
     fontSize: '0.65rem',
@@ -477,7 +478,7 @@ function VimshottariDashaBlock({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Tara:</span>
+        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{tw('tara')}:</span>
         {VIMSHOTTARI_TARA_IDS.map((id) => {
           const locked = userPlan === 'free' && id !== 'Mo'
           return (
@@ -485,7 +486,7 @@ function VimshottariDashaBlock({
               key={id}
               type="button"
               onClick={() => (locked ? (window.location.href = '/pricing') : onTara(id))}
-              title={locked ? 'Requires Gold plan' : undefined}
+              title={locked ? tw('requiresGold') : undefined}
               style={chipStyle(tara === id, locked)}
             >
               {locked ? '🔒' : ''}{id}
@@ -494,9 +495,9 @@ function VimshottariDashaBlock({
         })}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Mode:</span>
-        <button type="button" onClick={() => onTribhagi(false)} style={chipStyle(!tribhagi)}>Standard</button>
-        <button type="button" onClick={() => onTribhagi(true)} style={chipStyle(tribhagi)} title="Tribhagi: each period ÷3, full sequence repeated 3× (40+40+40 years)">Tribhagi</button>
+        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{tw('mode')}:</span>
+        <button type="button" onClick={() => onTribhagi(false)} style={chipStyle(!tribhagi)}>{tw('standard')}</button>
+        <button type="button" onClick={() => onTribhagi(true)} style={chipStyle(tribhagi)} title={tw('tribhagiTitle')}>{tw('tribhagi')}</button>
       </div>
       <DashaTree
         nodes={nodes}
@@ -615,6 +616,8 @@ function HomeContent() {
   const lt = (en: string) => (hiLang ? termHi(en) : en)
   const tStr = useTranslations('chart.strength')
   const tYoga = useTranslations('chart.yogas')
+  const tBhava = useTranslations('chartTools.bhavaBala')
+  const tVim = useTranslations('chartTools.vimsopaka')
   const gName = React.useCallback((id: string) => (hiLang ? GRAHA_HI[id as GrahaId] : GRAHA_NAMES[id as GrahaId]) ?? id, [hiLang])
   const urlChartId = searchParams.get('chartId')
 
@@ -2232,7 +2235,7 @@ function HomeContent() {
                             </div>
                           </div>
                           <div className="panel">
-                            <div className="panel-header"><span>Active Houses</span></div>
+                            <div className="panel-header"><span>{tw('activeHouses')}</span></div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
                               <ActiveHousesCard chart={chart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
                             </div>
@@ -2245,7 +2248,7 @@ function HomeContent() {
                           <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
                           <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
                           <div className="panel">
-                            <div className="panel-header"><span>Daily Suitability</span></div>
+                            <div className="panel-header"><span>{tw('dailySuitability')}</span></div>
                             <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
                               {[
                                 { label: tw('suit.Spiritual'), rating: 95, color: 'var(--teal)' },
@@ -2450,7 +2453,7 @@ function HomeContent() {
                              />
                            ) : (
                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>
-                               {dashaSystem} computation required.
+                               {tw('computationRequired', { system: tw(`dasha.${dashaSystem}`) })}
                              </div>
                            )
                          })()}
@@ -2486,7 +2489,7 @@ function HomeContent() {
 
                   {activeTab === 'astro-details' && (
                     <div className="panel fade-up" style={{ flexShrink: 0 }}>
-                      <div className="panel-header"><span>Astro Details</span></div>
+                      <div className="panel-header"><span>{tw('astroDetails')}</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}><AstroDetailsPanel chart={chart} /></div>
                     </div>
                   )}
@@ -2502,7 +2505,7 @@ function HomeContent() {
 
                   {activeTab === 'arudhas' && (
                      <div className="panel fade-up">
-                        <div className="panel-header"><span>Bhava Arudhas</span></div>
+                        <div className="panel-header"><span>{tw('bhavaArudhas')}</span></div>
                         <div style={{ padding: '0.5rem 0.65rem' }}><ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} /></div>
                      </div>
                   )}
@@ -2598,17 +2601,17 @@ function HomeContent() {
 
                   {activeTab === 'vimsopaka' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Vimsopaka</span></div>
+                      <div className="panel-header"><span>{tVim('tab')}</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.vimsopaka ? (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div>
                               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-gold)' }}>{chart.vimsopaka.planets[chart.vimsopaka.strongest]?.shodasvarga.toFixed(1)}</div>
-                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Strongest: {chart.vimsopaka.strongest}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{tVim('strongest')}: {chart.vimsopaka.strongest}</div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--rose)' }}>{chart.vimsopaka.planets[chart.vimsopaka.weakest]?.shodasvarga.toFixed(1)}</div>
-                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Weakest: {chart.vimsopaka.weakest}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{tVim('weakest')}: {chart.vimsopaka.weakest}</div>
                             </div>
                           </div>
                         ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>{tw('vimsopakaNA')}</p>}
@@ -2673,7 +2676,7 @@ function HomeContent() {
                             )
                           ) : (
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.55rem', textAlign: 'center' }}>
-                              Not available for this chart.
+                              {tw('dashaUnavailable')}
                             </div>
                           )}
                         </div>
@@ -2686,7 +2689,7 @@ function HomeContent() {
                {/* BOTTOM: Full-width Shadbala below charts */}
                {activeTab === 'shadbala' && (
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                   <div className="panel-header"><span>Shadbala Strength</span></div>
+                   <div className="panel-header"><span>{tw('shadbalaStrength')}</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
                      {chart.shadbala ? (
                        <ShadbalaTable
@@ -2706,7 +2709,7 @@ function HomeContent() {
                {/* BOTTOM: Full-width Bhava Bala below charts */}
                {activeTab === 'bhava-bala' && (
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                   <div className="panel-header"><span>Bhava Bala — House Strength</span></div>
+                   <div className="panel-header"><span>{tBhava('panelTitle')}</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
                      {chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>{tw('recalcBhavaBala')}</div>}
                    </div>
@@ -2716,7 +2719,7 @@ function HomeContent() {
                 {/* BOTTOM: Full-width Ashtakavarga below charts */}
                 {activeTab === 'ashtakavarga' && (
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                    <div className="panel-header"><span>Ashtakavarga Intelligence</span></div>
+                    <div className="panel-header"><span>{tw('ashtakavargaIntelligence')}</span></div>
                     <div style={{ padding: '0.5rem 0.65rem' }}>
                      {chart.ashtakavarga ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>{tw('recalcAshtakavarga')}</div>}
                     </div>
@@ -2726,7 +2729,7 @@ function HomeContent() {
                 {/* BOTTOM: Full-width Vimsopaka below charts */}
                 {activeTab === 'vimsopaka' && (
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                    <div className="panel-header"><span>Vimsopaka Bala</span></div>
+                    <div className="panel-header"><span>{tVim('title')}</span></div>
                     {chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.75rem', fontSize: '0.78rem' }}>{tw('vimsopakaRecalc')}</div>}
                   </div>
                 )}

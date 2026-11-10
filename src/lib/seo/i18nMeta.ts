@@ -58,3 +58,26 @@ export function localizeMetadata(
     },
   }
 }
+
+/** Hindi shares need ?lang=hi on the image URL. The image route reads that flag. */
+export function withHindiOgImage(
+  meta: Metadata,
+  locale: AppLocale,
+  imagePath: string,
+  altHi: string,
+): Metadata {
+  if (locale !== 'hi') return meta
+  const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+  const image = `${SITE_URL}${path}?lang=hi`
+  return {
+    ...meta,
+    openGraph: {
+      ...meta.openGraph,
+      images: [{ url: image, width: 1200, height: 630, alt: altHi }],
+    },
+    twitter: {
+      ...meta.twitter,
+      images: [image],
+    },
+  }
+}

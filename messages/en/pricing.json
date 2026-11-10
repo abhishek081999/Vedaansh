@@ -1,0 +1,207 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "pricing": "Pricing"
+  },
+  "header": {
+    "myAccount": "My Account",
+    "signIn": "Sign In"
+  },
+  "hero": {
+    "kicker": "Simple, transparent pricing",
+    "title": "Professional Jyotisha.",
+    "titleHighlight": "Free to start.",
+    "subtitle": "Swiss Ephemeris precision for every chart. All core features free forever."
+  },
+  "billing": {
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "bestValue": "Best value"
+  },
+  "currency": {
+    "ariaLabel": "Currency",
+    "inr": "₹ INR",
+    "usd": "$ USD",
+    "usdHint": "Outside India? Pay in USD with PayPal or an international card."
+  },
+  "coupon": {
+    "placeholder": "Have a coupon? Enter code",
+    "apply": "Apply",
+    "applying": "Applying…",
+    "remove": "Remove",
+    "enterFirst": "Enter a coupon code first.",
+    "invalid": "Invalid coupon code",
+    "validateFailed": "Could not validate coupon.",
+    "validateRetry": "Could not validate coupon. Try again.",
+    "applied": "Coupon \"{code}\" applied."
+  },
+  "plans": {
+    "free": {
+      "name": "Free",
+      "subtitle": "Free forever",
+      "features": [
+        "✓ Unlimited chart calculations",
+        "✓ Shodashavarga (16 divisional charts)",
+        "✓ Vimshottari (L4) & Yogini Dashas (L3)",
+        "✓ Dasha interpretation teaser (summary)",
+        "✓ Cosmic Weather daily snapshot",
+        "✓ Astro Vastu & SBC previews",
+        "✓ Profession & Medical nakshatra previews",
+        "✓ Satpanchasika Prashna (horary)",
+        "✓ Shadbala, Vimsopaka & Bhava Bala",
+        "✓ Ashtakavarga, Arudhas & Chara Karakas (natural indicator)",
+        "✓ 100+ Graha Yogas detected",
+        "✓ Daily Panchang & Muhurta tools",
+        "✓ Kundali Milan — Ashtakoot, dosha, and charts",
+        "✓ Relationship and marriage preview",
+        "✓ Match-making and married-life preview",
+        "✓ Solar Return (Tajika/Varshaphal)",
+        "✓ Interpretation Layer: Key Insights",
+        "✓ KP System (Cusps & Significators)",
+        "✓ Save up to 20 charts in library"
+      ]
+    },
+    "gold": {
+      "name": "Gold",
+      "subtitle": "For serious students",
+      "badge": "Most Popular",
+      "features": [
+        "✓ Everything in Free",
+        "✓ Full Vimshottari MD/AD interpretation",
+        "✓ Full Cosmic Weather (hora, muhurta, caveats)",
+        "✓ Astro Vastu — full directional analysis",
+        "✓ Sarvatobhadra Chakra — vedha & Life Advisor",
+        "✓ Full Profession & Medical nakshatra analysis",
+        "✓ Full relationship and marriage reading",
+        "✓ Full career and profession reading",
+        "✓ Full Dosha & Upay (Shrap) desk",
+        "✓ Full Kundali Milan: match-making, married life, and print",
+        "✓ Kerala, Vedic & KP Prashna modes",
+        "✓ Ashtottari & Chara (Jaimini) Dashas",
+        "✓ Extended Vimshottari Depth (L6)",
+        "✓ Professional PDF & HTML exports",
+        "✓ Bulk Data Import (CSV/JSON)",
+        "✓ Save up to 200 charts in library",
+        "✓ Muhurta advanced routes & API"
+      ]
+    },
+    "platinum": {
+      "name": "Platinum",
+      "subtitle": "For professionals",
+      "badge": "Premium",
+      "features": [
+        "✓ Everything in Gold",
+        "✓ Full 41 Varga Suite (All Divisions)",
+        "✓ White-labeling: Custom brand & logo",
+        "✓ Email chart reports to clients",
+        "✓ Unlimited chart library",
+        "✓ Client Management Dashboard",
+        "✓ Bulk ZIP export for collections",
+        "✓ Research routes and API access"
+      ]
+    }
+  },
+  "price": {
+    "free": "Free",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "couponSave": "Coupon applied — save {amount}{period}",
+    "yearlyBilled": "{yearly}/year — {monthly}/month billed yearly",
+    "yearlySave": "{yearly}/year — save {amount}"
+  },
+  "cta": {
+    "currentPlan": "✓ Current Plan",
+    "getStarted": "Get Started Free →",
+    "included": "✓ Included in your plan",
+    "openingCheckout": "Opening checkout…",
+    "upgrade": "Upgrade to {name} →",
+    "paymentHelp": "Payment not working? Ask the Vedaansh team to set it up →",
+    "manualTitle": "Outside India, or can't pay online?",
+    "manualBody": "Ask the Vedaansh team. We'll send a PayPal invoice, Wise or UPI details, and activate your plan once paid.",
+    "requestHelp": "Request help with payment"
+  },
+  "errors": {
+    "orderFailed": "Order creation failed",
+    "paymentIncomplete": "Your payment could not be completed.",
+    "paymentFailed": "Payment failed. Please try again.",
+    "razorpayLoad": "Failed to load Razorpay SDK"
+  },
+  "checkout": {
+    "description": "{plan} — {billing} subscription"
+  },
+  "trust": {
+    "secureInr": "Secure payments via Razorpay",
+    "secureUsd": "Secure payments via Razorpay · PayPal accepted",
+    "ephemeris": "Swiss Ephemeris precision"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": [
+      {
+        "q": "Is Free really free forever?",
+        "a": "Yes. The Free tier is permanently free with no credit card required. We believe core Jyotish tools should be accessible to everyone."
+      },
+      {
+        "q": "What payment methods are accepted?",
+        "a": "We accept all major credit/debit cards, UPI, net banking, and wallets via Razorpay. International cards also accepted."
+      },
+      {
+        "q": "Do you offer discounts?",
+        "a": "Promotional and educational discounts may be offered occasionally. Contact support for current eligibility and terms."
+      }
+    ]
+  },
+  "bottom": {
+    "title": "Start with Free — free forever",
+    "subtitle": "No credit card. No expiry. Upgrade when you're ready.",
+    "cta": "Calculate My Chart →"
+  },
+  "footer": {
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "refunds": "Refunds",
+    "support": "Support",
+    "tagline": "Jyotisha Platform",
+    "pricesUsd": "Prices in USD",
+    "pricesInr": "All prices in INR · GST applicable"
+  },
+  "help": {
+    "title": "Get your plan set up by our team",
+    "titleSent": "Request sent",
+    "close": "Close",
+    "thanks": "Thanks! The Vedaansh team will email you payment details, usually within 1–2 business days.",
+    "activation": "Once your payment is confirmed we'll activate your plan and send a confirmation email. You don't need to pay anything until you hear from us.",
+    "done": "Done",
+    "introFailed": "Sorry your payment didn’t go through. Tell us how you’d like to pay and we’ll send you an invoice or payment details.",
+    "introOther": "Paying from outside India, or prefer to pay another way? Tell us how and we’ll send you an invoice or payment details.",
+    "existing": "You already have a request with our team ({status}, sent {date}). Sending this form again updates it.",
+    "errorSeen": "Error you saw:",
+    "plan": "Plan",
+    "billing": "Billing",
+    "payIn": "Pay in",
+    "country": "Country",
+    "countryPlaceholder": "e.g. United States",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "usd": "USD ($)",
+    "inr": "INR (₹)",
+    "methodLegend": "How would you like to pay?",
+    "message": "Message (optional)",
+    "messagePlaceholder": "Anything we should know, e.g. your PayPal email if it differs from your account email",
+    "submitting": "Sending…",
+    "submit": "Send request to Vedaansh team",
+    "replyNote": "We'll reply to your account email. No payment is taken now.",
+    "sendFailed": "Could not send your request.",
+    "methods": {
+      "paypal": { "label": "PayPal", "hint": "Invoice payable by PayPal or card" },
+      "wise": { "label": "Wise", "hint": "International bank transfer" },
+      "upi": { "label": "UPI", "hint": "India only" },
+      "bank": { "label": "Bank transfer", "hint": "NEFT / IMPS / SWIFT" },
+      "other": { "label": "Other", "hint": "Tell us in the message" }
+    },
+    "plans": {
+      "gold": "Gold",
+      "platinum": "Platinum"
+    }
+  }
+}

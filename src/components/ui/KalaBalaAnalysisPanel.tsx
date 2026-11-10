@@ -5,17 +5,18 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { DashaNode, GrahaData, GrahaId, Rashi, ShadbalaResult } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 import {
   analyzeKalaBala,
   KALA_CLASSICAL_MIN_VIRUPAS,
   KALA_SOFT_BASELINE,
   KALA_SOFT_STABLE,
   kalaPredictionToneColor,
-  kalaPredictionToneLabel,
   kalaSoftBandColor,
-  kalaSoftBandLabel,
   type KalaPlanetAnalysis,
 } from '@/lib/engine/kalaBalaAnalysis'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
@@ -27,18 +28,6 @@ function profileColor(profile: string): string {
   if (profile === 'stable') return 'var(--teal)'
   if (profile === 'weak') return 'var(--rose)'
   return 'var(--text-gold)'
-}
-
-function profileTitle(profile: string): string {
-  if (profile === 'stable') return 'Stable time'
-  if (profile === 'weak') return 'Weak time'
-  return 'Fluctuating'
-}
-
-function careerTitle(path: string): string {
-  if (path === 'job_ok') return 'Job OK'
-  if (path === 'business_preferred') return 'Prefer business'
-  return 'Mixed path'
 }
 
 function Pill({ children, color }: { children: React.ReactNode; color?: string }) {
@@ -62,19 +51,39 @@ function Pill({ children, color }: { children: React.ReactNode; color?: string }
   )
 }
 
-function PlanetDetail({ row }: { row: KalaPlanetAnalysis }) {
+function PlanetDetail({ row, name }: { row: KalaPlanetAnalysis; name: string }) {
+  const t = useTranslations('chartTools.shadbala.analysis')
+  const parts = [
+    ['natha', row.breakdown?.natha],
+    ['paksha', row.breakdown?.paksha],
+    ['tribhaga', row.breakdown?.tribhaga],
+    ['vaara', row.breakdown?.vaara],
+    ['hora', row.breakdown?.hora],
+    ['maasa', row.breakdown?.maasa],
+    ['varsha', row.breakdown?.varsha],
+    ['ayana', row.breakdown?.ayana],
+  ] as const
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
-        <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{row.name}</span>
-        <Pill color={kalaSoftBandColor(row.softBand)}>{kalaSoftBandLabel(row.softBand)}</Pill>
-        {row.meetsClassicalMin ? <Pill color="var(--teal)">≥112 classical</Pill> : <Pill color="var(--rose)">Below 112</Pill>}
+        <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{name}</span>
+        <Pill color={kalaSoftBandColor(row.softBand)}>{t(`kala.band.${row.softBand}`)}</Pill>
+        {row.meetsClassicalMin ? (
+          <Pill color="var(--teal)">{t('kala.classicalOk', { n: String(KALA_CLASSICAL_MIN_VIRUPAS) })}</Pill>
+        ) : (
+          <Pill color="var(--rose)">{t('kala.belowN', { n: String(KALA_CLASSICAL_MIN_VIRUPAS) })}</Pill>
+        )}
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-        {row.virupas.toFixed(1)} Virupas · {row.rupas.toFixed(3)} Rupas · classical {(row.classicalRatio * 100).toFixed(0)}% of {KALA_CLASSICAL_MIN_VIRUPAS}
+        {t('kala.metrics', {
+          v: row.virupas.toFixed(1),
+          r: row.rupas.toFixed(3),
+          pct: (row.classicalRatio * 100).toFixed(0),
+          min: String(KALA_CLASSICAL_MIN_VIRUPAS),
+        })}
       </div>
       {row.themes.length > 0 && (
-        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Themes: {row.themes.join(' · ')}</div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('kala.themes', { list: row.themes.join(' · ') })}</div>
       )}
       {row.bodyCue && (
         <div style={{ fontSize: '0.74rem', color: 'var(--rose)', borderLeft: '2px solid var(--rose)', paddingLeft: '0.5rem' }}>
@@ -82,25 +91,14 @@ function PlanetDetail({ row }: { row: KalaPlanetAnalysis }) {
         </div>
       )}
       <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-        <span style={{ fontWeight: 700, color: 'var(--text-gold)' }}>Remedy focus: </span>
+        <span style={{ fontWeight: 700, color: 'var(--text-gold)' }}>{t('remedyFocus')} </span>
         {row.remedy}
       </div>
       {row.breakdown && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '0.3rem' }}>
-          {(
-            [
-              ['Natha', row.breakdown.natha],
-              ['Paksha', row.breakdown.paksha],
-              ['Tribhaga', row.breakdown.tribhaga],
-              ['Vaara', row.breakdown.vaara],
-              ['Hora', row.breakdown.hora],
-              ['Maasa', row.breakdown.maasa],
-              ['Varsha', row.breakdown.varsha],
-              ['Ayana', row.breakdown.ayana],
-            ] as const
-          ).map(([label, val]) => (
+          {parts.map(([key, val]) => (
             <div
-              key={label}
+              key={key}
               style={{
                 background: 'var(--surface-2)',
                 border: '1px solid var(--border-soft)',
@@ -108,8 +106,8 @@ function PlanetDetail({ row }: { row: KalaPlanetAnalysis }) {
                 padding: '0.28rem 0.35rem',
               }}
             >
-              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', fontWeight: 700 }}>{val.toFixed(1)}</div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{t(`kala.part.${key}`)}</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', fontWeight: 700 }}>{(val ?? 0).toFixed(1)}</div>
             </div>
           ))}
         </div>
@@ -131,17 +129,20 @@ export function KalaBalaAnalysisPanel({
   ascRashi?: Rashi
   compact?: boolean
 }) {
+  const t = useTranslations('chartTools.shadbala.analysis')
+  const { lang, hi } = useLang()
+  const nameOf = (id: string) => (hi && id in GRAHA_HI ? GRAHA_HI[id as GrahaId] : (GRAHA_NAMES[id as GrahaId] ?? id))
   const analysis = useMemo(
-    () => analyzeKalaBala(shadbala, { dashaNodes, grahas, ascRashi }),
-    [shadbala, dashaNodes, grahas, ascRashi],
+    () => analyzeKalaBala(shadbala, { dashaNodes, grahas, ascRashi, lang }),
+    [shadbala, dashaNodes, grahas, ascRashi, lang],
   )
   const [active, setActive] = useState<GrahaId>('Su')
 
   if (!analysis) {
     return (
       <PanelShell
-        title="Kaal Bala analysis"
-        empty={{ title: 'Kaal analysis unavailable', description: 'Recalculate the chart to load Shadbala.' }}
+        title={t('kala.title')}
+        empty={{ title: t('kala.unavailableTitle'), description: t('recalc') }}
       >
         {null}
       </PanelShell>
@@ -165,10 +166,10 @@ export function KalaBalaAnalysisPanel({
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="label-caps">Kaal profile</div>
+          <div className="label-caps">{t('kala.profileLabel')}</div>
           <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-            <Pill color={profileColor(analysis.profile)}>{profileTitle(analysis.profile)}</Pill>
-            <Pill>{careerTitle(analysis.careerPath)}</Pill>
+            <Pill color={profileColor(analysis.profile)}>{t(`kala.profile.${analysis.profile}`)}</Pill>
+            <Pill>{t(`kala.career.${analysis.careerPath}`)}</Pill>
           </div>
         </div>
         <div style={{ marginTop: '0.25rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{analysis.summary}</div>
@@ -183,7 +184,7 @@ export function KalaBalaAnalysisPanel({
   }
 
   return (
-    <PanelShell title="Kaal Bala analysis" padding="sm">
+    <PanelShell title={t('kala.title')} padding="sm">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div
           style={{
@@ -195,16 +196,16 @@ export function KalaBalaAnalysisPanel({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <div>
-              <div className="label-caps">Time luck strength</div>
+              <div className="label-caps">{t('kala.timeLuck')}</div>
               <div style={{ marginTop: '0.2rem', fontWeight: 800, fontSize: '0.92rem', color: profileColor(analysis.profile) }}>
-                {profileTitle(analysis.profile)} · mean {analysis.meanVirupas.toFixed(0)} Virupas
+                {t('meanLine', { profile: t(`kala.profile.${analysis.profile}`), n: analysis.meanVirupas.toFixed(0) })}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-              <Pill color="var(--text-gold)">{careerTitle(analysis.careerPath)}</Pill>
-              <Pill>Soft ≥{KALA_SOFT_STABLE}</Pill>
-              <Pill>Baseline {KALA_SOFT_BASELINE}</Pill>
-              <Pill>Classical {KALA_CLASSICAL_MIN_VIRUPAS}</Pill>
+              <Pill color="var(--text-gold)">{t(`kala.career.${analysis.careerPath}`)}</Pill>
+              <Pill>{t('kala.softGe', { n: String(KALA_SOFT_STABLE) })}</Pill>
+              <Pill>{t('kala.baselineN', { n: String(KALA_SOFT_BASELINE) })}</Pill>
+              <Pill>{t('kala.classicalN', { n: String(KALA_CLASSICAL_MIN_VIRUPAS) })}</Pill>
             </div>
           </div>
           <div style={{ marginTop: '0.35rem', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>{analysis.profileNote}</div>
@@ -215,29 +216,29 @@ export function KalaBalaAnalysisPanel({
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.4rem' }}>
           <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.4rem 0.5rem' }}>
-            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strongest Kaal</div>
-            <div style={{ fontWeight: 800, color: 'var(--teal)' }}>{GRAHA_NAMES[analysis.strongestId]}</div>
+            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{t('kala.strongest')}</div>
+            <div style={{ fontWeight: 800, color: 'var(--teal)' }}>{nameOf(analysis.strongestId)}</div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              {analysis.rows.find((r) => r.id === analysis.strongestId)?.virupas.toFixed(0)} V
+              {t('vShort', { n: analysis.rows.find((r) => r.id === analysis.strongestId)?.virupas.toFixed(0) ?? '0' })}
             </div>
           </div>
           <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.4rem 0.5rem' }}>
-            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weakest Kaal</div>
-            <div style={{ fontWeight: 800, color: 'var(--rose)' }}>{GRAHA_NAMES[analysis.weakestId]}</div>
+            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{t('kala.weakest')}</div>
+            <div style={{ fontWeight: 800, color: 'var(--rose)' }}>{nameOf(analysis.weakestId)}</div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              {analysis.rows.find((r) => r.id === analysis.weakestId)?.virupas.toFixed(0)} V
+              {t('vShort', { n: analysis.rows.find((r) => r.id === analysis.weakestId)?.virupas.toFixed(0) ?? '0' })}
             </div>
           </div>
           <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.4rem 0.5rem' }}>
-            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Spread / dips</div>
+            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{t('kala.spread')}</div>
             <div style={{ fontWeight: 800 }}>{analysis.spreadVirupas.toFixed(0)}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{analysis.dipCount} weak</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('weakN', { n: String(analysis.dipCount) })}</div>
           </div>
         </div>
 
         {analysis.predictions.length > 0 && (
           <div>
-            <div className="label-caps" style={{ marginBottom: '0.4rem' }}>Predictions</div>
+            <div className="label-caps" style={{ marginBottom: '0.4rem' }}>{t('predictions')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.45rem' }}>
               {analysis.predictions.map((p) => (
                 <div
@@ -252,13 +253,13 @@ export function KalaBalaAnalysisPanel({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ fontWeight: 800, fontSize: '0.78rem' }}>{p.title}</div>
-                    <Pill color={kalaPredictionToneColor(p.tone)}>{kalaPredictionToneLabel(p.tone)}</Pill>
+                    <Pill color={kalaPredictionToneColor(p.tone)}>{t(`tone.${p.tone}`)}</Pill>
                   </div>
                   {(p.basedOn || p.virupas != null) && (
                     <div style={{ marginTop: '0.15rem', fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                       {p.basedOn ?? ''}
                       {p.basedOn && p.virupas != null ? ' · ' : ''}
-                      {p.virupas != null ? `${p.virupas.toFixed(0)} V` : ''}
+                      {p.virupas != null ? t('vShort', { n: p.virupas.toFixed(0) }) : ''}
                     </div>
                   )}
                   <div style={{ marginTop: '0.3rem', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -286,19 +287,19 @@ export function KalaBalaAnalysisPanel({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.35rem', alignItems: 'center' }}>
                     <div className="label-caps">
-                      {cue!.role === 'previous' ? 'Prev MD' : cue!.role === 'current' ? 'Current MD' : 'Next MD'}
+                      {cue!.role === 'previous' ? t('prevMd') : cue!.role === 'current' ? t('currentMd') : t('nextMd')}
                     </div>
-                    <Pill color={kalaSoftBandColor(cue!.softBand)}>{kalaSoftBandLabel(cue!.softBand)}</Pill>
+                    <Pill color={kalaSoftBandColor(cue!.softBand)}>{t(`kala.band.${cue!.softBand}`)}</Pill>
                   </div>
                   <div style={{ marginTop: '0.2rem', fontWeight: 800 }}>
-                    {cue!.lordName}
-                    {cue!.viaDispositor && cue!.scoredName ? (
-                      <span style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: '0.72rem' }}> → {cue!.scoredName}</span>
+                    {nameOf(cue!.lord)}
+                    {cue!.viaDispositor && cue!.scoredId ? (
+                      <span style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: '0.72rem' }}> → {nameOf(cue!.scoredId)}</span>
                     ) : null}
                   </div>
                   {cue!.virupas != null && (
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                      {cue!.virupas.toFixed(0)} Virupas
+                      {t('virupasN', { n: cue!.virupas.toFixed(0) })}
                     </div>
                   )}
                   <div style={{ marginTop: '0.3rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -319,7 +320,7 @@ export function KalaBalaAnalysisPanel({
             }}
           >
             <div className="label-caps" style={{ marginBottom: '0.35rem' }}>
-              Drain scan · {GRAHA_NAMES[analysis.dasha.current?.scoredId ?? analysis.dasha.next?.scoredId ?? analysis.weakestId]}
+              {t('kala.drain', { planet: nameOf(analysis.dasha.current?.scoredId ?? analysis.dasha.next?.scoredId ?? analysis.weakestId) })}
             </div>
             <div style={{ display: 'grid', gap: '0.3rem' }}>
               {analysis.drains
@@ -334,7 +335,7 @@ export function KalaBalaAnalysisPanel({
         )}
 
         <div>
-          <div className="label-caps" style={{ marginBottom: '0.4rem' }}>Per-planet Kaal</div>
+          <div className="label-caps" style={{ marginBottom: '0.4rem' }}>{t('kala.perPlanet')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '0.25rem' }}>
             {ORDER.map((id) => {
               const row = analysis.rows.find((r) => r.id === id)!
@@ -353,7 +354,7 @@ export function KalaBalaAnalysisPanel({
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontWeight: 800, fontSize: '0.72rem' }}>{id}</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.72rem' }}>{hi ? GRAHA_HI[id] : id}</div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: kalaSoftBandColor(row.softBand), fontWeight: 700 }}>
                     {row.virupas.toFixed(0)}
                   </div>
@@ -370,36 +371,45 @@ export function KalaBalaAnalysisPanel({
               padding: '0.65rem 0.7rem',
             }}
           >
-            {activeRow ? <PlanetDetail row={activeRow} /> : null}
+            {activeRow ? <PlanetDetail row={activeRow} name={nameOf(activeRow.id)} /> : null}
           </div>
         </div>
 
         <BalaBreakdownViz
-          title="Kala Bala"
-          rows={analysis.rows}
+          title={t('kala.vizTitle')}
+          rows={analysis.rows.map((r) => ({ ...r, name: nameOf(r.id) }))}
           classicalMin={KALA_CLASSICAL_MIN_VIRUPAS}
           activeId={activeRow?.id}
           breakdown={activeRow?.breakdown}
-          breakdownLabels={{ natha: 'Natha', paksha: 'Paksha', tribhaga: 'Tribhaga', vaara: 'Vaara', hora: 'Hora', maasa: 'Maasa', varsha: 'Varsha', ayana: 'Ayana' }}
+          breakdownLabels={{
+            natha: t('kala.part.natha'),
+            paksha: t('kala.part.paksha'),
+            tribhaga: t('kala.part.tribhaga'),
+            vaara: t('kala.part.vaara'),
+            hora: t('kala.part.hora'),
+            maasa: t('kala.part.maasa'),
+            varsha: t('kala.part.varsha'),
+            ayana: t('kala.part.ayana'),
+          }}
         />
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-bright)' }}>
-                <th style={{ textAlign: 'left', padding: '0.3rem 0.4rem' }}>Planet</th>
-                <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem' }}>Virupas</th>
-                <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem' }}>Soft</th>
-                <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem' }}>vs 112</th>
+                <th style={{ textAlign: 'left', padding: '0.3rem 0.4rem' }}>{t('planet')}</th>
+                <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem' }}>{t('virupas')}</th>
+                <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem' }}>{t('soft')}</th>
+                <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem' }}>{t('kala.vsN', { n: String(KALA_CLASSICAL_MIN_VIRUPAS) })}</th>
               </tr>
             </thead>
             <tbody>
               {analysis.rows.map((r) => (
                 <tr key={r.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                  <td style={{ padding: '0.3rem 0.4rem', fontWeight: 700 }}>{r.name}</td>
+                  <td style={{ padding: '0.3rem 0.4rem', fontWeight: 700 }}>{nameOf(r.id)}</td>
                   <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{r.virupas.toFixed(1)}</td>
                   <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right', color: kalaSoftBandColor(r.softBand), fontWeight: 700 }}>
-                    {kalaSoftBandLabel(r.softBand)}
+                    {t(`kala.band.${r.softBand}`)}
                   </td>
                   <td
                     style={{
@@ -418,8 +428,7 @@ export function KalaBalaAnalysisPanel({
         </div>
 
         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Soft bands (~100 / ≥130 stable) are practice heuristics for time-luck reading. Classical % uses the {KALA_CLASSICAL_MIN_VIRUPAS}{' '}
-          Virupa Kaal floor. High Kaal is timing capacity — pair with Sthana, houses, and full Shadbala.
+          {t('kala.footnote', { min: String(KALA_CLASSICAL_MIN_VIRUPAS) })}
         </div>
       </div>
     </PanelShell>

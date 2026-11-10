@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { ACG_SEO, COMPARE_SEO, HOME_FAQ, HOME_SEO, JAIMINI_SEO, MUHURTA_SEO, NADI_SEO, NAKSHATRA_SEO, NUMEROLOGY_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, PRASHNA_SEO, ROADMAP_SEO, SBC_SEO, VASTU_SEO } from './intro-content'
+import { ACG_SEO, ABOUT_FAQ, ABOUT_SEO, COMPARE_SEO, HOME_FAQ, HOME_SEO, JAIMINI_SEO, MUHURTA_SEO, NADI_SEO, NAKSHATRA_SEO, NUMEROLOGY_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, PRASHNA_SEO, PRICING_FAQ, ROADMAP_SEO, SBC_SEO, SUPPORT_SEO, VASTU_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -407,4 +407,95 @@ export const ACG_SEO_HI: SeoIntroProps = {
 
 export function acgIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? ACG_SEO_HI : ACG_SEO
+}
+
+export const PRICING_FAQ_HI: { q: string; a: string }[] = [
+  {
+    q: 'क्या Free सच में हमेशा के लिए निःशुल्क है?',
+    a: 'हाँ। Free स्तर स्थायी रूप से निःशुल्क है, किसी क्रेडिट कार्ड की आवश्यकता नहीं। हम मानते हैं कि मूल ज्योतिष उपकरण सभी के लिए उपलब्ध होने चाहिए।',
+  },
+  {
+    q: 'कौन-से भुगतान तरीके स्वीकार हैं?',
+    a: 'Razorpay के माध्यम से सभी प्रमुख क्रेडिट/डेबिट कार्ड, UPI, नेट बैंकिंग और वॉलेट स्वीकार हैं। अंतरराष्ट्रीय कार्ड भी स्वीकार हैं।',
+  },
+  {
+    q: 'क्या आप छूट देते हैं?',
+    a: 'प्रचार और शैक्षिक छूट कभी-कभी दी जा सकती है। वर्तमान पात्रता और शर्तों के लिए सहायता से संपर्क करें।',
+  },
+]
+
+export function pricingFaq(locale: AppLocale): { q: string; a: string }[] {
+  return locale === 'hi' ? PRICING_FAQ_HI : [...PRICING_FAQ]
+}
+
+/** Locale-aware pricing SEO FAQ (JSON-LD). No crawlable SeoIntro block on this page yet. */
+export function pricingIntro(locale: AppLocale): { faq: { q: string; a: string }[] } {
+  return { faq: pricingFaq(locale) }
+}
+
+export const ABOUT_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'Vedaansh के बारे में',
+  h1: 'Vedaansh के बारे में — वैदिक ज्योतिष मंच',
+  paragraphs: [
+    'Vedaansh जन्म कुंडली, दशा, वर्ग, पंचांग, मुहूर्त और व्यावसायिक उपकरणों के लिए एक निःशुल्क वैदिक ज्योतिष मंच है — विद्यार्थियों और ज्योतिषियों के लिए स्विस एफ़ेमेरिस की सटीकता से निर्मित।',
+    'हमारी दृष्टि शास्त्रीय तकनीक पर आधारित सुलभ ज्योतिष शिक्षा और समुदाय है, गुरु Sameer Bhatnagar आचार्य के मार्गदर्शन में और Abhishek Kumar द्वारा निर्मित।',
+  ],
+  h2: 'हमारे सिद्धांत',
+  bullets: [
+    { label: 'सटीकता पहले', desc: 'लाहिरी अयनांश और आर्क-सेकंड स्विस एफ़ेमेरिस' },
+    { label: 'निःशुल्क मूल उपकरण', desc: 'कुंडली, पंचांग और कई कैलकुलेटर हमेशा निःशुल्क' },
+    { label: 'शास्त्रीय परंपरा', desc: 'पाराशरी, जैमिनी, KP और केरल प्रश्न विधियाँ' },
+    { label: 'समुदाय', desc: 'वैदिक संस्कृति और ज्योतिष साथ सीखने का मंच' },
+  ],
+  relatedLinks: [
+    { href: '/guides', label: 'ज्योतिष मार्गदर्शिकाएँ' },
+    guideLink('lahiri-ayanamsha-explained', 'हमारा डिफ़ॉल्ट अयनांश'),
+    { href: '/search', label: 'साइट खोजें' },
+  ],
+}
+
+export const ABOUT_FAQ_HI: { q: string; a: string }[] = [
+  {
+    q: 'Vedaansh क्या है?',
+    a: 'Vedaansh एक निःशुल्क वैदिक ज्योतिष मंच है जो स्विस एफ़ेमेरिस की सटीकता के साथ जन्म कुंडली, दशा, 41 वर्ग कुंडलियाँ, पंचांग, नक्षत्र विश्लेषण और मुहूर्त उपकरण प्रदान करता है।',
+  },
+  {
+    q: 'क्या Vedaansh निःशुल्क है?',
+    a: 'मूल कुंडली गणना, पंचांग और कई ज्योतिष उपकरण निःशुल्क हैं। वैकल्पिक भुगतान योजनाओं में सहेजी कुंडलियाँ, निर्यात और उन्नत सुविधाएँ मिलती हैं।',
+  },
+  {
+    q: 'Vedaansh कौन-सा अयनांश उपयोग करता है?',
+    a: 'Vedaansh डिफ़ॉल्ट रूप से लाहिरी (चित्रपक्ष) अयनांश का उपयोग करता है, और ग्रह स्थितियों की आर्क-सेकंड सटीकता के लिए स्विस एफ़ेमेरिस का।',
+  },
+]
+
+export function aboutIntro(locale: AppLocale): { seo: SeoIntroProps; faq: { q: string; a: string }[] } {
+  return locale === 'hi'
+    ? { seo: ABOUT_SEO_HI, faq: ABOUT_FAQ_HI }
+    : { seo: ABOUT_SEO, faq: [...ABOUT_FAQ] }
+}
+
+export const SUPPORT_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'Vedaansh सहायता',
+  h1: 'Vedaansh सहायता — बिलिंग, खाता और तकनीकी मदद',
+  paragraphs: [
+    'बिलिंग प्रश्न, खाता पहुँच, कुंडली लाइब्रेरी समस्याएँ और तकनीकी सहायता के लिए Vedaansh से संपर्क करें। हम भारत समय के कार्य घंटों में ईमेल अनुरोधों का उत्तर देते हैं।',
+    'अपना खाता ईमेल और समस्या का संक्षिप्त विवरण शामिल करें, ताकि हम सदस्यता, निर्यात या गणना संबंधी मुद्दे शीघ्र हल कर सकें।',
+  ],
+  h2: 'हम कैसे मदद कर सकते हैं',
+  bullets: [
+    { label: 'बिलिंग और योजनाएँ', desc: 'Gold/Platinum नवीनीकरण, चालान और अपग्रेड' },
+    { label: 'खाता पहुँच', desc: 'लॉगिन, ईमेल सत्यापन और पासवर्ड रीसेट' },
+    { label: 'कुंडलियाँ और निर्यात', desc: 'सहेजी कुंडलियाँ, PDF/HTML निर्यात और साझाकरण' },
+    { label: 'तकनीकी समस्याएँ', desc: 'गणना, पंचांग स्थान या ऐप बग' },
+  ],
+  relatedLinks: [
+    { href: '/guides', label: 'मार्गदर्शिकाएँ' },
+    { href: '/search', label: 'खोजें' },
+    { href: '/pricing', label: 'मूल्य निर्धारण' },
+  ],
+}
+
+export function supportIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? SUPPORT_SEO_HI : SUPPORT_SEO
 }

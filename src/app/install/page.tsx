@@ -2,9 +2,12 @@
 
 import { Link } from '@/i18n/navigation'
 import { Download } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { PwaInstallGuide } from '@/components/ui/PwaInstallGuide'
 
 export default function InstallPage() {
+  const t = useTranslations('install')
+
   return (
     <div
       className="fade-up"
@@ -18,7 +21,7 @@ export default function InstallPage() {
       <header style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
         <span className="badge-accent" style={{ marginBottom: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Download size={14} strokeWidth={2} aria-hidden />
-          Mobile app
+          {t('badge')}
         </span>
         <h1
           style={{
@@ -30,7 +33,7 @@ export default function InstallPage() {
             color: 'var(--text-gold)',
           }}
         >
-          Install Vedaansh
+          {t('title')}
         </h1>
         <p
           style={{
@@ -42,7 +45,7 @@ export default function InstallPage() {
             lineHeight: 1.55,
           }}
         >
-          Add Vedaansh to your home screen — works like an app.
+          {t('subtitle')}
         </p>
       </header>
 
@@ -52,7 +55,7 @@ export default function InstallPage() {
 
       <div style={{ textAlign: 'center' }}>
         <Link href="/" className="btn btn-primary" style={{ textDecoration: 'none' }}>
-          Back to Home
+          {t('backHome')}
         </Link>
       </div>
 

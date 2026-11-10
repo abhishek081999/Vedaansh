@@ -5,6 +5,30 @@
 // ─────────────────────────────────────────────────────────────
 
 import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
+import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
+import {
+  BAV_BAND_HI,
+  BAV_FINDING_HI,
+  BAV_NO_POSITION_HI,
+  BAV_SIG_HI,
+  BAV_USAGE_HI,
+  TRANSIT_NOTE_HI,
+  WATCH_NOTE_HI,
+  bavStrongLabelHi,
+  dashaLordHi,
+  debHighHi,
+  exaltLowHi,
+  excludedHi,
+  fatherTimingHi,
+  fatherWindowHi,
+  marsZeroHi,
+  maternalNoteHi,
+  strongGocharHi,
+  venusSeventhHi,
+  weakGocharHi,
+} from '@/lib/engine/locale/bhinnashtakavargaGuide.hi'
+import { GRAHA_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
 import type { AshtakavargaResult, GrahaId, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES } from '@/types/astrology'
 
@@ -98,6 +122,30 @@ export interface BhinnashtakavargaGuideInput {
   janmaNakshatraIndex?: number
   /** Moon pada 1–4 */
   janmaPada?: number
+  /** Display language. Omitted and 'en' keep the English sentences. */
+  lang?: EngineLang
+}
+
+function show(lang: EngineLang, en: string, hi: string): string {
+  return lang === 'hi' ? hi : en
+}
+
+function gname(id: string, lang: EngineLang): string {
+  if (lang !== 'hi') return PLANET_NAMES[id as keyof typeof PLANET_NAMES] ?? id
+  return GRAHA_HI[id as GrahaId] ?? id
+}
+
+function localizeFindings(
+  findings: BavFinding[],
+  lang: EngineLang,
+  vars: Record<string, string | number> = {},
+): BavFinding[] {
+  if (lang !== 'hi') return findings
+  return findings.map((row) => {
+    const hi = BAV_FINDING_HI[row.id]
+    if (!hi) return row
+    return { ...row, title: hi.title, detail: fill(hi.detail, vars) }
+  })
 }
 
 const PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
@@ -161,10 +209,17 @@ function findPlanet(
   return grahas.find((g) => g.id === id) ?? null
 }
 
-export function rateBavStrength(bindus: number): {
+export function rateBavStrength(bindus: number, lang: EngineLang = 'en'): {
   band: BavStrengthBand
   label: string
 } {
+  if (lang === 'hi') {
+    if (bindus <= 0) return { band: 'critical', label: BAV_BAND_HI.critical }
+    if (bindus <= 3) return { band: 'weak', label: BAV_BAND_HI.weak }
+    if (bindus === 4) return { band: 'borderline', label: BAV_BAND_HI.borderline }
+    if (bindus === 5) return { band: 'good', label: BAV_BAND_HI.good }
+    return { band: 'strong', label: bavStrongLabelHi(bindus) }
+  }
   if (bindus <= 0) {
     return { band: 'critical', label: 'Zero bindus (strength points) — no strength in this sign' }
   }
@@ -199,13 +254,15 @@ function bavFor(
   return av.bav[planet]?.bindus[rashi - 1] ?? 0
 }
 
-function nakshatraFromCount(count: number): { index: number; name: string; rashi: number } {
+function nakshatraFromCount(count: number, lang: EngineLang = 'en'): { index: number; name: string; rashi: number } {
   // Count Ashwini as #1; remainder after 27 wraps
   let n = count
   while (n > 27) n -= 27
   if (n <= 0) n = ((n % 27) + 27) % 27 || 27
   const index = n - 1 // 0-based
-  const name = NAKSHATRA_NAMES[index] ?? `Nakshatra ${n}`
+  const name = lang === 'hi'
+    ? (NAKSHATRA_HI[index] ?? `नक्षत्र ${n}`)
+    : (NAKSHATRA_NAMES[index] ?? `Nakshatra ${n}`)
   // Each nakshatra spans 13°20'; 4 pada per sign → 9 nakshatras per 4 signs… standard: floor(index/2.25) style
   // 27 nakshatras / 12 signs → rashi = floor(index * 12 / 27) + 1, but classical: each sign has 2.25 nakshatras
   const rashi = (Math.floor((index * 4) / 9) % 12) + 1
@@ -231,6 +288,7 @@ export function computeFatherTimingFromSunBav(
   av: AshtakavargaResult,
   ascRashi: number,
   sunRashi: number,
+  lang: EngineLang = 'en',
 ): FatherTimingResult {
   const lagnaTenthRashi = rashiOfHouse(10, ascRashi)
   const sunNinthRashi = ((sunRashi - 1 + 8) % 12) + 1
@@ -239,7 +297,7 @@ export function computeFatherTimingFromSunBav(
   let sum = lagnaTenthBindus + sunNinthBindus
   let adjusted = sum
   if (adjusted > 27) adjusted -= 27
-  const target = nakshatraFromCount(Math.max(1, adjusted))
+  const target = nakshatraFromCount(Math.max(1, adjusted), lang)
   const trineRashis = trinesOf(target.rashi)
   return {
     lagnaTenthBindus,
@@ -250,11 +308,18 @@ export function computeFatherTimingFromSunBav(
     targetNakshatraName: target.name,
     targetRashi: target.rashi,
     trineRashis,
-    note:
-      `Add Sun BAV of 10th-from-Lagna (${lagnaTenthBindus}) + 9th-from-Sun (${sunNinthBindus}) = ${sum}` +
-      (sum > 27 ? ` → ${adjusted} after −27` : '') +
-      `. ${adjusted}th nakshatra from Ashwini = ${target.name}. ` +
-      `Saturn gochar on trines of that sign (or its nakshatra) marks a critical father-health window — confirm with dasha.`,
+    note: lang === 'hi'
+      ? fatherTimingHi({
+          lagnaTenth: lagnaTenthBindus,
+          sunNinth: sunNinthBindus,
+          sum,
+          adjusted,
+          nakshatraIndex: target.index,
+        })
+      : `Add Sun BAV of 10th-from-Lagna (${lagnaTenthBindus}) + 9th-from-Sun (${sunNinthBindus}) = ${sum}` +
+        (sum > 27 ? ` → ${adjusted} after −27` : '') +
+        `. ${adjusted}th nakshatra from Ashwini = ${target.name}. ` +
+        `Saturn gochar on trines of that sign (or its nakshatra) marks a critical father-health window — confirm with dasha.`,
   }
 }
 
@@ -266,6 +331,7 @@ export function countMaternalRelatives(
   av: AshtakavargaResult,
   moonRashi: number,
   grahas: BhinnashtakavargaGuideInput['grahas'],
+  lang: EngineLang = 'en',
 ): MaternalRelativeCount {
   const fourthRashi = ((moonRashi - 1 + 3) % 12) + 1
   const houseFromMoon = 4
@@ -280,7 +346,9 @@ export function countMaternalRelatives(
     const isDeb = g?.dignity === 'debilitated' || DEBILITATION[pid] === fourthRashi
     const isEnemy = (ENEMY_SIGNS[pid] ?? []).includes(fourthRashi)
     if (isDeb || isEnemy) {
-      excluded.push(`${PLANET_NAMES[pid as keyof typeof PLANET_NAMES] ?? pid} (${isDeb ? 'debilitated' : 'enemy'})`)
+      excluded.push(lang === 'hi'
+        ? excludedHi(gname(pid, lang), isDeb ? 'debilitated' : 'enemy')
+        : `${PLANET_NAMES[pid as keyof typeof PLANET_NAMES] ?? pid} (${isDeb ? 'debilitated' : 'enemy'})`)
       return
     }
     if (gender === 'male') mamaPoints += pts
@@ -296,11 +364,12 @@ export function countMaternalRelatives(
     mamaPoints,
     mausiPoints,
     excluded,
-    note:
-      `From Moon, 4th house points (male grahas → maternal uncles, female → maternal aunts). ` +
-      `Debilitated/enemy contributors excluded` +
-      (excluded.length ? `: ${excluded.join(', ')}` : '') +
-      `. Indicative count — verify with family facts.`,
+    note: lang === 'hi'
+      ? maternalNoteHi(excluded)
+      : `From Moon, 4th house points (male grahas → maternal uncles, female → maternal aunts). ` +
+        `Debilitated/enemy contributors excluded` +
+        (excluded.length ? `: ${excluded.join(', ')}` : '') +
+        `. Indicative count — verify with family facts.`,
   }
 }
 
@@ -310,6 +379,7 @@ function sunNatalFindings(
   bindus: number,
   janmaNakshatraIndex: number | undefined,
   janmaPada: number | undefined,
+  lang: EngineLang = 'en',
 ): BavFinding[] {
   const out: BavFinding[] = []
   const { band } = rateBavStrength(bindus)
@@ -426,10 +496,10 @@ function sunNatalFindings(
     })
   }
 
-  return out
+  return localizeFindings(out, lang, { bindus })
 }
 
-function moonNatalFindings(house: number, bindus: number): BavFinding[] {
+function moonNatalFindings(house: number, bindus: number, lang: EngineLang = 'en'): BavFinding[] {
   const out: BavFinding[] = []
   if (bindus >= 8) {
     out.push({
@@ -463,10 +533,10 @@ function moonNatalFindings(house: number, bindus: number): BavFinding[] {
     })
   }
 
-  return out
+  return localizeFindings(out, lang)
 }
 
-function marsNatalFindings(house: number, bindus: number, av: AshtakavargaResult, ascRashi: number): BavFinding[] {
+function marsNatalFindings(house: number, bindus: number, av: AshtakavargaResult, ascRashi: number, lang: EngineLang = 'en'): BavFinding[] {
   const out: BavFinding[] = []
   if (bindus >= 5) {
     out.push({
@@ -490,38 +560,40 @@ function marsNatalFindings(house: number, bindus: number, av: AshtakavargaResult
     if (bavFor(av, 'Ma', r) === 0) zeroSigns.push(r)
   }
   if (zeroSigns.length) {
+    const places = zeroSigns.map((r) => `R${r}/H${houseOf(r, ascRashi)}`).join(', ')
+    const hi = marsZeroHi(places)
     out.push({
       id: 'ma-sibling-sa',
       severity: 'caution',
-      title: 'Mars zero-bindu signs',
-      detail: `When Saturn gochars ${zeroSigns.map((r) => `R${r}/H${houseOf(r, ascRashi)}`).join(', ')} and dasha supports — difficult period for brothers. Time with the person’s dasha.`,
+      title: show(lang, 'Mars zero-bindu signs', hi.title),
+      detail: show(lang, `When Saturn gochars ${places} and dasha supports — difficult period for brothers. Time with the person’s dasha.`, hi.detail),
     })
   }
 
-  return out
+  return localizeFindings(out, lang)
 }
 
-function mercuryNatalFindings(bindus: number): BavFinding[] {
+function mercuryNatalFindings(bindus: number, lang: EngineLang = 'en'): BavFinding[] {
   if (bindus >= 6) {
-    return [{
+    return localizeFindings([{
       id: 'me-strong',
       severity: 'positive',
       title: 'Strong Mercury BAV',
       detail: 'Education, career intellect, arts and mathematics all supported in Mercury periods.',
-    }]
+    }], lang)
   }
   if (bindus < 4) {
-    return [{
+    return localizeFindings([{
       id: 'me-weak',
       severity: 'caution',
       title: 'Weak Mercury BAV',
       detail: 'Curiosity dulls; mental peace may dip during Mercury gochar in low-scoring signs.',
-    }]
+    }], lang)
   }
   return []
 }
 
-function jupiterNatalFindings(house: number, bindus: number): BavFinding[] {
+function jupiterNatalFindings(house: number, bindus: number, lang: EngineLang = 'en'): BavFinding[] {
   const out: BavFinding[] = []
   if (house === 1 && bindus >= 6) {
     out.push({
@@ -552,10 +624,10 @@ function jupiterNatalFindings(house: number, bindus: number): BavFinding[] {
     title: 'Always check Jupiter’s sign lord',
     detail: 'Jupiter results also depend on the strength of the lord of the sign where Jupiter sits.',
   })
-  return out
+  return localizeFindings(out, lang)
 }
 
-function venusNatalFindings(house: number, bindus: number, av: AshtakavargaResult, ascRashi: number): BavFinding[] {
+function venusNatalFindings(house: number, bindus: number, av: AshtakavargaResult, ascRashi: number, lang: EngineLang = 'en'): BavFinding[] {
   const out: BavFinding[] = []
   if (bindus >= 5) {
     out.push({
@@ -568,11 +640,16 @@ function venusNatalFindings(house: number, bindus: number, av: AshtakavargaResul
   const h7Rashi = rashiOfHouse(7, ascRashi)
   const h7Pts = bavFor(av, 'Ve', h7Rashi)
   if (h7Pts <= 3) {
+    const hi = venusSeventhHi(h7Pts)
     out.push({
       id: 've-h7-low',
       severity: 'caution',
-      title: 'Low Venus BAV to 7th sign',
-      detail: `When Venus gochars 7th (${h7Pts} bindus (strength points)) — relationship friction or public-image dips possible (~24–28 days / sign; longer if retrograde).`,
+      title: show(lang, 'Low Venus BAV to 7th sign', hi.title),
+      detail: show(
+        lang,
+        `When Venus gochars 7th (${h7Pts} bindus (strength points)) — relationship friction or public-image dips possible (~24–28 days / sign; longer if retrograde).`,
+        hi.detail,
+      ),
     })
   }
   if (house === 8 && bindus <= 4) {
@@ -583,7 +660,7 @@ function venusNatalFindings(house: number, bindus: number, av: AshtakavargaResul
       detail: 'Results more through transformation/shared resources; watch 7th-sign gochar for relationship timing.',
     })
   }
-  return out
+  return localizeFindings(out, lang)
 }
 
 function saturnNatalFindings(
@@ -592,6 +669,7 @@ function saturnNatalFindings(
   av: AshtakavargaResult,
   ascRashi: number,
   grahas: BhinnashtakavargaGuideInput['grahas'],
+  lang: EngineLang = 'en',
 ): BavFinding[] {
   const out: BavFinding[] = []
   if (bindus >= 5) {
@@ -672,36 +750,43 @@ function saturnNatalFindings(
     detail: 'Weak Saturn + weak Moon compounds problems; strong Moon mitigates Saturn stress.',
   })
 
-  return out
+  return localizeFindings(out, lang)
 }
 
 function planetTransitNotes(
   planet: (typeof PLANET_ORDER)[number],
   weak: SignBinduRow[],
   strong: SignBinduRow[],
+  lang: EngineLang = 'en',
 ): string[] {
   const notes: string[] = []
+  const weakPlaces = weak.map((w) => `H${w.house}:${w.bindus}`).join(', ')
+  const strongPlaces = strong.slice(0, 3).map((s) => `H${s.house} (${s.bindus})`).join(', ')
   if (weak.length) {
-    notes.push(
-      `Gochar through low-BAV signs (${weak.map((w) => `H${w.house}:${w.bindus}`).join(', ')}) + matching dasha/AD → poor results for ${PLANET_NAMES[planet]} significations.`,
-    )
+    notes.push(show(
+      lang,
+      `Gochar through low-BAV signs (${weakPlaces}) + matching dasha/AD → poor results for ${PLANET_NAMES[planet]} significations.`,
+      weakGocharHi(weakPlaces, gname(planet, 'hi')),
+    ))
   }
   if (strong.length) {
-    notes.push(
-      `Best gochar windows: ${strong.slice(0, 3).map((s) => `H${s.house} (${s.bindus})`).join(', ')} — prefer muhurta / important work then.`,
-    )
+    notes.push(show(
+      lang,
+      `Best gochar windows: ${strongPlaces} — prefer muhurta / important work then.`,
+      strongGocharHi(strongPlaces),
+    ))
   }
   if (planet === 'Mo') {
-    notes.push('Moon moves fastest — use daily: high-BAV sign = mentally good day; 0–2 = difficult day. Useful for muhurta.')
+    notes.push(show(lang, 'Moon moves fastest — use daily: high-BAV sign = mentally good day; 0–2 = difficult day. Useful for muhurta.', TRANSIT_NOTE_HI.moon))
   }
   if (planet === 'Ve') {
-    notes.push('Venus stays ~24–28 days/sign (up to ~120 days if retrograde). Full 12-sign cycle ~224d 7h.')
+    notes.push(show(lang, 'Venus stays ~24–28 days/sign (up to ~120 days if retrograde). Full 12-sign cycle ~224d 7h.', TRANSIT_NOTE_HI.venus))
   }
   if (planet === 'Su') {
-    notes.push('Event activation often within ±1° of natal Sun degree; confirm exact timing with Moon degree.')
+    notes.push(show(lang, 'Event activation often within ±1° of natal Sun degree; confirm exact timing with Moon degree.', TRANSIT_NOTE_HI.sun))
   }
   if (planet === 'Ju') {
-    notes.push('Chintamani tip: Jupiter gochar over natal Jupiter’s sign (golik) favors conception timing — confirm medically.')
+    notes.push(show(lang, 'Chintamani tip: Jupiter gochar over natal Jupiter’s sign (golik) favors conception timing — confirm medically.', TRANSIT_NOTE_HI.jupiter))
   }
   return notes
 }
@@ -711,11 +796,12 @@ function buildPlanetGuide(
   input: BhinnashtakavargaGuideInput,
 ): PlanetBavGuide {
   const { ashtakavarga: av, ascRashi, grahas } = input
+  const lang = input.lang ?? 'en'
   const g = findPlanet(grahas, planet)
   const natalRashi = g?.rashi ?? null
   const natalHouse = natalRashi != null ? houseOf(natalRashi, ascRashi) : null
   const selfBindus = natalRashi != null ? bavFor(av, planet, natalRashi) : null
-  const strengthInfo = selfBindus != null ? rateBavStrength(selfBindus) : null
+  const strengthInfo = selfBindus != null ? rateBavStrength(selfBindus, lang) : null
 
   const rows: SignBinduRow[] = []
   for (let r = 1; r <= 12; r++) {
@@ -738,65 +824,69 @@ function buildPlanetGuide(
           selfBindus,
           input.janmaNakshatraIndex ?? findPlanet(grahas, 'Mo')?.nakshatraIndex,
           input.janmaPada ?? findPlanet(grahas, 'Mo')?.pada,
+          lang,
         )
         break
       case 'Mo':
-        natalFindings = moonNatalFindings(natalHouse, selfBindus)
+        natalFindings = moonNatalFindings(natalHouse, selfBindus, lang)
         break
       case 'Ma':
-        natalFindings = marsNatalFindings(natalHouse, selfBindus, av, ascRashi)
+        natalFindings = marsNatalFindings(natalHouse, selfBindus, av, ascRashi, lang)
         break
       case 'Me':
-        natalFindings = mercuryNatalFindings(selfBindus)
+        natalFindings = mercuryNatalFindings(selfBindus, lang)
         break
       case 'Ju':
-        natalFindings = jupiterNatalFindings(natalHouse, selfBindus)
+        natalFindings = jupiterNatalFindings(natalHouse, selfBindus, lang)
         break
       case 'Ve':
-        natalFindings = venusNatalFindings(natalHouse, selfBindus, av, ascRashi)
+        natalFindings = venusNatalFindings(natalHouse, selfBindus, av, ascRashi, lang)
         break
       case 'Sa':
-        natalFindings = saturnNatalFindings(natalHouse, selfBindus, av, ascRashi, grahas)
+        natalFindings = saturnNatalFindings(natalHouse, selfBindus, av, ascRashi, grahas, lang)
         break
     }
 
     // Golden rule: exaltation means little without BAV; debilitated + high BAV can still deliver.
     const dig = g?.dignity
     if (dig === 'exalted' && selfBindus < 4) {
+      const hi = exaltLowHi(planet, selfBindus)
       natalFindings.push({
         id: `${planet.toLowerCase()}-exalt-low-bav`,
         severity: 'caution',
-        title: 'Exalted but low BAV',
-        detail: `${PLANET_NAMES[planet]} is exalted yet only ${selfBindus} self-BAV — traditional teaching: exalted with low Ashtakavarga is weaker in dasha/gochar than a debilitated planet with high bindus (strength points).`,
+        title: show(lang, 'Exalted but low BAV', hi.title),
+        detail: show(lang, `${PLANET_NAMES[planet]} is exalted yet only ${selfBindus} self-BAV — traditional teaching: exalted with low Ashtakavarga is weaker in dasha/gochar than a debilitated planet with high bindus (strength points).`, hi.detail),
       })
     } else if (dig === 'debilitated' && selfBindus >= 6) {
+      const hi = debHighHi(planet, selfBindus)
       natalFindings.push({
         id: `${planet.toLowerCase()}-deb-high-bav`,
         severity: 'positive',
-        title: 'Debilitated but strong BAV',
-        detail: `${PLANET_NAMES[planet]} is debilitated yet has ${selfBindus} self-BAV — can still deliver strong gochar/dasha results in this sign despite neecha dignity.`,
+        title: show(lang, 'Debilitated but strong BAV', hi.title),
+        detail: show(lang, `${PLANET_NAMES[planet]} is debilitated yet has ${selfBindus} self-BAV — can still deliver strong gochar/dasha results in this sign despite neecha dignity.`, hi.detail),
       })
     }
   }
 
   return {
     planet,
-    name: PLANET_NAMES[planet],
-    significations: SIGNIFICATIONS[planet],
+    name: gname(planet, lang),
+    significations: lang === 'hi' ? BAV_SIG_HI[planet] : SIGNIFICATIONS[planet],
     natalHouse,
     natalRashi,
     selfBindus,
     strength: strengthInfo?.band ?? null,
-    strengthLabel: strengthInfo?.label ?? 'Planet position unavailable',
+    strengthLabel: strengthInfo?.label ?? show(lang, 'Planet position unavailable', BAV_NO_POSITION_HI),
     natalFindings,
     weakTransitSigns,
     strongTransitSigns,
-    transitNotes: planetTransitNotes(planet, weakTransitSigns, strongTransitSigns),
+    transitNotes: planetTransitNotes(planet, weakTransitSigns, strongTransitSigns, lang),
   }
 }
 
 function crossChartFindings(input: BhinnashtakavargaGuideInput): BavFinding[] {
   const { ashtakavarga: av, ascRashi, grahas, dashaLord } = input
+  const lang = input.lang ?? 'en'
   const out: BavFinding[] = []
 
   // Low SAV/BAV 5th & 9th from Lagna or Sun — father caution
@@ -808,11 +898,12 @@ function crossChartFindings(input: BhinnashtakavargaGuideInput): BavFinding[] {
       const p5 = bavFor(av, 'Su', h5)
       const p9 = bavFor(av, 'Su', h9)
       if (p5 <= 3 || p9 <= 3) {
+        const hi = fatherWindowHi(label === 'Lagna' ? 'लग्न' : 'सूर्य', p5, p9)
         out.push({
           id: `father-59-${label}`,
           severity: 'caution',
-          title: `Low Sun BAV in 5th/9th from ${label}`,
-          detail: `5th=${p5}, 9th=${p9}. Softly difficult planet for father. Rahu (~1.5y) or Saturn (~2.5y) gochar there worsens; Mercury transit can raise hemorrhage/paralysis risk classically.`,
+          title: show(lang, `Low Sun BAV in 5th/9th from ${label}`, hi.title),
+          detail: show(lang, `5th=${p5}, 9th=${p9}. Softly difficult planet for father. Rahu (~1.5y) or Saturn (~2.5y) gochar there worsens; Mercury transit can raise hemorrhage/paralysis risk classically.`, hi.detail),
         })
       }
     }
@@ -841,12 +932,14 @@ function crossChartFindings(input: BhinnashtakavargaGuideInput): BavFinding[] {
     const g = findPlanet(grahas, lord)
     if (g) {
       const pts = bavFor(av, lord, g.rashi)
-      const { band, label } = rateBavStrength(pts)
+      const enInfo = rateBavStrength(pts)
+      const hiInfo = dashaLordHi(gname(lord, 'hi'), pts, rateBavStrength(pts, 'hi').label)
+      const { band } = enInfo
       out.push({
         id: 'current-dasha-bav',
         severity: band === 'strong' || band === 'good' ? 'positive' : band === 'borderline' ? 'info' : 'caution',
-        title: `Current dasha lord ${PLANET_NAMES[lord]} BAV`,
-        detail: `Natal sign BAV ${pts} — ${label}. Bhinnashtakavarga is for dasha/AD delivery, not general prediction.`,
+        title: show(lang, `Current dasha lord ${PLANET_NAMES[lord]} BAV`, hiInfo.title),
+        detail: show(lang, `Natal sign BAV ${pts} — ${enInfo.label}. Bhinnashtakavarga is for dasha/AD delivery, not general prediction.`, hiInfo.detail),
       })
     }
   }
@@ -856,22 +949,24 @@ function crossChartFindings(input: BhinnashtakavargaGuideInput): BavFinding[] {
   const lowHouses = houseSav
     .map((v, i) => ({ h: i + 1, v }))
     .filter((x) => x.v <= 23)
+  const lowList = lowHouses.map((x) => x.h).join(', ')
   if (lowHouses.length) {
     out.push({
       id: 'sav-low-houses',
       severity: 'info',
       title: 'Sarvashtakavarga weak houses',
-      detail: `SAV ≤23 in house ${lowHouses.map((x) => x.h).join(', ')} — use SAV for general prediction; use BAV for gochar timing into those signs.`,
+      detail: `SAV ≤23 in house ${lowList} — use SAV for general prediction; use BAV for gochar timing into those signs.`,
     })
   }
 
-  return out
+  return localizeFindings(out, lang, { houses: lowList })
 }
 
 function buildTransitWatch(input: BhinnashtakavargaGuideInput): TransitActivationRow[] {
   const transit = input.transitGrahas
   if (!transit?.length) return []
   const { ashtakavarga: av, ascRashi } = input
+  const lang = input.lang ?? 'en'
   const rows: TransitActivationRow[] = []
 
   for (const p of PLANET_ORDER) {
@@ -882,19 +977,20 @@ function buildTransitWatch(input: BhinnashtakavargaGuideInput): TransitActivatio
     const house = houseOf(tg.rashi, ascRashi)
     let note = ''
     if (band === 'critical' || band === 'weak') {
-      note = 'Low BAV transit — expect friction in this planet’s domains unless dasha is strongly protective.'
+      note = show(lang, 'Low BAV transit — expect friction in this planet’s domains unless dasha is strongly protective.', WATCH_NOTE_HI.low)
     } else if (band === 'strong') {
-      note = 'High BAV transit — favorable window for this planet’s significations.'
+      note = show(lang, 'High BAV transit — favorable window for this planet’s significations.', WATCH_NOTE_HI.high)
     } else {
-      note = 'Mixed/functional transit — results depend on dasha and aspects.'
+      note = show(lang, 'Mixed/functional transit — results depend on dasha and aspects.', WATCH_NOTE_HI.mixed)
     }
+    const domains = (lang === 'hi' ? BAV_SIG_HI[p] : SIGNIFICATIONS[p]).slice(0, 3).join(', ')
     rows.push({
       planet: p,
       transitRashi: tg.rashi,
       transitHouse: house,
       natalBav,
       strength: band,
-      domains: SIGNIFICATIONS[p].slice(0, 3).join(', '),
+      domains,
       note,
     })
   }
@@ -912,17 +1008,21 @@ export function analyzeBhinnashtakavargaGuide(
   const sun = findPlanet(input.grahas, 'Su')
   const moon = findPlanet(input.grahas, 'Mo')
 
+  const lang = input.lang ?? 'en'
   const fatherTiming = sun
-    ? computeFatherTimingFromSunBav(input.ashtakavarga, input.ascRashi, sun.rashi)
+    ? computeFatherTimingFromSunBav(input.ashtakavarga, input.ascRashi, sun.rashi, lang)
     : null
 
   const maternalRelatives = moon
-    ? countMaternalRelatives(input.ashtakavarga, moon.rashi, input.grahas)
+    ? countMaternalRelatives(input.ashtakavarga, moon.rashi, input.grahas, lang)
     : null
 
   return {
-    usageNote:
+    usageNote: show(
+      lang,
       'Use Sarvashtakavarga for general prediction. Use Bhinnashtakavarga only for gochar (transit) and dasha/antardasha result delivery — never as standalone general prediction.',
+      BAV_USAGE_HI,
+    ),
     planets,
     fatherTiming,
     maternalRelatives,

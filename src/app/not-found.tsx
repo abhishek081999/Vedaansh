@@ -1,9 +1,11 @@
 'use client'
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import Image from 'next/image'
 
 export default function NotFound() {
+  const t = useTranslations('common.notFoundPage')
   return (
     <div style={{
       minHeight: '100dvh',
@@ -26,7 +28,7 @@ export default function NotFound() {
           textTransform: 'uppercase',
           margin: 0,
         }}>
-          404 · Page Not Found
+          {t('eyebrow')}
         </p>
         <h1 style={{
           fontFamily: 'var(--font-display, "Newsreader", serif)',
@@ -36,7 +38,7 @@ export default function NotFound() {
           margin: 0,
           lineHeight: 1.2,
         }}>
-          This page doesn&apos;t exist
+          {t('title')}
         </h1>
         <p style={{
           color: 'var(--text-muted, #7a7498)',
@@ -45,7 +47,7 @@ export default function NotFound() {
           margin: '0.25rem auto 0',
           lineHeight: 1.6,
         }}>
-          The chart you&apos;re looking for may have been made private, or the link is incorrect.
+          {t('body')}
         </p>
       </div>
 
@@ -60,7 +62,7 @@ export default function NotFound() {
           textDecoration: 'none',
           letterSpacing: '0.02em',
         }}>
-          ✦ New Chart
+          {t('newChart')}
         </Link>
         <Link href="/panchang" style={{
           padding: '0.6rem 1.5rem',
@@ -72,7 +74,7 @@ export default function NotFound() {
           fontSize: '0.9rem',
           textDecoration: 'none',
         }}>
-          Daily Panchang
+          {t('panchang')}
         </Link>
       </div>
 
@@ -82,7 +84,7 @@ export default function NotFound() {
         color: 'var(--text-muted, #7a7498)',
         letterSpacing: '0.15em',
       }}>
-        VEDAANSH · vedaansh.com
+        {t('mark')}
       </p>
     </div>
   )

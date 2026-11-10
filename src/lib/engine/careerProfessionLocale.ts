@@ -114,6 +114,25 @@ function applyCareerPatterns(text: string): string {
   })
   out = out.replace(/\bDashamsha leaves it open\b/g, 'दशांश इसे खुला छोड़ता है')
   out = out.replace(/\bThe career chart strains it\b/g, 'करियर चार्ट इसे तनाव देता है')
+  out = out.replace(
+    /The 10th cusp runs (.+?) as sign lord, (.+?) as star lord, and (.+?) as sub-lord\. In KP the sub-lord decides the fruit\. /,
+    'दशम लग्न $1 को राशि स्वामी, $2 को नक्षत्र स्वामी, और $3 को उपस्वामी मानकर चलता है। केपी में उपस्वामी फल तय करता है। ',
+  )
+  out = out.replace(
+    /([A-Za-z]+) rules a livelihood house, so the profession can fructify as work, service, or income\./,
+    '$1 आजीविका भाव का स्वामी है, इसलिए पेशा काम, सेवा या आय के रूप में फलित हो सकता है।',
+  )
+  out = out.replace(
+    /([A-Za-z]+) rules the 8th or the 12th, so the fruit leaves as change, cost, research, or a foreign posting\./,
+    '$1 अष्ट या द्वादश का स्वामी है, इसलिए फल परिवर्तन, लागत, शोध या विदेश पद के रूप में निकलता है।',
+  )
+  out = out.replace(
+    /([A-Za-z]+) touches both a livelihood house and a house of loss, or neither\. Name the fruit only in that planet[’']s period\./,
+    '$1 आजीविका भाव और हानि भाव दोनों को छूता है, या किसी को नहीं। फल केवल उस ग्रह की अवधि में नाम दें।',
+  )
+  out = out.replace(/lets the 10th fructify/g, 'दशम को फलित होने देता है')
+  out = out.replace(/spends the 10th/g, 'दशम को खर्च करता है')
+  out = out.replace(/splits the fruit/g, 'फल बाँटता है')
   return out
 }
 

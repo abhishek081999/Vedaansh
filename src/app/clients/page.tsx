@@ -7,6 +7,8 @@
 import { Link, useRouter } from '@/i18n/navigation'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
@@ -62,6 +64,8 @@ function ClientCard({
   onEdit: (c: Client) => void
   onDelete: (id: string) => void
 }) {
+  const t = useTranslations('clients')
+  const { tag } = useLang()
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -198,16 +202,16 @@ function ClientCard({
             {client.name}
           </h3>
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {client.tags.map(t => (
-              <span key={t} className="badge" style={{ 
+            {client.tags.map(tagLabel => (
+              <span key={tagLabel} className="badge" style={{ 
                 fontSize: '0.62rem', padding: '0.1rem 0.45rem', 
                 background: 'rgba(201,168,76,0.06)', color: 'var(--gold)',
                 border: '1px solid rgba(201,168,76,0.12)',
                 display: 'flex', alignItems: 'center', gap: '0.2rem'
               }}>
-                {t}
+                {tagLabel}
                 <button 
-                  onClick={() => handleRemoveTag(t)}
+                  onClick={() => handleRemoveTag(tagLabel)}
                   style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}
                 >
                   ×
@@ -218,11 +222,11 @@ function ClientCard({
               className="btn btn-ghost btn-xs" 
               style={{ fontSize: '0.6rem', padding: '0 0.3rem' }}
               onClick={() => {
-                const untagged = prompt('Add new tag:')
+                const untagged = prompt(t('card.tagPrompt'))
                 if (untagged) handleAddTag(untagged)
               }}
             >
-              + Tag
+              {t('card.addTag')}
             </button>
           </div>
         </div>
@@ -238,14 +242,14 @@ function ClientCard({
         }}>
           {client.followUpAt && (
              <div style={{ marginBottom: isMobile ? '0' : '0.2rem' }}>
-                <div style={{ fontSize: '0.55rem', color: 'var(--rose)', textTransform: 'uppercase', fontWeight: 800 }}>Follow-up</div>
+                <div style={{ fontSize: '0.55rem', color: 'var(--rose)', textTransform: 'uppercase', fontWeight: 800 }}>{t('card.followUp')}</div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {new Date(client.followUpAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  {new Date(client.followUpAt).toLocaleDateString(tag, { month: 'short', day: 'numeric' })}
                 </div>
              </div>
           )}
           <div style={{ flex: isMobile ? 1 : 'none', display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '0.1rem' }}>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dasha</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>{t('card.dasha')}</div>
             <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: isMobile ? 'flex-start' : 'flex-end', fontFamily: 'var(--font-mono)', fontSize: '0.92rem', color: 'var(--gold)' }}>
               <span style={{ fontWeight: 800 }}>{dashaParts[0]}</span>
               <span style={{ opacity: 0.4 }}>/</span>
@@ -271,7 +275,10 @@ function ClientCard({
         }}>
           <span style={{ fontSize: '1rem' }}>{client.dashaAlert.type === 'MD_CHANGE' ? '🚨' : '⚡'}</span>
           <div style={{ fontSize: '0.72rem', color: client.dashaAlert.type === 'MD_CHANGE' ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>
-            {client.dashaAlert.type === 'MD_CHANGE' ? 'Mahadasha' : 'Antardasha'} shift to {client.dashaAlert.lord} in {Math.floor((new Date(client.dashaAlert.date).getTime() - Date.now()) / (24 * 60 * 60 * 1000))} days
+            {t(client.dashaAlert.type === 'MD_CHANGE' ? 'card.mdShift' : 'card.adShift', {
+              lord: client.dashaAlert.lord,
+              days: Math.floor((new Date(client.dashaAlert.date).getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+            })}
           </div>
         </div>
       )}
@@ -286,19 +293,19 @@ function ClientCard({
         fontSize: '0.75rem', color: 'var(--text-secondary)'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Location</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{t('card.location')}</span>
           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             📍 {client.birthPlace}
           </span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', marginTop: isMobile ? '0.25rem' : '0.4rem' }}>Birth Info</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', marginTop: isMobile ? '0.25rem' : '0.4rem' }}>{t('card.birthInfo')}</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>
-            📅 {new Date(client.birthDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })} {isMobile ? '' : <br/>} | ⏰ {client.birthTime.slice(0, 5)}
+            📅 {new Date(client.birthDate).toLocaleDateString(tag, { day:'2-digit', month:'short', year:'numeric' })} {isMobile ? '' : <br/>} | ⏰ {client.birthTime.slice(0, 5)}
           </span>
         </div>
         {!isMobile && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', textAlign: 'right', justifyContent: 'flex-start' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Last Session</span>
-            <span style={{ fontWeight: 500 }}>{client.lastSessionAt ? new Date(client.lastSessionAt).toLocaleDateString() : 'Never'}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{t('card.lastSession')}</span>
+            <span style={{ fontWeight: 500 }}>{client.lastSessionAt ? new Date(client.lastSessionAt).toLocaleDateString(tag) : t('card.never')}</span>
           </div>
         )}
       </div>
@@ -309,13 +316,13 @@ function ClientCard({
           className="btn btn-primary btn-sm"
           style={{ flex: 1, borderRadius: 'var(--r-md)', fontSize: '0.75rem' }}
         >
-          View Chart
+          {t('card.viewChart')}
         </button>
         <button 
           onClick={() => onEdit(client)}
           className="btn btn-secondary btn-sm"
           style={{ borderRadius: 'var(--r-md)', padding: '0 0.75rem' }}
-          title="Edit Details"
+          title={t('card.editTitle')}
         >
           ✎
         </button>
@@ -323,7 +330,7 @@ function ClientCard({
           onClick={() => setShowNotes(!showNotes)}
           className="btn btn-secondary btn-sm"
           style={{ borderRadius: 'var(--r-md)', padding: '0 0.75rem' }}
-          title="Session Notes"
+          title={t('card.notesTitle')}
         >
           {client.notes.length} 📝
         </button>
@@ -331,7 +338,7 @@ function ClientCard({
           onClick={() => onDelete(client._id)}
           className="btn btn-ghost btn-sm"
           style={{ borderRadius: 'var(--r-md)', padding: '0 0.75rem', color: 'var(--rose)' }}
-          title="Delete Client"
+          title={t('card.deleteTitle')}
         >
           🗑️
         </button>
@@ -352,7 +359,7 @@ function ClientCard({
                 fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer'
               }}
             >
-              Session Logs ({client.notes.length})
+              {t('card.sessionLogs', { count: client.notes.length })}
             </button>
             <button 
               onClick={() => setActiveTab('remedies')}
@@ -363,7 +370,7 @@ function ClientCard({
                 fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer'
               }}
             >
-              Remedies ({client.remedies.length})
+              {t('card.remedies', { count: client.remedies.length })}
             </button>
           </div>
 
@@ -372,7 +379,7 @@ function ClientCard({
               <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <input 
                   className="input" 
-                  placeholder="New note..." 
+                  placeholder={t('card.notePh')} 
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   style={{ fontSize: '0.75rem', height: '2rem' }}
@@ -382,13 +389,13 @@ function ClientCard({
                   disabled={submitting}
                   className="btn btn-primary btn-xs"
                 >
-                  Save
+                  {t('card.save')}
                 </button>
               </div>
               <div style={{ maxHeight: 150, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {client.notes.slice().reverse().map((n, idx) => (
                   <div key={idx} style={{ padding: '0.4rem', background: 'var(--surface-1)', borderRadius: 'var(--r-md)' }}>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(n.createdAt).toLocaleDateString()}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(n.createdAt).toLocaleDateString(tag)}</div>
                     <div>{n.content}</div>
                   </div>
                 ))}
@@ -399,7 +406,7 @@ function ClientCard({
               <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <input 
                   className="input" 
-                  placeholder="Gem, Mantra, etc..." 
+                  placeholder={t('card.remedyPh')} 
                   value={newRemedy.title}
                   onChange={(e) => setNewRemedy({...newRemedy, title: e.target.value})}
                   style={{ fontSize: '0.75rem', height: '2rem' }}
@@ -409,7 +416,7 @@ function ClientCard({
                   disabled={submitting}
                   className="btn btn-primary btn-xs"
                 >
-                  Add
+                  {t('card.add')}
                 </button>
               </div>
               <div style={{ maxHeight: 150, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -420,7 +427,7 @@ function ClientCard({
                   }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>{r.title}</div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(r.prescribedAt).toLocaleDateString()}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(r.prescribedAt).toLocaleDateString(tag)}</div>
                     </div>
                     <button 
                       onClick={() => handleCycleRemedyStatus(r._id!, r.status)}
@@ -431,7 +438,7 @@ function ClientCard({
                         background: r.status === 'completed' ? 'var(--teal-soft)' : 'var(--surface-3)'
                       }}
                     >
-                      {r.status}
+                      {t(`card.remedyStatus.${r.status}`)}
                     </button>
                   </div>
                 ))}
@@ -445,6 +452,8 @@ function ClientCard({
 }
 
 export default function ClientsPage() {
+  const t = useTranslations('clients')
+  const { tag } = useLang()
   const { status } = useSession()
   const router = useRouter()
   const { setActiveTab } = useAppLayout()
@@ -475,7 +484,7 @@ export default function ClientsPage() {
       const json = await res.json()
       if (!res.ok) {
         if (res.status === 403) throw new Error('PLATINUM_REQUIRED')
-        throw new Error(json.error || 'Failed to fetch clients')
+        throw new Error(json.error || t('errors.fetchFailed'))
       }
       setClients(json.clients)
     } catch (e: any) {
@@ -483,7 +492,7 @@ export default function ClientsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   async function handleQuickAdd(data: any) {
     setAdding(true)
@@ -507,7 +516,7 @@ export default function ClientsPage() {
         setShowAddModal(false)
         fetchClients()
       } else {
-        alert(json.error || 'Failed to add client')
+        alert(json.error || t('errors.addFailed'))
       }
     } catch (e) {
       console.error('Quick add failed', e)
@@ -538,7 +547,7 @@ export default function ClientsPage() {
         setShowEditModal(false)
         fetchClients()
       } else {
-        alert(json.error || 'Failed to update client')
+        alert(json.error || t('errors.updateFailed'))
       }
     } catch (e) {
       console.error('Update failed', e)
@@ -548,7 +557,7 @@ export default function ClientsPage() {
   }
 
   async function handleDeleteClient(id: string) {
-    if (!confirm('Are you sure you want to delete this client? All history will be lost.')) return
+    if (!confirm(t('confirmDelete'))) return
     try {
       const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' })
       if (res.ok) fetchClients()
@@ -569,7 +578,7 @@ export default function ClientsPage() {
     const q = search.toLowerCase()
     return clients.filter(c => 
       c.name.toLowerCase().includes(q) ||
-      c.tags.some(t => t.toLowerCase().includes(q)) ||
+      c.tags.some(tagName => tagName.toLowerCase().includes(q)) ||
       c.notes.some(n => n.content.toLowerCase().includes(q)) ||
       (c.email && c.email.toLowerCase().includes(q))
     )
@@ -634,12 +643,12 @@ export default function ClientsPage() {
       <main style={{ maxWidth: 800, margin: '8rem auto', textAlign: 'center', padding: '2rem' }}>
         <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>💎</h1>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem' }}>
-          Exclusive Platinum Feature
+          {t('gate.title')}
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.2rem' }}>
-          Finalize your professional practice with full CRM client management, session tracking, and white-label tools.
+          {t('gate.body')}
         </p>
-        <Link href="/pricing" className="btn btn-primary btn-lg">Upgrade to Platinum</Link>
+        <Link href="/pricing" className="btn btn-primary btn-lg">{t('gate.cta')}</Link>
       </main>
     )
   }
@@ -657,16 +666,16 @@ export default function ClientsPage() {
             fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: 800,
             color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '0.2rem', lineHeight: 1.1
           }}>
-            Consultant <span style={{ color: 'var(--gold)' }}>CRM</span>
+            {t('header.title')} <span style={{ color: 'var(--gold)' }}>{t('header.titleHighlight')}</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: isMobile ? '0.85rem' : '0.95rem' }}>
-            Client history search and transition monitoring.
+            {t('header.subtitle')}
           </p>
 
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', width: isMobile ? '100%' : 'auto' }}>
-          <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ flex: isMobile ? 1 : 'none' }}>+ Add Client</button>
-          {!isMobile && <Link href="/" className="btn btn-secondary">Open Calculator</Link>}
+          <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ flex: isMobile ? 1 : 'none' }}>{t('header.add')}</button>
+          {!isMobile && <Link href="/" className="btn btn-secondary">{t('header.calculator')}</Link>}
         </div>
       </div>
 
@@ -676,9 +685,9 @@ export default function ClientsPage() {
         gap: isMobile ? '0.75rem' : '1rem', marginBottom: isMobile ? '1.5rem' : '2.5rem' 
       }}>
         {[
-          { label: 'Total Clients', value: stats.total, color: 'var(--gold)' },
-          { label: 'Active Sessions', value: stats.active, color: 'var(--teal)' },
-          { label: 'Prospective', value: stats.prospects, color: 'var(--accent)' }
+          { label: t('stats.total'), value: stats.total, color: 'var(--gold)' },
+          { label: t('stats.active'), value: stats.active, color: 'var(--teal)' },
+          { label: t('stats.prospects'), value: stats.prospects, color: 'var(--accent)' }
         ].map((s, i) => (
           <div key={i} style={{ 
             background: 'var(--surface-2)', padding: isMobile ? '1rem' : '1.5rem', borderRadius: 'var(--r-xl)',
@@ -697,7 +706,7 @@ export default function ClientsPage() {
           <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.75rem' }}>
             <input 
               className="input"
-              placeholder="Filter by name, email, or tag..."
+              placeholder={t('filterPh')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ flex: 1 }}
@@ -712,7 +721,7 @@ export default function ClientsPage() {
             <div style={{ textAlign: 'center', padding: '6rem 2rem', background: 'var(--surface-1)', borderRadius: 'var(--r-xl)', border: '1px dashed var(--border)' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-                {search ? 'No clients match your filter' : 'Your client library is currently empty'}
+                {search ? t('emptyFilter') : t('emptyLibrary')}
               </p>
             </div>
           ) : (
@@ -749,7 +758,7 @@ export default function ClientsPage() {
                 fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 700, 
                 color: 'var(--rose)', display: 'flex', alignItems: 'center', gap: '0.4rem'
               }}>
-                📢 Transition Alerts ({transitioning.length})
+                {t('alerts.title', { count: transitioning.length })}
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 {transitioning.map(c => (
@@ -762,7 +771,7 @@ export default function ClientsPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{c.dashaAlert?.type === 'MD_CHANGE' ? 'Major' : 'Sub'} Shift → {c.dashaAlert?.lord}</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t(c.dashaAlert?.type === 'MD_CHANGE' ? 'alerts.major' : 'alerts.sub')} {t('alerts.shift', { lord: c.dashaAlert?.lord ?? '' })}</div>
                     </div>
                   </div>
                 ))}
@@ -778,11 +787,11 @@ export default function ClientsPage() {
               fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600, 
               color: 'var(--text-primary)', marginBottom: '1rem' 
             }}>
-              Recent Sessions
+              {t('sessions.title')}
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {sortedBySession.filter(c => c.lastSessionAt).length === 0 ? (
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No recent activity.</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('sessions.none')}</div>
               ) : (
                 sortedBySession.filter(c => c.lastSessionAt).map(c => (
                   <div key={c._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -794,7 +803,7 @@ export default function ClientsPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(c.lastSessionAt!).toLocaleDateString()}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(c.lastSessionAt!).toLocaleDateString(tag)}</div>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--gold-soft)', fontWeight: 600 }}>{c.activeDasha}</div>
                   </div>
@@ -812,11 +821,10 @@ export default function ClientsPage() {
               fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, 
               color: 'var(--gold)', marginBottom: '0.5rem' 
             }}>
-              Platinum Perk
+              {t('perk.title')}
             </h4>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Use tags like <strong>#career</strong> or <strong>#VIP</strong> to categorize your clients. 
-              The Active Dasha track helps you know who&apos;s entering a challenging Sade Sati or Mahadasha shift.
+              {t.rich('perk.body', { b: (chunks) => <strong>{chunks}</strong> })}
             </p>
           </div>
         </aside>
@@ -833,7 +841,7 @@ export default function ClientsPage() {
             >
               ×
             </button>
-            <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>Quick Add Client</h2>
+            <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>{t('modal.addTitle')}</h2>
             <div style={{ maxHeight: '70vh', overflowY: 'auto', padding: '0.25rem' }}>
               <BirthForm onResult={handleQuickAdd} onLoading={setAdding} />
             </div>
@@ -857,7 +865,7 @@ export default function ClientsPage() {
             >
               ×
             </button>
-            <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>Edit Client Details</h2>
+            <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>{t('modal.editTitle')}</h2>
             <div style={{ maxHeight: '70vh', overflowY: 'auto', padding: '0.25rem' }}>
               <BirthForm 
                 onResult={handleSaveEdit} 

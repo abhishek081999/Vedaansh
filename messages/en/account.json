@@ -1,0 +1,147 @@
+{
+  "tabs": {
+    "profile": "Profile",
+    "branding": "Consult branding",
+    "birth": "My birth details",
+    "preferences": "Chart preferences",
+    "billing": "Billing & privacy"
+  },
+  "plans": {
+    "free": "Free",
+    "gold": "Gold",
+    "platinum": "Platinum"
+  },
+  "quick": {
+    "title": "Quick options",
+    "subtitle": "Shortcuts to charts, tools, and appearance",
+    "theme": "Theme",
+    "charts": "My Charts",
+    "chartsSub": "Saved library",
+    "newChart": "New chart",
+    "newChartSub": "Home calculator",
+    "panchang": "Panchang",
+    "panchangSub": "Daily calendar",
+    "muhurta": "Muhurta",
+    "muhurtaSub": "Good timings",
+    "upgrade": "Upgrade",
+    "upgradeSub": "Gold & Platinum",
+    "admin": "Admin",
+    "adminSub": "Dashboard",
+    "logout": "Log out",
+    "logoutSub": "End session"
+  },
+  "hero": {
+    "fallbackName": "Vedic Soul",
+    "sectionsAria": "Account sections",
+    "plan": "Plan",
+    "renews": "Renews {date}",
+    "upgradeGold": "Upgrade to Gold →"
+  },
+  "dirty": {
+    "note": "Unsaved changes (profile, branding & chart defaults)",
+    "saving": "Saving…",
+    "save": "Save changes"
+  },
+  "profile": {
+    "intro": "How your name appears in the app and on exports.",
+    "displayName": "Display Name",
+    "email": "Email"
+  },
+  "branding": {
+    "intro": "💎 White-label PDFs and shared charts with your practice name and logo.",
+    "name": "Brand / Business Name",
+    "namePh": "e.g. Astro Wisdom Studio",
+    "nameHint": "Shown on shared charts and PDF reports.",
+    "logo": "Brand Logo URL",
+    "logoPh": "https://yourdomain.com/logo.png",
+    "logoHint": "Direct link to a logo image (transparent PNG recommended)."
+  },
+  "birth": {
+    "intro": "Janma details used for your default chart and dashboard.",
+    "open": "Open Own Chart",
+    "empty": "No personal birth chart saved yet.",
+    "set": "Set Birth Details"
+  },
+  "prefs": {
+    "intro": "Defaults for new charts and the calculator.",
+    "saved": "✓ Saved",
+    "none": "No unsaved changes",
+    "loading": "Loading preferences…",
+    "ayanamsha": "Ayanamsha",
+    "chartStyle": "Chart Style",
+    "houseSystem": "House System",
+    "nodes": "Nodes",
+    "karakaScheme": "Karaka Scheme",
+    "karaka7": "7 Karakas (Parashari)",
+    "karaka8": "8 Karakas (with Rahu)",
+    "showDegrees": "Show Degrees",
+    "showDegreesDesc": "Display planet degree in chart",
+    "showNakshatra": "Show Nakshatra",
+    "showNakshatraDesc": "Display nakshatra abbreviation",
+    "showKaraka": "Show Chara Karaka",
+    "showKarakaDesc": "Show AK/AmK/BK labels on planets",
+    "ayanOptions": {
+      "lahiri": "Lahiri (Chitrapaksha)",
+      "true_chitra": "True Chitra",
+      "true_revati": "True Revati",
+      "raman": "B.V. Raman",
+      "yukteshwar": "Sri Yukteshwar"
+    },
+    "styleOptions": {
+      "north": "North Indian",
+      "south": "South Indian",
+      "circle": "Circle Wheel",
+      "sarvatobhadra": "Sarvatobhadra"
+    },
+    "houseOptions": {
+      "whole_sign": "Whole Sign",
+      "placidus": "Placidus",
+      "equal": "Equal House"
+    },
+    "nodeOptions": {
+      "mean": "Mean Nodes",
+      "true": "True Nodes"
+    }
+  },
+  "billing": {
+    "intro": "Manage your plan, export data, or delete your account (required for app store compliance).",
+    "subscription": "Subscription",
+    "loading": "Loading subscription…",
+    "currentPlan": "Current plan:",
+    "accessUntil": "· access until {date}",
+    "annual": "Annual",
+    "monthly": "Monthly",
+    "renewalCancelled": "· Renewal cancelled",
+    "viewPlans": "View plans",
+    "cancelling": "Cancelling…",
+    "cancelRenewal": "Cancel renewal",
+    "refundPolicy": "Refund policy",
+    "support": "Support",
+    "cancelNote": "Cancelling renewal stops future charges. You keep paid features until the period you already paid for ends. Vedaansh bills via Razorpay when you choose to renew from Pricing.",
+    "cancelConfirm": "Cancel renewal? You keep paid access until the end of your current billing period.",
+    "cancelFailed": "Could not cancel renewal",
+    "downloadTitle": "Download my data",
+    "downloadBody": "JSON export of your profile, saved charts, clients, and subscription history.",
+    "preparing": "Preparing…",
+    "downloadJson": "Download JSON",
+    "exportFailed": "Export failed",
+    "deleteTitle": "Delete account",
+    "deleteBody": "Permanently removes your account, saved charts, and client records. This cannot be undone.",
+    "deleteConfirmLabel": "Type DELETE to confirm",
+    "password": "Password",
+    "deleting": "Deleting…",
+    "deleteBtn": "Delete my account permanently",
+    "deleteTypeError": "Type DELETE exactly to confirm",
+    "deleteConfirm": "Permanently delete your account and all saved charts? This cannot be undone.",
+    "deleteFailed": "Deletion failed",
+    "seeAlso": "See also",
+    "privacy": "Privacy Policy"
+  },
+  "footer": {
+    "tagline": "Jyotisha",
+    "platform": "Platform",
+    "support": "Support",
+    "privacy": "Privacy"
+  },
+  "upgradeFlash": "✓ Plan upgraded to {plan} successfully!"
+}

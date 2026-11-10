@@ -4,7 +4,11 @@
 //  XLSX bulk-import button + modal for the My Charts page
 // ─────────────────────────────────────────────────────────────
 
+import { useTranslations } from 'next-intl'
 import React, { useRef, useState, useCallback } from 'react'
+
+/** Spreadsheet header tokens the importer matches. Keep these English. */
+const IMPORT_COLUMNS = ['Name', 'Birth Date', 'Birth Time', 'Birth Place', 'Latitude', 'Longitude', 'Timezone']
 
 interface RowResult {
   row:     number
@@ -25,6 +29,7 @@ interface Props {
 }
 
 export function BulkImport({ onImportComplete }: Props) {
+  const t = useTranslations('library.import')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [open,         setOpen]         = useState(false)
@@ -39,7 +44,7 @@ export function BulkImport({ onImportComplete }: Props) {
     setDownloading(true)
     try {
       const res = await fetch('/api/chart/template')
-      if (!res.ok) throw new Error('Failed to generate template')
+      if (!res.ok) throw new Error(t('templateFailed'))
       const blob = await res.blob()
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
@@ -89,13 +94,13 @@ export function BulkImport({ onImportComplete }: Props) {
       const json = await res.json()
 
       if (!res.ok || !json.success) {
-        setError(json.error || 'Import failed')
+        setError(json.error || t('importFailed'))
       } else {
         setResult(json as ImportResult)
         if (json.imported > 0) onImportComplete()
       }
     } catch {
-      setError('Network error. Please try again.')
+      setError(t('network'))
     } finally {
       setLoading(false)
     }
@@ -121,14 +126,14 @@ export function BulkImport({ onImportComplete }: Props) {
         onClick={() => setOpen(true)}
         className="btn btn-ghost"
         style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-        title="Import multiple charts from an XLSX file"
+        title={t('titleAttr')}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
-        Import XLSX
+        {t('button')}
       </button>
 
       {/* Hidden file input */}
@@ -168,10 +173,10 @@ export function BulkImport({ onImportComplete }: Props) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.2rem' }}>
-                  📊 Bulk Import Charts
+                  {t('heading')}
                 </h2>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Upload an <strong>.xlsx</strong> file with multiple birth records
+                  {t.rich('subtitle', { strong: (chunks) => <strong>{chunks}</strong> })}
                 </p>
               </div>
               <button
@@ -196,12 +201,12 @@ export function BulkImport({ onImportComplete }: Props) {
               lineHeight: 1.7,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Required columns:</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t('required')}</div>
                 <button
                   id="download-template-btn"
                   onClick={handleDownloadTemplate}
                   disabled={downloading}
-                  title="Download a pre-filled XLSX template"
+                  title={t('downloadTitle')}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                     background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)',
@@ -216,11 +221,11 @@ export function BulkImport({ onImportComplete }: Props) {
                     <polyline points="7 10 12 15 17 10"/>
                     <line x1="12" y1="15" x2="12" y2="3"/>
                   </svg>
-                  {downloading ? 'Downloading…' : 'Download Template'}
+                  {downloading ? t('downloading') : t('download')}
                 </button>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-                {['Name', 'Birth Date', 'Birth Time', 'Birth Place', 'Latitude', 'Longitude', 'Timezone'].map(c => (
+                {IMPORT_COLUMNS.map(c => (
                   <span key={c} style={{
                     background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.25)',
                     borderRadius: '4px', padding: '1px 8px', color: 'var(--gold)',
@@ -231,7 +236,7 @@ export function BulkImport({ onImportComplete }: Props) {
                 ))}
               </div>
               <div style={{ marginTop: '0.4rem' }}>
-                Optional: <span style={{ fontFamily: 'var(--font-mono)' }}>isPublic</span>, <span style={{ fontFamily: 'var(--font-mono)' }}>isPersonal</span>
+                {t('optional')} <span style={{ fontFamily: 'var(--font-mono)' }}>isPublic</span>, <span style={{ fontFamily: 'var(--font-mono)' }}>isPersonal</span>
               </div>
             </div>
 
@@ -263,7 +268,7 @@ export function BulkImport({ onImportComplete }: Props) {
                       {file.name}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      {(file.size / 1024).toFixed(1)} KB — click to change
+                      {t('fileReady', { size: (file.size / 1024).toFixed(1) })}
                     </div>
                   </>
                 ) : (
@@ -272,10 +277,10 @@ export function BulkImport({ onImportComplete }: Props) {
                       {dragging ? '📂' : '📁'}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
-                      {dragging ? 'Drop to upload' : 'Click or drag & drop'}
+                      {dragging ? t('drop') : t('drag')}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      Supports .xlsx, .xls, .csv
+                      {t('supports')}
                     </div>
                   </>
                 )}
@@ -301,11 +306,11 @@ export function BulkImport({ onImportComplete }: Props) {
                   display: 'flex', gap: '0.6rem', flexWrap: 'wrap', padding: '0.75rem',
                   background: 'var(--surface-2)', borderRadius: 'var(--r-md)',
                 }}>
-                  <Pill color="teal"  icon="✅" label={`${successCount} imported`} />
-                  {errorCount   > 0 && <Pill color="rose"  icon="❌" label={`${errorCount} errors`} />}
-                  {skippedCount > 0 && <Pill color="amber" icon="⏭" label={`${skippedCount} skipped`} />}
+                  <Pill color="teal"  icon="✅" label={t('imported', { count: successCount })} />
+                  {errorCount   > 0 && <Pill color="rose"  icon="❌" label={t('errors', { count: errorCount })} />}
+                  {skippedCount > 0 && <Pill color="amber" icon="⏭" label={t('skipped', { count: skippedCount })} />}
                   <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)', alignSelf: 'center' }}>
-                    {result.total} rows total
+                    {t('rowsTotal', { count: result.total })}
                   </span>
                 </div>
 
@@ -331,7 +336,7 @@ export function BulkImport({ onImportComplete }: Props) {
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          Row {r.row} · {r.name}
+                          {t('row', { row: r.row, name: r.name })}
                         </div>
                         <div style={{ color: 'var(--text-muted)', marginTop: '0.1rem', lineHeight: 1.4 }}>
                           {r.message}
@@ -347,7 +352,7 @@ export function BulkImport({ onImportComplete }: Props) {
                   className="btn btn-ghost"
                   style={{ alignSelf: 'flex-start', fontSize: '0.82rem' }}
                 >
-                  ↩ Import another file
+                  {t('another')}
                 </button>
               </div>
             )}
@@ -356,7 +361,7 @@ export function BulkImport({ onImportComplete }: Props) {
             {!result && (
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
                 <button onClick={handleClose} className="btn btn-ghost" style={{ fontSize: '0.85rem' }}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   id="bulk-import-upload-btn"
@@ -372,9 +377,9 @@ export function BulkImport({ onImportComplete }: Props) {
                         border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff',
                         borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block',
                       }} />
-                      Importing…
+                      {t('importing')}
                     </span>
-                  ) : 'Import Charts'}
+                  ) : t('importCharts')}
                 </button>
               </div>
             )}

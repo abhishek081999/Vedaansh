@@ -7,6 +7,7 @@ import {
   isLocalizablePath,
   localizePath,
   splitLocalePath,
+  toUnprefixedAppPath,
 } from '@/i18n/config'
 import { NAMESPACES, mergeMessages } from '@/i18n/messages'
 import {
@@ -109,6 +110,16 @@ describe('locale paths', () => {
     expect(localizePath('/', 'hi')).toBe('/hi')
     expect(localizePath('/account?upgrade=gold', 'hi')).toBe('/hi/account?upgrade=gold')
     expect(localizePath('/chart', 'en')).toBe('/chart')
+  })
+
+  it('strips locale prefixes for Auth / next-intl callbacks', () => {
+    expect(toUnprefixedAppPath('/hi/account')).toBe('/account')
+    expect(toUnprefixedAppPath('/hi/account?upgrade=gold')).toBe('/account?upgrade=gold')
+    expect(toUnprefixedAppPath('/hi/account?upgrade=gold#billing')).toBe('/account?upgrade=gold#billing')
+    expect(toUnprefixedAppPath('/account')).toBe('/account')
+    expect(toUnprefixedAppPath('/hi')).toBe('/')
+    expect(toUnprefixedAppPath('https://evil.example/hi')).toBe('/')
+    expect(toUnprefixedAppPath('//evil.example')).toBe('/')
   })
 
   it('never localizes APIs, framework assets or files', () => {
@@ -225,6 +236,30 @@ describe('engine text in Hindi', () => {
     for (const y of hi.yogas) expect(`${y.label} ${y.detail}`).toMatch(/[ऀ-ॿ]/)
     expect(hi.tithiStrength.summary).toMatch(/[ऀ-ॿ]/)
     expect(hi.anandadi.name).toMatch(/[ऀ-ॿ]/)
+  })
+
+  it('translates lagna-pair relation labels and teacher notes', async () => {
+    const { getLagnaPairDynamics, getLagnaPairNotes, getLagnaRelation } = await import('@/lib/engine/lagnaPairDynamics')
+    const deva = /[ऀ-ॿ]/
+    const pairs: Array<[number, number]> = [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7]]
+    for (const [a, b] of pairs) {
+      const rel = getLagnaRelation(a as 1, b as 1, 'hi')
+      expect(rel.kind).toBe(getLagnaRelation(a as 1, b as 1).kind)
+      expect(rel.label).toMatch(deva)
+      expect(rel.detail).toMatch(deva)
+    }
+    const noted: Array<[number, number]> = [[2, 10], [3, 10], [4, 10], [5, 9], [5, 10], [6, 10], [7, 10], [9, 10], [9, 12], [10, 11], [3, 9]]
+    for (const [a, b] of noted) {
+      const en = getLagnaPairNotes(a as 1, b as 1)
+      const hi = getLagnaPairNotes(a as 1, b as 1, 'hi')
+      expect(hi).toHaveLength(en.length)
+      expect(hi[0]).toMatch(deva)
+      expect(hi[0]).not.toBe(en[0])
+    }
+    const dyn = getLagnaPairDynamics(6, 10, 'hi')
+    expect(dyn.nameA).toBe('कन्या')
+    expect(dyn.nameB).toBe('मकर')
+    expect(getLagnaPairDynamics(6, 10).notes[0]).toMatch(/Virgo/)
   })
 })
 

@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import React, { useState, useEffect, useCallback } from 'react'
 import { ChartNotes } from '@/components/ui/ChartNotes'
 import { ChartTagsInput } from '@/components/ui/ChartTagsInput'
@@ -44,24 +46,22 @@ interface Pagination {
   page: number; limit: number; total: number; pages: number
 }
 
-function fmtDate(iso: string): string {
+function fmtDate(iso: string, tag: string): string {
   const d = new Date(iso + 'T12:00:00Z')
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(tag, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
-function fmtSaved(iso: string): string {
-  const d   = new Date(iso)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1)   return 'just now'
-  if (mins < 60)  return `${mins}m ago`
+function fmtSaved(iso: string, tag: string, justNow: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1) return justNow
+  const rtf = new Intl.RelativeTimeFormat(tag, { numeric: 'always', style: 'short' })
+  if (mins < 60) return rtf.format(-mins, 'minute')
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24)   return `${hrs}h ago`
+  if (hrs < 24) return rtf.format(-hrs, 'hour')
   const days = Math.floor(hrs / 24)
-  if (days < 30)  return `${days}d ago`
-  return fmtDate(iso.slice(0, 10))
+  if (days < 30) return rtf.format(-days, 'day')
+  return fmtDate(iso.slice(0, 10), tag)
 }
 
 function ChartCard({
@@ -77,6 +77,8 @@ function ChartCard({
   onUpdate:      (id: string, update: ChartUpdate) => void
   onSetDefault:  (id: string) => void
 }) {
+  const t = useTranslations('library')
+  const { tag } = useLang()
   const [confirmDel, setConfirmDel] = useState(false)
   const [deleting,   setDeleting]   = useState(false)
   const [toggling,   setToggling]   = useState(false)
@@ -108,7 +110,7 @@ function ChartCard({
       if (!exportRes.ok) {
         const err = await exportRes.json().catch(() => ({}))
         if (err.upgradeRequired) { window.location.href = '/pricing?highlight=gold'; return }
-        throw new Error(err.error || 'Export failed')
+        throw new Error(err.error || t('alerts.exportFailed'))
       }
 
       const html = await exportRes.text()
@@ -123,7 +125,7 @@ function ChartCard({
       }
       setTimeout(() => URL.revokeObjectURL(url), 8000)
     } catch (e: any) {
-      alert(e.message || 'Export failed. Please try again.')
+      alert(e.message || t('alerts.exportFailedRetry'))
     } finally {
       setExporting(false)
     }
@@ -186,11 +188,11 @@ function ChartCard({
       if (json.success) {
         onUpdate(chart._id, { tags: json.chart?.tags ?? nextTags })
       } else {
-        alert(json.error || 'Failed to save hashtags')
+        alert(json.error || t('alerts.tagsFailed'))
       }
     } catch (e) {
       console.error('Failed to update tags', e)
-      alert('Failed to save hashtags. Please try again.')
+      alert(t('alerts.tagsFailedRetry'))
     } finally {
       setSavingTags(false)
     }
@@ -236,7 +238,7 @@ function ChartCard({
         </span>
         <button
           onClick={(e) => { e.stopPropagation(); handleSetDefault() }}
-          title={isDefault ? "Default Chart (Loads on Login)" : "Set as Default (Load on Login)"}
+          title={isDefault ? t('card.defaultTitle') : t('card.setDefaultTitle')}
           style={{
             background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem',
             color: isDefault ? 'var(--gold)' : 'var(--text-muted)',
@@ -250,11 +252,11 @@ function ChartCard({
           {isDefault ? '★' : '☆'}
         </button>
         {chart.isPersonal && (
-          <span className="badge badge-gold" style={{ fontSize: '0.62rem' }}>Personal</span>
+          <span className="badge badge-gold" style={{ fontSize: '0.62rem' }}>{t('card.personal')}</span>
         )}
         {chart.isPublic && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span className="badge badge-accent" style={{ fontSize: '0.62rem' }}>Public</span>
+            <span className="badge badge-accent" style={{ fontSize: '0.62rem' }}>{t('card.public')}</span>
             <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               👁 {chart.views ?? 0}
             </span>
@@ -266,7 +268,7 @@ function ChartCard({
         fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
         color: 'var(--text-secondary)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap',
       }}>
-        <span>📅 {fmtDate(chart.birthDate)}</span>
+        <span>📅 {fmtDate(chart.birthDate, tag)}</span>
         <span>🕐 {chart.birthTime.slice(0, 5)}</span>
       </div>
       <div style={{
@@ -281,7 +283,7 @@ function ChartCard({
         fontSize: '0.68rem', color: 'var(--text-muted)',
         fontFamily: 'var(--font-mono)', marginTop: 2,
       }}>
-        Saved {fmtSaved(chart.createdAt)}
+        {t('card.savedAgo', { when: fmtSaved(chart.createdAt, tag, t('justNow')) })}
       </div>
 
       <div style={{
@@ -300,7 +302,7 @@ function ChartCard({
           ))
         ) : (
           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-            No hashtags yet
+            {t('card.noTags')}
           </span>
         )}
       </div>
@@ -312,14 +314,14 @@ function ChartCard({
           className="btn btn-primary btn-sm"
           style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.82rem', opacity: isOpening ? 0.7 : 1 }}
         >
-          {isOpening ? 'Opening…' : 'Open Chart'}
+          {isOpening ? t('card.opening') : t('card.open')}
         </button>
 
         {/* Export PDF */}
         <button
           onClick={handleExportPdf}
           disabled={exporting}
-          title="Export chart as PDF"
+          title={t('card.exportPdfTitle')}
           style={{
             padding: '0.3rem 0.65rem',
             background: 'rgba(139,92,246,0.08)',
@@ -333,14 +335,14 @@ function ChartCard({
             opacity: exporting ? 0.6 : 1,
           }}
         >
-          {exporting ? '⏳' : '⬇'} PDF
+          {exporting ? '⏳' : '⬇'} {t('card.pdf')}
         </button>
 
         {/* Make Public / Share toggle */}
         <button
           onClick={handleTogglePublic}
           disabled={toggling}
-          title={chart.isPublic ? 'Make private (remove share link)' : 'Make public & get share link'}
+          title={chart.isPublic ? t('card.makePrivateTitle') : t('card.makePublicTitle')}
           style={{
             padding: '0.3rem 0.65rem',
             background: chart.isPublic ? 'rgba(78,205,196,0.10)' : 'var(--surface-2)',
@@ -353,7 +355,7 @@ function ChartCard({
             transition: 'all 0.15s',
           }}
         >
-          {toggling ? '…' : chart.isPublic ? '🔗 Public' : '🔗 Share'}
+          {toggling ? '…' : chart.isPublic ? t('card.publicBtn') : t('card.shareBtn')}
         </button>
 
         {/* Copy link if public */}
@@ -361,7 +363,7 @@ function ChartCard({
           <Link
             href={`/chart/${chart.slug}`}
             target="_blank"
-            title="Open public chart page"
+            title={t('card.openPublicTitle')}
             style={{
               padding: '0.3rem 0.65rem',
               background: 'rgba(78,205,196,0.06)',
@@ -392,13 +394,13 @@ function ChartCard({
           }}
           onBlur={() => setConfirmDel(false)}
         >
-          {deleting ? '…' : confirmDel ? 'Confirm?' : '🗑'}
+          {deleting ? '…' : confirmDel ? t('card.confirm') : '🗑'}
         </button>
 
         {/* Tags toggle */}
         <button
           onClick={() => setShowTags(n => !n)}
-          title="Add or edit hashtags"
+          title={t('card.tagsTitle')}
           style={{
             padding: '0.3rem 0.65rem',
             background: showTags ? 'rgba(201,168,76,0.12)' : 'var(--surface-2)',
@@ -411,13 +413,13 @@ function ChartCard({
             fontWeight: 600,
           }}
         >
-          {savingTags ? '…' : '# Tags'}
+          {savingTags ? '…' : t('card.tagsBtn')}
         </button>
 
         {/* Notes toggle */}
         <button
           onClick={() => setShowNotes(n => !n)}
-          title="View / add notes"
+          title={t('card.notesTitle')}
           style={{
             padding: '0.3rem 0.65rem',
             background: showNotes ? 'rgba(139,124,246,0.12)' : 'var(--surface-2)',
@@ -464,6 +466,7 @@ function ChartCard({
 
 export default function MyChartsPage() {
   const router  = useRouter()
+  const t = useTranslations('library')
   const { data: session, status } = useSession()
   const { setActiveTab } = useAppLayout()
   const { setChart } = useChart()
@@ -519,7 +522,7 @@ export default function MyChartsPage() {
       
       if (!res.ok) {
         const json = await res.json().catch(() => ({}))
-        alert(json.error || 'Bulk export failed')
+        alert(json.error || t('alerts.bulkExportFailed'))
         return
       }
 
@@ -532,7 +535,7 @@ export default function MyChartsPage() {
       setTimeout(() => URL.revokeObjectURL(url), 5000)
       setSelectedIds([])
     } catch {
-      alert('Could not export ZIP. Please try again.')
+      alert(t('alerts.zipFailed'))
     } finally {
       setBulkExporting(false)
     }
@@ -550,7 +553,7 @@ export default function MyChartsPage() {
       const res = await fetch('/api/chart/export-xlsx')
       if (!res.ok) {
         const json = await res.json().catch(() => ({}))
-        alert(json.error || 'Export failed')
+        alert(json.error || t('alerts.exportFailed'))
         return
       }
       const blob     = await res.blob()
@@ -563,7 +566,7 @@ export default function MyChartsPage() {
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 6000)
     } catch {
-      alert('Could not export charts. Please try again.')
+      alert(t('alerts.exportChartsFailed'))
     } finally {
       setExporting(false)
     }
@@ -573,7 +576,7 @@ export default function MyChartsPage() {
     setTmplDownloading(true)
     try {
       const res = await fetch('/api/chart/template')
-      if (!res.ok) throw new Error('Template generation failed')
+      if (!res.ok) throw new Error(t('alerts.templateFailed'))
       const blob = await res.blob()
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
@@ -582,7 +585,7 @@ export default function MyChartsPage() {
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 5000)
     } catch {
-      alert('Could not download template. Please try again.')
+      alert(t('alerts.templateDownloadFailed'))
     } finally {
       setTmplDownloading(false)
     }
@@ -630,12 +633,12 @@ export default function MyChartsPage() {
         }
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load')
+      setError(e instanceof Error ? e.message : t('loadFailed'))
     } finally {
       setLoading(false)
       setIsSearching(false)
     }
-  }, [router, search, filterGender, filterStartDate, filterEndDate, filterTag, defaultChartId])
+  }, [router, search, filterGender, filterStartDate, filterEndDate, filterTag, defaultChartId, t])
 
   const allTags = React.useMemo(() => {
     const set = new Set<string>()
@@ -728,20 +731,20 @@ export default function MyChartsPage() {
           fontFamily: 'var(--font-display)', fontSize: 'clamp(1.5rem, 4vw, 2rem)',
           fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.3rem',
         }}>
-          My Charts
+          {t('title')}
         </h1>
         {library === 'charts' && pag && (
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            {pag.total} chart{pag.total !== 1 ? 's' : ''} saved
+            {pag.total === 1 ? t('countOne', { count: pag.total }) : t('countMany', { count: pag.total })}
           </div>
         )}
       </div>
 
       <div style={{ display: 'flex', gap: '0.45rem', marginBottom: '1.25rem' }}>
         {([
-          ['charts', 'My Charts'],
-          ['milan', 'Kundali Milan'],
-          ['numerology', 'Numerology'],
+          ['charts', t('tabs.charts')],
+          ['milan', t('tabs.milan')],
+          ['numerology', t('tabs.numerology')],
         ] as const).map(([id, label]) => (
           <button
             key={id}
@@ -771,7 +774,7 @@ export default function MyChartsPage() {
           <div style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
             <input
               className="input"
-              placeholder="Search by name, place, hashtag, or notes..."
+              placeholder={t('searchPlaceholder')}
               value={search}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               style={{ width: '100%', paddingLeft: '2.75rem', height: '46px', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)' }}
@@ -792,13 +795,13 @@ export default function MyChartsPage() {
               fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.08em'
             }}
           >
-            {showFilters ? '✕ CLOSE' : '⚙ FILTERS'}
+            {showFilters ? t('filters.close') : t('filters.open')}
           </button>
         </div>
 
         {allTags.length > 0 && (
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Hashtags:</span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t('filters.hashtags')}</span>
             <button
               type="button"
               onClick={() => setFilterTag('')}
@@ -810,7 +813,7 @@ export default function MyChartsPage() {
                 border: `1px solid ${!filterTag ? 'var(--gold-soft)' : 'var(--border-soft)'}`,
               }}
             >
-              All
+              {t('filters.all')}
             </button>
             {allTags.map(t => (
               <button
@@ -840,7 +843,7 @@ export default function MyChartsPage() {
               className="btn btn-ghost btn-sm"
               style={{ height: '36px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}
             >
-              Export XLSX
+              {t('actions.exportXlsx')}
             </button>
           )}
           <button
@@ -850,12 +853,12 @@ export default function MyChartsPage() {
             className="btn btn-ghost btn-sm"
             style={{ height: '36px', fontSize: '0.7rem', color: 'var(--gold-soft)' }}
           >
-            ⬇ Template
+            {t('actions.template')}
           </button>
           <BulkImport onImportComplete={() => fetchCharts(page)} />
           <div style={{ flex: 1 }} />
           <Link href="/?new=true" className="btn btn-primary" style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 800, borderRadius: 'var(--r-md)' }}>
-            + NEW CHART
+            {t('actions.newChart')}
           </Link>
         </div>
       </div>
@@ -868,21 +871,21 @@ export default function MyChartsPage() {
             boxShadow: 'var(--shadow-md)', width: '95%', maxWidth: '850px'
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gender</label>
+              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('filters.gender')}</label>
               <select 
                 value={filterGender} 
                 onChange={e => setFilterGender(e.target.value)}
                 className="input"
                 style={{ fontSize: '0.8rem', padding: '0.5rem', borderRadius: 'var(--r-md)', height: '40px' }}
               >
-                <option value="all">All Genders</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="all">{t('filters.allGenders')}</option>
+                <option value="male">{t('filters.male')}</option>
+                <option value="female">{t('filters.female')}</option>
+                <option value="other">{t('filters.other')}</option>
               </select>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date From</label>
+              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('filters.dateFrom')}</label>
               <input 
                 type="date" 
                 value={filterStartDate}
@@ -892,7 +895,7 @@ export default function MyChartsPage() {
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date To</label>
+              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('filters.dateTo')}</label>
               <input 
                 type="date" 
                 value={filterEndDate}
@@ -911,7 +914,7 @@ export default function MyChartsPage() {
             width: 32, height: 32, margin: '0 auto 1rem',
             border: '3px solid var(--border)', borderTopColor: 'var(--gold)',
           }} />
-          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Loading charts…</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>{t('loading')}</div>
         </div>
       )}
 
@@ -922,7 +925,7 @@ export default function MyChartsPage() {
           color: 'var(--rose)', fontFamily: 'var(--font-display)', marginBottom: '1rem',
         }}>
           {error === 'Not authenticated'
-            ? <>Please <Link href="/" style={{ color: 'var(--gold)' }}>sign in</Link> to view saved charts.</>
+            ? t.rich('authRequired', { link: (chunks) => <Link href="/" style={{ color: 'var(--gold)' }}>{chunks}</Link> })
             : error}
         </div>
       )}
@@ -933,10 +936,10 @@ export default function MyChartsPage() {
             <Image src="/veda-icon.png" alt="Vedaansh" width={64} height={64} style={{ objectFit: 'contain', opacity: 0.8 }} />
           </div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-            {(search || filterGender !== 'all' || filterStartDate || filterEndDate) ? 'No charts match your search filters' : 'No saved charts yet'}
+            {(search || filterGender !== 'all' || filterStartDate || filterEndDate) ? t('emptyFilters') : t('emptyNone')}
           </p>
           <Link href="/?new=true" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-            Calculate a Chart
+            {t('calculate')}
           </Link>
         </div>
       )}
@@ -964,7 +967,7 @@ export default function MyChartsPage() {
       {selectedIds.length > 0 && (
         <div className="charts-floating-actions">
           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {selectedIds.length} chart{selectedIds.length > 1 ? 's' : ''} selected
+            {selectedIds.length === 1 ? t('selectedOne', { count: selectedIds.length }) : t('selectedMany', { count: selectedIds.length })}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
@@ -973,13 +976,13 @@ export default function MyChartsPage() {
               className="btn btn-primary btn-sm"
               style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             >
-              {bulkExporting ? '📦 Zipping…' : '⬇ Download ZIP'}
+              {bulkExporting ? t('zipping') : t('downloadZip')}
             </button>
             <button
               onClick={() => setSelectedIds([])}
               className="btn btn-ghost btn-sm"
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>

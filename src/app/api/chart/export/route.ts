@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { resolveChartForExport } from '@/lib/chart/resolveChartForExport'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
+import { engineLangFromRequest } from '@/lib/requestLang'
 import { getEffectivePlanForUserId, requirePlanGate } from '@/lib/security/planAccess'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
@@ -44,15 +45,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── Fetch Branding (Platinum Only, DB-backed plan) ───────
+    // ── Fetch branding (Platinum) and the account language ──
+    const { User } = await import('@/lib/db/models/User')
+    await (await import('@/lib/db/mongodb')).default()
+    const user = await User.findById(userId).select('brandName brandLogo language').lean() as {
+      brandName?: string
+      brandLogo?: string
+      language?: string
+    } | null
+    const lang = engineLangFromRequest(req, user?.language)
     let branding = null
     if (effectivePlan === 'platinum') {
-      const { User } = await import('@/lib/db/models/User')
-      await (await import('@/lib/db/mongodb')).default()
-      const user = await User.findById(userId).select('brandName brandLogo').lean()
       branding = {
-        brandName: (user as any)?.brandName,
-        brandLogo: (user as any)?.brandLogo,
+        brandName: user?.brandName,
+        brandLogo: user?.brandLogo,
       }
     }
 
@@ -60,9 +66,9 @@ export async function POST(req: NextRequest) {
     const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
     const { buildRashiChapterHtml } = await import('@/lib/pdf/rashiChapter')
     const html = generateChartHTML(chart, branding as any, {
-      gocharChapterHtml: buildGocharChapterHtml(chart),
-      rashiChapterHtml: buildRashiChapterHtml(chart),
-    })
+      gocharChapterHtml: buildGocharChapterHtml(chart, lang),
+      rashiChapterHtml: buildRashiChapterHtml(chart, lang),
+    }, lang)
 
     // ── Return as HTML document ───────────────────────────────
     return new NextResponse(html, {

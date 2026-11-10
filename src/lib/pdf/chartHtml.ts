@@ -4,10 +4,18 @@
 //  Optimized for browser print-to-PDF with premium typography.
 // ─────────────────────────────────────────────────────────────
 
-import type { ChartOutput, GrahaData, Rashi, GrahaId, YogaResult } from '@/types/astrology'
+import type { ChartOutput, GrahaData, Rashi, GrahaId, YogaResult, Dignity } from '@/types/astrology'
 import {
   GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT, NAKSHATRA_NAMES, NAKSHATRA_SHORT, RASHI_SANSKRIT, GRAHA_SANSKRIT
 } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { dignityText } from '@/lib/engine/divisionalLang'
+import { classicalNotesInLang, classicalTextHi } from '@/lib/engine/classicalInterpretations'
+import { localizeChartInterpretation } from '@/lib/engine/advancedInterpretationLang'
+import { DIGNITY_INTERPRETATIONS_HI, PLANET_IN_SIGN_SUMMARY_HI } from '@/lib/engine/locale/interpretations.hi'
+import { applyChartHtmlChrome } from '@/lib/pdf/chartHtml.hi'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { YOGA_CATEGORY_HI, YOGA_STRENGTH_HI, yogaDescriptionHi, yogaEffectHi, yogaNameHi } from '@/lib/engine/locale/yogas.hi'
 import { getNakshatraCharacteristics, getNavtaraChakra } from '@/lib/engine/nakshatraAdvanced'
 import { getVarnaName, getVashyaName, getGanaName, getNadiName } from '@/lib/engine/ashtakoot'
 import {
@@ -21,9 +29,12 @@ import {
 import {
   SIGN_INTERPRETATIONS,
   DIGNITY_INTERPRETATIONS,
+  getPlanetInHouseClassical,
+  getPlanetInSignClassical,
   getPlanetInHouseClassicalSummary,
   getPlanetInSignClassicalSummary,
   getDignityClassicalNotes,
+  getVakriAstNotes,
   getVakriAstSummary,
   buildClassicalPdfBlocks,
 } from '@/lib/engine/interpretations'
@@ -114,6 +125,12 @@ function capitalize(s: string): string {
   return s.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
+/** English returns the raw id (including an empty string when missing). */
+function showGraha(id: GrahaId | null | undefined, lang: EngineLang): string {
+  if (!id) return ''
+  return lang === 'hi' ? (GRAHA_HI[id] ?? id) : id
+}
+
 function escapeHtml(s: string): string {
   if (!s) return ''
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -124,11 +141,11 @@ function formatCoordinate(value: number, positive: string, negative: string): st
   return `${Math.abs(value).toFixed(2)}${direction}`
 }
 
-function formatDateTime(value?: Date | string | null): string {
+function formatDateTime(value?: Date | string | null, lang: EngineLang = 'en'): string {
   if (!value) return 'N/A'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'N/A'
-  return date.toLocaleString('en-IN', {
+  return date.toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN', {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
@@ -136,6 +153,19 @@ function formatDateTime(value?: Date | string | null): string {
     minute: '2-digit',
     hour12: true,
   })
+}
+
+function vakriAstText(id: string, isRetro: boolean | undefined, isCombust: boolean | undefined, lang: EngineLang): string | null {
+  if (lang !== 'hi') return getVakriAstSummary(id, isRetro, isCombust)
+  const notes = getVakriAstNotes(id, isRetro, isCombust, undefined, 'summary')
+  if (!notes.length) return null
+  const preferRefs = [`Vakri+Asta ${id}`, `Vakri ${id}`, `Asta ${id}`]
+  let chosen = notes[notes.length - 1] ?? notes[0]
+  for (const ref of preferRefs) {
+    const hit = notes.find((n) => n.ref === ref)
+    if (hit) { chosen = hit; break }
+  }
+  return classicalNotesInLang([chosen], 'hi')[0]?.text ?? chosen.text
 }
 
 function buildShadbalaMiniCharts(chart: ChartOutput): string {
@@ -441,7 +471,7 @@ function buildVargaGrid(chart: ChartOutput): string {
   return `<div class="varga-grid">${items}</div>`
 }
 
-function buildAstroDetailsHtml(chart: ChartOutput): { part1: string; part2: string } | string {
+function buildAstroDetailsHtml(chart: ChartOutput, lang: EngineLang = 'en'): { part1: string; part2: string } | string {
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const rahu = chart.grahas.find(g => g.id === 'Ra')
   const sun = chart.grahas.find(g => g.id === 'Su')
@@ -450,7 +480,7 @@ function buildAstroDetailsHtml(chart: ChartOutput): { part1: string; part2: stri
     return '<p class="small-meta">Moon data required for complete natal astro details.</p>'
   }
 
-  const chars = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
+  const chars = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada, lang)
   const moonNak1 = moon.nakshatraIndex + 1
   const bhriguLon = rahu ? getBhriguBinduLon(moon.totalDegree, rahu.totalDegree) : null
   const bhriguFmt = bhriguLon != null ? formatSiderealLongitude(bhriguLon) : null
@@ -480,7 +510,7 @@ function buildAstroDetailsHtml(chart: ChartOutput): { part1: string; part2: stri
 
   const fmtShortTime = (d: Date | string) => {
     const x = new Date(d)
-    return Number.isNaN(x.getTime()) ? 'N/A' : x.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    return Number.isNaN(x.getTime()) ? 'N/A' : x.toLocaleTimeString(lang === 'hi' ? 'hi-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' })
   }
 
   const beeja = chart.upagrahas?.['Beeja Sphuta']
@@ -615,18 +645,28 @@ function buildSpecialLagnas(chart: ChartOutput): string {
   return `<table class="data-table"><thead><tr><th>Point</th><th>Longitude</th><th>Rashi</th></tr></thead><tbody>${rows}</tbody></table>`
 }
 
-function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string {
+function buildPlanetInterpretations(chart: ChartOutput, group: string[], lang: EngineLang = 'en'): string {
   return group.map(id => {
     const g = chart.grahas.find(x => x.id === id)
     if (!g) return ''
-    const signInterp = SIGN_INTERPRETATIONS[id]?.[g.rashi] || 'Core energy influence.'
-    const digInterp = DIGNITY_INTERPRETATIONS[g.dignity] || ''
+    const signInterp = lang === 'hi'
+      ? (PLANET_IN_SIGN_SUMMARY_HI[g.rashi]?.[id as 'Su'] || SIGN_INTERPRETATIONS[id]?.[g.rashi] || 'Core energy influence.')
+      : (SIGN_INTERPRETATIONS[id]?.[g.rashi] || 'Core energy influence.')
+    const digInterp = lang === 'hi'
+      ? (DIGNITY_INTERPRETATIONS_HI[g.dignity] || '')
+      : (DIGNITY_INTERPRETATIONS[g.dignity] || '')
     const planetColor = GRAHA_DISPLAY_COLOR[id as GrahaId] ?? THEME.text
     const house = wholeSignHouseFromLagna(chart.lagnas.ascRashi, g.rashi)
-    const classicalSign = getPlanetInSignClassicalSummary(id, g.rashi)
-    const classicalHouse = getPlanetInHouseClassicalSummary(id, house)
-    const classicalDignity = getDignityClassicalNotes(g.dignity, false)[0]?.text
-    const vakriAst = getVakriAstSummary(id, g.isRetro, g.isCombust)
+    const classicalSign = lang === 'hi'
+      ? (classicalNotesInLang(getPlanetInSignClassical(id, g.rashi), 'hi')[0]?.text ?? null)
+      : getPlanetInSignClassicalSummary(id, g.rashi)
+    const classicalHouse = lang === 'hi'
+      ? (classicalNotesInLang(getPlanetInHouseClassical(id, house), 'hi')[0]?.text ?? null)
+      : getPlanetInHouseClassicalSummary(id, house)
+    const classicalDignity = lang === 'hi'
+      ? (classicalNotesInLang(getDignityClassicalNotes(g.dignity, false), 'hi')[0]?.text)
+      : getDignityClassicalNotes(g.dignity, false)[0]?.text
+    const vakriAst = vakriAstText(id, g.isRetro, g.isCombust, lang)
     const classicalBits = [classicalSign, classicalHouse, classicalDignity, vakriAst].filter(
       (x): x is string => Boolean(x),
     )
@@ -635,7 +675,7 @@ function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string
       <div class="interp-block">
         <div class="interp-header">
           <span style="color:${planetColor};font-weight:800;font-size:1.2rem">${GRAHA_NAMES[id as GrahaId]} in ${RASHI_NAMES[g.rashi]}</span>
-          <span class="dignity-tag" style="background:${THEME.surface};color:${THEME.muted};border:1px solid ${THEME.border}">${capitalize(g.dignity)}</span>
+          <span class="dignity-tag" style="background:${THEME.surface};color:${THEME.muted};border:1px solid ${THEME.border}">${lang === 'hi' ? dignityText(g.dignity as Dignity, 'hi') : capitalize(g.dignity)}</span>
         </div>
         <div class="interp-text">${signInterp} ${digInterp}</div>
         ${classicalBits.length ? `<div class="interp-text" style="margin-top:6px;font-size:11px;color:${THEME.secondary}"><strong>Classical:</strong> ${classicalBits.map(escapeHtml).join(' ')}</div>` : ''}
@@ -645,8 +685,12 @@ function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string
   }).join('')
 }
 
-function buildClassicalBhavaSection(chart: ChartOutput): string {
-  const { lagnaLord, houses } = buildClassicalPdfBlocks(chart)
+function buildClassicalBhavaSection(chart: ChartOutput, lang: EngineLang = 'en'): string {
+  const blocks = buildClassicalPdfBlocks(chart)
+  const lagnaLord = lang === 'hi' ? classicalNotesInLang(blocks.lagnaLord, 'hi') : blocks.lagnaLord
+  const houses = lang === 'hi'
+    ? blocks.houses.map((h) => ({ ...h, lines: h.lines.map(classicalTextHi) }))
+    : blocks.houses
   const lagnaBlock = lagnaLord.length
     ? `<div style="margin-bottom:1rem;padding:12px;background:${THEME.accentLight}33;border-left:3px solid ${THEME.temple}">
         <div style="font-weight:800;font-size:11px;color:${THEME.primary};margin-bottom:4px">Lagna Lord (classical)</div>
@@ -714,16 +758,17 @@ function buildAVMatrix(chart: ChartOutput): string {
   `
 }
 
-function buildKPSection(chart: ChartOutput): string {
+function buildKPSection(chart: ChartOutput, lang: EngineLang = 'en'): string {
   if (!chart.kp) return '<p>KP System analytics calculating...</p>'
+  const lord = (id: GrahaId) => showGraha(id, lang)
   const cusps = chart.kp.cusps.slice(0, 12).map(c => `
     <tr>
       <td>House ${c.house}</td>
       <td>${RASHI_NAMES[c.rashi]}</td>
-      <td>${c.signLord}</td>
-      <td>${c.starLord}</td>
-      <td style="font-weight:700;color:${THEME.accent}">${c.subLord}</td>
-      <td>${c.subSubLord}</td>
+      <td>${lord(c.signLord)}</td>
+      <td>${lord(c.starLord)}</td>
+      <td style="font-weight:700;color:${THEME.accent}">${lord(c.subLord)}</td>
+      <td>${lord(c.subSubLord)}</td>
     </tr>
   `).join('')
   
@@ -963,17 +1008,18 @@ function buildCurrentDashaFocus(chart: ChartOutput): string {
   `
 }
 
-function formatDashaDate(value?: Date | string): string {
+function formatDashaDate(value?: Date | string, lang: EngineLang = 'en'): string {
   if (!value) return 'N/A'
   const dt = new Date(value)
   if (Number.isNaN(dt.getTime())) return 'N/A'
-  return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  return dt.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 function buildDashaSystemTable(
   chart: ChartOutput,
   key: 'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir',
   label: string,
+  lang: EngineLang = 'en',
 ): string {
   const nodes = chart.dashas[key] ?? []
   if (!nodes.length) {
@@ -987,7 +1033,7 @@ function buildDashaSystemTable(
 
   const periodLabel = (n: { lord: string; label?: string }) => {
     if (key === 'yogini') {
-      const yi = getYoginiInterpretation(n.lord)
+      const yi = getYoginiInterpretation(n.lord, lang)
       if (yi) return `${yi.name} (${GRAHA_NAMES[n.lord as GrahaId] || n.lord})`
       return n.label || GRAHA_NAMES[n.lord as GrahaId] || n.lord
     }
@@ -999,11 +1045,11 @@ function buildDashaSystemTable(
     return now >= new Date(n.start).getTime() && now < new Date(n.end).getTime()
   })
   const currentInterp = key === 'yogini' && current
-    ? getYoginiInterpretation(current.lord)
+    ? getYoginiInterpretation(current.lord, lang)
     : null
 
   const vimInterp = key === 'vimshottari' && current
-    ? getVimshottariInterpretation(current.lord)
+    ? getVimshottariInterpretation(current.lord, lang)
     : null
   const vimAnalysis = key === 'vimshottari' && chart.dashas.vimshottari?.length
     ? analyzeVimshottariPeriod({
@@ -1013,6 +1059,7 @@ function buildDashaSystemTable(
         shadbala: chart.shadbala,
         ashtakavarga: chart.ashtakavarga,
         navamshaGrahas: chart.vargas?.D9,
+        lang,
       })
     : null
 
@@ -1052,16 +1099,17 @@ function buildDashaSystemTable(
       vimPath[0].lord,
       vimAntarNode.lord,
       durationMsToYears(vimAntarNode.durationMs),
+      lang,
     )
     : null
   const vimMahaScriptures = vimPath[0]
-    ? getVimshottariMahaScriptures(vimPath[0].lord).slice(0, 2)
+    ? getVimshottariMahaScriptures(vimPath[0].lord, lang).slice(0, 2)
     : []
   const vimAntarScriptures = vimPath[0] && vimAntarNode
-    ? getVimshottariAntarScriptures(vimPath[0].lord, vimAntarNode.lord).slice(0, 2)
+    ? getVimshottariAntarScriptures(vimPath[0].lord, vimAntarNode.lord, lang).slice(0, 2)
     : []
   const vimTimeline = key === 'vimshottari' && chart.dashas.vimshottari?.length
-    ? buildUpcomingVimshottariTimeline(chart.dashas.vimshottari, Date.now(), 5)
+    ? buildUpcomingVimshottariTimeline(chart.dashas.vimshottari, Date.now(), 5, lang)
     : null
   const lifeAreaLine = vimAnalysis?.lifeAreas?.areas
     ?.filter(a => a.strength === 'high' || a.strength === 'medium')
@@ -1122,8 +1170,8 @@ function buildDashaSystemTable(
         <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px;">Upcoming timeline</div>
         <div style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 4px;">${vimTimeline.headline}</div>
         <ul style="font-size: 11px; line-height: 1.4; margin: 0 0 0 1.1rem; padding: 0;">
-          ${vimTimeline.upcomingAntars.map(a => `<li>${a.label}: ${formatShortDate(a.startIso)} → ${formatShortDate(a.endIso)} (${a.toneLabel})</li>`).join('')}
-          ${vimTimeline.nextMaha ? `<li><strong>${vimTimeline.nextMaha.label}</strong>: from ${formatShortDate(vimTimeline.nextMaha.startIso)}</li>` : ''}
+          ${vimTimeline.upcomingAntars.map(a => `<li>${a.label}: ${formatShortDate(a.startIso, lang)} → ${formatShortDate(a.endIso, lang)} (${a.toneLabel})</li>`).join('')}
+          ${vimTimeline.nextMaha ? `<li><strong>${vimTimeline.nextMaha.label}</strong>: from ${formatShortDate(vimTimeline.nextMaha.startIso, lang)}</li>` : ''}
         </ul>
       </div>` : ''}
       <div style="font-size: 11px; color: ${THEME.muted}; margin-top: 6px; line-height: 1.4;">
@@ -1144,8 +1192,8 @@ function buildDashaSystemTable(
             const isCurrent = new Date() >= new Date(n.start) && new Date() <= new Date(n.end)
             return `<tr style="${isCurrent ? 'background:#fffbeb;font-weight:900;' : ''}">
               <td>${periodLabel(n)}</td>
-              <td>${formatDashaDate(n.start)}</td>
-              <td>${formatDashaDate(n.end)}</td>
+              <td>${formatDashaDate(n.start, lang)}</td>
+              <td>${formatDashaDate(n.end, lang)}</td>
               <td>${isCurrent ? 'ACTIVE' : ''}</td>
             </tr>`
           }).join('')}
@@ -1156,7 +1204,7 @@ function buildDashaSystemTable(
   `
 }
 
-function buildAllDashasPages(chart: ChartOutput): string {
+function buildAllDashasPages(chart: ChartOutput, lang: EngineLang = 'en'): string {
   const systems: Array<{ key: 'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'; label: string }> = [
     { key: 'vimshottari', label: 'Vimshottari' },
     { key: 'yogini', label: 'Yogini' },
@@ -1172,7 +1220,7 @@ function buildAllDashasPages(chart: ChartOutput): string {
 <div class="page">
   ${SectionHeader(idx === 0 ? '03' : `03.${idx + 1}`, `Dasha Systems — ${system.label}`, 'All Computed Dashas')}
   <p style="margin-bottom: 1rem">Complete major-period timeline for ${system.label} dasha.</p>
-  ${buildDashaSystemTable(chart, system.key, system.label)}
+  ${buildDashaSystemTable(chart, system.key, system.label, lang)}
   ${PageFooter(7 + idx, chart.meta.name)}
 </div>
 `).join('')
@@ -1184,6 +1232,7 @@ export function generateChartHTML(
   chart: ChartOutput,
   branding?: Branding,
   extras?: ChartHtmlExtras,
+  lang: EngineLang = 'en',
 ): string {
   const gocharChapterHtml = extras?.gocharChapterHtml?.trim()
     ? extras.gocharChapterHtml
@@ -1202,9 +1251,16 @@ export function generateChartHTML(
   const availableShadbalaIds = coreShadbalaIds.filter(id => Boolean(shadbalaPlanets[id]))
   const strongestId = chart.shadbala?.strongest || 'Ju'
   const weakestId = chart.shadbala?.weakest || 'Sa'
+  const reading = lang === 'hi'
+    ? localizeChartInterpretation(chart.interpretation, {
+        grahas: chart.grahas,
+        shadbala: chart.shadbala,
+        ascRashi: chart.lagnas.ascRashi,
+      }, 'hi')
+    : chart.interpretation
 
-  return `<!DOCTYPE html>
-<html lang="en">
+  const html = `<!DOCTYPE html>
+<html lang="${lang === 'hi' ? 'hi' : 'en'}">
 <head>
   <meta charset="UTF-8">
   <style>
@@ -1491,7 +1547,7 @@ export function generateChartHTML(
   </div>
 
   <div class="footer" style="border:none">
-    <div>Computed on ${new Date().toLocaleDateString('en-US', { dateStyle:'long' })}</div>
+    <div>Computed on ${new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US', { dateStyle:'long' })}</div>
     <div style="color:${THEME.temple}; font-family:'Noto Serif Devanagari',serif; font-size:0.9rem">☉</div>
     <div>${brandName} — Premium Edition</div>
   </div>
@@ -1540,7 +1596,7 @@ export function generateChartHTML(
     <tr><td style="font-weight:700;background:${THEME.surface}">Birth Place</td><td colspan="3">${meta.birthPlace}</td></tr>
     <tr><td style="font-weight:700;background:${THEME.surface}">Coord.</td><td>${formatCoordinate(meta.latitude, 'N', 'S')}, ${formatCoordinate(meta.longitude, 'E', 'W')}</td><td style="font-weight:700;background:${THEME.surface}">Timezone</td><td>${meta.timezone}</td></tr>
     <tr><td style="font-weight:700;background:${THEME.surface}">Ayanamsha</td><td>${meta.settings.ayanamsha} (${meta.ayanamshaValue.toFixed(6)}°)</td><td style="font-weight:700;background:${THEME.surface}">House System</td><td>${meta.settings.houseSystem}</td></tr>
-    <tr><td style="font-weight:700;background:${THEME.surface}">Node Mode</td><td>${meta.settings.nodeMode}</td><td style="font-weight:700;background:${THEME.surface}">Calculated At</td><td>${formatDateTime(meta.calculatedAt)}</td></tr>
+    <tr><td style="font-weight:700;background:${THEME.surface}">Node Mode</td><td>${meta.settings.nodeMode}</td><td style="font-weight:700;background:${THEME.surface}">Calculated At</td><td>${formatDateTime(meta.calculatedAt, lang)}</td></tr>
   </table>
   
   <div style="display:flex; gap:1rem; margin-top:1rem; width:100%">
@@ -1563,12 +1619,12 @@ export function generateChartHTML(
         <div><strong style="color:${THEME.secondary}">Nakshatra (नक्षत्र):</strong> ${chart.panchang.nakshatra.name}</div>
         <div><strong style="color:${THEME.secondary}">Yoga (योग):</strong> ${chart.panchang.yoga.name}</div>
         <div><strong style="color:${THEME.secondary}">Karana (करण):</strong> ${chart.panchang.karana.name}</div>
-        <div><strong style="color:${THEME.secondary}">Sunrise (सूर्योदय):</strong> ${formatDateTime(chart.panchang.sunrise)}</div>
-        <div><strong style="color:${THEME.secondary}">Sunset (सूर्यास्त):</strong> ${formatDateTime(chart.panchang.sunset)}</div>
-        <div><strong style="color:${THEME.secondary}">Rahu Kalam:</strong> ${formatDateTime(chart.panchang.rahuKalam?.start)} – ${formatDateTime(chart.panchang.rahuKalam?.end)}</div>
-        <div><strong style="color:${THEME.secondary}">Yamaganda:</strong> ${formatDateTime(chart.panchang.yamaganda?.start)} – ${formatDateTime(chart.panchang.yamaganda?.end)}</div>
-        <div><strong style="color:${THEME.secondary}">Gulika Kalam:</strong> ${formatDateTime(chart.panchang.gulikaKalam?.start)} – ${formatDateTime(chart.panchang.gulikaKalam?.end)}</div>
-        <div style="grid-column:span 2"><strong style="color:${THEME.secondary}">Abhijit Muhurta:</strong> ${chart.panchang.abhijitMuhurta ? `${formatDateTime(chart.panchang.abhijitMuhurta.start)} – ${formatDateTime(chart.panchang.abhijitMuhurta.end)}` : 'N/A'}</div>
+        <div><strong style="color:${THEME.secondary}">Sunrise (सूर्योदय):</strong> ${formatDateTime(chart.panchang.sunrise, lang)}</div>
+        <div><strong style="color:${THEME.secondary}">Sunset (सूर्यास्त):</strong> ${formatDateTime(chart.panchang.sunset, lang)}</div>
+        <div><strong style="color:${THEME.secondary}">Rahu Kalam:</strong> ${formatDateTime(chart.panchang.rahuKalam?.start, lang)} – ${formatDateTime(chart.panchang.rahuKalam?.end, lang)}</div>
+        <div><strong style="color:${THEME.secondary}">Yamaganda:</strong> ${formatDateTime(chart.panchang.yamaganda?.start, lang)} – ${formatDateTime(chart.panchang.yamaganda?.end, lang)}</div>
+        <div><strong style="color:${THEME.secondary}">Gulika Kalam:</strong> ${formatDateTime(chart.panchang.gulikaKalam?.start, lang)} – ${formatDateTime(chart.panchang.gulikaKalam?.end, lang)}</div>
+        <div style="grid-column:span 2"><strong style="color:${THEME.secondary}">Abhijit Muhurta:</strong> ${chart.panchang.abhijitMuhurta ? `${formatDateTime(chart.panchang.abhijitMuhurta.start, lang)} – ${formatDateTime(chart.panchang.abhijitMuhurta.end, lang)}` : 'N/A'}</div>
     </div>
   </div>
   ${PageFooter(3, meta.name)}
@@ -1578,7 +1634,7 @@ export function generateChartHTML(
 <div class="page">
   ${SectionHeader('01b', 'Natal Astro Details', 'Summary Part I')}
   ${(() => {
-    const astro = buildAstroDetailsHtml(chart);
+    const astro = buildAstroDetailsHtml(chart, lang);
     return typeof astro === 'string' ? astro : astro.part1;
   })()}
   ${PageFooter(4, meta.name)}
@@ -1588,7 +1644,7 @@ export function generateChartHTML(
 <div class="page">
   ${SectionHeader('01c', 'Natal Astro Details', 'Summary Part II')}
   ${(() => {
-    const astro = buildAstroDetailsHtml(chart);
+    const astro = buildAstroDetailsHtml(chart, lang);
     return typeof astro === 'string' ? '' : astro.part2;
   })()}
   ${PageFooter(5, meta.name)}
@@ -1622,7 +1678,7 @@ export function generateChartHTML(
           <td>${g.rashiName}</td>
           <td>${g.nakshatraName}</td>
           <td>${g.pada}</td>
-          <td style="color:${THEME.text};font-weight:700">${capitalize(g.dignity)}</td>
+          <td style="color:${THEME.text};font-weight:700">${lang === 'hi' ? dignityText(g.dignity as Dignity, 'hi') : capitalize(g.dignity)}</td>
           <td>${g.isCombust ? 'Combust' : 'Direct'} • ${capitalize(g.avastha.baladi)} / ${capitalize(g.avastha.jagradadi)}</td>
         </tr>`).join('')}
     </tbody>
@@ -1634,7 +1690,7 @@ export function generateChartHTML(
 </div>
 
 <!-- DASHA PAGES -->
-${buildAllDashasPages(chart)}
+${buildAllDashasPages(chart, lang)}
 
 <!-- PAGE 8: CURRENT DASHA -->
 <div class="page">
@@ -1646,20 +1702,20 @@ ${buildAllDashasPages(chart)}
     <thead><tr><th>Period</th><th>Starts On</th><th>Ends On</th><th>Tone</th></tr></thead>
     <tbody>
       ${(() => {
-        const tl = buildUpcomingVimshottariTimeline(chart.dashas.vimshottari ?? [], Date.now(), 8)
+        const tl = buildUpcomingVimshottariTimeline(chart.dashas.vimshottari ?? [], Date.now(), 8, lang)
         const rows = tl.upcomingAntars.map(a => `
           <tr>
             <td style="font-weight:700">${a.label}</td>
-            <td>${formatShortDate(a.startIso)}</td>
-            <td>${formatShortDate(a.endIso)}</td>
+            <td>${formatShortDate(a.startIso, lang)}</td>
+            <td>${formatShortDate(a.endIso, lang)}</td>
             <td>${a.toneLabel}</td>
           </tr>
         `).join('')
         const mahaRow = tl.nextMaha ? `
           <tr style="background:#fffbeb;font-weight:800">
             <td>${tl.nextMaha.label}</td>
-            <td>${formatShortDate(tl.nextMaha.startIso)}</td>
-            <td>${formatShortDate(tl.nextMaha.endIso)}</td>
+            <td>${formatShortDate(tl.nextMaha.startIso, lang)}</td>
+            <td>${formatShortDate(tl.nextMaha.endIso, lang)}</td>
             <td>${tl.nextMaha.toneLabel}</td>
           </tr>` : ''
         const html = `${rows || ''}${mahaRow}`
@@ -1686,7 +1742,7 @@ ${buildAllDashasPages(chart)}
 <div class="page">
   ${SectionHeader('04', 'Graha Manasika', 'Sun, Moon & Mars')}
   <p style="margin-bottom: 2rem">Surya, Chandra and Mangala — your Atma (soul), Manas (mind), and Virya (courage).</p>
-  ${buildPlanetInterpretations(chart, ['Su', 'Mo', 'Ma'])}
+  ${buildPlanetInterpretations(chart, ['Su', 'Mo', 'Ma'], lang)}
   ${PageFooter(7, meta.name)}
 </div>
 
@@ -1694,14 +1750,14 @@ ${buildAllDashasPages(chart)}
 <div class="page">
   ${SectionHeader('05', 'Buddhi & Jnana', 'Mercury, Jupiter & Venus')}
   <p style="margin-bottom: 2rem">Budha, Guru and Shukra — the triad governing intellect, wisdom, and beauty.</p>
-  ${buildPlanetInterpretations(chart, ['Me', 'Ju', 'Ve'])}
+  ${buildPlanetInterpretations(chart, ['Me', 'Ju', 'Ve'], lang)}
   ${PageFooter(8, meta.name)}
 </div>
 
 <!-- PAGE 9: INTERPRETATIONS 3 -->
 <div class="page">
   ${SectionHeader('06', 'Chaya Graha', 'Saturn, Rahu & Ketu')}
-  ${buildPlanetInterpretations(chart, ['Sa', 'Ra', 'Ke'])}
+  ${buildPlanetInterpretations(chart, ['Sa', 'Ra', 'Ke'], lang)}
   ${PageFooter(9, meta.name)}
 </div>
 
@@ -1717,7 +1773,7 @@ ${buildAllDashasPages(chart)}
 <div class="page">
   ${SectionHeader('07b', 'Bhava Classical', 'House & Lordship Phalita')}
   <p style="margin-bottom: 1rem">Classical house, lordship, occupant, and drishti notes filtered to this chart (whole-sign from Lagna).</p>
-  ${buildClassicalBhavaSection(chart)}
+  ${buildClassicalBhavaSection(chart, lang)}
   ${PageFooter(10, meta.name)}
 </div>
 
@@ -1727,7 +1783,7 @@ ${buildAllDashasPages(chart)}
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
     ${[chart.grahas.find(g => g.id === 'Mo'), { id:'Lagna', name:'Ascendant', nakshatraIndex: Math.floor(chart.lagnas.ascDegree/(360/27)), pada: 1 }].map(entry => {
       if (!entry) return ''
-      const chars = getNakshatraCharacteristics(entry.nakshatraIndex, (entry as any).pada)
+      const chars = getNakshatraCharacteristics(entry.nakshatraIndex, (entry as any).pada, lang)
       return `
         <div style="background:${THEME.surface}; padding: 15px; border-radius: 12px; border: 1px solid ${THEME.border}">
           <div style="font-weight:900; font-size: 1.1rem; color: ${THEME.primary}; margin-bottom: 12px">${entry.name} star: ${chars.name}</div>
@@ -1747,7 +1803,7 @@ ${buildAllDashasPages(chart)}
   
   <h3 class="section-badge" style="margin-top: 1.5rem">Navtara Chakra (Planetary Strength Grid)</h3>
   <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
-    ${getNavtaraChakra(chart.panchang.nakshatra.index).slice(0, 18).map(t => `
+    ${getNavtaraChakra(chart.panchang.nakshatra.index, lang).slice(0, 18).map(t => `
       <div style="padding: 10px; background: ${t.quality === 'auspicious' ? '#f0f9ff' : t.quality === 'inauspicious' ? '#fff1f2' : '#f8fafc'}; border: 1px solid ${THEME.border}; border-radius: 6px; font-size: 10px">
         <div style="font-weight:800">${t.tara}: ${t.nakshatraName}</div>
         <div style="font-size: 9px; opacity:0.7">${t.meaning}</div>
@@ -1764,14 +1820,20 @@ ${buildAllDashasPages(chart)}
   <table class="data-table">
     <thead><tr><th>Yoga Name</th><th>Category</th><th>Strength</th><th>Effect</th></tr></thead>
     <tbody>
-      ${chart.yogas?.slice(0, 12).map(y => `
+      ${chart.yogas?.slice(0, 12).map(y => {
+        const name = lang === 'hi' ? yogaNameHi(y.name) : y.name
+        const category = lang === 'hi' ? (YOGA_CATEGORY_HI[y.category] ?? capitalize(y.category)) : capitalize(y.category)
+        const strength = lang === 'hi' ? (YOGA_STRENGTH_HI[y.strength] ?? y.strength.toUpperCase()) : y.strength.toUpperCase()
+        const effect = lang === 'hi' ? yogaEffectHi(y.name, y.effect) : y.description
+        return `
         <tr>
-          <td><div style="font-weight:900">${y.name}</div><div style="font-size:10px;font-style:italic">${y.sanskrit}</div></td>
-          <td>${capitalize(y.category)}</td>
-          <td style="color:${y.strength==='strong'?THEME.emerald:THEME.accent};font-weight:800">${y.strength.toUpperCase()}</td>
-          <td style="font-size:11px">${y.description}</td>
+          <td><div style="font-weight:900">${name}</div><div style="font-size:10px;font-style:italic">${y.sanskrit}</div></td>
+          <td>${category}</td>
+          <td style="color:${y.strength==='strong'?THEME.emerald:THEME.accent};font-weight:800">${strength}</td>
+          <td style="font-size:11px">${effect}</td>
         </tr>
-      `).join('') || '<tr><td colspan="4">No major yogas detect in this configuration.</td></tr>'}
+      `
+      }).join('') || '<tr><td colspan="4">No major yogas detect in this configuration.</td></tr>'}
     </tbody>
   </table>
   ${PageFooter(13, meta.name)}
@@ -1794,7 +1856,7 @@ ${buildAllDashasPages(chart)}
     ${(() => {
       const moon = chart.grahas.find(g => g.id === 'Mo')
       if (!moon) return ''
-      const items = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
+      const items = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada, lang)
       return [
         { l: 'Nature', v: items.nature }, { l: 'Yoni', v: items.yoni }, { l: 'Gana', v: items.gana },
         { l: 'Nadi', v: items.nadi }, { l: 'Deity', v: items.deity }, { l: 'Caste', v: items.varna }
@@ -1809,7 +1871,7 @@ ${buildAllDashasPages(chart)}
   
   <h3 class="section-badge" style="margin-top: 1.5rem">Navtara Chakra (Planetary Strength Grid)</h3>
   <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
-    ${getNavtaraChakra(chart.panchang.nakshatra.index).slice(0, 18).map(t => `
+    ${getNavtaraChakra(chart.panchang.nakshatra.index, lang).slice(0, 18).map(t => `
       <div style="padding: 10px; background: ${t.quality === 'auspicious' ? '#f0f9ff' : t.quality === 'inauspicious' ? '#fff1f2' : '#f8fafc'}; border: 1px solid ${THEME.border}; border-radius: 6px; font-size: 10px">
         <div style="color: ${THEME.secondary}; font-weight: 900; margin-bottom: 2px">${t.tara}</div>
         <div style="font-size: 9px; opacity: 0.8">${t.nakshatraName}</div>
@@ -1824,12 +1886,16 @@ ${buildAllDashasPages(chart)}
   ${SectionHeader('11', 'Yoga', 'Celestial Combinations')}
   <p style="margin-bottom: 2rem">Yogas are the "formulas" of destiny — specific planetary alignments that produce extraordinary results.</p>
   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem">
-    ${chart.yogas?.slice(0, 8).map(y => `
+    ${chart.yogas?.slice(0, 8).map(y => {
+      const name = lang === 'hi' ? yogaNameHi(y.name) : y.name
+      const description = lang === 'hi' ? yogaDescriptionHi(y.description) : y.description
+      return `
       <div style="padding: 15px; border-left: 3px solid ${y.category==='malefic'?THEME.rose:THEME.emerald}; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.03)">
-        <h4 style="color: ${THEME.primary}; font-family: 'Cormorant Garamond', serif; font-size: 0.95rem">${y.name}</h4>
-        <p style="font-size: 10px; line-height: 1.5; margin-top: 6px; color: ${THEME.text}">${y.description}</p>
+        <h4 style="color: ${THEME.primary}; font-family: 'Cormorant Garamond', serif; font-size: 0.95rem">${name}</h4>
+        <p style="font-size: 10px; line-height: 1.5; margin-top: 6px; color: ${THEME.text}">${description}</p>
       </div>
-    `).join('') || ''}
+    `
+    }).join('') || ''}
   </div>
   ${PageFooter(15, meta.name)}
 </div>
@@ -1887,14 +1953,14 @@ ${buildAllDashasPages(chart)}
     <div>
         <h3 class="section-badge">Chara Karakas</h3>
         <table class="data-table">
-            <tr><td>Atmakaraka (Soul)</td><td style="font-weight:900;color:${THEME.accent}">${chart.karakas.AK}</td></tr>
-            <tr><td>Amatyakaraka</td><td>${chart.karakas.AmK}</td></tr>
-            <tr><td>Bhratrukaraka</td><td>${chart.karakas.BK}</td></tr>
-            <tr><td>Matrukaraka</td><td>${chart.karakas.MK}</td></tr>
-            <tr><td>Pitrukaraka</td><td>${chart.karakas.PK}</td></tr>
-            <tr><td>Putrikaraka</td><td>${chart.karakas.PiK || '-'}</td></tr>
-            <tr><td>Gnatikaraka</td><td>${chart.karakas.GK}</td></tr>
-            <tr><td>Darakaraka (Spouse)</td><td>${chart.karakas.DK}</td></tr>
+            <tr><td>Atmakaraka (Soul)</td><td style="font-weight:900;color:${THEME.accent}">${showGraha(chart.karakas.AK, lang)}</td></tr>
+            <tr><td>Amatyakaraka</td><td>${showGraha(chart.karakas.AmK, lang)}</td></tr>
+            <tr><td>Bhratrukaraka</td><td>${showGraha(chart.karakas.BK, lang)}</td></tr>
+            <tr><td>Matrukaraka</td><td>${showGraha(chart.karakas.MK, lang)}</td></tr>
+            <tr><td>Pitrukaraka</td><td>${showGraha(chart.karakas.PK, lang)}</td></tr>
+            <tr><td>Putrikaraka</td><td>${chart.karakas.PiK ? showGraha(chart.karakas.PiK, lang) : '-'}</td></tr>
+            <tr><td>Gnatikaraka</td><td>${showGraha(chart.karakas.GK, lang)}</td></tr>
+            <tr><td>Darakaraka (Spouse)</td><td>${showGraha(chart.karakas.DK, lang)}</td></tr>
         </table>
     </div>
     <div>
@@ -1915,16 +1981,16 @@ ${buildAllDashasPages(chart)}
 <div class="page">
   ${SectionHeader('15', 'KP Paddhati', 'Krishnamurti System')}
   <p style="margin-bottom: 2rem">KP System focuses on Sub-Lords to give precise "Yes/No" answers and timing for life events.</p>
-  ${buildKPSection(chart)}
+  ${buildKPSection(chart, lang)}
   
   <div style="margin-top: 1.5rem; background: ${THEME.primary}; color: #fff; padding: 25px; border-radius: 15px">
     <h3 style="margin-bottom: 15px; color: ${THEME.accentLight}">Ruling Planets (Current)</h3>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; font-size: 12px">
-        <div><strong>Day Lord:</strong> ${chart.kp?.rulingPlanets.dayLord}</div>
-        <div><strong>Lagna Sign Lord:</strong> ${chart.kp?.rulingPlanets.lagnaSignLord}</div>
-        <div><strong>Lagna Star Lord:</strong> ${chart.kp?.rulingPlanets.lagnaStarLord}</div>
-        <div><strong>Moon Sign Lord:</strong> ${chart.kp?.rulingPlanets.moonSignLord}</div>
-        <div><strong>Moon Star Lord:</strong> ${chart.kp?.rulingPlanets.moonStarLord}</div>
+        <div><strong>Day Lord:</strong> ${lang === 'hi' ? showGraha(chart.kp?.rulingPlanets.dayLord, 'hi') : chart.kp?.rulingPlanets.dayLord}</div>
+        <div><strong>Lagna Sign Lord:</strong> ${lang === 'hi' ? showGraha(chart.kp?.rulingPlanets.lagnaSignLord, 'hi') : chart.kp?.rulingPlanets.lagnaSignLord}</div>
+        <div><strong>Lagna Star Lord:</strong> ${lang === 'hi' ? showGraha(chart.kp?.rulingPlanets.lagnaStarLord, 'hi') : chart.kp?.rulingPlanets.lagnaStarLord}</div>
+        <div><strong>Moon Sign Lord:</strong> ${lang === 'hi' ? showGraha(chart.kp?.rulingPlanets.moonSignLord, 'hi') : chart.kp?.rulingPlanets.moonSignLord}</div>
+        <div><strong>Moon Star Lord:</strong> ${lang === 'hi' ? showGraha(chart.kp?.rulingPlanets.moonStarLord, 'hi') : chart.kp?.rulingPlanets.moonStarLord}</div>
     </div>
   </div>
   ${PageFooter(19, meta.name)}
@@ -2033,7 +2099,7 @@ ${buildAllDashasPages(chart)}
   ${SectionHeader('21', 'Samahara', 'Life Synthesis & Guidance')}
   <div style="border-left:4px solid ${THEME.temple}; padding:15px 20px; margin-bottom:2rem; background:linear-gradient(to right, ${THEME.accentLight}44, transparent)">
     <p style="font-size:1.1rem; line-height:1.8; font-style:italic; font-family:'Cormorant Garamond',serif; color:${THEME.primary}">
-      "${escapeHtml(chart.interpretation.headline)}"
+      "${escapeHtml(reading.headline)}"
     </p>
   </div>
   
@@ -2041,7 +2107,7 @@ ${buildAllDashasPages(chart)}
     <div>
         <h3 class="section-badge" style="background:${THEME.emerald}15; color:${THEME.emerald}; border-color:${THEME.emerald}">Bala (शक्ति) — Strengths</h3>
         <div style="margin-top:1rem">
-            ${chart.interpretation.strengths.slice(0, 3).map(i => `
+            ${reading.strengths.slice(0, 3).map(i => `
                 <div style="margin-bottom:1.2rem; padding-left:12px; border-left:2px solid ${THEME.emerald}44">
                     <div style="font-weight:800; color:${THEME.primary}; font-family:'Cormorant Garamond',serif">${i.title}</div>
                     <div style="font-size:11px; margin-top:4px; line-height:1.6">${i.message}</div>
@@ -2052,7 +2118,7 @@ ${buildAllDashasPages(chart)}
     <div>
         <h3 class="section-badge" style="background:${THEME.rose}15; color:${THEME.rose}; border-color:${THEME.rose}">Karma Chetavani — Cautions</h3>
         <div style="margin-top:1rem">
-            ${chart.interpretation.cautions.slice(0, 3).map(i => `
+            ${reading.cautions.slice(0, 3).map(i => `
                 <div style="margin-bottom:1.2rem; padding-left:12px; border-left:2px solid ${THEME.rose}44">
                     <div style="font-weight:800; color:${THEME.primary}; font-family:'Cormorant Garamond',serif">${i.title}</div>
                     <div style="font-size:11px; margin-top:4px; line-height:1.6">${i.message}</div>
@@ -2066,7 +2132,7 @@ ${buildAllDashasPages(chart)}
     <div style="position:absolute; right:-15px; bottom:-15px; opacity:0.06; font-family:'Noto Serif Devanagari',serif; font-size:6rem; color:${THEME.temple}">OM</div>
     <h3 style="margin-bottom:1.2rem; color:${THEME.primary}; font-family:'Cormorant Garamond',serif; font-size:1.1rem">उपाय — Strategic Guidance</h3>
     <ul style="list-style:none; padding:0">
-        ${chart.interpretation.topInsights.flatMap(i => i.actions || []).slice(0, 5).map(action => `
+        ${reading.topInsights.flatMap(i => i.actions || []).slice(0, 5).map(action => `
             <li style="margin-bottom:0.8rem; display:flex; gap:12px; font-size:12px; line-height:1.6">
                 <span style="color:${THEME.temple}; font-weight:900; font-family:'Noto Serif Devanagari',serif">•</span>
                 <span>${action}</span>
@@ -2089,5 +2155,6 @@ ${buildAllDashasPages(chart)}
 </div>
 
 </body>
-</html>`;
+</html>`
+  return applyChartHtmlChrome(html, lang)
 }

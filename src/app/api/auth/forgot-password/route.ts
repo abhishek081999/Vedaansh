@@ -8,6 +8,7 @@ import { MongoClient } from 'mongodb'
 import crypto from 'crypto'
 import { z } from 'zod'
 import { sendPasswordResetEmail } from '@/lib/email'
+import { engineLangFromRequest } from '@/lib/requestLang'
 import { hashOneTimeToken } from '@/lib/security/tokens'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
         { $set: { resetToken: tokenHash, resetTokenExpires: expires, resetRequestedAt: new Date() } }
       )
 
-      await sendPasswordResetEmail(lowerEmail, token)
+      await sendPasswordResetEmail(lowerEmail, token, engineLangFromRequest(req))
       return NextResponse.json(genericSuccess)
     } finally {
       await client.close()

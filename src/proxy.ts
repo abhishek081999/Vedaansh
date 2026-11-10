@@ -21,6 +21,7 @@ import {
   isLocalizablePath,
   localizePath,
   splitLocalePath,
+  toUnprefixedAppPath,
   type AppLocale,
 } from '@/i18n/config'
 import { NextResponse } from 'next/server'
@@ -65,7 +66,15 @@ const handleRequest = (internalOrigin: string) => async (req: NextRequest & { au
   const requestPath = req.nextUrl.pathname
   const localeParts = splitLocalePath(requestPath)
   const { pathname } = localeParts
-  const locale: AppLocale = localeParts.locale
+  // opengraph-image is not a localizable page, and the image function does not
+  // receive searchParams. ?lang=hi is copied onto the locale header the image reads.
+  let locale: AppLocale = localeParts.locale
+  if (
+    (pathname === '/opengraph-image' || pathname.endsWith('/opengraph-image')) &&
+    req.nextUrl.searchParams.get('lang') === 'hi'
+  ) {
+    locale = 'hi'
+  }
   const localizable = isLocalizablePath(pathname)
   const isPageGet = req.method === 'GET' && localizable
 
@@ -109,6 +118,10 @@ const handleRequest = (internalOrigin: string) => async (req: NextRequest & { au
     }
   }
 
+  // Auth callbacks must be unprefixed: next-intl's router.push would turn
+  // `/hi/account` into `/hi/hi/account`. Keep the original query string.
+  const loginCallbackPath = toUnprefixedAppPath(`${pathname}${req.nextUrl.search}`)
+
   // ── Admin route protection ────────────────────────────────
   if (route.isAdminPage || route.isAdminApi) {
     if (!session?.user) {
@@ -116,7 +129,7 @@ const handleRequest = (internalOrigin: string) => async (req: NextRequest & { au
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
       const loginUrl = localizedUrl('/login')
-      loginUrl.searchParams.set('callbackUrl', requestPath)
+      loginUrl.searchParams.set('callbackUrl', loginCallbackPath)
       return NextResponse.redirect(loginUrl)
     }
     if (session.user.role !== 'admin') {
@@ -157,7 +170,7 @@ const handleRequest = (internalOrigin: string) => async (req: NextRequest & { au
   // ── Page route protection ─────────────────────────────────
   if (route.isProtectedPage && !session?.user) {
     const loginUrl = localizedUrl('/login')
-    loginUrl.searchParams.set('callbackUrl', requestPath)
+    loginUrl.searchParams.set('callbackUrl', loginCallbackPath)
     return NextResponse.redirect(loginUrl)
   }
 

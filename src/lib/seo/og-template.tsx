@@ -9,9 +9,46 @@ type OgBrandedOptions = {
   badge?: string
 }
 
+const DEVANAGARI = /[\u0900-\u097F]/
+
+let devaFont: Promise<ArrayBuffer> | null = null
+
+function loadDevanagariFont(): Promise<ArrayBuffer> {
+  if (!devaFont) {
+    devaFont = fetch(new URL('./fonts/NotoSansDevanagari-Regular.ttf', import.meta.url)).then((res) => {
+      if (!res.ok) throw new Error('Devanagari font unavailable')
+      return res.arrayBuffer()
+    })
+  }
+  return devaFont
+}
+
+export type OgFontFace = { name: string; data: ArrayBuffer; weight: 400 | 700; style: 'normal' }
+
+/**
+ * Noto Sans Devanagari when `text` contains Devanagari; otherwise the
+ * default serif so Latin cards stay unchanged.
+ */
+export async function ogTypeface(text: string): Promise<{ fontFamily: string; fonts?: OgFontFace[] }> {
+  if (!DEVANAGARI.test(text)) return { fontFamily: 'serif' }
+  try {
+    const data = await loadDevanagariFont()
+    return {
+      fontFamily: 'Noto Sans Devanagari',
+      fonts: [
+        { name: 'Noto Sans Devanagari', data, weight: 400, style: 'normal' },
+        { name: 'Noto Sans Devanagari', data, weight: 700, style: 'normal' },
+      ],
+    }
+  } catch {
+    return { fontFamily: 'serif' }
+  }
+}
+
 /** Shared branded OG card for marketing routes */
-export function ogBrandedImage({ title, subtitle, badge }: OgBrandedOptions) {
+export async function ogBrandedImage({ title, subtitle, badge }: OgBrandedOptions) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+  const { fontFamily, fonts } = await ogTypeface(`${title}${subtitle ?? ''}${badge ?? ''}`)
 
   return new ImageResponse(
     (
@@ -24,7 +61,7 @@ export function ogBrandedImage({ title, subtitle, badge }: OgBrandedOptions) {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: 'serif',
+          fontFamily,
           position: 'relative',
         }}
       >
@@ -104,6 +141,9 @@ export function ogBrandedImage({ title, subtitle, badge }: OgBrandedOptions) {
         )}
       </div>
     ),
-    OG_SIZE,
+    {
+      ...OG_SIZE,
+      ...(fonts ? { fonts } : {}),
+    },
   )
 }

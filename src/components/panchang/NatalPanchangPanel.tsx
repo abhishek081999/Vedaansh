@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { getTithiDayMeta, getTithiMoonCombo } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import { getYogaMeta } from '@/lib/engine/yogaMeta'
@@ -9,12 +10,14 @@ import { getVaarMeta } from '@/lib/engine/vaarMeta'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import { PanchangVisheshSection } from '@/components/panchang/PanchangVisheshSection'
 import { analyzePanchangVishesh } from '@/lib/engine/panchangVishesh'
-import type { ChartOutput, Rashi } from '@/types/astrology'
+import { GRAHA_HI, termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
+import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 
 type P = ChartOutput['panchang']
 
-function fmtTime(d: Date | string, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtTime(d: Date | string, tz: string, tag: string): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -31,7 +34,7 @@ function durationMin(start: Date | string, end: Date | string): number {
  */
 export function NatalPanchangPanel({
   p,
-  title = 'Natal Panchang',
+  title,
   moonRashi,
   chart,
 }: {
@@ -42,28 +45,31 @@ export function NatalPanchangPanel({
   /** Full chart — enables vishesh yogas, tithi / Vaar Pati strength and vaar guna */
   chart?: ChartOutput | null
 }) {
+  const t = useTranslations('panchang.natal')
+  const tl = useTranslations('panchang.limbs')
+  const { lang, tag, hi } = useLang()
+  const show = (en: string) => (hi ? termHi(en) : en)
+  const graha = (id: GrahaId) => (hi ? GRAHA_HI[id] ?? id : id)
   const tz = p.location.tz
-  const pakLabel = p.tithi.paksha === 'shukla' ? 'Shukla paksha' : 'Krishna paksha'
-  const tithiMeta = getTithiDayMeta(p.tithi.number)
+  const pakLabel = p.tithi.paksha === 'shukla' ? t('shuklaPaksha') : t('krishnaPaksha')
+  const tithiMeta = getTithiDayMeta(p.tithi.number, lang)
   const tithiNatureColor = tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)'
-  const moonCombo = getTithiMoonCombo(p.tithi.number, moonRashi)
+  const moonCombo = getTithiMoonCombo(p.tithi.number, moonRashi, lang)
   const comboAccent = moonCombo.moonMatchesAffinity ? 'var(--teal)' : 'var(--gold)'
-  const karanaMeta = getKaranaMeta(p.karana.name)
+  const karanaMeta = getKaranaMeta(p.karana.name, lang)
   const karanaAccent = karanaMeta?.isBhadra ? 'var(--rose)' : 'var(--gold)'
-  const yogaMeta = getYogaMeta(p.yoga.name)
+  const yogaMeta = getYogaMeta(p.yoga.name, lang)
   const yogaAccent = yogaMeta
     ? (yogaMeta.quality === 'auspicious' ? 'var(--teal)' : yogaMeta.quality === 'inauspicious' ? 'var(--rose)' : 'var(--gold)')
     : 'var(--gold)'
-  const yogaQualityLabel = yogaMeta
-    ? (yogaMeta.quality === 'auspicious' ? 'Shubh' : yogaMeta.quality === 'inauspicious' ? 'Ashubh' : 'Neutral')
-    : null
-  const nakMeta = getNakshatraMuhurtaMeta(p.nakshatra.index, p.nakshatra.pada)
+  const yogaQualityLabel = yogaMeta ? t(`quality.${yogaMeta.quality}`) : null
+  const nakMeta = getNakshatraMuhurtaMeta(p.nakshatra.index, p.nakshatra.pada, lang)
   const nakAccent = nakMeta.group.id === 'Ugra' || nakMeta.group.id === 'Tikshna'
     ? 'var(--rose)'
     : nakMeta.group.id === 'Dhruva' || nakMeta.group.id === 'Mridu' || nakMeta.group.id === 'Laghu'
       ? 'var(--teal)'
       : 'var(--gold)'
-  const vaarMeta = getVaarMeta(p.vara.number)
+  const vaarMeta = getVaarMeta(p.vara.number, lang)
   const sunLon = p.sunLongitudeSidereal ?? chart?.grahas.find(g => g.id === 'Su')?.lonSidereal
   const moonLon = p.moonLongitudeSidereal ?? chart?.grahas.find(g => g.id === 'Mo')?.lonSidereal
   const vishesh = sunLon != null && moonLon != null
@@ -78,15 +84,17 @@ export function NatalPanchangPanel({
         sunrise: p.sunrise,
         at: chart ? new Date((chart.meta.julianDay - 2440587.5) * 86_400_000) : null,
         vaarPatiNavamshaRashi: chart?.vargas?.D9?.find(g => g.id === vaarMeta.lord)?.rashi ?? null,
+        lang,
       })
     : null
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
-    { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
-    { label: 'Gulika kalam', times: p.gulikaKalam, tone: 'warn' },
-    { label: 'Yamaganda', times: p.yamaganda, tone: 'caution' },
-    ...(p.abhijitMuhurta ? [{ label: 'Abhijit', times: p.abhijitMuhurta, tone: 'good' as const }] : []),
+    { label: t('rahu'), times: p.rahuKalam, tone: 'warn' },
+    { label: t('gulika'), times: p.gulikaKalam, tone: 'warn' },
+    { label: t('yamaganda'), times: p.yamaganda, tone: 'caution' },
+    ...(p.abhijitMuhurta ? [{ label: t('abhijit'), times: p.abhijitMuhurta, tone: 'good' as const }] : []),
   ]
+  const nakList = (names: string[]) => names.map(show).join(', ')
 
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -98,35 +106,35 @@ export function NatalPanchangPanel({
           background: 'linear-gradient(145deg, rgba(201,168,76,0.08) 0%, rgba(15,18,28,0.5) 100%)',
         }}
       >
-        <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: 4 }}>Panchang</div>
-        <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h3>
+        <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: 4 }}>{t('eyebrow')}</div>
+        <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{title ?? t('title')}</h3>
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Tithi, nakshatra, yoga, karana and vara at birth — the classical five limbs for this chart.
+          {t('intro')}
         </p>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(158px, 1fr))', gap: '0.65rem' }}>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Vara</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.vara.name}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{tl('vara')}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{vaarMeta.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
-            {vaarMeta.sanskrit} · Vaar Pati {vaarMeta.lordName}
+            {vaarMeta.sanskrit} · {t('vaarPati', { lord: vaarMeta.lordName })}
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.35 }}>
             {vaarMeta.nature}
           </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Tithi</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.tithi.name}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{pakLabel} · lord {p.tithi.lord}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{tl('tithi')}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{tithiMeta.name}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{t('pakshaLord', { paksha: pakLabel, lord: show(p.tithi.lord) })}</div>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: 6, alignItems: 'center' }}>
             <span style={{
               fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
               border: `1px solid ${tithiNatureColor}`, color: tithiNatureColor,
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
-              {tithiMeta.group.id}
+              {tithiMeta.group.label}
             </span>
             <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
               {tithiMeta.group.elementLabel} · {tithiMeta.group.meaning}
@@ -137,27 +145,27 @@ export function NatalPanchangPanel({
           </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Nakshatra</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.nakshatra.name}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Pada {p.nakshatra.pada} · {p.nakshatra.lord}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{tl('nakshatra')}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{nakMeta.name}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{t('padaLord', { pada: p.nakshatra.pada, lord: graha(p.nakshatra.lord) })}</div>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: 6, alignItems: 'center' }}>
             <span style={{
               fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
               border: `1px solid ${nakAccent}`, color: nakAccent,
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
-              {nakMeta.group.id}
+              {hi ? nakMeta.group.label : nakMeta.group.id}
             </span>
             <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-              {nakMeta.mukha.label} · {nakMeta.chars.gana}
+              {nakMeta.mukha.label} · {show(nakMeta.chars.gana)}
             </span>
           </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Yoga</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.yoga.name}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{tl('yoga')}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{yogaMeta?.name ?? show(p.yoga.name)}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
-            #{p.yoga.number} / 27
+            {t('countOf', { n: p.yoga.number, of: 27 })}
             {yogaMeta ? ` · ${yogaMeta.meaning}` : ''}
           </div>
           {yogaMeta && (
@@ -173,10 +181,10 @@ export function NatalPanchangPanel({
           )}
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Karana</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.karana.name}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{tl('karana')}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{karanaMeta?.name ?? show(p.karana.name)}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
-            #{p.karana.number}
+            {t('count', { n: p.karana.number })}
             {karanaMeta ? ` · ${karanaMeta.typeLabel} · ${karanaMeta.meaning}` : ''}
           </div>
           {karanaMeta && (
@@ -194,16 +202,15 @@ export function NatalPanchangPanel({
                   background: 'rgba(244,63,94,0.12)', color: 'var(--rose)',
                   letterSpacing: '0.04em', textTransform: 'uppercase',
                 }}>
-                  Bhadra
+                  {t('bhadra')}
                 </span>
               )}
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Deity {karanaMeta.deity}</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('deity', { deity: karanaMeta.deity })}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Birth vaar nature */}
       <div style={{
         padding: '0.9rem 1rem',
         borderRadius: 'var(--r-md)',
@@ -211,38 +218,37 @@ export function NatalPanchangPanel({
         background: 'var(--surface-2)',
       }}>
         <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
-          Vaar · Hora notes
+          {t('vaarNotes')}
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
           {vaarMeta.name} · {vaarMeta.lordName}
         </div>
         <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.55rem' }}>
-          {vaarMeta.dayGuidance} Best for: {vaarMeta.bestFor}
+          {t('bestForLine', { guidance: vaarMeta.dayGuidance, best: vaarMeta.bestFor })}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Challenge</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('challenge')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{vaarMeta.challenge}</div>
           </div>
           {vaarMeta.strengthenNaks.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Vaar Pati gains in</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{vaarMeta.strengthenNaks.join(', ')}</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('vaarGains')}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{nakList(vaarMeta.strengthenNaks)}</div>
             </div>
           )}
           {vaarMeta.weakenNaks.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Vaar Pati caution in</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{vaarMeta.weakenNaks.join(', ')}</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('vaarCaution')}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{nakList(vaarMeta.weakenNaks)}</div>
             </div>
           )}
         </div>
         <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.5rem', opacity: 0.85, lineHeight: 1.35 }}>
-          Strengthen/weaken lists apply to the Vaar Pati planet’s nakshatra in the chart — not Moon’s janma nakshatra. First hora of the day = Vaar Pati; hora of the day-lord repeats at hours 1, 8, 15, 22.
+          {t('vaarFoot')}
         </div>
       </div>
 
-      {/* Birth nakshatra muhurta nature */}
       <div style={{
         padding: '0.9rem 1rem',
         borderRadius: 'var(--r-md)',
@@ -250,7 +256,7 @@ export function NatalPanchangPanel({
         background: 'var(--surface-2)',
       }}>
         <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
-          Nakshatra energy · Muhurta
+          {t('nakEnergy')}
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
           {nakMeta.name} · {nakMeta.group.label} · {nakMeta.mukha.label}
@@ -263,25 +269,24 @@ export function NatalPanchangPanel({
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Group energy</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('groupEnergy')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{nakMeta.group.energy}</div>
           </div>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Good for (muhurta)</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('goodMuhurta')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{nakMeta.group.goodFor}</div>
           </div>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Mukha</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{nakMeta.mukha.meaning} — {nakMeta.mukha.goodFor}</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('mukha')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{t('mukhaLine', { meaning: nakMeta.mukha.meaning, goodFor: nakMeta.mukha.goodFor })}</div>
           </div>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Deity · Yoni</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('deityYoni')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{nakMeta.chars.deity} · {nakMeta.chars.yoni}</div>
           </div>
         </div>
       </div>
 
-      {/* Birth yoga characteristics */}
       {yogaMeta && (
         <div style={{
           padding: '0.9rem 1rem',
@@ -290,7 +295,7 @@ export function NatalPanchangPanel({
           background: yogaMeta.quality === 'inauspicious' ? 'rgba(244,63,94,0.06)' : 'var(--surface-2)',
         }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
-            Yoga nature
+            {t('yogaNature')}
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
             {yogaMeta.name} · {yogaMeta.meaning}
@@ -301,22 +306,21 @@ export function NatalPanchangPanel({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Strengths</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('strengths')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{yogaMeta.positiveTraits}</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Challenge</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('challenge')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{yogaMeta.challenge}</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Best for</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('bestFor')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{yogaMeta.bestFor}</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Birth karana characteristics */}
       {karanaMeta && (
         <div style={{
           padding: '0.9rem 1rem',
@@ -325,7 +329,7 @@ export function NatalPanchangPanel({
           background: karanaMeta.isBhadra ? 'rgba(244,63,94,0.06)' : 'var(--surface-2)',
         }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
-            Karana nature
+            {t('karanaNature')}
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
             {karanaMeta.name} · {karanaMeta.meaning}
@@ -335,26 +339,25 @@ export function NatalPanchangPanel({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Strengths</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('strengths')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{karanaMeta.positiveTraits}</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Challenge</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('challenge')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{karanaMeta.challenge}</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Career</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('career')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{karanaMeta.career}</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Remedy</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('remedy')}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{karanaMeta.remedy}</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tithi × Moon affinity */}
       <div style={{
         padding: '0.9rem 1rem',
         borderRadius: 'var(--r-md)',
@@ -362,67 +365,64 @@ export function NatalPanchangPanel({
         background: moonCombo.moonMatchesAffinity ? 'rgba(20,184,166,0.06)' : 'var(--surface-2)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.45rem' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)' }}>Tithi × Moon</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)' }}>{t('tithiMoon')}</div>
           {moonCombo.moonMatchesAffinity && (
             <span style={{
               fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
               border: `1px solid ${comboAccent}`, color: comboAccent,
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
-              Affinity match
+              {t('affinityMatch')}
             </span>
           )}
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-          {moonCombo.tithiName}
-          {' · '}
-          {moonCombo.groupId}
-          {' · '}
-          Affinity {moonCombo.affinityRashiName}
-          {moonCombo.birthMoonRashiName ? ` · Birth Moon ${moonCombo.birthMoonRashiName}` : ''}
+          {moonCombo.birthMoonRashiName
+            ? t('comboTitleMoon', { tithi: moonCombo.tithiName, group: tithiMeta.group.label, affinity: moonCombo.affinityRashiName, moon: moonCombo.birthMoonRashiName })
+            : t('comboTitle', { tithi: moonCombo.tithiName, group: tithiMeta.group.label, affinity: moonCombo.affinityRashiName })}
         </div>
         <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.45rem' }}>
           {moonCombo.note}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Positive tendency</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('positive')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{moonCombo.positiveTendency}</div>
           </div>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Watch (traditional)</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('watch')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{moonCombo.healthSensitivity}</div>
           </div>
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Element</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{t('element')}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{moonCombo.elementLabel}</div>
           </div>
         </div>
         <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.5rem', opacity: 0.8, lineHeight: 1.35 }}>
-          Traditional sensitivity notes — not medical advice.
+          {t('sensitivity')}
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.65rem' }}>
         <div style={{ padding: '0.85rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid rgba(245,158,66,0.2)', background: 'rgba(245,158,66,0.05)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4, color: 'var(--amber)' }}>Sunrise</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{fmtTime(p.sunrise, tz)}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4, color: 'var(--amber)' }}>{t('sunrise')}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{fmtTime(p.sunrise, tz, tag)}</div>
         </div>
         <div style={{ padding: '0.85rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid rgba(224,123,142,0.2)', background: 'rgba(224,123,142,0.05)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4, color: 'var(--rose)' }}>Sunset</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{fmtTime(p.sunset, tz)}</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4, color: 'var(--rose)' }}>{t('sunset')}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{fmtTime(p.sunset, tz, tag)}</div>
         </div>
       </div>
 
       <div>
-        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Muhurta (birth day)</div>
+        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>{t('muhurtaDay')}</div>
         <div style={{ borderRadius: 'var(--r-md)', border: '1px solid var(--border)', overflow: 'hidden', background: 'var(--surface-1)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                <th style={{ textAlign: 'left', padding: '0.45rem 0.75rem', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Window</th>
-                <th style={{ textAlign: 'left', padding: '0.45rem 0.75rem', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Time ({tz})</th>
-                <th style={{ textAlign: 'right', padding: '0.45rem 0.75rem', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Min</th>
+                <th style={{ textAlign: 'left', padding: '0.45rem 0.75rem', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>{t('window')}</th>
+                <th style={{ textAlign: 'left', padding: '0.45rem 0.75rem', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>{t('timeTz', { tz })}</th>
+                <th style={{ textAlign: 'right', padding: '0.45rem 0.75rem', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>{t('min')}</th>
               </tr>
             </thead>
             <tbody>
@@ -438,7 +438,7 @@ export function NatalPanchangPanel({
                     {row.label}
                   </td>
                   <td style={{ padding: '0.5rem 0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    {fmtTime(row.times.start, tz)} – {fmtTime(row.times.end, tz)}
+                    {fmtTime(row.times.start, tz, tag)} – {fmtTime(row.times.end, tz, tag)}
                   </td>
                   <td style={{ padding: '0.5rem 0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
                     {durationMin(row.times.start, row.times.end)}
@@ -452,8 +452,8 @@ export function NatalPanchangPanel({
 
       {p.horaTable.length > 0 && (
         <div>
-          <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Hora</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.horaTable.length} horas computed for birth sunrise/sunset.</div>
+          <div className="label-caps" style={{ marginBottom: '0.5rem' }}>{t('hora')}</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t('horaCount', { n: p.horaTable.length })}</div>
         </div>
       )}
 
@@ -471,7 +471,7 @@ export function NatalPanchangPanel({
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-gold)', textDecoration: 'none' }}>
-          Open daily panchang →
+          {t('openDaily')}
         </Link>
       </div>
     </div>

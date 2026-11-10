@@ -89,7 +89,7 @@ interface PlanetsWorkspaceProps {
 export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceProps) {
   const t = useTranslations('chart.planetsWs')
   const tw = t
-  const { hi } = useLang()
+  const { hi, lang } = useLang()
   const [tab, setTab] = useState<TabId>('overview')
   const energyFull = planMeetsUiGate(userPlan, 'gold')
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
@@ -99,18 +99,18 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
   )
 
   const mergedPlanets = useMemo(() => {
-    const base = getGraNakPositions(classical)
+    const base = getGraNakPositions(classical, lang)
     const ascDeg = chart.lagnas.ascDegree
 
     const createSpecialPos = (id: string, name: string, degree: number) => {
       const nakIdx = Math.floor(degree / (360 / 27))
       const nakPada = Math.floor(((degree % (360 / 27)) / (360 / 27)) * 4) + 1
-      const chars = getNakshatraCharacteristics(nakIdx, nakPada)
+      const chars = getNakshatraCharacteristics(nakIdx, nakPada, lang)
       return {
         grahaId: id as 'As' | 'PP' | 'IL' | 'BB',
         grahaName: name,
         nakshatraIndex: nakIdx,
-        nakshatraName: NAK_NAMES[nakIdx],
+        nakshatraName: chars.name,
         pada: nakPada,
         lord: chars.lord,
         gana: chars.gana,
@@ -129,7 +129,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       const shad = chart.shadbala?.planets[p.grahaId]
       return { ...p, ...full, shadbala: shad }
     })
-  }, [classical, chart.grahas, chart.lagnas, chart.shadbala])
+  }, [classical, chart.grahas, chart.lagnas, chart.shadbala, lang])
 
   const stats = useMemo(() => {
     const retro = classical.filter((g) => g.isRetro).length
@@ -568,7 +568,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
             {chart.interpretation ? (
               <InterpretationPanel interpretation={chart.interpretation} />
             ) : (
-              <div className={styles.emptyNote}>No narrative interpretation on this chart yet.</div>
+              <div className={styles.emptyNote}>{t('noNarrative')}</div>
             )}
             <AdvancedAnalysisPanel grahas={chart.grahas} />
           </div>

@@ -7,7 +7,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { GrahaId, VimsopakaBalaResult } from '@/lib/engine/vimsopaka'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 import { Crown, Gem, Info, Palette, ScrollText, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface Props {
@@ -29,22 +32,19 @@ const PLANET_GLYPHS: Record<GrahaId, string> = {
   Ur: '⛢', Ne: '♆', Pl: '♇',
 }
 
-const VARGA_LABELS: Record<string, string> = {
-  D1: 'Rashi', D2: 'Hora', D3: 'Drekkana', D4: 'Chaturthamsha',
-  D7: 'Saptamsha', D9: 'Navamsha', D10: 'Dashamsha', D12: 'Dwadashamsha',
-  D16: 'Shodashamsha', D20: 'Vimshamsha', D24: 'Chaturvimshamsha',
-  D27: 'Bhamsha', D30: 'Trimshamsha', D40: 'Khavedamsha',
-  D45: 'Akshavedamsha', D60: 'Shashtyamsha',
-}
+const VARGA_IDS = new Set([
+  'D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12',
+  'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60',
+])
 
-const SCHEMES = [
-  { id: 'shodasvarga', label: 'Shodasha (16)', short: '16V' },
-  { id: 'dashavarga',  label: 'Dasha (10)',    short: '10V' },
-  { id: 'saptavarga',  label: 'Sapta (7)',    short: '7V'  },
-  { id: 'shadvarga',   label: 'Shad (6)',      short: '6V'  },
+const SCHEME_IDS = ['shodasvarga', 'dashavarga', 'saptavarga', 'shadvarga'] as const
+
+type SchemeId = (typeof SCHEME_IDS)[number]
+
+const DIGNITY_IDS = [
+  'exalted', 'moolatrikona', 'own', 'great_friend', 'friend',
+  'neutral', 'enemy', 'great_enemy', 'debilitated',
 ] as const
-
-type SchemeId = (typeof SCHEMES)[number]['id']
 
 // ── Colour helpers ────────────────────────────────────────────
 
@@ -58,18 +58,6 @@ const DIGNITY_COLORS: Record<string, string> = {
   enemy:        '#f97316',
   great_enemy:  'var(--rose)',
   debilitated:  '#dc2626',
-}
-
-const DIGNITY_LABELS: Record<string, string> = {
-  exalted:      'Exalted',
-  moolatrikona: 'Moolatrikona',
-  own:          'Own',
-  great_friend: 'Gr.Friend',
-  friend:       'Friend',
-  neutral:      'Neutral',
-  enemy:        'Enemy',
-  great_enemy:  'Gr.Enemy',
-  debilitated:  'Debilitated',
 }
 
 // Correct BPHS dignity points for display
@@ -97,11 +85,11 @@ function getScoreBg(score: number): string {
   return 'rgba(224,123,142,0.12)'
 }
 
-function strengthLabel(score: number): string {
-  if (score >= 15) return 'Excellent'
-  if (score >= 10) return 'Strong'
-  if (score >= 6)  return 'Moderate'
-  return 'Weak'
+function strengthKey(score: number): 'excellent' | 'strong' | 'moderate' | 'weak' {
+  if (score >= 15) return 'excellent'
+  if (score >= 10) return 'strong'
+  if (score >= 6)  return 'moderate'
+  return 'weak'
 }
 
 // ── SVG Gauge ─────────────────────────────────────────────────
@@ -168,6 +156,12 @@ function MiniBar({ score, max = 20 }: { score: number; max?: number }) {
 
 export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
   void userPlan
+  const t = useTranslations('chartTools.vimsopaka')
+  const { hi } = useLang()
+  const planetName = (id: GrahaId) => (hi ? GRAHA_HI[id] : PLANET_NAMES[id])
+  const vargaLabel = (varga: string) => (VARGA_IDS.has(varga) ? t(`vargaName.${varga}`) : '')
+  const dignityLabel = (dignity: string) => (DIGNITY_IDS.includes(dignity as (typeof DIGNITY_IDS)[number]) ? t(`dignity.${dignity}`) : dignity)
+  const schemeLabel = (id: SchemeId) => t(`scheme.${id}`)
   const [activePlanet, setActivePlanet]   = useState<GrahaId>('Su')
   const [selectedScheme, setSelectedScheme] = useState<SchemeId>('shodasvarga')
   const [showMatrix, setShowMatrix]       = useState(true)
@@ -198,7 +192,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
   if (!vimsopaka?.planets) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Vimsopaka data unavailable.
+        {t('unavailable')}
       </div>
     )
   }
@@ -214,36 +208,36 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
       <div className="vp-card vp-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Crown size={16} style={{ color: 'var(--gold)' }} />
-          <span className="vp-caps">Vimsopaka Bala</span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>BPHS — 20-Point Strength</span>
+          <span className="vp-caps">{t('title')}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{t('subtitle')}</span>
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
           <div>
-            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>Strongest</div>
+            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>{t('strongest')}</div>
             <div style={{ fontWeight: 700, color: 'var(--gold)' }}>
-              {PLANET_GLYPHS[vimsopaka.strongest as GrahaId]} {PLANET_NAMES[vimsopaka.strongest as GrahaId]}
+              {PLANET_GLYPHS[vimsopaka.strongest as GrahaId]} {planetName(vimsopaka.strongest as GrahaId)}
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 6 }}>
-                {vimsopaka.planets[vimsopaka.strongest]?.shodasvarga.toFixed(2)} / 20
+                {t('scoreOf', { score: vimsopaka.planets[vimsopaka.strongest]?.shodasvarga.toFixed(2) ?? '0' })}
               </span>
             </div>
           </div>
           <div>
-            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>Weakest</div>
+            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>{t('weakest')}</div>
             <div style={{ fontWeight: 700, color: 'var(--rose)' }}>
-              {PLANET_GLYPHS[vimsopaka.weakest as GrahaId]} {PLANET_NAMES[vimsopaka.weakest as GrahaId]}
+              {PLANET_GLYPHS[vimsopaka.weakest as GrahaId]} {planetName(vimsopaka.weakest as GrahaId)}
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 6 }}>
-                {vimsopaka.planets[vimsopaka.weakest]?.shodasvarga.toFixed(2)} / 20
+                {t('scoreOf', { score: vimsopaka.planets[vimsopaka.weakest]?.shodasvarga.toFixed(2) ?? '0' })}
               </span>
             </div>
           </div>
           <div>
-            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>Average</div>
+            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>{t('average')}</div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
               {vimsopaka.insights?.averageShodasvarga?.toFixed(2)} / 20
             </div>
           </div>
           <div>
-            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>Spread</div>
+            <div className="vp-caps" style={{ color: 'var(--text-muted)' }}>{t('spread')}</div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
               {vimsopaka.insights?.spread?.toFixed(2)}
             </div>
@@ -253,13 +247,13 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
 
       {/* ── Scheme selector ────────────────────────────────── */}
       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-        {SCHEMES.map(s => (
+        {SCHEME_IDS.map(id => (
           <button
-            key={s.id}
-            onClick={() => setSelectedScheme(s.id)}
-            className={`vp-pill ${selectedScheme === s.id ? 'vp-pill-active' : ''}`}
+            key={id}
+            onClick={() => setSelectedScheme(id)}
+            className={`vp-pill ${selectedScheme === id ? 'vp-pill-active' : ''}`}
           >
-            {s.label}
+            {schemeLabel(id)}
           </button>
         ))}
       </div>
@@ -306,9 +300,9 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
         <div className="vp-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
             <div>
-              <div className="vp-caps">Selected Planet</div>
+              <div className="vp-caps">{t('selected')}</div>
               <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem', color: 'var(--text-primary)' }}>
-                {PLANET_GLYPHS[activePlanet]} {PLANET_NAMES[activePlanet]}
+                {PLANET_GLYPHS[activePlanet]} {planetName(activePlanet)}
               </div>
             </div>
             <Gauge score={activeScore} size={80} />
@@ -317,9 +311,9 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
           {/* Stats chips */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.5rem', marginBottom: '0.8rem' }}>
             {([
-              { label: 'Rank', value: `#${activeRank}`, sub: 'of 9' },
-              { label: 'Status', value: strengthLabel(activeScore), sub: selectedScheme, color: getScoreColor(activeScore) },
-              { label: 'Score', value: activeScore.toFixed(2), sub: '/ 20', color: getScoreColor(activeScore) },
+              { label: t('rank'), value: `#${activeRank}`, sub: t('of9') },
+              { label: t('status'), value: t(`strength.${strengthKey(activeScore)}`), sub: t(`schemeSub.${selectedScheme}`), color: getScoreColor(activeScore) },
+              { label: t('score'), value: activeScore.toFixed(2), sub: t('outOf20'), color: getScoreColor(activeScore) },
             ] as const).map((chip, i) => (
               <div key={i} className="vp-stat-chip">
                 <div className="vp-caps">{chip.label}</div>
@@ -333,7 +327,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
 
           {/* All varga contributions */}
           <div className="vp-caps" style={{ marginBottom: '0.4rem' }}>
-            Shodasha Contributions
+            {t('contributions')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 260, overflowY: 'auto' }}>
             {sortedContributions.map(([varga, val]) => {
@@ -352,12 +346,12 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
                         {varga}
                       </span>
                       <span style={{ color: 'var(--text-muted)' }}>
-                        {VARGA_LABELS[varga] ?? ''}
+                        {vargaLabel(varga)}
                       </span>
                     </div>
                     <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                       <span style={{ color: getDignityColor(dignity), fontSize: '0.66rem', fontWeight: 700 }}>
-                        {dignity ? (DIGNITY_LABELS[dignity] ?? dignity) : '—'}
+                        {dignity ? dignityLabel(dignity) : '—'}
                         {dignity ? ` (${DIGNITY_POINTS_DISPLAY[dignity] ?? '?'})` : ''}
                       </span>
                       <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
@@ -381,7 +375,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
         <div className="vp-card">
           <div className="vp-caps" style={{ marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
             <Sparkles size={12} style={{ color: 'var(--gold)' }} />
-            Ranking — {SCHEMES.find(s => s.id === selectedScheme)?.label}
+            {t('ranking', { scheme: schemeLabel(selectedScheme) })}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {ranked.map((row, idx) => {
@@ -409,7 +403,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
                       </span>
                       <span style={{ fontSize: '0.9rem' }}>{PLANET_GLYPHS[row.id as GrahaId]}</span>
                       <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {PLANET_NAMES[row.id as GrahaId]}
+                        {planetName(row.id as GrahaId)}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -439,7 +433,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
         >
           <div className="vp-caps" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <Palette size={12} style={{ color: 'var(--accent)' }} />
-            Dignity Heatmap — Shodasha Vargas
+            {t('heatmap')}
           </div>
           {showMatrix ? <ChevronUp size={14} style={{ color: 'var(--text-muted)' }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />}
         </button>
@@ -450,7 +444,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
               <thead>
                 <tr>
                   <th style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 700, textAlign: 'left', padding: '0.2rem 0.4rem', width: 80 }}>
-                    Varga
+                    {t('varga')}
                   </th>
                   {ORDER.map(id => (
                     <th key={id} style={{ fontSize: '0.64rem', color: activePlanet === id ? 'var(--gold)' : 'var(--text-muted)', fontWeight: 700, textAlign: 'center', padding: '0.2rem' }}>
@@ -464,7 +458,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
                   <tr key={varga}>
                     <td style={{ fontSize: '0.64rem', color: 'var(--text-secondary)', fontWeight: 600, padding: '0.15rem 0.4rem', whiteSpace: 'nowrap' }}>
                       <span style={{ color: 'var(--text-primary)' }}>{varga}</span>
-                      <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>{VARGA_LABELS[varga] ?? ''}</span>
+                      <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>{vargaLabel(varga)}</span>
                     </td>
                     {ORDER.map(id => {
                       const d = vimsopaka.planets[id]?.vargaDignities[varga] ?? null
@@ -474,7 +468,12 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
                         <td
                           key={`${varga}-${id}`}
                           onClick={() => setActivePlanet(id)}
-                          title={`${PLANET_NAMES[id]} · ${varga}: ${d ?? 'neutral'} (${pts ?? '?'}/20)`}
+                          title={t('tooltip', {
+                            planet: planetName(id),
+                            varga,
+                            dignity: d ? dignityLabel(d) : dignityLabel('neutral'),
+                            pts: pts ?? '?',
+                          })}
                           style={{ textAlign: 'center', cursor: 'pointer', padding: '0.1rem' }}
                         >
                           <div style={{
@@ -508,7 +507,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
         >
           <div className="vp-caps" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <ScrollText size={12} style={{ color: 'var(--gold)' }} />
-            Classic Score Table — All Schemes
+            {t('classic')}
           </div>
           {showClassic ? <ChevronUp size={14} style={{ color: 'var(--text-muted)' }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />}
         </button>
@@ -518,7 +517,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <th style={{ textAlign: 'left', padding: '0.35rem 0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>Scheme</th>
+                  <th style={{ textAlign: 'left', padding: '0.35rem 0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>{t('schemeCol')}</th>
                   {ORDER.map(id => (
                     <th key={id} style={{
                       textAlign: 'center', padding: '0.35rem 0.25rem',
@@ -530,16 +529,16 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {SCHEMES.map(scheme => (
-                  <tr key={scheme.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                    <td style={{ padding: '0.35rem 0.5rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{scheme.label}</td>
+                {SCHEME_IDS.map(schemeId => (
+                  <tr key={schemeId} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                    <td style={{ padding: '0.35rem 0.5rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{schemeLabel(schemeId)}</td>
                     {ORDER.map(id => {
-                      const score = (vimsopaka.planets[id]?.[scheme.id] as number) ?? 0
+                      const score = (vimsopaka.planets[id]?.[schemeId] as number) ?? 0
                       const active = activePlanet === id
                       return (
                         <td
-                          key={`${scheme.id}-${id}`}
-                          onClick={() => { setActivePlanet(id); setSelectedScheme(scheme.id) }}
+                          key={`${schemeId}-${id}`}
+                          onClick={() => { setActivePlanet(id); setSelectedScheme(schemeId) }}
                           style={{
                             textAlign: 'center', padding: '0.35rem 0.25rem',
                             color: getScoreColor(score), fontWeight: active ? 800 : 600,
@@ -563,17 +562,17 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
       <div className="vp-card" style={{ padding: '0.75rem 1rem' }}>
         <div className="vp-caps" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <Gem size={12} style={{ color: 'var(--gold)' }} />
-          Dignity Points Legend (BPHS)
+          {t('legend')}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1rem' }}>
-          {Object.entries(DIGNITY_LABELS).map(([key, label]) => (
+          {DIGNITY_IDS.map((key) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <span style={{
                 width: 10, height: 10, borderRadius: 2,
                 display: 'inline-block', background: getDignityColor(key),
               }} />
               <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                {label}
+                {t(`dignity.${key}`)}
               </span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 ({DIGNITY_POINTS_DISPLAY[key] ?? '?'})
@@ -587,10 +586,8 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
         }}>
           <Info size={13} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
           <div>
-            <strong style={{ color: 'var(--text-secondary)' }}>Formula: </strong>
-            Score = Σ [ (dignity_pts / 20) × varga_weight ] for each varga.
-            Max score per scheme = 20 (planet exalted in all charts).
-            Weights: Shodasha sums to 20 across 16 vargas; other schemes likewise.
+            <strong style={{ color: 'var(--text-secondary)' }}>{t('formulaLabel')} </strong>
+            {t('formula')}
           </div>
         </div>
       </div>

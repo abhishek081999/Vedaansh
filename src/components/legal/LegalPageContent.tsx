@@ -1,15 +1,22 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import React from 'react'
-import type { LegalPageData } from '@/lib/legal/content'
-import { LEGAL_CONTACT, LEGAL_NAV_LINKS } from '@/lib/legal/content'
+import { useLang } from '@/i18n/useLang'
+import { LEGAL_CONTACT, type LegalPageKey } from '@/lib/legal/content'
+import { getLegalPage, legalNavLinks } from '@/lib/legal/content.hi'
 
 const sectionStyle: React.CSSProperties = {
   marginBottom: '1.25rem',
 }
 
-export function LegalPageContent({ page }: { page: LegalPageData }) {
+export function LegalPageContent({ pageKey }: { pageKey: LegalPageKey }) {
+  const { lang } = useLang()
+  const t = useTranslations('legal')
+  const page = getLegalPage(pageKey, lang)
+  const navLinks = legalNavLinks(lang)
+
   return (
     <div
       className="fade-up"
@@ -22,7 +29,7 @@ export function LegalPageContent({ page }: { page: LegalPageData }) {
     >
       <header style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <span className="badge-accent" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
-          Legal
+          {t('badge')}
         </span>
         <h1
           style={{
@@ -40,7 +47,7 @@ export function LegalPageContent({ page }: { page: LegalPageData }) {
           {page.subtitle}
         </p>
         <p style={{ color: 'var(--text-muted)', margin: '0.75rem 0 0', fontSize: '0.8rem' }}>
-          Effective {page.effectiveDate}
+          {t('effective', { date: page.effectiveDate })}
         </p>
       </header>
 
@@ -104,12 +111,12 @@ export function LegalPageContent({ page }: { page: LegalPageData }) {
           justifyContent: 'center',
           marginBottom: '1.5rem',
         }}
-        aria-label="Related legal pages"
+        aria-label={t('navAria')}
       >
         <Link href="/support" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-          Support
+          {t('support')}
         </Link>
-        {LEGAL_NAV_LINKS.map((link) => (
+        {navLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -126,16 +133,16 @@ export function LegalPageContent({ page }: { page: LegalPageData }) {
         ))}
         <span style={{ color: 'var(--border-bright)' }}>·</span>
         <Link href="/pricing" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>
-          Pricing
+          {t('pricing')}
         </Link>
         <span style={{ color: 'var(--border-bright)' }}>·</span>
         <Link href="/about" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>
-          About
+          {t('about')}
         </Link>
       </nav>
 
       <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-        Questions?{' '}
+        {t('questions')}{' '}
         <a href={`mailto:${LEGAL_CONTACT.primary}`} style={{ color: 'var(--gold)' }}>
           {LEGAL_CONTACT.primary}
         </a>

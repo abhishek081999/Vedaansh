@@ -1,4 +1,6 @@
 import { Resend } from 'resend'
+import type { EngineLang } from '@/lib/engine/lang'
+import { EMAIL_HI } from '@/lib/emailLocale'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -8,7 +10,7 @@ const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'
 /**
  * Shared Premium Layout Wrapper
  */
-const createLayout = (content: string) => `
+const createLayout = (content: string, lang: EngineLang = 'en') => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,8 +37,8 @@ const createLayout = (content: string) => `
       
       <!-- Footer -->
       <div style="padding: 32px; background-color: #f9fafb; text-align: center; border-top: 1px solid #e5e7eb;">
-        <p style="margin: 0; color: #6b7280; font-size: 14px;">© 2026 ${appName} · Professional Jyotisha Platform</p>
-        <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 12px;">Providing precise Vedic insights through ancient wisdom and modern technology.</p>
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">© 2026 ${appName} · ${lang === 'hi' ? EMAIL_HI.footerPlatform : 'Professional Jyotisha Platform'}</p>
+        <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 12px;">${lang === 'hi' ? EMAIL_HI.footerTagline : 'Providing precise Vedic insights through ancient wisdom and modern technology.'}</p>
       </div>
     </div>
   </div>
@@ -44,52 +46,65 @@ const createLayout = (content: string) => `
 </html>
 `
 
-export async function sendVerificationEmail(email: string, token: string) {
+export async function sendVerificationEmail(email: string, token: string, lang: EngineLang = 'en') {
   const verifyLink = `${baseUrl}/verify-email?token=${token}`
+  const hi = lang === 'hi'
 
   return resend.emails.send({
     from: `${appName} <${fromEmail}>`,
     to: [email],
-    subject: `Verify your email — ${appName}`,
+    subject: hi ? EMAIL_HI.verifySubject(appName) : `Verify your email — ${appName}`,
     html: createLayout(`
-      <h2 style="color: #111827; margin-top: 0;">Welcome to ${appName}!</h2>
-      <p style="font-size: 16px; color: #4b5563;">Thank you for joining our community of seekers. To ensure the security of your account, please verify your email address below.</p>
+      <h2 style="color: #111827; margin-top: 0;">${hi ? EMAIL_HI.verifyTitle(appName) : `Welcome to ${appName}!`}</h2>
+      <p style="font-size: 16px; color: #4b5563;">${hi ? EMAIL_HI.verifyBody : 'Thank you for joining our community of seekers. To ensure the security of your account, please verify your email address below.'}</p>
       
       <div style="margin: 32px 0;">
         <a href="${verifyLink}" 
            style="background-color: #c9a84c; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block;">
-          Verify Email Address
+          ${hi ? EMAIL_HI.verifyButton : 'Verify Email Address'}
         </a>
       </div>
       
-      <p style="font-size: 14px; color: #9ca3af;">This link will expire in 24 hours. If you didn't create an account with us, you can safely ignore this email.</p>
-    `),
+      <p style="font-size: 14px; color: #9ca3af;">${hi ? EMAIL_HI.verifyFoot : "This link will expire in 24 hours. If you didn't create an account with us, you can safely ignore this email."}</p>
+    `, lang),
   }).then(res => ({ success: !res.error, ...res }))
     .catch(err => ({ success: false, error: err }))
 }
 
-export async function sendWelcomeEmail(email: string, plan: string, expiresAt: Date) {
+function planLabel(plan: string, lang: EngineLang): string {
+  const en = plan.charAt(0).toUpperCase() + plan.slice(1)
+  if (lang !== 'hi') return en
+  return EMAIL_HI.plans[plan] ?? en
+}
+
+function intervalLabel(interval: string, lang: EngineLang): string {
+  if (lang !== 'hi') return interval
+  return EMAIL_HI.intervals[interval] ?? interval
+}
+
+export async function sendWelcomeEmail(email: string, plan: string, expiresAt: Date, lang: EngineLang = 'en') {
   const accountLink = `${baseUrl}/account`
-  const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1)
-  const expiryStr = expiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  const planName = planLabel(plan, lang)
+  const expiryStr = expiresAt.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  const hi = lang === 'hi'
 
   return resend.emails.send({
     from: `${appName} <${fromEmail}>`,
     to: [email],
-    subject: `Welcome to ${planLabel} Access — ${appName}`,
+    subject: hi ? EMAIL_HI.welcomeSubject(planName, appName) : `Welcome to ${planName} Access — ${appName}`,
     html: createLayout(`
-      <h2 style="color: #111827; margin-top: 0; text-align: center;">Subscription Activated! ✨</h2>
-      <p style="font-size: 16px; color: #4b5563;">Your <strong>${planLabel}</strong> membership is now active. You have unlocked full access to professional grade divisional charts, advanced dashas, and precision calculations.</p>
+      <h2 style="color: #111827; margin-top: 0; text-align: center;">${hi ? EMAIL_HI.welcomeTitle : 'Subscription Activated! ✨'}</h2>
+      <p style="font-size: 16px; color: #4b5563;">${hi ? EMAIL_HI.welcomeBody(planName) : `Your <strong>${planName}</strong> membership is now active. You have unlocked full access to professional grade divisional charts, advanced dashas, and precision calculations.`}</p>
       
       <div style="background: #fefcf5; border: 1px solid #f2e9d1; padding: 24px; border-radius: 12px; margin: 32px 0;">
-        <p style="margin: 0; font-weight: bold; color: #92400e; font-size: 14px; text-transform: uppercase;">Subscription Details</p>
+        <p style="margin: 0; font-weight: bold; color: #92400e; font-size: 14px; text-transform: uppercase;">${hi ? EMAIL_HI.welcomeDetails : 'Subscription Details'}</p>
         <div style="margin-top: 12px; font-size: 16px;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="color: #6b7280;">Tier:</span>
-            <strong style="color: #c9a84c;">${planLabel}</strong>
+            <span style="color: #6b7280;">${hi ? EMAIL_HI.welcomeTier : 'Tier:'}</span>
+            <strong style="color: #c9a84c;">${planName}</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: #6b7280;">Renewal Date:</span>
+            <span style="color: #6b7280;">${hi ? EMAIL_HI.welcomeRenewal : 'Renewal Date:'}</span>
             <strong>${expiryStr}</strong>
           </div>
         </div>
@@ -98,53 +113,55 @@ export async function sendWelcomeEmail(email: string, plan: string, expiresAt: D
       <div style="text-align: center; margin: 32px 0;">
         <a href="${accountLink}" 
            style="background-color: #1a1b1e; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block;">
-          Launch Dashboard
+          ${hi ? EMAIL_HI.welcomeButton : 'Launch Dashboard'}
         </a>
       </div>
 
-      <p style="font-size: 15px; color: #4b5563;">We're honored to assist you on your astrological journey.</p>
-    `),
+      <p style="font-size: 15px; color: #4b5563;">${hi ? EMAIL_HI.welcomeClose : "We're honored to assist you on your astrological journey."}</p>
+    `, lang),
   }).then(res => ({ success: !res.error, ...res }))
     .catch(err => ({ success: false, error: err }))
 }
 
-export async function sendPasswordResetEmail(email: string, token: string) {
+export async function sendPasswordResetEmail(email: string, token: string, lang: EngineLang = 'en') {
   const resetLink = `${baseUrl}/reset-password?token=${token}`
+  const hi = lang === 'hi'
 
   return resend.emails.send({
     from: `${appName} <${fromEmail}>`,
     to: [email],
-    subject: `Reset your password — ${appName}`,
+    subject: hi ? EMAIL_HI.resetSubject(appName) : `Reset your password — ${appName}`,
     html: createLayout(`
-      <h2 style="color: #111827; margin-top: 0;">Password Reset Request</h2>
-      <p style="font-size: 16px; color: #4b5563;">We received a request to reset your password. Click the button below to choose a new one. This link will expire in 1 hour.</p>
+      <h2 style="color: #111827; margin-top: 0;">${hi ? EMAIL_HI.resetTitle : 'Password Reset Request'}</h2>
+      <p style="font-size: 16px; color: #4b5563;">${hi ? EMAIL_HI.resetBody : 'We received a request to reset your password. Click the button below to choose a new one. This link will expire in 1 hour.'}</p>
       
       <div style="margin: 32px 0;">
         <a href="${resetLink}"
            style="background-color: #c9a84c; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block;">
-          Reset My Password
+          ${hi ? EMAIL_HI.resetButton : 'Reset My Password'}
         </a>
       </div>
       
-      <p style="font-size: 14px; color: #9ca3af;">If you didn't request this change, you can safely ignore this email. Your password will remain the same.</p>
-    `),
+      <p style="font-size: 14px; color: #9ca3af;">${hi ? EMAIL_HI.resetFoot : "If you didn't request this change, you can safely ignore this email. Your password will remain the same."}</p>
+    `, lang),
   }).then(res => ({ success: !res.error, ...res }))
     .catch(err => ({ success: false, error: err }))
 }
 
-export async function sendChartEmail(toEmail: string, chartName: string, htmlContent: string, senderName: string = appName) {
+export async function sendChartEmail(toEmail: string, chartName: string, htmlContent: string, senderName: string = appName, lang: EngineLang = 'en') {
+  const hi = lang === 'hi'
   return resend.emails.send({
     from: `${senderName} <${fromEmail}>`,
     to: [toEmail],
-    subject: `Your Jyotish Master Dossier — ${chartName}`,
+    subject: hi ? EMAIL_HI.chartSubject(chartName) : `Your Jyotish Master Dossier — ${chartName}`,
     html: `
       <div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
-        <h2 style="color: #1a1b1e;">Hello,</h2>
-        <p>Please find attached your professional <strong>Jyotish Master Dossier</strong> for <strong>${chartName}</strong>.</p>
-        <p>This comprehensive report includes your Rashi and Navamsha charts, Vimshottari Dasha timeline, planetary strengths (Shadbala), and specialized Astro-Vastu insights.</p>
-        <p style="margin-top: 30px;">Best regards,<br/><strong>${senderName}</strong></p>
+        <h2 style="color: #1a1b1e;">${hi ? EMAIL_HI.chartHello : 'Hello,'}</h2>
+        <p>${hi ? EMAIL_HI.chartBody(escapeHtml(chartName)) : `Please find attached your professional <strong>Jyotish Master Dossier</strong> for <strong>${chartName}</strong>.`}</p>
+        <p>${hi ? EMAIL_HI.chartDetail : 'This comprehensive report includes your Rashi and Navamsha charts, Vimshottari Dasha timeline, planetary strengths (Shadbala), and specialized Astro-Vastu insights.'}</p>
+        <p style="margin-top: 30px;">${hi ? EMAIL_HI.chartRegards : 'Best regards,'}<br/><strong>${hi ? escapeHtml(senderName) : senderName}</strong></p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-        <p style="font-size: 12px; color: #999;">Sent via Vedaansh Jyotish Platform.</p>
+        <p style="font-size: 12px; color: #999;">${hi ? EMAIL_HI.chartSent : 'Sent via Vedaansh Jyotish Platform.'}</p>
       </div>
     `,
     attachments: [
@@ -290,20 +307,24 @@ export async function sendPaymentRequestTeamEmail(to: string[], data: PaymentReq
 }
 
 /** Confirms to the user that the team has their request. */
-export async function sendPaymentRequestReceivedEmail(email: string, data: Pick<PaymentRequestEmailData, 'plan' | 'interval' | 'method'>) {
-  const planLabel = data.plan.charAt(0).toUpperCase() + data.plan.slice(1)
-  const method = METHOD_LABELS[data.method] ?? data.method
+export async function sendPaymentRequestReceivedEmail(email: string, data: Pick<PaymentRequestEmailData, 'plan' | 'interval' | 'method'>, lang: EngineLang = 'en') {
+  const label = planLabel(data.plan, lang)
+  const method = lang === 'hi'
+    ? (EMAIL_HI.methods[data.method] ?? METHOD_LABELS[data.method] ?? data.method)
+    : (METHOD_LABELS[data.method] ?? data.method)
+  const interval = intervalLabel(data.interval, lang)
+  const hi = lang === 'hi'
 
   return resend.emails.send({
     from: `${appName} <${fromEmail}>`,
     to: [email],
-    subject: `We received your ${planLabel} request — ${appName}`,
+    subject: hi ? EMAIL_HI.paymentSubject(label, appName) : `We received your ${label} request — ${appName}`,
     html: createLayout(`
-      <h2 style="color: #111827; margin-top: 0;">We've got your request</h2>
-      <p style="font-size: 16px; color: #4b5563;">Thanks for choosing <strong>${planLabel}</strong> (${escapeHtml(data.interval)}). Our team will email you payment details for <strong>${escapeHtml(method)}</strong>, usually within 1–2 business days.</p>
-      <p style="font-size: 16px; color: #4b5563;">As soon as your payment is confirmed, we'll activate your plan and you'll get a confirmation email.</p>
-      <p style="font-size: 14px; color: #9ca3af;">You don't need to pay anything until you hear from us. If you didn't make this request, you can ignore this email.</p>
-    `),
+      <h2 style="color: #111827; margin-top: 0;">${hi ? EMAIL_HI.paymentTitle : "We've got your request"}</h2>
+      <p style="font-size: 16px; color: #4b5563;">${hi ? EMAIL_HI.paymentBody(label, escapeHtml(interval), escapeHtml(method)) : `Thanks for choosing <strong>${label}</strong> (${escapeHtml(data.interval)}). Our team will email you payment details for <strong>${escapeHtml(method)}</strong>, usually within 1–2 business days.`}</p>
+      <p style="font-size: 16px; color: #4b5563;">${hi ? EMAIL_HI.paymentNext : "As soon as your payment is confirmed, we'll activate your plan and you'll get a confirmation email."}</p>
+      <p style="font-size: 14px; color: #9ca3af;">${hi ? EMAIL_HI.paymentFoot : "You don't need to pay anything until you hear from us. If you didn't make this request, you can ignore this email."}</p>
+    `, lang),
   }).then(res => ({ success: !res.error, ...res }))
     .catch(err => ({ success: false, error: err }))
 }

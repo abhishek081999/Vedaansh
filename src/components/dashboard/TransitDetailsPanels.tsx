@@ -1,19 +1,15 @@
 'use client'
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { analyzeTransitMoment, type PositionVerdict } from '@/lib/engine/transitMomentAnalysis'
-import { useLang } from '@/i18n/useLang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import styles from './transit-scrubber.module.css'
 import { buildPointGroups, type PointPos } from './transitPoints'
-
-const VERDICT_LABEL: Record<PositionVerdict, string> = {
-  good: 'Good',
-  mixed: 'Mixed',
-  caution: 'Caution',
-}
 
 const VERDICT_CLASS: Record<PositionVerdict, string> = {
   good: styles.verdictGood,
@@ -31,9 +27,22 @@ function fmtDeg(deg: number): string {
   return `${d}°${String(m).padStart(2, '0')}'`
 }
 
-function fmtPlanetLine(g: PointPos, ascRashi: Rashi): string {
-  const h = grahaHouse(g.rashi, ascRashi)
-  return `${RASHI_SHORT[g.rashi]} ${fmtDeg(g.degree)} · ${g.nakshatraName?.split(' ')[0] ?? '—'} P${g.pada} · H${h}`
+function fmtIsoDate(dateStr: string, tag: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr
+  const d = new Date(`${dateStr.slice(0, 10)}T12:00:00Z`)
+  if (!Number.isFinite(d.getTime())) return dateStr
+  return new Intl.DateTimeFormat(tag, {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  }).format(d)
+}
+
+function fmtIsoTime(t: string, tag: string): string {
+  const match = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+  if (!match) return t.slice(0, 8)
+  const d = new Date(Date.UTC(2020, 0, 1, Number(match[1]), Number(match[2]), Number(match[3] ?? 0)))
+  return new Intl.DateTimeFormat(tag, {
+    hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC',
+  }).format(d)
 }
 
 interface DetailRowProps {
@@ -73,16 +82,33 @@ export function TransitDetailsPanels({
   formatDisplayTime,
   timeForInput,
 }: TransitDetailsPanelsProps) {
-  const { lang } = useLang()
+  const t = useTranslations('transit.scrubber.details')
+  const { lang, tag, hi } = useLang()
   const planetAnalysis = React.useMemo(() => {
     if (!transitChart) return null
     return analyzeTransitMoment(natalChart, transitChart, lang)
   }, [natalChart, transitChart, lang])
 
   const pointGroups = React.useMemo(
-    () => buildPointGroups(natalChart, transitChart),
-    [natalChart, transitChart],
+    () => buildPointGroups(natalChart, transitChart, lang),
+    [natalChart, transitChart, lang],
   )
+
+  const rashiName = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const nakName = (name: string) => (hi ? termHi(name) : name)
+  const grahaName = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]) ?? id
+
+  const fmtPlanetLine = (g: PointPos, ascRashi: Rashi): string => {
+    const house = grahaHouse(g.rashi, ascRashi)
+    const nak = hi ? (g.nakshatraName || '—') : (g.nakshatraName?.split(' ')[0] ?? '—')
+    return t('pointLine', {
+      rashi: hi ? RASHI_HI[g.rashi] : RASHI_SHORT[g.rashi],
+      deg: fmtDeg(g.degree),
+      nak,
+      pada: g.pada,
+      house,
+    })
+  }
 
   const natalMoon = natalChart.grahas.find(g => g.id === 'Mo')
   const natalSun = natalChart.grahas.find(g => g.id === 'Su')
@@ -96,83 +122,105 @@ export function TransitDetailsPanels({
     [natalChart.dashas.vimshottari, asOf],
   )
   const vimshottariLabel = vimshottariAtMoment.length
-    ? vimshottariAtMoment.map(n => GRAHA_NAMES[n.lord as GrahaId] ?? n.lord).join(' / ')
+    ? vimshottariAtMoment.map(n => grahaName(n.lord as GrahaId) ?? n.lord).join(' / ')
     : '—'
+
+  const showDate = (d: string) => (hi ? fmtIsoDate(d, tag) : formatDisplayDate(d))
+  const showTime = (time: string) => (hi ? fmtIsoTime(time, tag) : formatDisplayTime(time))
 
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <div className={styles.detailsGrid}>
-        {/* Natal */}
         <div className={`${styles.detailsCard} ${styles.detailsCardNatal}`}>
-          <h3 className={`${styles.detailsCardTitle} ${styles.detailsCardTitleNatal}`}>Natal chart</h3>
-          <DetailRow label="Name" value={natalChart.meta.name} />
-          <DetailRow label="Birth date" value={natalChart.meta.birthDate} />
-          <DetailRow label="Birth time" value={natalChart.meta.birthTime.slice(0, 8)} />
-          <DetailRow label="Place" value={natalChart.meta.birthPlace} />
+          <h3 className={`${styles.detailsCardTitle} ${styles.detailsCardTitleNatal}`}>{t('natalTitle')}</h3>
+          <DetailRow label={t('name')} value={natalChart.meta.name} />
           <DetailRow
-            label="Lagna"
-            value={`${RASHI_NAMES[natalAsc]} ${fmtDeg(natalChart.lagnas.ascDegreeInRashi)}`}
+            label={t('birthDate')}
+            value={hi ? fmtIsoDate(natalChart.meta.birthDate, tag) : natalChart.meta.birthDate}
+          />
+          <DetailRow
+            label={t('birthTime')}
+            value={hi ? fmtIsoTime(natalChart.meta.birthTime, tag) : natalChart.meta.birthTime.slice(0, 8)}
+          />
+          <DetailRow label={t('place')} value={natalChart.meta.birthPlace} />
+          <DetailRow
+            label={t('lagna')}
+            value={`${rashiName(natalAsc)} ${fmtDeg(natalChart.lagnas.ascDegreeInRashi)}`}
           />
           {natalMoon && (
             <DetailRow
-              label="Moon"
-              value={`${RASHI_NAMES[natalMoon.rashi]} · ${natalMoon.nakshatraName} P${natalMoon.pada}`}
+              label={t('moon')}
+              value={t('moonValue', {
+                rashi: rashiName(natalMoon.rashi),
+                nak: nakName(natalMoon.nakshatraName),
+                pada: natalMoon.pada,
+              })}
             />
           )}
           {natalSun && (
-            <DetailRow label="Sun" value={`${RASHI_NAMES[natalSun.rashi]} ${fmtDeg(natalSun.degree)}`} />
+            <DetailRow label={t('sun')} value={`${rashiName(natalSun.rashi)} ${fmtDeg(natalSun.degree)}`} />
           )}
-          <DetailRow label="Vimshottari" value={vimshottariLabel} />
+          <DetailRow label={t('vimshottari')} value={vimshottariLabel} />
         </div>
 
-        {/* Transit */}
         <div className={`${styles.detailsCard} ${styles.detailsCardTransit}`}>
-          <h3 className={`${styles.detailsCardTitle} ${styles.detailsCardTitleTransit}`}>Transit moment</h3>
-          <DetailRow label="Date" value={formatDisplayDate(targetDate)} />
-          <DetailRow label="Time" value={`${formatDisplayTime(targetTime)} (${timeForInput(targetTime)})`} />
-          <DetailRow label="Timezone" value={timezone} />
+          <h3 className={`${styles.detailsCardTitle} ${styles.detailsCardTitleTransit}`}>{t('momentTitle')}</h3>
+          <DetailRow label={t('date')} value={showDate(targetDate)} />
+          <DetailRow
+            label={t('time')}
+            value={t('timeValue', { display: showTime(targetTime), clock: timeForInput(targetTime) })}
+          />
+          <DetailRow label={t('timezone')} value={timezone} />
           {transitChart && transitAsc ? (
             <>
               <DetailRow
-                label="Transit lagna"
-                value={`${RASHI_NAMES[transitAsc]} ${fmtDeg(transitChart.lagnas.ascDegreeInRashi)}`}
+                label={t('transitLagna')}
+                value={`${rashiName(transitAsc)} ${fmtDeg(transitChart.lagnas.ascDegreeInRashi)}`}
               />
               {transitMoon && (
                 <DetailRow
-                  label="Transit Moon"
-                  value={`${RASHI_NAMES[transitMoon.rashi]} · ${transitMoon.nakshatraName} P${transitMoon.pada}`}
+                  label={t('transitMoon')}
+                  value={t('moonValue', {
+                    rashi: rashiName(transitMoon.rashi),
+                    nak: nakName(transitMoon.nakshatraName),
+                    pada: transitMoon.pada,
+                  })}
                 />
               )}
               {transitSun && (
-                <DetailRow label="Transit Sun" value={`${RASHI_NAMES[transitSun.rashi]} ${fmtDeg(transitSun.degree)}`} />
+                <DetailRow
+                  label={t('transitSun')}
+                  value={`${rashiName(transitSun.rashi)} ${fmtDeg(transitSun.degree)}`}
+                />
               )}
             </>
           ) : (
-            <DetailRow label="Status" value="Calculating…" />
+            <DetailRow label={t('status')} value={t('calculating')} />
           )}
         </div>
       </div>
 
-      {/* Planet comparison */}
       <div className={styles.compareSection}>
-        <h3 className={styles.compareTitle}>Natal vs transit — planets, lagnas &amp; upagrahas</h3>
+        <h3 className={styles.compareTitle}>{t('compareTitle')}</h3>
         <div className={styles.compareScroll}>
           <table className={styles.compareTable}>
             <thead>
               <tr>
-                <th>Planet</th>
-                <th>Natal</th>
-                <th>Transit</th>
-                <th>Transit H</th>
-                <th>Position</th>
-                <th>Shift</th>
+                <th>{t('thPlanet')}</th>
+                <th>{t('thNatal')}</th>
+                <th>{t('thTransit')}</th>
+                <th>{t('thTransitH')}</th>
+                <th>{t('thPosition')}</th>
+                <th>{t('thShift')}</th>
               </tr>
             </thead>
             <tbody>
               {pointGroups.map(group => (
-                <React.Fragment key={group.title}>
+                <React.Fragment key={group.kind}>
                   <tr>
-                    <th colSpan={6} scope="colgroup" className={styles.compareGroupRow}>{group.title}</th>
+                    <th colSpan={6} scope="colgroup" className={styles.compareGroupRow}>
+                      {t(`groups.${group.kind}`)}
+                    </th>
                   </tr>
                   {group.rows.map(row => {
                     const { natal, transit } = row
@@ -202,18 +250,18 @@ export function TransitDetailsPanels({
                             '—'
                           )}
                         </td>
-                        <td>{transitH != null ? `H${transitH}` : '—'}</td>
+                        <td>{transitH != null ? t('house', { n: transitH }) : '—'}</td>
                         <td>
                           {pa ? (
                             <span className={`${styles.verdictBadge} ${VERDICT_CLASS[pa.transitVerdict]}`}>
-                              {VERDICT_LABEL[pa.transitVerdict]}
+                              {t(`verdict.${pa.transitVerdict}`)}
                             </span>
                           ) : '—'}
                         </td>
                         <td>
                           {transitH != null ? (
                             <span className={`${styles.houseShift} ${shifted ? styles.houseShiftMoved : styles.houseShiftSame}`}>
-                              {shifted ? `H${natalH} → H${transitH}` : 'Same house'}
+                              {shifted ? t('shift', { from: natalH, to: transitH }) : t('sameHouse')}
                             </span>
                           ) : (
                             '—'
@@ -228,7 +276,7 @@ export function TransitDetailsPanels({
           </table>
         </div>
         <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Houses are counted from your <strong>natal lagna</strong>. Transit house shows where each transiting planet, lagna and upagraha falls in your birth chart at the selected moment. Time-sensitive points (lagnas, Gulika/Maandi) are cast for the birthplace.
+          {t.rich('footnote', { b: (chunks) => <strong>{chunks}</strong> })}
         </p>
       </div>
     </section>

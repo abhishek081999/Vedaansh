@@ -17,8 +17,8 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Added / live
 
-- Hindi Panchang and Today's Reading: `/hi/panchang`, `/hi/panchang/calendar` and `/hi/today` are fully in Hindi, including the day predictions, Vishesh panchang, Dinman muhurtas, house-by-house predictions, dasha timeline and remedies. Panchang pages have Hindi titles, descriptions and SEO text and point Google at their `/hi` versions
-- Hindi (हिन्दी) site, first part: every page is available under `/hi/...` with a language switch in the header and side menu. The menus, header, footer, home page, today's panchang strip and home SEO text are in Hindi so far; other pages still show English text under `/hi` while they are translated
+- Public Hindi (हिन्दी): the whole visitor-facing site under `/hi/...` — shell, tools, chart workspace, guides, account, clients CRM, library, legal, search, PDFs, user emails, and engine readings — with language switch, hreflang, and Hindi Open Graph where applicable. Admin and Social Studio stay English
+- Hindi Panchang and Today's Reading: `/hi/panchang`, `/hi/panchang/calendar` and `/hi/today` including day predictions, Vishesh panchang, Dinman muhurtas, house-by-house predictions, dasha timeline and remedies, with Hindi SEO
 - Numerology couple match: core-number harmony, a combined Lo Shu grid showing what each partner brings, and the relationship number — in Numerology → Compatibility and on the Kundali Milan match view
 - Numerology business tool (Gold): business name, launch date, logo initial and GST / PAN / CIN / phone scored together, plus a launch-date finder
 - Numerology year calendar (Gold): download a year of best and caution days as an .ics file, with the sunrise tithi and Rikta days flagged
@@ -59,7 +59,7 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Known gaps
 
-- Full i18n rollout not complete
+- Admin / Social Studio (and admin broadcast / payment-team emails) not translated; further locales beyond Hindi not started
 - Stripe checkout not wired (schema reserved)
 - Research prefixes reserved in `proxy.ts`; no route files and no UI
 
@@ -80,6 +80,7 @@ These shipped in the current tree without a version bump:
 
 - Interpretation hub on the chart workspace and public share: tone map, planet strip, house map, Shadbala radar/bars, and expandable theme cards (`InterpretationHub`)
 - Free teaser for that hub: overview tone map + first three themes; Gold unlocks planets, houses, rashis, strength, transit, and dasha sections (`userPlan` / `planMeetsUiGate`)
+- Hindi completion for remaining public surfaces: guides (16 articles), marketing/legal/account/clients/library, Ashtakavarga and Shadbala analysis, transit scrubber, public chart share, chart master PDF and user emails, search corpus, and route Open Graph images (`?lang=hi`)
 
 ### Fixed
 

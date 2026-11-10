@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { compareIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -28,12 +28,13 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/compare', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/compare', locale, metadataEn, {
     title: 'निःशुल्क कुंडली मिलान — अष्टकूट गुण मिलान',
     description: '36-गुण अष्टकूट गुण मिलान, दोष-अपवाद, शुक्र–मंगल रसायन और मंगल दोष जाँच — निःशुल्क, बिना लॉगिन।',
     ogTitle: 'निःशुल्क कुंडली मिलान — Vedaansh',
     keywords: ['कुंडली मिलान', 'निःशुल्क कुंडली मिलान', 'अष्टकूट', 'गुण मिलान', 'विवाह मिलान', 'मंगल दोष', 'वैदिक मेल'],
-  })
+  }), locale, '/compare/opengraph-image', 'कुंडली मिलान — Vedaansh')
 }
 
 export default async function CompareLayout({ children }: { children: React.ReactNode }) {

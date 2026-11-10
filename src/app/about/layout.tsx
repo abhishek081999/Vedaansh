@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+import { IntlScope } from '@/components/providers/IntlScope'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
-import { ABOUT_SEO } from '@/lib/seo/intro-content'
+import { aboutIntro } from '@/lib/seo/intro-content.hi'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, faqJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
-export const metadata: Metadata = {
+const metadataEn: Metadata = {
   title: 'About — Vision, Team & Guru',
   description:
     'Learn about Vedaansh — a Vedic astrology and community platform. Our vision, creator Abhishek Kumar, and Guru Sameer Bhatnagar Acharya.',
@@ -33,33 +36,40 @@ export const metadata: Metadata = {
   },
 }
 
-const breadcrumb = breadcrumbJsonLd([
-  { name: 'Home', path: '/' },
-  { name: 'About', path: '/about' },
-])
-
-const faq = faqJsonLd([
-  {
-    q: 'What is Vedaansh?',
-    a: 'Vedaansh is a free Vedic astrology platform offering birth charts (Kundali), Dasha, 41 varga charts, Panchang, Nakshatra analysis, and Muhurta tools with Swiss Ephemeris precision.',
-  },
-  {
-    q: 'Is Vedaansh free to use?',
-    a: 'Core chart calculation, Panchang, and many Jyotish tools are free. Optional paid plans add saved charts, exports, and advanced features.',
-  },
-  {
-    q: 'Which ayanamsha does Vedaansh use?',
-    a: 'Vedaansh uses Lahiri (Chitrapaksha) ayanamsha by default, with Swiss Ephemeris for arc-second accurate planetary positions.',
-  },
-])
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/about', locale, metadataEn, {
+    title: 'परिचय — दृष्टि, टीम और गुरु',
+    description:
+      'Vedaansh के बारे में जानें — वैदिक ज्योतिष और सामुदायिक मंच। हमारी दृष्टि, निर्माता Abhishek Kumar, और गुरु Sameer Bhatnagar आचार्य।',
+    ogTitle: 'Vedaansh के बारे में',
+    ogDescription:
+      'वैदिक संस्कृति, ज्योतिष, शास्त्र ज्ञान और समुदाय की दृष्टि — तथा Vedaansh के पीछे की टीम और गुरु।',
+    keywords: [
+      'Vedaansh',
+      'वैदिक ज्योतिष',
+      'Sameer Bhatnagar',
+      'ज्योतिष समुदाय',
+      'वैदिक संस्कृति',
+    ],
+  }), locale, '/about/opengraph-image', 'Vedaansh के बारे में')
+}
 
 export default async function AboutLayout({ children }: { children: React.ReactNode }) {
+  const locale = await pageLocale()
+  const t = await getTranslations('about')
+  const { seo, faq } = aboutIntro(locale)
+  const breadcrumb = breadcrumbJsonLd([
+    { name: t('breadcrumb.home'), path: '/' },
+    { name: t('breadcrumb.about'), path: '/about' },
+  ])
+
   return (
     <>
       <JsonLd data={breadcrumb} />
-      <JsonLd data={faq} />
-      {children}
-      <SeoIntro {...ABOUT_SEO} />
+      <JsonLd data={faqJsonLd(faq)} />
+      <IntlScope namespaces={['about']}>{children}</IntlScope>
+      <SeoIntro {...seo} />
     </>
   )
 }

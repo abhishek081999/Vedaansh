@@ -817,7 +817,8 @@
       "tenthLordPill": "दशमेश {name} D10 {points}",
       "lagnaLordPill": "लग्नेश {name} D10 {points}",
       "openSolarReturn": " · पूर्ण वर्षफल D10 के लिए सौर प्रत्यावर्तन (वर्षफल) खोलें।",
-      "asOf": "{date} तक की स्थिति"
+      "asOf": "{date} तक की स्थिति",
+      "live": "सक्रिय"
     },
     "adv": {
       "title": "उन्नत तकनीकी",

@@ -1,7 +1,8 @@
 'use client'
 
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { format } from 'date-fns'
 import { Trash2, Plus, MessageSquare } from 'lucide-react'
 import { Spinner } from '@/components/ui/primitives/Spinner'
 
@@ -12,6 +13,8 @@ interface Note {
 }
 
 export function ChartNotes({ chartId }: { chartId: string }) {
+  const t = useTranslations('library.notes')
+  const { tag } = useLang()
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [newNote, setNewNote] = useState('')
@@ -34,11 +37,11 @@ export function ChartNotes({ chartId }: { chartId: string }) {
       if (!json.success) throw new Error(json.error)
       if (isMounted.current) setNotes(json.notes)
     } catch (e: unknown) {
-      if (isMounted.current) setError(e instanceof Error ? e.message : 'Failed to load notes')
+      if (isMounted.current) setError(e instanceof Error ? e.message : t('loadFailed'))
     } finally {
       if (isMounted.current) setLoading(false)
     }
-  }, [chartId])
+  }, [chartId, t])
 
   useEffect(() => {
     fetchNotes()
@@ -61,7 +64,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
         setNewNote('')
       }
     } catch (e: unknown) {
-      if (isMounted.current) setError(e instanceof Error ? e.message : 'Failed to save note')
+      if (isMounted.current) setError(e instanceof Error ? e.message : t('saveFailed'))
     } finally {
       if (isMounted.current) setSaving(false)
     }
@@ -75,7 +78,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
       if (!json.success) throw new Error(json.error)
       if (isMounted.current) setNotes(json.notes)
     } catch (e: unknown) {
-      if (isMounted.current) setError(e instanceof Error ? e.message : 'Failed to delete note')
+      if (isMounted.current) setError(e instanceof Error ? e.message : t('deleteFailed'))
     }
   }
 
@@ -90,17 +93,17 @@ export function ChartNotes({ chartId }: { chartId: string }) {
       
       <div className="flex items-center gap-2 text-gold text-[0.65rem] uppercase tracking-widest font-bold opacity-80 mb-1">
         <MessageSquare className="w-3 h-3" />
-        <span>Chart Observations</span>
+        <span>{t('title')}</span>
       </div>
 
       {loading ? (
         <div className="flex items-center gap-2 text-[0.8rem] text-muted py-4 justify-center bg-surface-1/30 rounded border border-dashed border-border/40">
-          <Spinner size={16} label="Syncing celestial notes" />
-          <span>Syncing celestial notes…</span>
+          <Spinner size={16} label={t('syncingLabel')} />
+          <span>{t('syncing')}</span>
         </div>
       ) : notes.length === 0 ? (
         <div className="text-[0.8rem] text-muted italic opacity-60 py-8 text-center bg-surface-1/20 rounded border border-dashed border-border/40">
-          No observations recorded for this chart.
+          {t('empty')}
         </div>
       ) : (
         <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
@@ -111,11 +114,11 @@ export function ChartNotes({ chartId }: { chartId: string }) {
             >
               <div className="flex-1 whitespace-pre-wrap text-secondary leading-relaxed">{note.content}</div>
               <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className="text-[0.65rem] text-muted opacity-70 italic">{format(new Date(note.createdAt), 'MMM d, p')}</span>
+                <span className="text-[0.65rem] text-muted opacity-70 italic">{new Date(note.createdAt).toLocaleString(tag, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 <button
                   onClick={() => handleDelete(note._id)}
                   className="text-rose opacity-0 group-hover:opacity-60 hover:opacity-100 transition-all p-1 hover:scale-110"
-                  title="Delete observation"
+                  title={t('deleteTitle')}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -129,7 +132,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
         <textarea
           value={newNote}
           onChange={e => setNewNote(e.target.value)}
-          placeholder="Record a new observation..."
+          placeholder={t('placeholder')}
           className="input flex-1 resize-none text-[0.85rem] min-h-[44px] py-2 px-3 bg-surface-1 border-border/40 focus:border-gold/50"
           onKeyDown={e => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAdd()
@@ -139,13 +142,13 @@ export function ChartNotes({ chartId }: { chartId: string }) {
           onClick={handleAdd}
           disabled={saving || !newNote.trim()}
           className="btn btn-primary h-auto py-1.5 px-3 disabled:opacity-30 self-end transition-all hover:scale-105 active:scale-95"
-          title="Add Note (Cmd/Ctrl + Enter)"
+          title={t('addTitle')}
         >
-          {saving ? <Spinner size={16} label="Saving note" /> : <Plus className="w-4 h-4" />}
+          {saving ? <Spinner size={16} label={t('savingLabel')} /> : <Plus className="w-4 h-4" />}
         </button>
       </div>
       <div className="text-[0.6rem] text-muted text-right opacity-40">
-        Press <kbd className="font-sans">Cmd/Ctrl + Enter</kbd> to save
+        {t.rich('hint', { kbd: (chunks) => <kbd className="font-sans">{chunks}</kbd> })}
       </div>
     </div>
   )

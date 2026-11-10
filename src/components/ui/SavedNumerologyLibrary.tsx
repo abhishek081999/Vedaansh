@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import React, { useCallback, useEffect, useState } from 'react'
 
 interface ReadingCardData {
@@ -25,15 +27,16 @@ interface Pagination {
   pages: number
 }
 
-function fmtDate(iso: string): string {
+function fmtDate(iso: string, tag: string): string {
   const d = new Date(`${iso.slice(0, 10)}T12:00:00Z`)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   if (Number.isNaN(d.getTime())) return iso
-  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  return d.toLocaleDateString(tag, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
 export function SavedNumerologyLibrary() {
   const router = useRouter()
+  const t = useTranslations('library.numerology')
+  const { tag } = useLang()
   const [readings, setReadings] = useState<ReadingCardData[]>([])
   const [pag, setPag] = useState<Pagination | null>(null)
   const [page, setPage] = useState(1)
@@ -55,15 +58,15 @@ export function SavedNumerologyLibrary() {
         router.push('/login?callbackUrl=/my/charts')
         return
       }
-      if (!json.success) throw new Error(json.error || 'Could not load your saved readings. Please try again.')
+      if (!json.success) throw new Error(json.error || t('loadFailed'))
       setReadings((json.readings ?? []).map((r: ReadingCardData) => ({ ...r, _id: String(r._id) })))
       setPag(json.pagination)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Could not load your saved readings. Please try again.')
+      setError(e instanceof Error ? e.message : t('loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [router, t])
 
   useEffect(() => {
     const handle = window.setTimeout(() => { void load(page, search) }, search ? 300 : 0)
@@ -83,26 +86,26 @@ export function SavedNumerologyLibrary() {
       <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
         <input
           className="input"
-          placeholder="Search saved readings…"
+          placeholder={t('search')}
           value={search}
           onChange={e => { setPage(1); setSearch(e.target.value) }}
           style={{ flex: 1, minWidth: 220, height: 46, borderRadius: 'var(--r-lg)' }}
         />
         <Link href="/numerology" className="btn btn-primary" style={{ height: 40, padding: '0 1.25rem', display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 800 }}>
-          + New reading
+          {t('newReading')}
         </Link>
       </div>
 
       {pag && (
         <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '1rem' }}>
-          {pag.total} reading{pag.total === 1 ? '' : 's'} saved
+          {pag.total === 1 ? t('countOne', { count: pag.total }) : t('countMany', { count: pag.total })}
         </div>
       )}
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
           <div className="spin-loader" style={{ width: 32, height: 32, margin: '0 auto 1rem', border: '3px solid var(--border)', borderTopColor: 'var(--gold)' }} />
-          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Loading your saved readings…</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>{t('loading')}</div>
         </div>
       )}
 
@@ -115,9 +118,9 @@ export function SavedNumerologyLibrary() {
       {!loading && !error && readings.length === 0 && (
         <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-            {search ? 'No readings with that name' : 'No saved numerology readings yet'}
+            {search ? t('emptySearch') : t('emptyNone')}
           </p>
-          <Link href="/numerology" className="btn btn-primary" style={{ marginTop: '1rem' }}>Start a reading</Link>
+          <Link href="/numerology" className="btn btn-primary" style={{ marginTop: '1rem' }}>{t('start')}</Link>
         </div>
       )}
 
@@ -127,12 +130,12 @@ export function SavedNumerologyLibrary() {
             <article key={reading._id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
               <strong style={{ fontSize: '0.95rem' }}>{reading.label}</strong>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {reading.personName ? `${reading.personName} · ` : ''}{fmtDate(reading.birthDate)}
+                {reading.personName ? `${reading.personName} · ` : ''}{fmtDate(reading.birthDate, tag)}
               </p>
               <div style={{ display: 'flex', gap: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                <span>Moolank <b style={{ color: 'var(--text-gold)' }}>{reading.moolank}</b></span>
-                <span>Bhagyank <b style={{ color: 'var(--text-gold)' }}>{reading.bhagyank}</b></span>
-                {reading.namank != null && <span>Namank <b style={{ color: 'var(--text-gold)' }}>{reading.namank}</b></span>}
+                <span>{t('moolank')} <b style={{ color: 'var(--text-gold)' }}>{reading.moolank}</b></span>
+                <span>{t('bhagyank')} <b style={{ color: 'var(--text-gold)' }}>{reading.bhagyank}</b></span>
+                {reading.namank != null && <span>{t('namank')} <b style={{ color: 'var(--text-gold)' }}>{reading.namank}</b></span>}
               </div>
               <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.25rem' }}>
                 <button
@@ -141,12 +144,12 @@ export function SavedNumerologyLibrary() {
                   disabled={openingId === reading._id}
                   onClick={() => { setOpeningId(reading._id); router.push(`/numerology?reading=${reading._id}`) }}
                 >
-                  {openingId === reading._id ? 'Opening…' : 'Open'}
+                  {openingId === reading._id ? t('opening') : t('open')}
                 </button>
                 {confirmId === reading._id ? (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void handleDelete(reading._id)}>Yes, delete</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void handleDelete(reading._id)}>{t('yesDelete')}</button>
                 ) : (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmId(reading._id)}>Remove</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmId(reading._id)}>{t('remove')}</button>
                 )}
               </div>
             </article>

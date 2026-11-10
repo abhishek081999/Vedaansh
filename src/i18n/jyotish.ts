@@ -144,6 +144,8 @@ const TERMS_HI: Record<string, string> = {
   Ekadashi: 'एकादशी', Dwadashi: 'द्वादशी', Trayodashi: 'त्रयोदशी', Chaturdashi: 'चतुर्दशी',
   Purnima: 'पूर्णिमा', Amavasya: 'अमावस्या',
   Shukla: 'शुक्ल', Krishna: 'कृष्ण', 'Shukla Paksha': 'शुक्ल पक्ष', 'Krishna Paksha': 'कृष्ण पक्ष', Paksha: 'पक्ष',
+  Agni: 'अग्नि', Gauri: 'गौरी', Ganesha: 'गणेश', Kartikeya: 'कार्तिकेय', Durga: 'दुर्गा',
+  Yama: 'यम', Vishwedeva: 'विश्वेदेव', Vishnu: 'विष्णु', Kamadeva: 'कामदेव', Pitrus: 'पितृ',
   // Nitya yoga
   Vishkambha: 'विष्कुंभ', Priti: 'प्रीति', Ayushman: 'आयुष्मान', Saubhagya: 'सौभाग्य', Shobhana: 'शोभन',
   Atiganda: 'अतिगंड', Sukarma: 'सुकर्मा', Dhriti: 'धृति', Shula: 'शूल', Ganda: 'गंड',
@@ -177,7 +179,11 @@ const TERMS_HI: Record<string, string> = {
   'Budhaditya Yoga': 'बुधादित्य योग', 'Hamsa Yoga': 'हंस योग', 'Malavya Yoga': 'मालव्य योग', 'Ruchaka Yoga': 'रुचक योग',
   'Bhadra Yoga': 'भद्र योग', 'Shasha Yoga': 'शश योग', 'Viparita Raja Yoga': 'विपरीत राज योग', 'Neecha Bhanga Raja Yoga': 'नीचभंग राज योग',
   // Upagrahas
-  Dhuma: 'धूम', Parivesha: 'परिवेष', Indrachapa: 'इंद्रचाप', Upaketu: 'उपकेतु', Gulika: 'गुलिक', Mandi: 'मांदि',
+  Dhuma: 'धूम', Dhooma: 'धूम', Parivesha: 'परिवेष', Paridhi: 'परिधि', Indrachapa: 'इंद्रचाप', Upaketu: 'उपकेतु',
+  Gulika: 'गुलिक', Mandi: 'मांदि', Maandi: 'मांदि',
+  'Beeja Sphuta': 'बीज स्फुट', 'Kshetra Sphuta': 'क्षेत्र स्फुट',
+  'Bhava Lagna': 'भाव लग्न', 'Hora Lagna': 'होरा लग्न', 'Ghati Lagna': 'घटी लग्न', 'Vighati Lagna': 'विघटी लग्न',
+  'Varnada Lagna': 'वर्णद लग्न', 'Shri Lagna': 'श्री लग्न', Pranapada: 'प्राणपद', 'Indu Lagna': 'इंदु लग्न', 'Bhrigu Bindu': 'भृगु बिंदु',
   Kala: 'काल', Mrityu: 'मृत्यु', Yamaghantaka: 'यमघंटक', Ardhaprahara: 'अर्धप्रहर',
   // Choghadiya
   Udveg: 'उद्वेग', Chal: 'चल', Labh: 'लाभ', Amrit: 'अमृत', Rog: 'रोग', Kaal: 'काल', Shubh: 'शुभ', Char: 'चर',

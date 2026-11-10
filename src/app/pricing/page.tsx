@@ -4,14 +4,24 @@ import { Link } from '@/i18n/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { PLAN_PRICES, PLAN_PRICES_USD, type PaymentCurrency } from '@/lib/subscription/pricing'
-import { PRICING_FAQ } from '@/lib/seo/intro-content'
 import { PaymentHelpRequest, type PaymentHelpReason } from '@/components/pricing/PaymentHelpRequest'
 
 let razorpayLoadPromise: Promise<void> | null = null
 
 const CURRENCY_STORAGE_KEY = 'vedaansh:pricing-currency'
+
+type PlanKey = 'free' | 'gold' | 'platinum'
+type PaidPlan = 'gold' | 'platinum'
+
+type PlanCopy = {
+  name: string
+  subtitle: string
+  badge?: string
+  features: string[]
+}
 
 /** Visitors whose browser is on Indian time see INR; everyone else sees USD. */
 function guessCurrency(): PaymentCurrency {
@@ -47,101 +57,35 @@ function amountText(minor: number, currency: PaymentCurrency): string {
   return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)
 }
 
-const FEATURES = {
+/** Visual tokens only — display copy comes from the pricing catalogue. */
+const TIER_STYLE: Record<PlanKey, { color: string; border: string; bg: string }> = {
   free: {
-    name: 'Free',
-    subtitle: 'Free forever',
-    price: { monthly: 0, yearly: 0 },
     color: 'var(--text-gold)',
     border: 'rgba(201,168,76,0.40)',
     bg: 'rgba(201,168,76,0.06)',
-    badge: null,
-    features: [
-      '✓ Unlimited chart calculations',
-      '✓ Shodashavarga (16 divisional charts)',
-      '✓ Vimshottari (L4) & Yogini Dashas (L3)',
-      '✓ Dasha interpretation teaser (summary)',
-      '✓ Cosmic Weather daily snapshot',
-      '✓ Astro Vastu & SBC previews',
-      '✓ Profession & Medical nakshatra previews',
-      '✓ Satpanchasika Prashna (horary)',
-      '✓ Shadbala, Vimsopaka & Bhava Bala',
-      '✓ Ashtakavarga, Arudhas & Chara Karakas (natural indicator)',
-      '✓ 100+ Graha Yogas detected',
-      '✓ Daily Panchang & Muhurta tools',
-      '✓ Kundali Milan — Ashtakoot, dosha, and charts',
-      '✓ Relationship and marriage preview',
-      '✓ Match-making and married-life preview',
-      '✓ Solar Return (Tajika/Varshaphal)',
-      '✓ Interpretation Layer: Key Insights',
-      '✓ KP System (Cusps & Significators)',
-      '✓ Save up to 20 charts in library',
-    ],
   },
   gold: {
-    name: 'Gold',
-    subtitle: 'For serious students',
-    price: { 
-      monthly: PLAN_PRICES.gold.monthly, 
-      yearly: PLAN_PRICES.gold.yearly 
-    },
     color: 'var(--accent)',
     border: 'rgba(139,124,246,0.50)',
     bg: 'rgba(139,124,246,0.08)',
-    badge: 'Most Popular',
-    features: [
-      '✓ Everything in Free',
-      '✓ Full Vimshottari MD/AD interpretation',
-      '✓ Full Cosmic Weather (hora, muhurta, caveats)',
-      '✓ Astro Vastu — full directional analysis',
-      '✓ Sarvatobhadra Chakra — vedha & Life Advisor',
-      '✓ Full Profession & Medical nakshatra analysis',
-      '✓ Full relationship and marriage reading',
-      '✓ Full career and profession reading',
-      '✓ Full Dosha & Upay (Shrap) desk',
-      '✓ Full Kundali Milan: match-making, married life, and print',
-      '✓ Kerala, Vedic & KP Prashna modes',
-      '✓ Ashtottari & Chara (Jaimini) Dashas',
-      '✓ Extended Vimshottari Depth (L6)',
-      '✓ Professional PDF & HTML exports',
-      '✓ Bulk Data Import (CSV/JSON)',
-      '✓ Save up to 200 charts in library',
-      '✓ Muhurta advanced routes & API',
-    ],
   },
   platinum: {
-    name: 'Platinum',
-    subtitle: 'For professionals',
-    price: { 
-      monthly: PLAN_PRICES.platinum.monthly, 
-      yearly: PLAN_PRICES.platinum.yearly 
-    },
     color: 'var(--teal)',
     border: 'rgba(78,205,196,0.50)',
     bg: 'rgba(78,205,196,0.08)',
-    badge: 'Premium',
-    features: [
-      '✓ Everything in Gold',
-      '✓ Full 41 Varga Suite (All Divisions)',
-      '✓ White-labeling: Custom brand & logo',
-      '✓ Email chart reports to clients',
-      '✓ Unlimited chart library',
-      '✓ Client Management Dashboard',
-      '✓ Bulk ZIP export for collections',
-      '✓ Research routes and API access',
-    ],
   },
 }
 
-const FAQ = [...PRICING_FAQ]
+const PLAN_KEYS: PlanKey[] = ['free', 'gold', 'platinum']
 
 export default function PricingPage() {
+  const t = useTranslations('pricing')
   const { data: session } = useSession()
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)  // plan key being loaded
   const [checkoutError,  setCheckoutError]  = useState<string | null>(null)
-  const [failedPlan, setFailedPlan] = useState<'gold' | 'platinum' | null>(null)
+  const [failedPlan, setFailedPlan] = useState<PaidPlan | null>(null)
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string
@@ -162,14 +106,16 @@ export default function PricingPage() {
   const [currency, setCurrency] = useState<PaymentCurrency>('INR')
   const [help, setHelp] = useState<{
     open: boolean
-    plan: 'gold' | 'platinum'
+    plan: PaidPlan
     reason: PaymentHelpReason
     failureNote: string | null
   }>({ open: false, plan: 'gold', reason: 'international', failureNote: null })
   // Set while the Razorpay modal is open if a payment attempt fails inside it.
   const paymentFailureRef = useRef<string | null>(null)
 
-  function openHelp(plan: 'gold' | 'platinum', reason: PaymentHelpReason, failureNote: string | null = null) {
+  const faqItems = t.raw('faq.items') as Array<{ q: string; a: string }>
+
+  function openHelp(plan: PaidPlan, reason: PaymentHelpReason, failureNote: string | null = null) {
     if (!session) {
       window.location.href = '/login?callbackUrl=%2Fpricing%3Fhelp%3D1'
       return
@@ -178,7 +124,7 @@ export default function PricingPage() {
   }
   const symbol = currency === 'USD' ? '$' : '₹'
 
-  function planMinor(plan: 'gold' | 'platinum', interval: 'monthly' | 'yearly'): number {
+  function planMinor(plan: PaidPlan, interval: 'monthly' | 'yearly'): number {
     if (currency === 'USD') {
       return runtimeUsdPrices[plan][interval === 'monthly' ? 'monthlyCents' : 'yearlyCents']
     }
@@ -190,7 +136,7 @@ export default function PricingPage() {
     saveCurrency(next)
   }
 
-  const currentPlan = (session?.user as any)?.plan ?? 'free'
+  const currentPlan = (session?.user as { plan?: string } | undefined)?.plan ?? 'free'
   const PLAN_RANK: Record<string, number> = { free: 0, gold: 1, platinum: 2 }
 
   // /pricing?help=1 (e.g. after signing in from the help link) opens the request form.
@@ -207,7 +153,7 @@ export default function PricingPage() {
 
   useEffect(() => {
     // Warm up SDK after first render so checkout opens faster and more reliably.
-    void ensureRazorpayScript()
+    void ensureRazorpayScript(t('errors.razorpayLoad'))
 
     fetch('/api/subscription/pricing')
       .then(res => res.json())
@@ -224,12 +170,13 @@ export default function PricingPage() {
         }
       })
       .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- warm SDK once; locale message is fine if stale briefly
   }, [])
 
   async function applyCoupon() {
     const code = couponCode.trim()
     if (!code) {
-      setCouponMessage({ type: 'error', text: 'Enter a coupon code first.' })
+      setCouponMessage({ type: 'error', text: t('coupon.enterFirst') })
       return
     }
 
@@ -242,10 +189,10 @@ export default function PricingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couponCode: code, interval: billing, currency }),
       })
-      const data = await res.json().catch(() => ({ success: false, error: 'Could not validate coupon.' }))
+      const data = await res.json().catch(() => ({ success: false, error: t('coupon.validateFailed') }))
       if (!data.success) {
         setAppliedCoupon(null)
-        setCouponMessage({ type: 'error', text: data.error ?? 'Invalid coupon code' })
+        setCouponMessage({ type: 'error', text: data.error ?? t('coupon.invalid') })
         return
       }
 
@@ -255,9 +202,9 @@ export default function PricingPage() {
         discounts: data.discounts,
       })
       setCouponCode(data.coupon.code)
-      setCouponMessage({ type: 'success', text: `Coupon "${data.coupon.code}" applied.` })
+      setCouponMessage({ type: 'success', text: t('coupon.applied', { code: data.coupon.code }) })
     } catch {
-      setCouponMessage({ type: 'error', text: 'Could not validate coupon. Try again.' })
+      setCouponMessage({ type: 'error', text: t('coupon.validateRetry') })
     } finally {
       setCouponLoading(false)
     }
@@ -291,7 +238,7 @@ export default function PricingPage() {
             description: data.coupon.description,
             discounts: data.discounts,
           })
-          setCouponMessage({ type: 'success', text: `Coupon "${data.coupon.code}" applied.` })
+          setCouponMessage({ type: 'success', text: t('coupon.applied', { code: data.coupon.code }) })
         }
       } finally {
         setCouponLoading(false)
@@ -301,7 +248,7 @@ export default function PricingPage() {
   }, [billing, currency])
 
   // ── Razorpay checkout ────────────────────────────────────────
-  async function handleSubscribe(planKey: 'gold' | 'platinum') {
+  async function handleSubscribe(planKey: PaidPlan) {
     if (!session) {
       window.location.href = '/login?callbackUrl=/pricing'
       return
@@ -324,19 +271,22 @@ export default function PricingPage() {
         }),
       })
       const data = await res.json()
-      if (!data.success) throw new Error(data.error ?? 'Order creation failed')
+      if (!data.success) throw new Error(data.error ?? t('errors.orderFailed'))
 
       // 2. Load Razorpay script if not already present
-      await ensureRazorpayScript()
+      await ensureRazorpayScript(t('errors.razorpayLoad'))
 
       // 3. Open Razorpay modal
-      const rzp = new (window as any).Razorpay({
+      const rzp = new (window as unknown as { Razorpay: new (opts: object) => { on: (e: string, cb: (r: unknown) => void) => void; open: () => void } }).Razorpay({
         key:         data.keyId,
         amount:      data.amount,
         currency:    data.currency,
         order_id:    data.orderId,
         name:        'Vedaansh',
-        description: `${data.planLabel} — ${billing} subscription`,
+        description: t('checkout.description', {
+          plan: t(`plans.${planKey}.name`),
+          billing: t(`billing.${billing}`),
+        }),
         prefill: {
           name:  data.userName,
           email: data.userEmail,
@@ -370,13 +320,14 @@ export default function PricingPage() {
           },
         },
       })
-      rzp.on('payment.failed', (response: { error?: { description?: string; reason?: string } }) => {
-        paymentFailureRef.current = response?.error?.description || 'Your payment could not be completed.'
+      rzp.on('payment.failed', (response: unknown) => {
+        const err = response as { error?: { description?: string; reason?: string } }
+        paymentFailureRef.current = err?.error?.description || t('errors.paymentIncomplete')
       })
       rzp.open()
 
     } catch (err) {
-      setCheckoutError(err instanceof Error ? err.message : 'Payment failed. Please try again.')
+      setCheckoutError(err instanceof Error ? err.message : t('errors.paymentFailed'))
       setFailedPlan(planKey)
       setCheckoutLoading(null)
     }
@@ -394,10 +345,10 @@ export default function PricingPage() {
         <div className="pricing-header-actions">
           {session ? (
             <Link href="/account" style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-              My Account
+              {t('header.myAccount')}
             </Link>
           ) : (
-            <Link href="/login" className="btn btn-primary btn-sm">Sign In</Link>
+            <Link href="/login" className="btn btn-primary btn-sm">{t('header.signIn')}</Link>
           )}
           <ThemeToggle />
         </div>
@@ -429,7 +380,7 @@ export default function PricingPage() {
             marginBottom: '0.4rem',
             opacity: 0.9
           }}>
-            Simple, transparent pricing
+            {t('hero.kicker')}
           </div>
           
           <h1 style={{ 
@@ -441,7 +392,8 @@ export default function PricingPage() {
             margin: '0 0 0.6rem 0',
             letterSpacing: '-0.02em'
           }}>
-            Professional Jyotisha. <span style={{ color: 'var(--text-gold)' }}>Free to start.</span>
+            {t('hero.title')}{' '}
+            <span style={{ color: 'var(--text-gold)' }}>{t('hero.titleHighlight')}</span>
           </h1>
           
           <p style={{ 
@@ -452,7 +404,7 @@ export default function PricingPage() {
             margin: 0,
             maxWidth: '480px'
           }}>
-            Swiss Ephemeris precision for every chart. All core features free forever.
+            {t('hero.subtitle')}
           </p>
         </div>
 
@@ -467,9 +419,9 @@ export default function PricingPage() {
               boxShadow: billing === b ? 'var(--shadow-card)' : 'none',
               transition: 'all 0.15s',
             }}>
-              {b === 'monthly' ? 'Monthly' : 'Yearly'}
+              {t(`billing.${b}`)}
               {b === 'yearly' && (
-                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--teal)', fontWeight: 700 }}>Best value</span>
+                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--teal)', fontWeight: 700 }}>{t('billing.bestValue')}</span>
               )}
             </button>
           ))}
@@ -477,7 +429,7 @@ export default function PricingPage() {
 
         {internationalEnabled && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', marginTop: '-0.5rem' }}>
-            <div role="group" aria-label="Currency" style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-2)', padding: '0.25rem', borderRadius: 99, border: '1px solid var(--border)' }}>
+            <div role="group" aria-label={t('currency.ariaLabel')} style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-2)', padding: '0.25rem', borderRadius: 99, border: '1px solid var(--border)' }}>
               {(['INR', 'USD'] as const).map(c => (
                 <button
                   key={c}
@@ -492,13 +444,13 @@ export default function PricingPage() {
                     boxShadow: currency === c ? 'var(--shadow-card)' : 'none',
                   }}
                 >
-                  {c === 'INR' ? '₹ INR' : '$ USD'}
+                  {c === 'INR' ? t('currency.inr') : t('currency.usd')}
                 </button>
               ))}
             </div>
             {currency === 'USD' && (
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                Outside India? Pay in USD with PayPal or an international card.
+                {t('currency.usdHint')}
               </span>
             )}
           </div>
@@ -515,7 +467,7 @@ export default function PricingPage() {
                 setCouponMessage(null)
               }}
               onKeyDown={(e) => { if (e.key === 'Enter') void applyCoupon() }}
-              placeholder="Have a coupon? Enter code"
+              placeholder={t('coupon.placeholder')}
               disabled={couponLoading}
               style={{
                 flex: 1,
@@ -545,7 +497,7 @@ export default function PricingPage() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                Remove
+                {t('coupon.remove')}
               </button>
             ) : (
               <button
@@ -566,7 +518,7 @@ export default function PricingPage() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {couponLoading ? 'Applying…' : 'Apply'}
+                {couponLoading ? t('coupon.applying') : t('coupon.apply')}
               </button>
             )}
           </div>
@@ -589,7 +541,9 @@ export default function PricingPage() {
 
         {/* Tier cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', width: '100%' }}>
-          {(Object.entries(FEATURES) as [string, typeof FEATURES.free][]).map(([key, tier]) => {
+          {PLAN_KEYS.map((key) => {
+            const tier = TIER_STYLE[key]
+            const { name, subtitle, badge, features } = t.raw(`plans.${key}`) as PlanCopy
             const isCurrent = currentPlan === key
             const paidKey = key === 'gold' || key === 'platinum' ? key : null
             // All amounts in the smallest unit of `currency` (paise or cents).
@@ -618,7 +572,7 @@ export default function PricingPage() {
                 boxShadow: isGold ? '0 4px 24px rgba(139,124,246,0.12)' : 'none',
               }}>
                 {/* Popular badge */}
-                {tier.badge && (
+                {badge && (
                   <div style={{
                     position: 'absolute', top: -1, right: 20,
                     padding: '0.2rem 0.75rem',
@@ -627,17 +581,17 @@ export default function PricingPage() {
                     textTransform: 'uppercase', fontFamily: 'var(--font-display)',
                     borderRadius: '0 0 var(--r-sm) var(--r-sm)',
                   }}>
-                    {tier.badge}
+                    {badge}
                   </div>
                 )}
 
                 {/* Plan name */}
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', fontWeight: 700, color: tier.color, marginBottom: 2 }}>
-                    {tier.name}
+                    {name}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                    {tier.subtitle}
+                    {subtitle}
                   </div>
                 </div>
 
@@ -645,7 +599,7 @@ export default function PricingPage() {
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', minHeight: '3.5rem', flexWrap: 'wrap' }}>
                   {price === 0 ? (
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Free
+                      {t('price.free')}
                     </span>
                   ) : (
                     <>
@@ -659,22 +613,24 @@ export default function PricingPage() {
                         {amountText(displayMonthlyMinor, currency)}
                       </span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                        /month
+                        {t('price.perMonth')}
                       </span>
                     </>
                   )}
                 </div>
                 {planDiscount && price > 0 && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
-                    Coupon applied — save {fmt(planDiscount.discountPaise)}
-                    {billing === 'yearly' ? '/year' : '/month'}
+                    {t('price.couponSave', {
+                      amount: fmt(planDiscount.discountPaise),
+                      period: billing === 'yearly' ? t('price.perYear') : t('price.perMonth'),
+                    })}
                   </div>
                 )}
                 {billing === 'yearly' && price > 0 && !planDiscount && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
                     {key === 'platinum' || monthlyMinor * 12 <= yearlyMinor
-                      ? `${fmt(yearlyMinor)}/year — ${fmt(yearlyMinor / 12)}/month billed yearly`
-                      : `${fmt(yearlyMinor)}/year — save ${fmt(monthlyMinor * 12 - yearlyMinor)}`}
+                      ? t('price.yearlyBilled', { yearly: fmt(yearlyMinor), monthly: fmt(yearlyMinor / 12) })
+                      : t('price.yearlySave', { yearly: fmt(yearlyMinor), amount: fmt(monthlyMinor * 12 - yearlyMinor) })}
                   </div>
                 )}
 
@@ -687,7 +643,7 @@ export default function PricingPage() {
                     fontFamily: 'var(--font-display)', fontSize: '0.85rem',
                     fontWeight: 600, color: tier.color,
                   }}>
-                    ✓ Current Plan
+                    {t('cta.currentPlan')}
                   </div>
                 ) : price === 0 ? (
                   <Link href="/" style={{
@@ -697,7 +653,7 @@ export default function PricingPage() {
                     fontFamily: 'var(--font-display)', fontSize: '0.85rem',
                     fontWeight: 600, color: 'var(--text-secondary)',
                   }}>
-                    Get Started Free →
+                    {t('cta.getStarted')}
                   </Link>
                 ) : PLAN_RANK[currentPlan] > PLAN_RANK[key] ? (
                   <div style={{
@@ -707,12 +663,12 @@ export default function PricingPage() {
                     fontFamily: 'var(--font-display)', fontSize: '0.85rem',
                     fontWeight: 600, color: 'var(--text-muted)',
                   }}>
-                    ✓ Included in your plan
+                    {t('cta.included')}
                   </div>
                 ) : (
                   <>
                     <button
-                      onClick={() => handleSubscribe(key as 'gold' | 'platinum')}
+                      onClick={() => handleSubscribe(key as PaidPlan)}
                       disabled={checkoutLoading === key}
                       style={{
                         display: 'block', width: '100%', padding: '0.65rem 1rem',
@@ -726,8 +682,8 @@ export default function PricingPage() {
                       }}
                     >
                       {checkoutLoading === key
-                        ? 'Opening checkout…'
-                        : `Upgrade to ${tier.name} →`}
+                        ? t('cta.openingCheckout')
+                        : t('cta.upgrade', { name })}
                     </button>
                     {checkoutError && checkoutLoading === null && failedPlan === key && (
                       <div style={{
@@ -739,14 +695,14 @@ export default function PricingPage() {
                         </p>
                         <button
                           type="button"
-                          onClick={() => openHelp(key as 'gold' | 'platinum', 'checkout_failed', checkoutError)}
+                          onClick={() => openHelp(key as PaidPlan, 'checkout_failed', checkoutError)}
                           style={{
                             background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                             fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 700,
                             color: 'var(--text-gold)', textDecoration: 'underline',
                           }}
                         >
-                          Payment not working? Ask the Vedaansh team to set it up →
+                          {t('cta.paymentHelp')}
                         </button>
                       </div>
                     )}
@@ -755,7 +711,7 @@ export default function PricingPage() {
 
                 {/* Features */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--border-soft)', paddingTop: '1rem' }}>
-                  {tier.features.map((f, i) => (
+                  {features.map((f, i) => (
                     <div key={i} style={{
                       fontSize: '0.82rem',
                       fontFamily: 'var(--font-display)',
@@ -779,10 +735,10 @@ export default function PricingPage() {
         }}>
           <div style={{ fontFamily: 'var(--font-display)', minWidth: 0, flex: '1 1 260px' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
-              Outside India, or can&apos;t pay online?
+              {t('cta.manualTitle')}
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>
-              Ask the Vedaansh team. We&apos;ll send a PayPal invoice, Wise or UPI details, and activate your plan once paid.
+              {t('cta.manualBody')}
             </div>
           </div>
           <button
@@ -791,15 +747,15 @@ export default function PricingPage() {
             onClick={() => openHelp(failedPlan ?? 'gold', failedPlan ? 'checkout_failed' : 'international', failedPlan ? checkoutError : null)}
             style={{ whiteSpace: 'nowrap' }}
           >
-            Request help with payment
+            {t('cta.requestHelp')}
           </button>
         </div>
 
         {/* Trust signals */}
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
-            { icon: '🔒', text: currency === 'USD' ? 'Secure payments via Razorpay · PayPal accepted' : 'Secure payments via Razorpay' },
-            { icon: <Image src="/veda-icon.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />, text: 'Swiss Ephemeris precision' },
+            { icon: '🔒', text: currency === 'USD' ? t('trust.secureUsd') : t('trust.secureInr') },
+            { icon: <Image src="/veda-icon.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />, text: t('trust.ephemeris') },
           ].map(({ icon, text }) => (
             <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
               <span>{icon}</span> {text}
@@ -810,10 +766,10 @@ export default function PricingPage() {
         {/* FAQ */}
         <div style={{ width: '100%', maxWidth: 680 }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', textAlign: 'center', marginBottom: '1.5rem' }}>
-            Frequently Asked Questions
+            {t('faq.title')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {FAQ.map(({ q, a }, i) => (
+            {faqItems.map(({ q, a }, i) => (
               <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
@@ -854,13 +810,13 @@ export default function PricingPage() {
           borderRadius: 'var(--r-lg)', maxWidth: 540, width: '100%',
         }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-            Start with Free — free forever
+            {t('bottom.title')}
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1.25rem' }}>
-            No credit card. No expiry. Upgrade when you&apos;re ready.
+            {t('bottom.subtitle')}
           </div>
           <Link href="/" className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>
-            Calculate My Chart →
+            {t('bottom.cta')}
           </Link>
         </div>
 
@@ -878,23 +834,23 @@ export default function PricingPage() {
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
         <div style={{ marginBottom: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
-          <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</Link>
+          <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>{t('footer.terms')}</Link>
           <span style={{ opacity: 0.4 }}>·</span>
-          <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</Link>
+          <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>{t('footer.privacy')}</Link>
           <span style={{ opacity: 0.4 }}>·</span>
-          <Link href="/refund" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Refunds</Link>
+          <Link href="/refund" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>{t('footer.refunds')}</Link>
           <span style={{ opacity: 0.4 }}>·</span>
-          <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
+          <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>{t('footer.support')}</Link>
         </div>
-        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotisha Platform</span> · {currency === 'USD' ? 'Prices in USD' : 'All prices in INR · GST applicable'}
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>{t('footer.tagline')}</span> · {currency === 'USD' ? t('footer.pricesUsd') : t('footer.pricesInr')}
       </footer>
     </div>
   )
 }
 
-function ensureRazorpayScript(): Promise<void> {
+function ensureRazorpayScript(loadErrorMessage: string): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve()
-  if ((window as any).Razorpay) return Promise.resolve()
+  if ((window as unknown as { Razorpay?: unknown }).Razorpay) return Promise.resolve()
   if (razorpayLoadPromise) return razorpayLoadPromise
 
   razorpayLoadPromise = new Promise((resolve, reject) => {
@@ -903,25 +859,25 @@ function ensureRazorpayScript(): Promise<void> {
       const done = () => {
         existingScript.removeEventListener('load', done)
         existingScript.removeEventListener('error', fail)
-        if ((window as any).Razorpay) {
+        if ((window as unknown as { Razorpay?: unknown }).Razorpay) {
           resolve()
           return
         }
         razorpayLoadPromise = null
-        reject(new Error('Failed to load Razorpay SDK'))
+        reject(new Error(loadErrorMessage))
       }
       const fail = () => {
         existingScript.removeEventListener('load', done)
         existingScript.removeEventListener('error', fail)
         razorpayLoadPromise = null
-        reject(new Error('Failed to load Razorpay SDK'))
+        reject(new Error(loadErrorMessage))
       }
 
       existingScript.addEventListener('load', done, { once: true })
       existingScript.addEventListener('error', fail, { once: true })
 
       // If script has already finished loading, resolve immediately.
-      if ((existingScript as any).readyState === 'complete' || (window as any).Razorpay) {
+      if ((existingScript as HTMLScriptElement & { readyState?: string }).readyState === 'complete' || (window as unknown as { Razorpay?: unknown }).Razorpay) {
         done()
       }
       return
@@ -932,17 +888,17 @@ function ensureRazorpayScript(): Promise<void> {
     script.async = true
     script.setAttribute('data-razorpay-checkout', '1')
     script.onload = () => {
-      if ((window as any).Razorpay) {
+      if ((window as unknown as { Razorpay?: unknown }).Razorpay) {
         resolve()
         return
       }
       razorpayLoadPromise = null
-      reject(new Error('Failed to load Razorpay SDK'))
+      reject(new Error(loadErrorMessage))
     }
     script.onerror = () => {
       razorpayLoadPromise = null
       script.remove()
-      reject(new Error('Failed to load Razorpay SDK'))
+      reject(new Error(loadErrorMessage))
     }
     document.head.appendChild(script)
   })

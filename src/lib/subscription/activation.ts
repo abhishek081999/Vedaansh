@@ -11,6 +11,7 @@ import { BillingConfig } from '@/lib/db/models/BillingConfig'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { User } from '@/lib/db/models/User'
 import { sendWelcomeEmail } from '@/lib/email'
+import { engineLangFromUser } from '@/lib/requestLang'
 import { logSecurityEvent } from '@/lib/security/events'
 import { getEffectivePlan } from '@/lib/subscription/entitlements'
 import {
@@ -56,10 +57,11 @@ export async function activatePayment(
 
   await connectDB()
 
-  const user = await User.findById(meta.userId).select('email plan planExpiresAt').lean() as {
+  const user = await User.findById(meta.userId).select('email plan planExpiresAt language').lean() as {
     email?: string
     plan?: string
     planExpiresAt?: Date | null
+    language?: string
   } | null
   if (!user) return { ok: false, error: 'User not found' }
 
@@ -158,7 +160,7 @@ export async function activatePayment(
 
   if (user.email && await claimOnce(sub._id, 'welcomeEmailSentAt')) {
     try {
-      await sendWelcomeEmail(user.email, meta.plan, sub.currentPeriodEnd)
+      await sendWelcomeEmail(user.email, meta.plan, sub.currentPeriodEnd, engineLangFromUser(user.language))
     } catch (err) {
       console.error('[activation] Welcome email failed:', err instanceof Error ? err.message : 'unknown')
     }
@@ -200,10 +202,11 @@ export function manualSubscriptionKey(requestId: string): string {
 export async function activateManualPayment(input: ManualPaymentInput): Promise<ActivationResult & { subscriptionId?: string }> {
   await connectDB()
 
-  const user = await User.findById(input.userId).select('email plan planExpiresAt').lean() as {
+  const user = await User.findById(input.userId).select('email plan planExpiresAt language').lean() as {
     email?: string
     plan?: string
     planExpiresAt?: Date | null
+    language?: string
   } | null
   if (!user) return { ok: false, error: 'User not found' }
 
@@ -282,7 +285,7 @@ export async function activateManualPayment(input: ManualPaymentInput): Promise<
 
   if (user.email && await claimOnce(sub._id, 'welcomeEmailSentAt')) {
     try {
-      await sendWelcomeEmail(user.email, input.plan, sub.currentPeriodEnd)
+      await sendWelcomeEmail(user.email, input.plan, sub.currentPeriodEnd, engineLangFromUser(user.language))
     } catch (err) {
       console.error('[activation] Welcome email failed:', err instanceof Error ? err.message : 'unknown')
     }

@@ -11,6 +11,7 @@ import { auth } from '@/auth'
 import { resolveChartForExport } from '@/lib/chart/resolveChartForExport'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
 import { sendChartEmail } from '@/lib/email'
+import { engineLangFromRequest } from '@/lib/requestLang'
 import { getEffectivePlanForUserId, requirePlanGate } from '@/lib/security/planAccess'
 import { applyRouteSecurity } from '@/lib/security/route'
 import { CHART_JSON_BODY_BYTES } from '@/lib/security/bodyLimit'
@@ -63,33 +64,42 @@ export async function POST(req: NextRequest) {
     }
     let branding = null
     let senderName = process.env.NEXT_PUBLIC_APP_NAME || 'Vedaansh'
+    let userLanguage: string | undefined
 
     if (userId) {
       const { User } = await import('@/lib/db/models/User')
       await (await import('@/lib/db/mongodb')).default()
-      const user = await User.findById(userId).select('plan brandName brandLogo').lean()
+      const user = await User.findById(userId).select('plan brandName brandLogo language').lean() as {
+        plan?: string
+        brandName?: string
+        brandLogo?: string
+        language?: string
+      } | null
+      userLanguage = user?.language
       
-      if ((user as any)?.plan === 'platinum') {
+      if (user?.plan === 'platinum') {
         branding = {
-          brandName: (user as any).brandName,
-          brandLogo: (user as any).brandLogo
+          brandName: user.brandName,
+          brandLogo: user.brandLogo
         }
-        if ((user as any).brandName) {
-            senderName = (user as any).brandName
+        if (user.brandName) {
+            senderName = user.brandName
         }
       }
     }
+
+    const lang = engineLangFromRequest(req, userLanguage)
 
     // 1. Generate the HTML dossier (gochar chapter is Node-only / sweph)
     const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
     const { buildRashiChapterHtml } = await import('@/lib/pdf/rashiChapter')
     const htmlContent = generateChartHTML(resolvedChart, branding as any, {
-      gocharChapterHtml: buildGocharChapterHtml(resolvedChart),
-      rashiChapterHtml: buildRashiChapterHtml(resolvedChart),
-    })
+      gocharChapterHtml: buildGocharChapterHtml(resolvedChart, lang),
+      rashiChapterHtml: buildRashiChapterHtml(resolvedChart, lang),
+    }, lang)
 
     // 2. Send the email
-    const result = await sendChartEmail(targetEmail, resolvedChart.meta.name, htmlContent, senderName)
+    const result = await sendChartEmail(targetEmail, resolvedChart.meta.name, htmlContent, senderName, lang)
 
     if (result.success) {
       return NextResponse.json({ success: true, message: 'Chart emailed successfully.' })

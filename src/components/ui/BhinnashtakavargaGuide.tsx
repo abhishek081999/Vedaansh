@@ -5,6 +5,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -23,8 +24,15 @@ import {
 } from '@/lib/engine/bhinnashtakavargaGuide'
 import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
 import { buildKakshyaTransitWatch, kakshyaNote } from '@/lib/engine/ashtakavargaKakshya'
-import type { AshtakavargaResult, GrahaData, GrahaId } from '@/types/astrology'
+import type { AshtakavargaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+
+function signName(rashi: number, hi: boolean): string {
+  const r = rashi as Rashi
+  return hi ? (RASHI_HI[r] ?? String(rashi)) : (RASHI_SHORT[r] ?? String(rashi))
+}
 
 type SubTab = 'overview' | 'planet' | 'timing' | 'transit'
 
@@ -116,6 +124,8 @@ function StrengthBadge({ band, label, bindus }: { band: BavStrengthBand | null; 
 }
 
 function PlanetPanel({ guide }: { guide: PlanetBavGuide }) {
+  const t = useTranslations('ashtakavarga')
+  const { hi } = useLang()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div className="card" style={{ padding: '0.85rem' }}>
@@ -124,8 +134,8 @@ function PlanetPanel({ guide }: { guide: PlanetBavGuide }) {
             <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-gold)' }}>{guide.name}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
               {guide.natalHouse != null && guide.natalRashi != null
-                ? `Natal H${guide.natalHouse} · ${RASHI_SHORT[guide.natalRashi as keyof typeof RASHI_SHORT]}`
-                : 'Natal position unavailable'}
+                ? t('bav.natal', { house: guide.natalHouse, sign: signName(guide.natalRashi, hi) })
+                : t('bav.natalMissing')}
             </div>
           </div>
           <StrengthBadge band={guide.strength} label={guide.strengthLabel} bindus={guide.selfBindus} />
@@ -150,7 +160,7 @@ function PlanetPanel({ guide }: { guide: PlanetBavGuide }) {
 
       {guide.natalFindings.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-gold)' }}>Applied natal findings</div>
+          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-gold)' }}>{t('bav.applied')}</div>
           {guide.natalFindings.map((f) => (
             <FindingCard key={f.id} finding={f} />
           ))}
@@ -160,16 +170,16 @@ function PlanetPanel({ guide }: { guide: PlanetBavGuide }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.55rem' }}>
         <div className="card" style={{ padding: '0.75rem' }}>
           <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--rose)', marginBottom: '0.4rem' }}>
-            Weak gochar signs (≤3)
+            {t('bav.weakSigns')}
           </div>
           {guide.weakTransitSigns.length === 0 ? (
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>None — all signs ≥4</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('bav.noneWeak')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {guide.weakTransitSigns.map((s) => (
                 <div key={s.rashi} style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
                   <span>
-                    H{s.house} · {RASHI_SHORT[s.rashi as keyof typeof RASHI_SHORT]}
+                    {t('insights.house', { n: s.house })} · {signName(s.rashi, hi)}
                   </span>
                   <b style={{ color: 'var(--rose)' }}>{s.bindus}</b>
                 </div>
@@ -179,16 +189,16 @@ function PlanetPanel({ guide }: { guide: PlanetBavGuide }) {
         </div>
         <div className="card" style={{ padding: '0.75rem' }}>
           <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.4rem' }}>
-            Strong gochar signs (6+)
+            {t('bav.strongSigns')}
           </div>
           {guide.strongTransitSigns.length === 0 ? (
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>No 6+ signs</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('bav.noneStrong')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {guide.strongTransitSigns.map((s) => (
                 <div key={s.rashi} style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
                   <span>
-                    H{s.house} · {RASHI_SHORT[s.rashi as keyof typeof RASHI_SHORT]}
+                    {t('insights.house', { n: s.house })} · {signName(s.rashi, hi)}
                   </span>
                   <b style={{ color: 'var(--teal)' }}>{s.bindus}</b>
                 </div>
@@ -201,7 +211,7 @@ function PlanetPanel({ guide }: { guide: PlanetBavGuide }) {
       {guide.transitNotes.length > 0 ? (
         <div className="card" style={{ padding: '0.75rem' }}>
           <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '0.35rem' }}>
-            Gochar & dasha notes
+            {t('bav.notes')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
             {guide.transitNotes.map((n, i) => (
@@ -233,6 +243,8 @@ export function BhinnashtakavargaGuide({
   janmaNakshatraIndex?: number
   ayanamsha?: string
 }) {
+  const t = useTranslations('ashtakavarga')
+  const { lang, hi } = useLang()
   const [sub, setSub] = useState<SubTab>('overview')
   const [planet, setPlanet] = useState<GrahaId>('Su')
 
@@ -252,13 +264,14 @@ export function BhinnashtakavargaGuide({
       dashaLord,
       janmaNakshatraIndex: janmaNakshatraIndex ?? moon?.nakshatraIndex,
       janmaPada: moon?.pada,
+      lang,
     })
-  }, [ashtakavarga, ascRashi, grahas, transitGrahas, dashaLord, janmaNakshatraIndex])
+  }, [ashtakavarga, ascRashi, grahas, transitGrahas, dashaLord, janmaNakshatraIndex, lang])
 
   if (!guide) {
     return (
       <div className="card" style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-        Chart grahas are required for Bhinnashtakavarga guidance.
+        {t('bav.needGrahas')}
       </div>
     )
   }
@@ -275,15 +288,15 @@ export function BhinnashtakavargaGuide({
 
       <div className={styles.subTabScroll}>
         <div className={styles.subTabRow}>
-        {SUB_TABS.map((t) => (
+        {SUB_TABS.map((tab) => (
           <button
-            key={t.id}
+            key={tab.id}
             type="button"
-            onClick={() => setSub(t.id)}
-            className={`${styles.subTabBtn} ${sub === t.id ? styles.subTabBtnActive : ''}`}
+            onClick={() => setSub(tab.id)}
+            className={`${styles.subTabBtn} ${sub === tab.id ? styles.subTabBtnActive : ''}`}
           >
-            {t.icon}
-            {t.label}
+            {tab.icon}
+            {t(`bav.sub.${tab.id}`)}
           </button>
         ))}
       </div>
@@ -324,7 +337,7 @@ export function BhinnashtakavargaGuide({
 
           {guide.crossFindings.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)' }}>Chart-level findings</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)' }}>{t('bav.findings')}</div>
               {guide.crossFindings.map((f) => (
                 <FindingCard key={f.id} finding={f} />
               ))}
@@ -356,19 +369,19 @@ export function BhinnashtakavargaGuide({
           {guide.fatherTiming ? (
             <div className="card" style={{ padding: '0.85rem' }}>
               <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
-                Sun BAV — father crisis window
+                {t('bav.fatherTitle')}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.4rem', marginBottom: '0.55rem' }}>
                 <div style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.45rem' }}>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>10th from Lagna</div>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('bav.tenth')}</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--blue, #60a5fa)' }}>{guide.fatherTiming.lagnaTenthBindus}</div>
                 </div>
                 <div style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.45rem' }}>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>9th from Sun</div>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('bav.ninth')}</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--blue, #60a5fa)' }}>{guide.fatherTiming.sunNinthBindus}</div>
                 </div>
                 <div style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.45rem' }}>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Sum → Nakshatra</div>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('bav.sumStar')}</div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-gold)' }}>
                     {guide.fatherTiming.adjusted} · {guide.fatherTiming.targetNakshatraName}
                   </div>
@@ -378,8 +391,8 @@ export function BhinnashtakavargaGuide({
                 {guide.fatherTiming.note}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-                Trine signs to watch for Saturn gochar:{' '}
-                {guide.fatherTiming.trineRashis.map((r) => RASHI_SHORT[r as keyof typeof RASHI_SHORT]).join(', ')}
+                {t('bav.trines')}{' '}
+                {guide.fatherTiming.trineRashis.map((r) => signName(r, hi)).join(', ')}
               </div>
             </div>
           ) : null}
@@ -389,29 +402,28 @@ export function BhinnashtakavargaGuide({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.45rem' }}>
                 <Users size={14} style={{ color: 'var(--text-gold)' }} />
                 <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)' }}>
-                  Maternal relatives (Moon → 4th)
+                  {t('bav.maternal')}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem', marginBottom: '0.45rem' }}>
                 <div style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.5rem' }}>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Mama (uncles) points</div>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('bav.mama')}</div>
                   <div style={{ fontSize: '1rem', fontWeight: 800 }}>{guide.maternalRelatives.mamaPoints}</div>
                 </div>
                 <div style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.5rem' }}>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Mausi (aunts) points</div>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('bav.mausi')}</div>
                   <div style={{ fontSize: '1rem', fontWeight: 800 }}>{guide.maternalRelatives.mausiPoints}</div>
                 </div>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                4th from Moon in {RASHI_SHORT[guide.maternalRelatives.rashi as keyof typeof RASHI_SHORT]}.{' '}
+                {t('bav.fourth', { sign: signName(guide.maternalRelatives.rashi, hi) })}{' '}
                 {guide.maternalRelatives.note}
               </div>
             </div>
           ) : null}
 
           <div className="card" style={{ padding: '0.85rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            <b style={{ color: 'var(--text-gold)' }}>Remember:</b> Bhinnashtakavarga timings activate when dasha/antardasha
-            supports and gochar hits the sensitive sign/degree (±1° often peaks the event; Moon degree refines the day).
+            <b style={{ color: 'var(--text-gold)' }}>{t('bav.remember')}</b> {t('bav.rememberBody')}
           </div>
         </div>
       ) : null}
@@ -419,11 +431,11 @@ export function BhinnashtakavargaGuide({
       {sub === 'transit' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Current transit planet in each natal BAV sign — low scores need caution when dasha also runs.
+            {t('bav.transitHint')}
           </div>
           {guide.transitWatch.length === 0 ? (
             <div className="card" style={{ padding: '0.85rem', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-              Transit positions not available in this view.
+              {t('bav.transitMissing')}
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.45rem' }}>
@@ -439,14 +451,14 @@ export function BhinnashtakavargaGuide({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
                     <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>
-                      {GRAHA_NAMES[row.planet] ?? row.planet}
+                      {hi ? (GRAHA_HI[row.planet] ?? row.planet) : (GRAHA_NAMES[row.planet] ?? row.planet)}
                     </span>
                     <span style={{ fontSize: '0.78rem', fontWeight: 800, color: strengthColor(row.strength) }}>
                       {row.natalBav}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                    H{row.transitHouse} · {RASHI_SHORT[row.transitRashi as keyof typeof RASHI_SHORT]} · {row.strength}
+                    {t('insights.house', { n: row.transitHouse })} · {signName(row.transitRashi, hi)} · {row.strength}
                   </div>
                   <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
                     {row.domains}
@@ -460,11 +472,11 @@ export function BhinnashtakavargaGuide({
           )}
           {kakshyaRows.length > 0 ? (
             <div className="card" style={{ padding: '0.85rem' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '0.45rem' }}>Kakshya (degree-level)</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '0.45rem' }}>{t('bav.kakshya')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.45rem' }}>
                 {kakshyaRows.map((row) => (
                   <div key={`k-${row.planet}`} style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.5rem', fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                    {kakshyaNote(row)}
+                    {kakshyaNote(row, lang)}
                   </div>
                 ))}
               </div>

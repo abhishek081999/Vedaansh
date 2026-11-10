@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 import crypto from 'crypto'
 import { sendVerificationEmail } from '@/lib/email'
+import { engineLangFromRequest } from '@/lib/requestLang'
 import { hashOneTimeToken } from '@/lib/security/tokens'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { validatePassword } from '@/lib/security/passwordPolicy'
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
     await client.close()
 
     // Send verification email
-    const emailRes = await sendVerificationEmail(email.toLowerCase(), verificationToken)
+    const emailRes = await sendVerificationEmail(email.toLowerCase(), verificationToken, engineLangFromRequest(req))
     
     if (!emailRes.success) {
       console.error('[signup] failed to send email:', emailRes.error)

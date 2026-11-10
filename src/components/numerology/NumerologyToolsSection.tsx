@@ -51,44 +51,55 @@ export function NumerologyToolsSection({
   const tp = useTranslations('numerology.panel')
   const lang = useNumerologyLang()
   const [sub, setSub] = useState<'labels' | 'business' | 'brand' | 'timing' | 'health' | 'compare' | 'saves'>('labels')
-  const cheiro = useMemo(() => getCheiroLabels(report.moolank.value, report.bhagyank.value), [report])
+  const cheiro = useMemo(
+    () => getCheiroLabels(report.moolank.value, report.bhagyank.value, lang),
+    [report, lang],
+  )
   const friendship = useMemo(
     () => getNumberFriendshipMode(report.moolank.value, friendshipMode),
     [report.moolank.value, friendshipMode],
   )
-  const inclusion = useMemo(() => buildInclusionTable(report.grid.counts), [report.grid.counts])
+  const inclusion = useMemo(() => buildInclusionTable(report.grid.counts, lang), [report.grid.counts, lang])
   const health = useMemo(
     () => getHealthAlerts({
       moolank: report.moolank.value,
       missing: report.grid.missing.map(m => m.number),
       personalYear: report.cycles.personalYear,
       enemiesOfMoolank: friendship.enemies,
+      lang,
     }),
-    [report, friendship.enemies],
+    [report, friendship.enemies, lang],
   )
-  const yantras = useMemo(() => getYantraPacks(report.remedies.focusNumbers.slice(0, 4)), [report.remedies.focusNumbers])
+  const yantras = useMemo(
+    () => getYantraPacks(report.remedies.focusNumbers.slice(0, 4), lang),
+    [report.remedies.focusNumbers, lang],
+  )
   const vastu = useMemo(
     () => getVastuKuaHints({
       moolank: report.moolank.value,
       kua: report.kua ? { value: report.kua.value, directions: report.kua.directions } : null,
+      lang,
     }),
-    [report],
+    [report, lang],
   )
-  const gochara = useMemo(() => getYearGocharaHint(report.cycles.personalYear), [report.cycles.personalYear])
-  const lagna = chart ? getLagnaNumber(chart.lagnas.ascRashi) : null
+  const gochara = useMemo(
+    () => getYearGocharaHint(report.cycles.personalYear, lang),
+    [report.cycles.personalYear, lang],
+  )
+  const lagna = chart ? getLagnaNumber(chart.lagnas.ascRashi, lang) : null
   const moon = chart?.grahas.find(g => g.id === 'Mo')
   const nakBridge = moon
-    ? getNakshatraLetterBridge(moon.nakshatraIndex, moon.pada)
+    ? getNakshatraLetterBridge(moon.nakshatraIndex, moon.pada, lang)
     : null
 
   const [brand, setBrand] = useState('')
   const brandScore = useMemo(
-    () => (brand.trim() ? scoreBrandOrSignature(brand.trim(), report.moolank.value, report.bhagyank.value) : null),
-    [brand, report],
+    () => (brand.trim() ? scoreBrandOrSignature(brand.trim(), report.moolank.value, report.bhagyank.value, lang) : null),
+    [brand, report, lang],
   )
   const plates = useMemo(
-    () => suggestPlateEndings(report.moolank.value, report.bhagyank.value),
-    [report],
+    () => suggestPlateEndings(report.moolank.value, report.bhagyank.value, 12, lang),
+    [report, lang],
   )
 
   const fromYear = useMemo(() => new Date().getFullYear(), [])
@@ -113,8 +124,9 @@ export function NumerologyToolsSection({
       yourDob: report.date,
       partnerDob: { year: y!, month: m!, day: d! },
       fromYear,
+      lang,
     })
-  }, [partnerDob, report.date, fromYear])
+  }, [partnerDob, report.date, fromYear, lang])
 
   const [compareDob, setCompareDob] = useState('')
   const [compareName, setCompareName] = useState('')

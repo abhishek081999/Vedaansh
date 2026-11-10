@@ -1,0 +1,29 @@
+{
+  "badge": "Legal",
+  "effective": "Effective {date}",
+  "navAria": "Related legal pages",
+  "support": "Support",
+  "pricing": "Pricing",
+  "about": "About",
+  "questions": "Questions?",
+  "breadcrumb": {
+    "home": "Home",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy"
+  },
+  "meta": {
+    "terms": {
+      "title": "Terms of Service",
+      "description": "Terms of Service for Vedaansh — rules for accounts, subscriptions, acceptable use, and disclaimers for our Vedic astrology platform."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "How Vedaansh collects, uses, and protects your account, birth chart, and payment data. Cookies, analytics, and your privacy rights."
+    },
+    "refund": {
+      "title": "Refund & Cancellation Policy",
+      "description": "Vedaansh refunds: monthly plans non-refundable; annual plans 7-day no-questions refund. Cancellations, chargebacks, and how to contact us."
+    }
+  }
+}

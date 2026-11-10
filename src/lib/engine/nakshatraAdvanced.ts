@@ -11,7 +11,7 @@
 
 import { NAKSHATRA_NAMES, NAKSHATRA_LORDS } from '@/types/astrology'
 import type { GrahaId, GrahaData } from '@/types/astrology'
-import { NAKSHATRA_HI } from '@/i18n/jyotish'
+import { NAKSHATRA_HI, GRAHA_HI } from '@/i18n/jyotish'
 import type { EngineLang } from '@/lib/engine/lang'
 import {
   NAKSHATRA_BODY_PART_HI,
@@ -405,15 +405,15 @@ export interface GraNakPosition {
   panchaka:      PanchakaType
 }
 
-export function getGraNakPositions(grahas: GrahaData[]): GraNakPosition[] {
+export function getGraNakPositions(grahas: GrahaData[], lang: EngineLang = 'en'): GraNakPosition[] {
   return grahas.map(g => {
-    const chars = getNakshatraCharacteristics(g.nakshatraIndex, g.pada)
+    const chars = getNakshatraCharacteristics(g.nakshatraIndex, g.pada, lang)
     const kp    = getKPSubLord(g.lonSidereal)
     return {
       grahaId:       g.id,
-      grahaName:     g.name,
+      grahaName:     lang === 'hi' ? (GRAHA_HI[g.id] ?? g.name) : g.name,
       nakshatraIndex: g.nakshatraIndex,
-      nakshatraName:  g.nakshatraName,
+      nakshatraName:  lang === 'hi' ? chars.name : g.nakshatraName,
       pada:          g.pada,
       lord:          chars.lord,
       deity:         chars.deity,

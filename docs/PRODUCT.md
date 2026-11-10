@@ -2,7 +2,7 @@
 
 **Product:** Vedic astrology (Jyotish) SaaS — charts, dashas, vargas, panchang, muhurta, CRM, admin  
 **Version:** `jyotish-platform` 2.6.0 · Next.js 16.4.2 · live codebase over marketing copy  
-**Synced:** 2026-11-03  
+**Synced:** 2026-11-10  
 **Monetization:** `free` | `gold` | `platinum` — see [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)
 
 Default list prices (INR, code defaults; admin `BillingConfig` may override): Gold ₹168/mo · ₹1,443/yr · Platinum ₹336/mo · ₹2,888/yr (`src/lib/subscription/pricing.ts`).
@@ -47,6 +47,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging
 - Admin Social Studio (`/admin/social`) for Instagram stills/carousels; Remotion CLI (`npm run reel:mp4`) for HQ Reels from a Remotion pack export
+- Public Hindi (`/hi/...`): visitor UI, SEO, guides, chart PDF/emails, and engine readings (admin / Social Studio English)
 
 ---
 
@@ -54,7 +55,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 
 | Item | Status |
 |------|--------|
-| Full i18n rollout | Remaining (prefs language field exists) |
+| Locales beyond Hindi | Sanskrit and other languages not started (prefs `language` field exists). Admin / Social Studio intentionally English |
 | Stripe checkout | Schema fields only — not wired |
 | Research pages/APIs | Platinum-gated in `src/proxy.ts`; **no route files and no UI** |
 | Apple OAuth | Enum reserved; Google is live |

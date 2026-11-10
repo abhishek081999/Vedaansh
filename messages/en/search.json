@@ -1,0 +1,28 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "search": "Search"
+  },
+  "eyebrow": "Site search",
+  "title": "Search Vedaansh",
+  "lede": "Find calculators and Jyotish guides. Try “kundali”, “navamsha”, “rahu kalam”, or “matching”.",
+  "label": "Search query",
+  "placeholder": "Search tools & guides…",
+  "submit": "Search",
+  "emptyPrompt": "Enter a query to search tools and guides.",
+  "browseGuides": "Browse all guides",
+  "noResults": "No results for “{q}”. Try another term or",
+  "browseGuidesShort": "browse guides",
+  "resultCount": "{count, plural, one {# result} other {# results}} for “{q}”",
+  "types": {
+    "tool": "Tool",
+    "guide": "Guide",
+    "page": "Page"
+  },
+  "meta": {
+    "title": "Search",
+    "description": "Search Vedaansh tools and Jyotish guides — Kundali, Panchang, Muhurta, matching, and more.",
+    "ogTitle": "Search Vedaansh",
+    "ogDescription": "Find Vedic astrology tools and guides on Vedaansh."
+  }
+}

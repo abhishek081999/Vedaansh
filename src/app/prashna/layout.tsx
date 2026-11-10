@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { prashnaIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -27,13 +27,14 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/prashna', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/prashna', locale, metadataEn, {
     title: 'प्रश्न — कृष्णीय केरल होरेरी ज्योतिष',
     description: 'निःशुल्क प्रश्न ज्योतिष, कृष्णीय केरल होरेरी नियमों के साथ: हाँ/नहीं, समय, खोई वस्तु, स्वास्थ्य, यात्रा और संबंध के प्रश्न।',
     ogTitle: 'प्रश्न — कृष्णीय केरल होरेरी | Vedaansh',
     ogDescription: 'कृष्णीय नियमों के साथ तुरंत प्रश्न कुंडली: हाँ/नहीं, कब, क्या, कौन, खोई वस्तु, स्वास्थ्य और अधिक।',
     keywords: ['प्रश्न', 'होरेरी ज्योतिष', 'कृष्णीय', 'केरल ज्योतिष', 'प्रश्न ज्योतिष', 'आरूढ़', 'उदय लग्न', 'हाँ नहीं', 'नष्ट प्रश्न', 'निःशुल्क प्रश्न कुंडली'],
-  })
+  }), locale, '/prashna/opengraph-image', 'प्रश्न ज्योतिष — Vedaansh')
 }
 
 export default async function PrashnaLayout({ children }: { children: React.ReactNode }) {

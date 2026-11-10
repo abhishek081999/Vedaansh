@@ -7,8 +7,11 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { RASHI_HI } from '@/i18n/jyotish'
 import { buildPointGroups, type PointKind } from './transitPoints'
 import styles from './transit-scrubber.module.css'
 
@@ -25,11 +28,7 @@ const NATAL_TRACKS = [168, 147, 126, 106]
 
 const ORB_OPTIONS = [1, 2, 3, 5, 8]
 
-const KIND_LABEL: Record<PointKind, string> = {
-  graha: 'Grahas',
-  lagna: 'Lagnas',
-  upagraha: 'Upagrahas',
-}
+const POINT_KINDS: PointKind[] = ['graha', 'lagna', 'upagraha']
 
 type Ring = 'natal' | 'transit'
 
@@ -125,6 +124,8 @@ interface TransitNatalWheelProps {
 }
 
 export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWheelProps) {
+  const t = useTranslations('transit.scrubber.wheel')
+  const { lang, hi } = useLang()
   const [layers, setLayers] = useState<Record<PointKind, boolean>>({ graha: true, lagna: true, upagraha: true })
   const [orb, setOrb] = useState(3)
   const [focus, setFocus] = useState<string | null>(null)
@@ -141,7 +142,7 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
   const { natalPts, transitPts } = useMemo(() => {
     const natal: WheelPoint[] = []
     const transit: WheelPoint[] = []
-    for (const group of buildPointGroups(natalChart, transitChart)) {
+    for (const group of buildPointGroups(natalChart, transitChart, lang)) {
       if (!layers[group.kind]) continue
       for (const row of group.rows) {
         const nodeRetro = row.grahaId === 'Ra' || row.grahaId === 'Ke'
@@ -167,7 +168,7 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
       }
     }
     return { natalPts: natal, transitPts: transit }
-  }, [natalChart, transitChart, layers])
+  }, [natalChart, transitChart, lang, layers])
 
   const placedNatal = useMemo(() => placeOnTracks(natalPts, NATAL_TRACKS), [natalPts])
   const placedTransit = useMemo(() => placeOnTracks(transitPts, TRANSIT_TRACKS), [transitPts])
@@ -209,8 +210,19 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
     return m
   }, [placedNatal, placedTransit])
 
+  const rashiLabel = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const rashiShort = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r])
+
   const describe = (p: WheelPoint) =>
-    `${p.ring === 'natal' ? 'Natal' : 'Transit'} ${p.label} — ${RASHI_NAMES[p.rashi]} ${fmtDeg(p.degree)} · ${p.nakshatraName} P${p.pada} · H${houseOf(p.rashi, ascRashi)}${p.retro ? ' · retrograde' : ''}`
+    t(p.retro ? 'tipRetro' : 'tip', {
+      ring: t(`ring.${p.ring}`),
+      label: p.label,
+      rashi: rashiLabel(p.rashi),
+      deg: fmtDeg(p.degree),
+      nak: p.nakshatraName,
+      pada: p.pada,
+      house: houseOf(p.rashi, ascRashi),
+    })
 
   const renderMarker = (p: PlacedPoint) => {
     const tickR = p.ring === 'natal' ? R_SPLIT - 6 : R_SPLIT + 6
@@ -277,9 +289,9 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
   return (
     <div className={styles.compareSection}>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.9rem' }}>
-        <h3 className={styles.compareTitle} style={{ margin: 0 }}>Transit over natal — bi-wheel</h3>
+        <h3 className={styles.compareTitle} style={{ margin: 0 }}>{t('title')}</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem' }}>
-          {(Object.keys(KIND_LABEL) as PointKind[]).map(k => (
+          {POINT_KINDS.map(k => (
             <button
               key={k}
               type="button"
@@ -294,16 +306,16 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
                 background: layers[k] ? 'var(--gold-faint)' : 'transparent',
               }}
             >
-              {KIND_LABEL[k]}
+              {t(`kinds.${k}`)}
             </button>
           ))}
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>
-            Orb
+            {t('orb')}
             <select
               value={orb}
               onChange={e => setOrb(Number(e.target.value))}
               className={styles.dashaSelectCompact}
-              aria-label="Conjunction orb in degrees"
+              aria-label={t('ariaOrb')}
             >
               {ORB_OPTIONS.map(o => <option key={o} value={o}>{o}°</option>)}
             </select>
@@ -316,7 +328,7 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
           <svg
             viewBox={`0 0 ${SIZE} ${SIZE}`}
             role="img"
-            aria-label="Bi-wheel with natal points on the inner ring and transit points on the outer ring"
+            aria-label={t('ariaWheel')}
             style={{ width: '100%', maxWidth: 640, display: 'block', margin: '0 auto' }}
           >
             {/* Rings */}
@@ -353,7 +365,7 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
                     fill={house === 1 ? 'var(--text-gold)' : 'var(--text-muted)'}
                     style={{ fontFamily: 'var(--font-mono)' }}
                   >
-                    H{house}
+                    {t('houseMark', { n: house })}
                   </text>
                 </g>
               )
@@ -391,26 +403,26 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
 
             {/* Center caption */}
             <text x={C} y={C - 7} textAnchor="middle" fontSize={10} fill="var(--text-gold)" style={{ fontFamily: 'var(--font-mono)' }}>
-              inner · natal
+              {t('innerNatal')}
             </text>
             <text x={C} y={C + 9} textAnchor="middle" fontSize={10} fill={RING_COLOR.transit} style={{ fontFamily: 'var(--font-mono)' }}>
-              outer · transit
+              {t('outerTransit')}
             </text>
           </svg>
 
           {/* Legend */}
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.9rem', marginTop: '0.6rem', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <svg width={10} height={10} aria-hidden><circle cx={5} cy={5} r={3.4} fill="var(--text-muted)" /></svg>Graha
+              <svg width={10} height={10} aria-hidden><circle cx={5} cy={5} r={3.4} fill="var(--text-muted)" /></svg>{t('legendGraha')}
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <svg width={10} height={10} aria-hidden><rect x={2} y={2} width={6} height={6} fill="var(--text-muted)" transform="rotate(45 5 5)" /></svg>Lagna
+              <svg width={10} height={10} aria-hidden><rect x={2} y={2} width={6} height={6} fill="var(--text-muted)" transform="rotate(45 5 5)" /></svg>{t('legendLagna')}
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <svg width={10} height={10} aria-hidden><circle cx={5} cy={5} r={3} fill="none" stroke="var(--text-muted)" strokeWidth={1.3} /></svg>Upagraha
+              <svg width={10} height={10} aria-hidden><circle cx={5} cy={5} r={3} fill="none" stroke="var(--text-muted)" strokeWidth={1.3} /></svg>{t('legendUpagraha')}
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <svg width={16} height={10} aria-hidden><line x1={1} y1={5} x2={15} y2={5} stroke="var(--rose)" strokeDasharray="3 2" /></svg>Within {orb}°
+              <svg width={16} height={10} aria-hidden><line x1={1} y1={5} x2={15} y2={5} stroke="var(--rose)" strokeDasharray="3 2" /></svg>{t('withinOrb', { orb })}
             </span>
           </div>
         </div>
@@ -418,13 +430,13 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
         {/* Contacts list */}
         <div>
           <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-            Transit contacts on natal points · {contacts.length}
+            {t('contactsTitle', { count: contacts.length })}
           </div>
           {!transitChart ? (
-            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Calculating transit…</p>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('calculating')}</p>
           ) : contacts.length === 0 ? (
             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              No transit point is within {orb}° of a natal point. Widen the orb to see near contacts.
+              {t('noContacts', { orb })}
             </p>
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 520, overflowY: 'auto' }}>
@@ -450,10 +462,16 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
                   >
                     <span style={{ minWidth: 0 }}>
                       <span style={{ color: RING_COLOR.transit, fontWeight: 700 }}>{c.transit.label}</span>
-                      <span style={{ color: 'var(--text-muted)' }}> ☌ natal </span>
+                      <span style={{ color: 'var(--text-muted)' }}> {t('conjNatal')} </span>
                       <span style={{ color: RING_COLOR.natal, fontWeight: 700 }}>{c.natal.label}</span>
                       <span style={{ display: 'block', fontSize: '0.66rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                        {RASHI_SHORT[c.transit.rashi]} {fmtDeg(c.transit.degree)} → {RASHI_SHORT[c.natal.rashi]} {fmtDeg(c.natal.degree)} · H{houseOf(c.natal.rashi, ascRashi)}
+                        {t('contactPos', {
+                          fromRashi: rashiShort(c.transit.rashi),
+                          fromDeg: fmtDeg(c.transit.degree),
+                          toRashi: rashiShort(c.natal.rashi),
+                          toDeg: fmtDeg(c.natal.degree),
+                          house: houseOf(c.natal.rashi, ascRashi),
+                        })}
                       </span>
                     </span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: c.orb <= 1 ? 'var(--rose)' : 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
@@ -468,8 +486,7 @@ export function TransitNatalWheel({ natalChart, transitChart }: TransitNatalWhee
       </div>
 
       <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-        Wheel is fixed to your <strong>natal lagna</strong> (dashed line, left); houses are whole-sign. Hover any point or contact to isolate it.
-        Transit lagnas and Gulika/Maandi move fast — scrub the time to watch them cross natal points.
+        {t.rich('footnote', { b: (chunks) => <strong>{chunks}</strong> })}
       </p>
     </div>
   )

@@ -1,0 +1,36 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "guides": "Guides"
+  },
+  "index": {
+    "eyebrow": "Learn Jyotish",
+    "title": "Vedic astrology guides",
+    "lede": "Short, practical explanations of Kundali, Dasha, Panchang, and matching — each linked to a free Vedaansh calculator.",
+    "searchLabel": "Search guides and tools",
+    "searchPlaceholder": "Search guides & tools…",
+    "search": "Search",
+    "itemListName": "Vedaansh Jyotish Guides"
+  },
+  "article": {
+    "back": "← All guides",
+    "eyebrow": "Jyotish guide",
+    "updated": "Updated {date}",
+    "searchSite": "Search site",
+    "faq": "Frequently asked questions",
+    "related": "Related guides",
+    "notFound": "Guide not found"
+  },
+  "meta": {
+    "indexTitle": "Jyotish Guides — Kundali, Dasha, Panchang & Matching",
+    "indexDescription": "Free Vedic astrology guides: Kundali, Navamsha (D9), Ashtakoot Guna Milan, Vimshottari Dasha, Panchang, and Rahu Kalam — with links to Vedaansh calculators.",
+    "ogTitle": "Jyotish Guides — Vedaansh",
+    "ogDescription": "Clear guides on Kundali, Dasha, Panchang, and matching — linked to free calculators.",
+    "keywords": [
+      "vedic astrology guides",
+      "kundali guide",
+      "jyotish articles",
+      "learn vedic astrology"
+    ]
+  }
+}

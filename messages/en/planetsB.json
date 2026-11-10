@@ -89,6 +89,23 @@
       "natal": "natal",
       "houses": "houses",
       "signs": "signs"
+    },
+    "scopeAria": "Show content for",
+    "scopeChart": "Your chart ({count})",
+    "scopeAll": "All · reference ({count})",
+    "profile": {
+      "dignity": "Dignity",
+      "houseDrishti": "House {n} · drishti",
+      "aspects": "Aspects {houses}",
+      "nakshatra": "Nakshatra",
+      "shadbala": "Shadbala",
+      "rupa": "/ {n} rupa",
+      "strengthOf": "{n}% of the required strength",
+      "pada": "pada",
+      "wheelAria": "In house {house}; aspects houses {houses}",
+      "nakshatraN": "Nakshatra {n}",
+      "starPada": "{name} pada {pada}",
+      "lagnaUp": "Lagna ↑"
     }
   },
   "energy": {

@@ -5,8 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId } from '@/types/astrology'
-import { GRAHA_NAMES } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import {
   buildGocharaNavtaraReport,
@@ -30,9 +31,11 @@ interface TransitNavtaraPanelProps {
 }
 
 export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitNavtaraPanelProps) {
+  const t = useTranslations('transit.scrubber.navtara')
+  const { lang, hi } = useLang()
   const prediction = useMemo(
-    () => getNavtaraPrediction(natalChart, asOf),
-    [natalChart, asOf],
+    () => getNavtaraPrediction(natalChart, asOf, lang),
+    [natalChart, asOf, lang],
   )
 
   const activeLords = useMemo(() => {
@@ -54,23 +57,27 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
       })),
       activeLords,
       dateStr,
+      lang,
     )
-  }, [transitChart, prediction.birthNakshatraIndex, activeLords, asOf])
+  }, [transitChart, prediction.birthNakshatraIndex, activeLords, asOf, lang])
 
   const moonBooking = useMemo(() => {
     if (!gochara?.moonTara) return null
     return checkMuhurtaNavtara(
       prediction.birthNakshatraIndex,
       gochara.moonTara.nakshatraIndex,
-      'this transit moment',
+      t('activity'),
+      lang,
     )
-  }, [gochara?.moonTara, prediction.birthNakshatraIndex])
+  }, [gochara?.moonTara, prediction.birthNakshatraIndex, lang, t])
+
+  const taraName = (name: string, hindi?: string) => (hi && hindi ? hindi : name)
 
   if (!transitChart || !gochara) {
     return (
       <section className={styles.insightsSection}>
         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-          Scrub date and time to read Navtara gochara at that moment.
+          {t('empty')}
         </p>
       </section>
     )
@@ -86,17 +93,17 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
       : TONE.supportive
 
   return (
-    <section className={styles.insightsSection} aria-label="Navtara at this transit moment">
+    <section className={styles.insightsSection} aria-label={t('aria')}>
       <div className={styles.momentBanner} style={{ background: tone.bg, borderColor: tone.border }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div className={styles.momentLabel}>Navtara · dasha window</div>
+            <div className={styles.momentLabel}>{t('window')}</div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: tone.color, marginTop: 2 }}>
-              {maha ? `${maha.tara} · ${maha.lordName} MD` : 'Dasha unavailable'}
-              {antar ? ` / ${antar.tara} · ${antar.lordName} AD` : ''}
+              {maha ? `${taraName(maha.tara, maha.profile.hindi)} · ${maha.lordName} ${t('md')}` : t('dashaUnavailable')}
+              {antar ? ` / ${taraName(antar.tara, antar.profile.hindi)} · ${antar.lordName} ${t('ad')}` : ''}
             </div>
             <p style={{ margin: '0.45rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              From {prediction.birthNakshatraName}. {prediction.current.synthesis}
+              {t('fromBirth', { nak: prediction.birthNakshatraName, synthesis: prediction.current.synthesis })}
             </p>
           </div>
           <span
@@ -113,11 +120,11 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
               flexShrink: 0,
             }}
           >
-            {prediction.current.experienceTone}
+            {t(`tone.${prediction.current.experienceTone}`)}
           </span>
         </div>
         <p style={{ margin: '0.65rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          <strong style={{ color: 'var(--text-gold)' }}>Decide:</strong> {prediction.current.decisionAdvice}
+          <strong style={{ color: 'var(--text-gold)' }}>{t('decide')}</strong> {prediction.current.decisionAdvice}
         </p>
       </div>
 
@@ -128,13 +135,13 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'baseline' }}>
             <div>
-              <div className={styles.momentLabel}>Transit Moon tara</div>
+              <div className={styles.momentLabel}>{t('moonTitle')}</div>
               <div style={{ fontWeight: 700, fontSize: '0.95rem', color: bookingTone.color }}>
-                {gochara.moonTara?.nakshatraName} → {moonBooking.tara}
+                {gochara.moonTara?.nakshatraName} → {taraName(moonBooking.tara, moonBooking.profile.hindi)}
               </div>
             </div>
             <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: bookingTone.color }}>
-              {moonBooking.verdict}
+              {t(`verdict.${moonBooking.verdict}`)}
             </span>
           </div>
           <p style={{ margin: '0.4rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -145,41 +152,51 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
 
       <div className={styles.factorsGrid}>
         <div className={`${styles.factorsCard} ${styles.factorsGood}`}>
-          <h4 className={styles.factorsTitle}>Event candidates (dasha + gochara)</h4>
+          <h4 className={styles.factorsTitle}>{t('candidatesTitle')}</h4>
           {gochara.activeEventCandidates.length > 0 ? (
             <ul className={styles.factorsList}>
               {gochara.activeEventCandidates.map(p => (
                 <li key={p.grahaId}>
-                  <strong>{p.grahaName}</strong> in {p.nakshatraName} → {p.tara}
-                  {p.isRetro ? ' ℞' : ''} — can materialize with running dasha
+                  {t.rich('candidate', {
+                    graha: p.grahaName,
+                    nak: p.nakshatraName,
+                    tara: taraName(p.tara, p.profile.hindi),
+                    retro: p.isRetro ? ' ℞' : '',
+                    b: (chunks) => <strong>{chunks}</strong>,
+                  })}
                 </li>
               ))}
             </ul>
           ) : (
             <p className={styles.factorsEmpty}>
-              No dasha-matched transit lords — gochara is energy/tone only at this moment.
+              {t('candidatesEmpty')}
             </p>
           )}
         </div>
         <div className={`${styles.factorsCard} ${styles.factorsCaution}`}>
-          <h4 className={styles.factorsTitle}>Hard tara transits</h4>
+          <h4 className={styles.factorsTitle}>{t('hardTitle')}</h4>
           {gochara.hardTransits.length > 0 ? (
             <ul className={styles.factorsList}>
               {gochara.hardTransits.map(p => (
                 <li key={p.grahaId}>
-                  <strong>{p.grahaName}</strong> · {p.tara} ({p.profile.shortLabel})
-                  {p.dashaActive ? ' · dasha active' : ''}
+                  {t.rich('hardLine', {
+                    graha: p.grahaName,
+                    tara: taraName(p.tara, p.profile.hindi),
+                    label: p.profile.shortLabel,
+                    dasha: p.dashaActive ? t('dashaActive') : '',
+                    b: (chunks) => <strong>{chunks}</strong>,
+                  })}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className={styles.factorsEmpty}>No Vipat / Pratyari / Vadha transit planets right now.</p>
+            <p className={styles.factorsEmpty}>{t('hardEmpty')}</p>
           )}
         </div>
       </div>
 
       <div className={styles.predictionsBlock}>
-        <h3 className={styles.compareTitle}>Gochara by Navtara</h3>
+        <h3 className={styles.compareTitle}>{t('gocharaTitle')}</h3>
         <p style={{ margin: '0 0 0.85rem', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
           {gochara.summary}
         </p>
@@ -194,7 +211,7 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
               >
                 <div className={styles.planetCardHeader}>
                   <span className={styles.planetCardName}>
-                    {GRAHA_NAMES[p.grahaId] ?? p.grahaName}
+                    {p.grahaName}
                     {p.isRetro && <span className={styles.retroMark}> ℞</span>}
                   </span>
                   <span
@@ -202,14 +219,14 @@ export function TransitNavtaraPanel({ natalChart, transitChart, asOf }: TransitN
                       p.eventLikelihood === 'active' ? styles.verdictGood : styles.verdictMixed
                     }`}
                   >
-                    {p.eventLikelihood === 'active' ? 'Active' : 'Energy'}
+                    {p.eventLikelihood === 'active' ? t('active') : t('energy')}
                   </span>
                 </div>
                 <div className={styles.planetCardMeta}>
                   <span>{p.nakshatraName}</span>
                   <span>→</span>
                   <span style={{ color: hard ? 'var(--rose)' : 'var(--teal)', fontWeight: 600 }}>
-                    {p.taraNumber}. {p.tara}
+                    {p.taraNumber}. {taraName(p.tara, p.profile.hindi)}
                   </span>
                 </div>
                 <p className={styles.planetPrediction}>{p.profile.shortLabel}</p>

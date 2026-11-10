@@ -6,6 +6,7 @@ import { signIn, getSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { useTranslations } from 'next-intl'
+import { toUnprefixedAppPath } from '@/i18n/config'
 import { Alert, Button, Card, Field } from '@/components/ui/primitives'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
@@ -22,7 +23,9 @@ function loginErrorFromParam(
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  // Unprefixed only — next-intl prefixes for the active locale; a /hi/...
+  // callback would become /hi/hi/... after credentials sign-in.
+  const callbackUrl = toUnprefixedAppPath(searchParams.get('callbackUrl') || '/')
   const errorParam = searchParams.get('error')
 
   const t = useTranslations('auth.login')

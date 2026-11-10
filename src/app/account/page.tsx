@@ -8,9 +8,11 @@ import { Link, useRouter } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 import { VedaanshLoader }      from '@/components/ui/primitives/VedaanshLoader'
 import { useChartStyle }       from '@/components/providers/ChartStyleProvider'
+import { useLang } from '@/i18n/useLang'
 import type { ChartStyle }     from '@/types/astrology'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -30,32 +32,36 @@ interface PersonalChart {
   birthPlace: string; latitude: number; longitude: number; timezone: string
 }
 
-// ── Option lists ──────────────────────────────────────────────
-const AYANAMSHA_OPTIONS = [
-  { value: 'lahiri',      label: 'Lahiri (Chitrapaksha)' },
-  { value: 'true_chitra', label: 'True Chitra' },
-  { value: 'true_revati', label: 'True Revati' },
-  { value: 'raman',       label: 'B.V. Raman' },
-  { value: 'yukteshwar',  label: 'Sri Yukteshwar' },
-]
+// ── Option lists (labels from account.prefs.*) ────────────────
+type TFn = (key: string) => string
 
-const CHART_STYLE_OPTIONS = [
-  { value: 'north', label: 'North Indian' },
-  { value: 'south', label: 'South Indian' },
-  { value: 'circle', label: 'Circle Wheel' },
-  { value: 'sarvatobhadra', label: 'Sarvatobhadra' },
-]
+function ayanamshaOptions(t: TFn) {
+  return (['lahiri', 'true_chitra', 'true_revati', 'raman', 'yukteshwar'] as const).map(value => ({
+    value,
+    label: t(`prefs.ayanOptions.${value}`),
+  }))
+}
 
-const HOUSE_OPTIONS = [
-  { value: 'whole_sign', label: 'Whole Sign' },
-  { value: 'placidus',   label: 'Placidus' },
-  { value: 'equal',      label: 'Equal House' },
-]
+function chartStyleOptions(t: TFn) {
+  return (['north', 'south', 'circle', 'sarvatobhadra'] as const).map(value => ({
+    value,
+    label: t(`prefs.styleOptions.${value}`),
+  }))
+}
 
-const NODE_OPTIONS = [
-  { value: 'mean', label: 'Mean Nodes' },
-  { value: 'true', label: 'True Nodes' },
-]
+function houseOptions(t: TFn) {
+  return (['whole_sign', 'placidus', 'equal'] as const).map(value => ({
+    value,
+    label: t(`prefs.houseOptions.${value}`),
+  }))
+}
+
+function nodeOptions(t: TFn) {
+  return (['mean', 'true'] as const).map(value => ({
+    value,
+    label: t(`prefs.nodeOptions.${value}`),
+  }))
+}
 
 // ── Preference row ────────────────────────────────────────────
 function PrefSelect({ label, value, options, onChange }: {
@@ -180,6 +186,8 @@ function QuickActionTile({
 import { Suspense } from 'react'
 
 function AccountContent() {
+  const t = useTranslations('account')
+  const { tag } = useLang()
   const { data: session, status, update } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -221,18 +229,18 @@ function AccountContent() {
 
   const accountTabs = useMemo(() => {
     const tabs: { id: AccountTabId; label: string; icon: string }[] = [
-      { id: 'profile', label: 'Profile', icon: '👤' },
+      { id: 'profile', label: t('tabs.profile'), icon: '👤' },
     ]
     if (user?.plan === 'platinum') {
-      tabs.push({ id: 'branding', label: 'Consult branding', icon: '💎' })
+      tabs.push({ id: 'branding', label: t('tabs.branding'), icon: '💎' })
     }
     tabs.push(
-      { id: 'birth', label: 'My birth details', icon: '🌙' },
-      { id: 'preferences', label: 'Chart preferences', icon: '⚙' },
-      { id: 'billing', label: 'Billing & privacy', icon: '🔒' },
+      { id: 'birth', label: t('tabs.birth'), icon: '🌙' },
+      { id: 'preferences', label: t('tabs.preferences'), icon: '⚙' },
+      { id: 'billing', label: t('tabs.billing'), icon: '🔒' },
     )
     return tabs
-  }, [user?.plan])
+  }, [user?.plan, t])
 
   const loadBilling = useCallback(() => {
     setBillingLoading(true)
@@ -251,7 +259,7 @@ function AccountContent() {
   }, [])
 
   useEffect(() => {
-    const ids = accountTabs.map((t) => t.id)
+    const ids = accountTabs.map((tab) => tab.id)
     if (!ids.includes(activeTab)) setActiveTab('profile')
   }, [accountTabs, activeTab])
 
@@ -267,14 +275,14 @@ function AccountContent() {
         if (data.success && data.plan) {
           // Update the NextAuth JWT token with the new plan
           await update({ plan: data.plan })
-          const planLabel = data.plan === 'gold' ? 'Gold' : data.plan === 'platinum' ? 'Platinum' : 'Free'
-          setUpgradeMsg(`✓ Plan upgraded to ${planLabel} successfully!`)
+          const planKey = data.plan === 'gold' || data.plan === 'platinum' ? data.plan : 'free'
+          setUpgradeMsg(t('upgradeFlash', { plan: t(`plans.${planKey}`) }))
           // Remove the query param without full reload
           router.replace('/account', { scroll: false })
         }
       })
       .catch(() => {/* ignore — user can re-login to refresh */})
-  }, [status, searchParams, update, router])
+  }, [status, searchParams, update, router, t])
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -316,7 +324,7 @@ function AccountContent() {
   }, [status, router])
 
   async function cancelRenewal() {
-    if (!confirm('Cancel renewal? You keep paid access until the end of your current billing period.')) return
+    if (!confirm(t('billing.cancelConfirm'))) return
     setCancelLoading(true)
     try {
       const res = await fetch('/api/user/subscription/cancel', { method: 'POST' })
@@ -324,7 +332,7 @@ function AccountContent() {
       if (data.success) {
         loadBilling()
       } else {
-        alert(data.error ?? 'Could not cancel renewal')
+        alert(data.error ?? t('billing.cancelFailed'))
       }
     } finally {
       setCancelLoading(false)
@@ -337,7 +345,7 @@ function AccountContent() {
       const res = await fetch('/api/user/export')
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        alert(err.error ?? 'Export failed')
+        alert(err.error ?? t('billing.exportFailed'))
         return
       }
       const blob = await res.blob()
@@ -355,10 +363,10 @@ function AccountContent() {
   async function deleteAccount() {
     setDeleteError(null)
     if (deletePhrase !== 'DELETE') {
-      setDeleteError('Type DELETE exactly to confirm')
+      setDeleteError(t('billing.deleteTypeError'))
       return
     }
-    if (!confirm('Permanently delete your account and all saved charts? This cannot be undone.')) return
+    if (!confirm(t('billing.deleteConfirm'))) return
     setDeleteLoading(true)
     try {
       const res = await fetch('/api/user/account', {
@@ -371,7 +379,7 @@ function AccountContent() {
       })
       const data = await res.json()
       if (!data.success) {
-        setDeleteError(data.error ?? 'Deletion failed')
+        setDeleteError(data.error ?? t('billing.deleteFailed'))
         return
       }
       await signOut({ callbackUrl: '/' })
@@ -404,19 +412,19 @@ function AccountContent() {
 
   const quickLinks = useMemo(() => {
     const items: Array<{ href?: string; icon: string; label: string; sub: string }> = [
-      { href: '/my/charts', icon: '📂', label: 'My Charts', sub: 'Saved library' },
-      { href: '/?new=true', icon: '✦', label: 'New chart', sub: 'Home calculator' },
-      { href: '/panchang', icon: '📅', label: 'Panchang', sub: 'Daily calendar' },
-      { href: '/muhurta', icon: '⏱', label: 'Muhurta', sub: 'Good timings' },
+      { href: '/my/charts', icon: '📂', label: t('quick.charts'), sub: t('quick.chartsSub') },
+      { href: '/?new=true', icon: '✦', label: t('quick.newChart'), sub: t('quick.newChartSub') },
+      { href: '/panchang', icon: '📅', label: t('quick.panchang'), sub: t('quick.panchangSub') },
+      { href: '/muhurta', icon: '⏱', label: t('quick.muhurta'), sub: t('quick.muhurtaSub') },
     ]
     if (user?.plan === 'free') {
-      items.push({ href: '/pricing', icon: '💎', label: 'Upgrade', sub: 'Gold & Platinum' })
+      items.push({ href: '/pricing', icon: '💎', label: t('quick.upgrade'), sub: t('quick.upgradeSub') })
     }
     if (user?.role === 'admin') {
-      items.push({ href: '/admin', icon: '🛡️', label: 'Admin', sub: 'Dashboard' })
+      items.push({ href: '/admin', icon: '🛡️', label: t('quick.admin'), sub: t('quick.adminSub') })
     }
     return items
-  }, [user])
+  }, [user, t])
 
   if (status === 'loading' || loading) {
     return (
@@ -466,14 +474,14 @@ function AccountContent() {
                   marginBottom: '0.25rem',
                 }}
               >
-                Quick options
+                {t('quick.title')}
               </div>
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}>
-                Shortcuts to charts, tools, and appearance
+                {t('quick.subtitle')}
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Theme</span>
+              <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('quick.theme')}</span>
               <ThemeToggle />
             </div>
           </div>
@@ -489,8 +497,8 @@ function AccountContent() {
             ))}
             <QuickActionTile
               icon="⎋"
-              label="Log out"
-              sub="End session"
+              label={t('quick.logout')}
+              sub={t('quick.logoutSub')}
               danger
               onClick={() => signOut({ callbackUrl: '/' })}
             />
@@ -542,7 +550,7 @@ function AccountContent() {
                   margin: '0 0 0.2rem 0',
                 }}
               >
-                {user?.name ?? 'Vedic Soul'}
+                {user?.name ?? t('hero.fallbackName')}
               </h1>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{user?.email}</div>
             </div>
@@ -561,7 +569,7 @@ function AccountContent() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Plan</span>
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('hero.plan')}</span>
               <span
                 style={{
                   padding: '0.12rem 0.45rem',
@@ -576,20 +584,19 @@ function AccountContent() {
                   fontFamily: 'var(--font-display)',
                 }}
               >
-                {user?.plan === 'free' ? 'Free' : user?.plan === 'gold' ? 'Gold' : user?.plan === 'platinum' ? 'Platinum' : user?.plan}
+                {user?.plan === 'free' ? t('plans.free') : user?.plan === 'gold' ? t('plans.gold') : user?.plan === 'platinum' ? t('plans.platinum') : user?.plan}
               </span>
             </div>
             {user?.plan !== 'free' && user?.planExpiresAt && (
               <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                Renews{' '}
-                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                  {new Date(user.planExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
+                {t('hero.renews', {
+                  date: new Date(user.planExpiresAt).toLocaleDateString(tag, { day: 'numeric', month: 'short', year: 'numeric' }),
+                })}
               </div>
             )}
             {user?.plan === 'free' && (
               <Link href="/pricing" style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
-                Upgrade to Gold →
+                {t('hero.upgradeGold')}
               </Link>
             )}
           </section>
@@ -626,7 +633,7 @@ function AccountContent() {
         >
           <div
             role="tablist"
-            aria-label="Account sections"
+            aria-label={t('hero.sectionsAria')}
             style={{
               display: 'flex',
               gap: '0.3rem',
@@ -683,7 +690,7 @@ function AccountContent() {
               }}
             >
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}>
-                Unsaved changes (profile, branding & chart defaults)
+                {t('dirty.note')}
               </span>
               <button
                 type="button"
@@ -691,7 +698,7 @@ function AccountContent() {
                 disabled={saving}
                 className="btn btn-primary btn-sm"
               >
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? t('dirty.saving') : t('dirty.save')}
               </button>
             </div>
           )}
@@ -704,11 +711,11 @@ function AccountContent() {
                 aria-labelledby="account-tab-profile"
               >
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1rem', fontFamily: 'var(--font-display)' }}>
-                  How your name appears in the app and on exports.
+                  {t('profile.intro')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 480 }}>
                   <div>
-                    <label className="field-label">Display Name</label>
+                    <label className="field-label">{t('profile.displayName')}</label>
                     <input
                       className="input"
                       value={name}
@@ -720,7 +727,7 @@ function AccountContent() {
                     />
                   </div>
                   <div>
-                    <label className="field-label">Email</label>
+                    <label className="field-label">{t('profile.email')}</label>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
                       {user?.email}
                     </div>
@@ -742,11 +749,11 @@ function AccountContent() {
                 }}
               >
                 <p style={{ fontSize: '0.78rem', color: 'var(--gold)', margin: '0 0 1rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
-                  💎 White-label PDFs and shared charts with your practice name and logo.
+                  {t('branding.intro')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 480 }}>
                   <div>
-                    <label className="field-label">Brand / Business Name</label>
+                    <label className="field-label">{t('branding.name')}</label>
                     <input
                       className="input"
                       value={brandName}
@@ -754,15 +761,15 @@ function AccountContent() {
                         setBrandName(e.target.value)
                         setPrefsDirty(true)
                       }}
-                      placeholder="e.g. Astro Wisdom Studio"
+                      placeholder={t('branding.namePh')}
                       style={{ marginTop: '0.35rem', width: '100%' }}
                     />
                     <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      Shown on shared charts and PDF reports.
+                      {t('branding.nameHint')}
                     </p>
                   </div>
                   <div>
-                    <label className="field-label">Brand Logo URL</label>
+                    <label className="field-label">{t('branding.logo')}</label>
                     <input
                       className="input"
                       value={brandLogo}
@@ -770,11 +777,11 @@ function AccountContent() {
                         setBrandLogo(e.target.value)
                         setPrefsDirty(true)
                       }}
-                      placeholder="https://yourdomain.com/logo.png"
+                      placeholder={t('branding.logoPh')}
                       style={{ marginTop: '0.35rem', width: '100%' }}
                     />
                     <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      Direct link to a logo image (transparent PNG recommended).
+                      {t('branding.logoHint')}
                     </p>
                   </div>
                 </div>
@@ -784,7 +791,7 @@ function AccountContent() {
             {activeTab === 'birth' && (
               <div role="tabpanel" id="account-panel-birth" aria-labelledby="account-tab-birth">
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1rem', fontFamily: 'var(--font-display)' }}>
-                  Janma details used for your default chart and dashboard.
+                  {t('birth.intro')}
                 </p>
                 {personalChart ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 440 }}>
@@ -809,16 +816,16 @@ function AccountContent() {
                       className="btn btn-primary btn-sm"
                       style={{ justifyContent: 'center', textAlign: 'center', alignSelf: 'flex-start' }}
                     >
-                      Open Own Chart
+                      {t('birth.open')}
                     </Link>
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '1.25rem 0.5rem' }}>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>
-                      No personal birth chart saved yet.
+                      {t('birth.empty')}
                     </p>
                     <Link href="/" className="btn btn-ghost btn-sm">
-                      Set Birth Details
+                      {t('birth.set')}
                     </Link>
                   </div>
                 )}
@@ -829,44 +836,44 @@ function AccountContent() {
               <div role="tabpanel" id="account-panel-preferences" aria-labelledby="account-tab-preferences">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, fontFamily: 'var(--font-display)' }}>
-                    Defaults for new charts and the calculator.
+                    {t('prefs.intro')}
                   </p>
                   {saved && !prefsDirty && (
                     <span style={{ fontSize: '0.76rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
-                      ✓ Saved
+                      {t('prefs.saved')}
                     </span>
                   )}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 520 }}>
                   <PrefSelect
-                    label="Ayanamsha"
+                    label={t('prefs.ayanamsha')}
                     value={prefs.defaultAyanamsha}
-                    options={AYANAMSHA_OPTIONS}
+                    options={ayanamshaOptions(t)}
                     onChange={(v) => updatePref('defaultAyanamsha', v)}
                   />
                   <PrefSelect
-                    label="Chart Style"
+                    label={t('prefs.chartStyle')}
                     value={prefs.defaultChartStyle}
-                    options={CHART_STYLE_OPTIONS}
+                    options={chartStyleOptions(t)}
                     onChange={(v) => { updatePref('defaultChartStyle', v); setChartStyle(v as ChartStyle) }}
                   />
                   <PrefSelect
-                    label="House System"
+                    label={t('prefs.houseSystem')}
                     value={prefs.defaultHouseSystem}
-                    options={HOUSE_OPTIONS}
+                    options={houseOptions(t)}
                     onChange={(v) => updatePref('defaultHouseSystem', v)}
                   />
                   <PrefSelect
-                    label="Nodes"
+                    label={t('prefs.nodes')}
                     value={prefs.defaultNodeMode}
-                    options={NODE_OPTIONS}
+                    options={nodeOptions(t)}
                     onChange={(v) => updatePref('defaultNodeMode', v)}
                   />
                   <PrefSelect
-                    label="Karaka Scheme"
+                    label={t('prefs.karakaScheme')}
                     value={prefs.karakaScheme}
-                    options={[{ value: 7, label: '7 Karakas (Parashari)' }, { value: 8, label: '8 Karakas (with Rahu)' }]}
+                    options={[{ value: 7, label: t('prefs.karaka7') }, { value: 8, label: t('prefs.karaka8') }]}
                     onChange={(v) => updatePref('karakaScheme', parseInt(v) as 7 | 8)}
                   />
 
@@ -880,20 +887,20 @@ function AccountContent() {
                     }}
                   >
                     <PrefToggle
-                      label="Show Degrees"
-                      desc="Display planet degree in chart"
+                      label={t('prefs.showDegrees')}
+                      desc={t('prefs.showDegreesDesc')}
                       value={prefs.showDegrees}
                       onChange={(v) => updatePref('showDegrees', v)}
                     />
                     <PrefToggle
-                      label="Show Nakshatra"
-                      desc="Display nakshatra abbreviation"
+                      label={t('prefs.showNakshatra')}
+                      desc={t('prefs.showNakshatraDesc')}
                       value={prefs.showNakshatra}
                       onChange={(v) => updatePref('showNakshatra', v)}
                     />
                     <PrefToggle
-                      label="Show Chara Karaka"
-                      desc="Show AK/AmK/BK labels on planets"
+                      label={t('prefs.showKaraka')}
+                      desc={t('prefs.showKarakaDesc')}
                       value={prefs.showKaraka}
                       onChange={(v) => updatePref('showKaraka', v)}
                     />
@@ -902,20 +909,20 @@ function AccountContent() {
 
                 {!prefsDirty && !saved && (
                   <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginTop: '1.15rem', marginBottom: 0 }}>
-                    No unsaved changes
+                    {t('prefs.none')}
                   </p>
                 )}
               </div>
             )}
 
             {activeTab === 'preferences' && !prefs && (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading preferences…</div>
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('prefs.loading')}</div>
             )}
 
             {activeTab === 'billing' && (
               <div role="tabpanel" id="account-panel-billing" aria-labelledby="account-tab-billing">
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1.25rem', fontFamily: 'var(--font-display)' }}>
-                  Manage your plan, export data, or delete your account (required for app store compliance).
+                  {t('billing.intro')}
                 </p>
 
                 <section
@@ -928,43 +935,49 @@ function AccountContent() {
                   }}
                 >
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', margin: '0 0 0.65rem' }}>
-                    Subscription
+                    {t('billing.subscription')}
                   </h3>
                   {billingLoading && !billingInfo ? (
-                    <VedaanshLoader message="Loading subscription…" size={28} />
+                    <VedaanshLoader message={t('billing.loading')} size={28} />
                   ) : (
                     <>
                       <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        Current plan:{' '}
-                        <strong style={{ color: 'var(--text-primary)', textTransform: 'capitalize' }}>
-                          {billingInfo?.plan ?? user?.plan ?? 'free'}
+                        {t('billing.currentPlan')}{' '}
+                        <strong style={{ color: 'var(--text-primary)' }}>
+                          {(() => {
+                            const planKey = (billingInfo?.plan ?? user?.plan ?? 'free') as string
+                            return planKey === 'free' || planKey === 'gold' || planKey === 'platinum'
+                              ? t(`plans.${planKey}`)
+                              : planKey
+                          })()}
                         </strong>
                         {(billingInfo?.planExpiresAt || user?.planExpiresAt) && billingInfo?.plan !== 'free' && user?.plan !== 'free' && (
                           <>
                             {' '}
-                            · access until{' '}
-                            {new Date(billingInfo?.planExpiresAt ?? user?.planExpiresAt).toLocaleDateString('en-IN', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
+                            {t('billing.accessUntil', {
+                              date: new Date(billingInfo?.planExpiresAt ?? user?.planExpiresAt).toLocaleDateString(tag, {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              }),
                             })}
                           </>
                         )}
                       </p>
                       {billingInfo?.subscription && (
                         <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          {billingInfo.subscription.interval === 'yearly' ? 'Annual' : 'Monthly'}{' '}
+                          {billingInfo.subscription.interval === 'yearly' ? t('billing.annual') : t('billing.monthly')}{' '}
                           {billingInfo.subscription.plan} · ₹
-                          {(billingInfo.subscription.amountPaise / 100).toLocaleString('en-IN')}
+                          {(billingInfo.subscription.amountPaise / 100).toLocaleString(tag)}
                           {billingInfo.subscription.cancelAtPeriodEnd ? (
-                            <span style={{ color: 'var(--teal)', marginLeft: 8 }}>· Renewal cancelled</span>
+                            <span style={{ color: 'var(--teal)', marginLeft: 8 }}>{t('billing.renewalCancelled')}</span>
                           ) : null}
                         </p>
                       )}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                         {user?.plan === 'free' ? (
                           <Link href="/pricing" className="btn btn-primary btn-sm">
-                            View plans
+                            {t('billing.viewPlans')}
                           </Link>
                         ) : billingInfo?.subscription && !billingInfo.subscription.cancelAtPeriodEnd ? (
                           <button
@@ -973,19 +986,18 @@ function AccountContent() {
                             disabled={cancelLoading}
                             onClick={cancelRenewal}
                           >
-                            {cancelLoading ? 'Cancelling…' : 'Cancel renewal'}
+                            {cancelLoading ? t('billing.cancelling') : t('billing.cancelRenewal')}
                           </button>
                         ) : null}
                         <Link href="/refund" className="btn btn-ghost btn-sm" style={{ textDecoration: 'none' }}>
-                          Refund policy
+                          {t('billing.refundPolicy')}
                         </Link>
                         <Link href="/support" className="btn btn-ghost btn-sm" style={{ textDecoration: 'none' }}>
-                          Support
+                          {t('billing.support')}
                         </Link>
                       </div>
                       <p style={{ margin: '0.75rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                        Cancelling renewal stops future charges. You keep paid features until the period you already paid for ends.
-                        Vedaansh bills via Razorpay when you choose to renew from Pricing.
+                        {t('billing.cancelNote')}
                       </p>
                     </>
                   )}
@@ -1000,10 +1012,10 @@ function AccountContent() {
                   }}
                 >
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', margin: '0 0 0.5rem' }}>
-                    Download my data
+                    {t('billing.downloadTitle')}
                   </h3>
                   <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                    JSON export of your profile, saved charts, clients, and subscription history.
+                    {t('billing.downloadBody')}
                   </p>
                   <button
                     type="button"
@@ -1011,7 +1023,7 @@ function AccountContent() {
                     disabled={exportLoading}
                     onClick={downloadExport}
                   >
-                    {exportLoading ? 'Preparing…' : 'Download JSON'}
+                    {exportLoading ? t('billing.preparing') : t('billing.downloadJson')}
                   </button>
                 </section>
 
@@ -1024,14 +1036,14 @@ function AccountContent() {
                   }}
                 >
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', margin: '0 0 0.5rem', color: 'var(--rose)' }}>
-                    Delete account
+                    {t('billing.deleteTitle')}
                   </h3>
                   <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                    Permanently removes your account, saved charts, and client records. This cannot be undone.
+                    {t('billing.deleteBody')}
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxWidth: 360 }}>
                     <div>
-                      <label className="field-label">Type DELETE to confirm</label>
+                      <label className="field-label">{t('billing.deleteConfirmLabel')}</label>
                       <input
                         className="input"
                         value={deletePhrase}
@@ -1043,7 +1055,7 @@ function AccountContent() {
                     </div>
                     {hasPassword && (
                       <div>
-                        <label className="field-label">Password</label>
+                        <label className="field-label">{t('billing.password')}</label>
                         <input
                           className="input"
                           type="password"
@@ -1069,12 +1081,12 @@ function AccountContent() {
                         color: 'var(--rose)',
                       }}
                     >
-                      {deleteLoading ? 'Deleting…' : 'Delete my account permanently'}
+                      {deleteLoading ? t('billing.deleting') : t('billing.deleteBtn')}
                     </button>
                   </div>
                   <p style={{ margin: '0.75rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    See also{' '}
-                    <Link href="/privacy" style={{ color: 'var(--gold)' }}>Privacy Policy</Link>
+                    {t('billing.seeAlso')}{' '}
+                    <Link href="/privacy" style={{ color: 'var(--gold)' }}>{t('billing.privacy')}</Link>
                   </p>
                 </section>
               </div>
@@ -1085,11 +1097,11 @@ function AccountContent() {
       </main>
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
-        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotisha</span> Platform
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>{t('footer.tagline')}</span> {t('footer.platform')}
         {' · '}
-        <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
+        <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>{t('footer.support')}</Link>
         {' · '}
-        <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</Link>
+        <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>{t('footer.privacy')}</Link>
       </footer>
     </div>
   )

@@ -7,6 +7,22 @@ import { buildNumerologyCore } from '@/lib/engine/numerology/calc'
 import { getCompoundMeaning, getNumberProfile } from '@/lib/engine/numerology/data'
 import { getLifeAreaPredictions } from '@/lib/engine/numerology/predictions'
 import { buildNumerologyPremium } from '@/lib/engine/numerology/report'
+import {
+  buildInclusionTable,
+  getCheiroLabels,
+  getDailyAnkaMuhurta,
+  getHealthAlerts,
+  getLagnaNumber,
+  getMarriageTimingYears,
+  getNakshatraLetterBridge,
+  getNumberFriendshipMode,
+  getVastuKuaHints,
+  getYantraPacks,
+  getYearGocharaHint,
+  scoreBrandOrSignature,
+  scoreDevanagariName,
+  suggestPlateEndings,
+} from '@/lib/engine/numerology/advanced'
 import { buildDashaNumberBridge, matchBusinessPartners, suggestBabyNames } from '@/lib/engine/numerology/tools'
 
 function collectStrings(x: unknown, out: string[] = []): string[] {
@@ -107,5 +123,51 @@ describe('numerology Hindi leak', () => {
     expect(hi.current[0]?.lord).toBe('Ju')
     expect(hi.current[0]?.number).toBe(3)
     expect(findEnglishLeaks(collectStrings(hi))).toEqual([])
+  })
+
+  it('localizes advanced Anka tools without long English prose', () => {
+    const friendship = getNumberFriendshipMode(2, 'indian')
+    const advanced = {
+      cheiro: getCheiroLabels(2, 5, 'hi'),
+      lagna: getLagnaNumber(5, 'hi'),
+      inclusion: buildInclusionTable({ 1: 0, 2: 1, 3: 2, 4: 3, 5: 0, 6: 1, 7: 0, 8: 2, 9: 1 }, 'hi'),
+      health: getHealthAlerts({
+        moolank: 2,
+        missing: [3, 8],
+        personalYear: 8,
+        enemiesOfMoolank: friendship.enemies,
+        lang: 'hi',
+      }),
+      marriage: getMarriageTimingYears({
+        yourDob: { year: 1992, month: 3, day: 19 },
+        partnerDob: { year: 1994, month: 7, day: 11 },
+        fromYear: 2026,
+        count: 4,
+        lang: 'hi',
+      }),
+      brand: scoreBrandOrSignature('Vedaansh Studio', 1, 3, 'hi'),
+      plates: suggestPlateEndings(1, 3, 4, 'hi'),
+      nak: getNakshatraLetterBridge(0, 1, 'hi'),
+      daily: getDailyAnkaMuhurta({
+        birth: { year: 1992, month: 3, day: 19 },
+        moolank: 2,
+        bhagyank: 5,
+        today: { year: 2026, month: 6, day: 1 },
+        lang: 'hi',
+      }),
+      yantras: getYantraPacks([1, 8], 'hi'),
+      vastu: getVastuKuaHints({
+        moolank: 2,
+        kua: { value: 2, directions: { success: 'उत्तर', health: 'पूर्व', love: 'पश्चिम', growth: 'दक्षिण' } },
+        lang: 'hi',
+      }),
+      gochara: getYearGocharaHint(3, 'hi'),
+      devanagari: scoreDevanagariName('वेदांश', 1, 3, 'hi'),
+    }
+    expect(advanced.cheiro.note).toMatch(/चेरो/)
+    expect(advanced.lagna.rashiName).toBe('सिंह')
+    expect(advanced.yantras[0]?.yantraName).toBe('सूर्य यंत्र')
+    expect(advanced.nak.nakshatraName).toBe('अश्विनी')
+    expect(findEnglishLeaks(collectStrings(advanced))).toEqual([])
   })
 })

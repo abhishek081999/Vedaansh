@@ -199,8 +199,23 @@ export async function generateMetadata(): Promise<Metadata> {
       url: localeAlternates(pathname, locale)?.canonical as string,
       title: t('ogTitle'),
       description: t('ogDescription'),
+      ...(locale === 'hi'
+        ? {
+            images: [{
+              url: `${BASE_URL}/opengraph-image?lang=hi`,
+              width: 1200,
+              height: 630,
+              alt: 'Vedaansh — निःशुल्क वैदिक ज्योतिष',
+            }],
+          }
+        : {}),
     },
-    twitter: { ...baseMetadata.twitter, title: t('ogTitle'), description: t('ogDescription') },
+    twitter: {
+      ...baseMetadata.twitter,
+      title: t('ogTitle'),
+      description: t('ogDescription'),
+      ...(locale === 'hi' ? { images: [`${BASE_URL}/opengraph-image?lang=hi`] } : {}),
+    },
     alternates: localeAlternates(pathname, locale),
   }
 }

@@ -167,6 +167,7 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
     const html = generateNumerologyHTML({ ...report, ...data }, {
       title: name.trim() || chart?.meta.name || t('reportTitle'),
       branding: 'Vedaansh',
+      lang,
     })
     w.document.open()
     w.document.write(html)

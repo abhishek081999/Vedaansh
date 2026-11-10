@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { nadiIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -27,13 +27,14 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/nadi', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/nadi', locale, metadataEn, {
     title: 'नाड़ी ज्योतिष — भाव, योग और समय',
     description: 'आपकी वैदिक जन्म कुंडली पर नाड़ी ज्योतिष: सक्रिय पठन, बारह भाव, योग, विवाह, करियर, धन, आने वाले वर्ष, गोचर और उपाय।',
     ogTitle: 'नाड़ी ज्योतिष — भाव, योग और समय | Vedaansh',
     ogDescription: 'जन्म कुंडली पर सक्रिय नाड़ी पठन: भाव, योग, विवाह, करियर, धन, आने वाले वर्ष और लाइव आकाश।',
     keywords: ['नाड़ी ज्योतिष', 'भृगु नंदी नाड़ी', 'वैदिक कुंडली', 'ग्रह स्थिति', 'विंशोत्तरी दशा'],
-  })
+  }), locale, '/nadi/opengraph-image', 'नाड़ी ज्योतिष — Vedaansh')
 }
 
 export default async function NadiLayout({ children }: { children: React.ReactNode }) {

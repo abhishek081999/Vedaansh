@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { muhurtaIntro } from '@/lib/seo/intro-content.hi'
-import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
+import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 const metadataEn: Metadata = {
@@ -28,12 +28,13 @@ const metadataEn: Metadata = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return localizeMetadata('/muhurta', await pageLocale(), metadataEn, {
+  const locale = await pageLocale()
+  return withHindiOgImage(localizeMetadata('/muhurta', locale, metadataEn, {
     title: 'मुहूर्त खोजक — शुभ समय और शुभ मुहूर्त',
     description: 'विवाह, गृह प्रवेश, यात्रा और व्यापार के लिए Gold मुहूर्त खोजक। तिथि, नक्षत्र, योग, करण, राहु काल और व्यक्तिगत तारा/चंद्र बल से दिनों का मूल्यांकन।',
     ogTitle: 'मुहूर्त — शुभ समय चयन | Vedaansh',
     keywords: ['मुहूर्त', 'शुभ समय', 'वैदिक इलेक्शनल ज्योतिष', 'विवाह मुहूर्त', 'शुभ मुहूर्त', 'राहु काल', 'तिथि', 'नक्षत्र समय'],
-  })
+  }), locale, '/muhurta/opengraph-image', 'मुहूर्त — Vedaansh')
 }
 
 export default async function MuhurtaLayout({ children }: { children: React.ReactNode }) {
