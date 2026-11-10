@@ -947,11 +947,11 @@ const TRIMSHAMSHA_ODD: Array<{ upto: number; lord: GrahaId }> = [
   { upto: 30, lord: 'Ve' },
 ]
 
-// Trimsamsha lords for even signs [Ch7, St2]
+// Trimsamsha lords for even signs [Ch7, St2] (reversed: Ve 5°, Me 7°, Ju 8°, Sa 5°, Ma 5°)
 const TRIMSHAMSHA_EVEN: Array<{ upto: number; lord: GrahaId }> = [
   { upto: 5,  lord: 'Ve' },
-  { upto: 10, lord: 'Me' },
-  { upto: 18, lord: 'Ju' },
+  { upto: 12, lord: 'Me' },
+  { upto: 20, lord: 'Ju' },
   { upto: 25, lord: 'Sa' },
   { upto: 30, lord: 'Ma' },
 ]

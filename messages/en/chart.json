@@ -650,7 +650,9 @@
     "summary": "Chart Summary",
     "ascendant": "Ascendant",
     "ayanamsha": "Ayanamsha",
-    "julianDay": "Julian Day"
+    "julianDay": "Julian Day",
+    "invalidEmail": "Please enter a valid email address.",
+    "crmFailed": "Failed to add client to CRM"
   },
   "varga": {
     "platinumSuffix": " (Platinum)",

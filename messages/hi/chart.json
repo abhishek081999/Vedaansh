@@ -650,7 +650,9 @@
     "summary": "कुंडली सारांश",
     "ascendant": "लग्न",
     "ayanamsha": "अयनांश",
-    "julianDay": "जूलियन दिवस"
+    "julianDay": "जूलियन दिवस",
+    "invalidEmail": "कृपया एक मान्य ईमेल पता दर्ज करें।",
+    "crmFailed": "ग्राहक को CRM में नहीं जोड़ा जा सका"
   },
   "varga": {
     "platinumSuffix": " (Platinum)",

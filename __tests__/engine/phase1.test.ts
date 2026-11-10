@@ -17,7 +17,7 @@ import {
   D1, D2, D3, D4, D7, D9, D10, D12, D16, D20,
   D24, D27, D30, D40, D45, D60,
   D81, D108_Guru, D150,
-  calcVargas, FREE_VARGAS, ALL_VARGAS,
+  calcVargas, getVargaPosition, FREE_VARGAS, ALL_VARGAS,
   VARGA_FUNCTIONS, type VargaName,
 } from '@/lib/engine/vargas'
 import { calcArudha, calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
@@ -229,12 +229,26 @@ describe('Vargas — Standard set', () => {
   })
 
   it('D30 returns distinct signs for different degree ranges', () => {
-    // Odd sign (Aries=0°): Ma=1°, Sa=5°, Ju=12°, Me=20°, Ve=25°
-    expect(D30(1)).toBe(1)    // Aries (Mars)
-    expect(D30(6)).toBe(11)   // Aquarius (Saturn)
-    expect(D30(15)).toBe(9)   // Sagittarius (Jupiter)
-    expect(D30(22)).toBe(6)   // Virgo (Mercury)
-    expect(D30(27)).toBe(2)   // Taurus (Venus)
+    // Odd sign (Aries): Ma 0–5 Ar, Sa 5–10 Aq, Ju 10–18 Sg, Me 18–25 Ge, Ve 25–30 Li
+    expect(D30(1)).toBe(1)     // Aries (Mars)
+    expect(D30(6)).toBe(11)    // Aquarius (Saturn)
+    expect(D30(11)).toBe(9)    // Sagittarius (Jupiter) — 10–12° was Saturn before
+    expect(D30(19)).toBe(3)    // Gemini (Mercury) — 18–20° was Jupiter before
+    expect(D30(22)).toBe(3)    // Gemini (Mercury)
+    expect(D30(27)).toBe(7)    // Libra (Venus)
+    // Even sign (Taurus): Ve 0–5 Ta, Me 5–12 Vi, Ju 12–20 Pi, Sa 20–25 Cp, Ma 25–30 Sc
+    expect(D30(31)).toBe(2)    // Taurus (Venus)
+    expect(D30(36)).toBe(6)    // Virgo (Mercury)
+    expect(D30(45)).toBe(12)   // Pisces (Jupiter)
+    expect(D30(52)).toBe(10)   // Capricorn (Saturn)
+    expect(D30(57)).toBe(8)    // Scorpio (Mars)
+  })
+
+  it('D30 position scales the degree within its unequal arc', () => {
+    // Aries 14°: Jupiter arc 10–18 (8°) → 4/8 of the way → 15°
+    const p = getVargaPosition(14, 'D30')
+    expect(p.rashi).toBe(9)
+    expect(p.degree).toBeCloseTo(15, 6)
   })
 
   it('All 41 vargas return valid signs', () => {

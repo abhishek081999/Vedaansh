@@ -3,6 +3,7 @@ import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES, RASHI_SANSK
 import { NAKSHATRA_REMEDIES } from '@/lib/engine/nakshatraRemedies'
 import { NAKSHATRA_GANA, NAKSHATRA_SHAKTI, NAKSHATRA_YONI } from '@/lib/engine/nakshatraAdvanced'
 import { getNakshatraProfession } from '@/lib/engine/nakshatraProfession'
+import { getNakshatraDeepGuide } from '@/lib/engine/nakshatraDeepGuide/sync'
 import { getRashiDeepGuide } from '@/lib/engine/rashiDeepGuide'
 import { PLANET_REMEDY_TEACHINGS, REMEDY_GRAHAS } from '@/lib/engine/planetaryRemedies'
 import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
@@ -64,36 +65,59 @@ export const nakshatraSeries: TemplateDef = {
     const lord = NAKSHATRA_LORDS[i] as GrahaId
     const prof = getNakshatraProfession(i)
     const rem = NAKSHATRA_REMEDIES[i]
+    const deep = getNakshatraDeepGuide(i)
     const span = `${RASHI_SANSKRIT[(Math.floor((i * 40) / 120) + 1) as Rashi]}`
+    // Keep the theory slide inside the 4x5 content band (deep guides are long).
+    const theory = deep ? brief(deep.theory[0] ?? '', 170) : brief(prof.coreMeaning, 200)
     const slides: SlideSpec[] = [
       {
         type: 'cover',
-        head: { kicker: `Nakshatra series · ${n} of 27`, deva: 'नक्षत्र', title: name, sub: `Ruled by ${GRAHA_NAMES[lord]} · begins in ${span}` },
+        head: {
+          kicker: `Nakshatra series · ${n} of 27`,
+          deva: 'नक्षत्र',
+          title: name,
+          sub: deep
+            ? `${deep.keyword} · ${GRAHA_NAMES[lord]}`
+            : `Ruled by ${GRAHA_NAMES[lord]} · begins in ${span}`,
+        },
         hero: { kind: 'nakRing', idx: i, big: String(n), small: 'of 27' },
-        meta: `Symbol · ${NAK_SYMBOL[i] ?? '—'}`,
+        meta: deep
+          ? `${deep.degreeSpan} · ${NAK_SYMBOL[i] ?? deep.symbol}`
+          : `Symbol · ${NAK_SYMBOL[i] ?? '—'}`,
       },
       {
         type: 'tiles',
         head: { kicker: name, deva: 'स्वभाव', title: 'Nature & Rulers' },
         cols: 2,
         tiles: [
-          { label: 'Deity', value: rem?.deity ?? '—' },
+          { label: 'Deity', value: deep?.deity ?? rem?.deity ?? '—' },
           { label: 'Lord', value: grahaSa(lord), detail: GRAHA_NAMES[lord], lead: { kind: 'planet', id: lord } },
-          { label: 'Gana', value: NAKSHATRA_GANA[i] ?? '—' },
+          { label: 'Gana', value: deep?.gana ?? NAKSHATRA_GANA[i] ?? '—' },
           { label: 'Nature', value: NAK_QUALITY[i] ?? '—' },
-          { label: 'Yoni', value: NAKSHATRA_YONI[i] ?? '—' },
-          { label: 'Shakti', value: (NAKSHATRA_SHAKTI[i] ?? '—').split(/[—(:]/)[0].trim() },
+          { label: 'Yoni', value: deep?.yoni ?? NAKSHATRA_YONI[i] ?? '—' },
+          {
+            label: deep ? 'Dosha' : 'Shakti',
+            value: deep
+              ? deep.nadi
+              : (NAKSHATRA_SHAKTI[i] ?? '—').split(/[—(:]/)[0].trim(),
+          },
         ],
       },
       {
         type: 'text',
-        head: { kicker: name, deva: 'चरित्र और कर्म', title: 'Character & Work' },
-        paragraphs: [brief(prof.coreMeaning, 200)],
-        bullets: [
-          { title: 'Strength', tone: 'good', items: [brief(prof.hiddenPower, 120)] },
-          { title: 'Careers', items: prof.careerFields.slice(0, 4) },
-          { title: 'Watch out', tone: 'warn', items: [brief(prof.pitfall, 120)] },
-        ],
+        head: { kicker: name, deva: deep ? 'मूल सिद्धांत' : 'चरित्र और कर्म', title: deep ? 'Basic Theory' : 'Character & Work' },
+        paragraphs: [theory],
+        bullets: deep
+          ? [
+              // Padas first (kept); deity last so layout can drop it on short frames.
+              { title: 'Padas', items: deep.padas.map((pd) => `${pd.pada}. ${pd.navamsa} — ${brief(pd.summary, 68)}`) },
+              { title: 'Deity', items: [brief(deep.deityNotes[0] ?? '', 100)] },
+            ]
+          : [
+              { title: 'Strength', tone: 'good', items: [brief(prof.hiddenPower, 120)] },
+              { title: 'Careers', items: prof.careerFields.slice(0, 4) },
+              { title: 'Watch out', tone: 'warn', items: [brief(prof.pitfall, 120)] },
+            ],
       },
       {
         type: 'text',
@@ -110,9 +134,13 @@ export const nakshatraSeries: TemplateDef = {
       caption: {
         hook: `✨ Nakshatra series ${n}/27 — ${name}`,
         lines: [
-          `Lord: ${GRAHA_NAMES[lord]} · Deity: ${rem?.deity} · Gana: ${NAKSHATRA_GANA[i]} · Symbol: ${NAK_SYMBOL[i]}`,
-          brief(prof.coreMeaning, 220),
-          `Careers: ${prof.careerFields.slice(0, 4).join(', ')}`,
+          deep
+            ? `${deep.degreeSpan} · Lord ${GRAHA_NAMES[lord]} · Deity ${deep.deity} · ${deep.keyword}`
+            : `Lord: ${GRAHA_NAMES[lord]} · Deity: ${rem?.deity} · Gana: ${NAKSHATRA_GANA[i]} · Symbol: ${NAK_SYMBOL[i]}`,
+          theory,
+          deep
+            ? `Padas: ${deep.padas.map((pd) => pd.navamsa).join(' · ')}`
+            : `Careers: ${prof.careerFields.slice(0, 4).join(', ')}`,
           rem ? `Mantra: ${rem.mantra}` : '',
           'Is this your birth nakshatra? Tell us in the comments 👇',
         ],

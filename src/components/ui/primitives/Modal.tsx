@@ -2,6 +2,7 @@
 
 import React from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/ui/cn'
 
 export interface ModalProps {
@@ -23,6 +24,7 @@ export function Modal({
   className,
   contentStyle,
 }: ModalProps) {
+  const t = useTranslations('common.a11y')
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -53,7 +55,7 @@ export function Modal({
           {children}
           <Dialog.Close
             className="ui-dialog-close"
-            aria-label="Close dialog"
+            aria-label={t('closeDialog')}
           >
             ✕
           </Dialog.Close>

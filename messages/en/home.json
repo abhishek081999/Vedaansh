@@ -451,5 +451,14 @@
     "ariaToday": "Today's sky: {tithi}, Moon in {moon}, {nakshatra} nakshatra, Sun in {sun}.",
     "ariaMatch": "Two birth charts joined at their Moons, inside the eight Ashtakoot kootas totalling 36 guna.",
     "place": "Ujjain"
+  },
+  "testimonials": {
+    "kicker": "In their words",
+    "title": "People like you use Vedaansh",
+    "roles": {
+      "Seeker": "Seeker",
+      "Student": "Student",
+      "Practitioner": "Practitioner"
+    }
   }
 }

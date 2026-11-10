@@ -121,7 +121,8 @@
     "name": "Name Star",
     "vedha": "Vedha Zone",
     "diagonal": "Diagonal Vedha",
-    "natal": "Natal Activated"
+    "natal": "Natal Activated",
+    "diagonalHint": "Planet with diagonal vedha"
   },
   "advanced": {
     "title": "Advanced SBC Analysis Engine",

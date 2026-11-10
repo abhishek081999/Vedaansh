@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export interface DrawerProps {
@@ -22,8 +23,9 @@ export function Drawer({
   children,
   side = 'right',
   width = 450,
-  closeLabel = 'Close panel',
+  closeLabel,
 }: DrawerProps) {
+  const t = useTranslations('common.a11y')
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, open)
 
@@ -128,7 +130,7 @@ export function Drawer({
           <button
             type="button"
             onClick={onClose}
-            aria-label={closeLabel}
+            aria-label={closeLabel ?? t('closePanel')}
             style={{
               background: 'var(--surface-3)',
               border: '1px solid var(--border-soft)',

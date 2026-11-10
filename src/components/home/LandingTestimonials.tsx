@@ -4,6 +4,7 @@
 //  Quotes from real users. The section stays hidden until one is added.
 // ─────────────────────────────────────────────────────────────
 
+import { useTranslations } from 'next-intl'
 import { LandingReveal } from '@/components/home/LandingReveal'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import styles from '@/components/home/LandingSections.module.css'
@@ -19,19 +20,20 @@ type Testimonial = {
 const TESTIMONIALS: readonly Testimonial[] = []
 
 export function LandingTestimonials() {
+  const t = useTranslations('home.testimonials')
   if (TESTIMONIALS.length === 0) return null
 
   return (
     <LandingReveal as="section" className="landing-section-row landing-section-row--gold">
       <div className="landing-section-row-content">
-        <VedicSectionHeader kicker="In their words" title="People like you use Vedaansh" theme="gold" />
+        <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
         <div className={styles.testimonials}>
           {TESTIMONIALS.map(({ quote, name, role, city }) => (
             <figure key={name} className={styles.testimonial}>
               <blockquote>{quote}</blockquote>
               <figcaption>
                 <strong>{name}</strong>
-                <span>{city ? `${role}, ${city}` : role}</span>
+                <span>{city ? `${t(`roles.${role}`)}, ${city}` : t(`roles.${role}`)}</span>
               </figcaption>
             </figure>
           ))}

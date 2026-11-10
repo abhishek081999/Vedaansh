@@ -132,7 +132,36 @@
     "bodyPart": "Body part",
     "symbol": "Symbol",
     "padasAria": "Nakshatra padas",
-    "pada": "Pada {n}"
+    "pada": "Pada {n}",
+    "keyword": "Keyword",
+    "span": "Span",
+    "colour": "Colour",
+    "theory": "Basic theory",
+    "deityNotes": "Deity",
+    "rulerNotes": "Ruling planet",
+    "rashiNotes": "Rashi",
+    "symbolNotes": "Symbolism",
+    "mythology": "Story & mythology",
+    "animalNotes": "Yoni animal",
+    "doshaNotes": "Dosha",
+    "lagnaNotes": "Lagna",
+    "teachingTitle": "Deep guide",
+    "teachingLead": "Open each topic to study this birth star.",
+    "chartInterpTitle": "Chart interpretations",
+    "chartInterpLead": "Results for planets that occupy this birth star in the chart.",
+    "planetEffects": "Planets in this nakshatra",
+    "planetEffectsEmpty": "No classical planets occupy this nakshatra in the chart.",
+    "padaGuide": "Pada analysis",
+    "yourPada": "Your pada",
+    "allPadas": "All four padas",
+    "planetPada": "Planetary results by pada",
+    "padaLine": "Pada {n}",
+    "chartPadaResult": "Pada {n}",
+    "lagnaInterpTitle": "Lagna nakshatra",
+    "lagnaInterpLead": "Lagna sits in {name}. Notes for Ascendant in this star.",
+    "guidesLoading": "Loading interpretations…",
+    "otherPlacements": "Other nakshatras in your chart",
+    "otherPlacementsLead": "Predictions for planets sitting outside the birth star."
   },
   "bestDays": {
     "title": "Monthly forecast",
@@ -517,6 +546,8 @@
     "refFull": "Full medical reference (27)",
     "refFullHeaders": ["#", "Nakshatra", "Dosha", "Primary Diseases", "Disease Nature"],
     "refDosha": "Dosha quick reference",
-    "refDoshaHeaders": ["Dosha", "Duration", "Count", "Characteristics", "Key Action"]
+    "refDoshaHeaders": ["Dosha", "Duration", "Count", "Characteristics", "Key Action"],
+    "bodyMapAria": "Kalapurusha body map",
+    "bodyParts": ["Head, brain", "Face, throat", "Shoulders, arms, lungs", "Chest, breasts", "Heart, upper abdomen", "Intestines, waist", "Lower abdomen, kidneys", "Genitals, excretory", "Hips, thighs", "Knees, joints", "Calves, ankles", "Feet"]
   }
 }

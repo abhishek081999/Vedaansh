@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/ui/cn'
 import { Spinner } from './Spinner'
 
@@ -19,6 +20,7 @@ export function VedaanshLoader({
   className,
   style,
 }: VedaanshLoaderProps) {
+  const t = useTranslations('common.a11y')
   const content = (
     <div
       className={cn(className)}
@@ -30,7 +32,7 @@ export function VedaanshLoader({
         ...style,
       }}
     >
-      <Spinner size={size} label={message ?? 'Loading Vedaansh'} />
+      <Spinner size={size} label={message ?? t('loadingBrand')} />
       {message ? (
         <p
           style={{
@@ -66,7 +68,7 @@ export function VedaanshLoader({
       <div
         role="status"
         aria-live="polite"
-        aria-label="Loading page"
+        aria-label={t('loadingPage')}
         style={{
           position: 'fixed',
           inset: 0,

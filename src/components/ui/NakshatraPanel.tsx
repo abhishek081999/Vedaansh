@@ -4,7 +4,7 @@
 //  Nakshatra workspace: birth star, D1 chart, and analysis tabs
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useId } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Activity,
@@ -12,6 +12,7 @@ import {
   Briefcase,
   CalendarDays,
   Check,
+  ChevronDown,
   Coins,
   Compass,
   Flame,
@@ -44,6 +45,11 @@ import {
   getGraNakPositions, getNakCompatibility, TARA_QUALITIES, TARA_NAMES,
   type NakshatraCharacteristics,
 } from '@/lib/engine/nakshatraAdvanced'
+import {
+  loadNakshatraDeepGuides,
+  type NakshatraDeepGuide,
+  type NakshatraGuidePlanet,
+} from '@/lib/engine/nakshatraDeepGuide'
 import { getRelationshipNavtara } from '@/lib/engine/navtaraPrediction'
 import {
   getMonthlyForecast, getNakshatraMuhurtaRating, getNakshatraRemedies,
@@ -364,7 +370,7 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
         </aside>
 
         <div className={styles.mainCol}>
-          {showOverview && <OverviewTab chars={chars} />}
+          {showOverview && <OverviewTab chars={chars} placements={planetPos} />}
 
           {!isMobile && (
             <div className={cn(styles.panel, styles.panelFlow)}>
@@ -459,10 +465,90 @@ function TabContent({
   )
 }
 
-function OverviewTab({ chars }: { chars: NakshatraCharacteristics }) {
+const GUIDE_PLANET_ORDER: NakshatraGuidePlanet[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
+
+function isGuidePlanet(id: string): id is NakshatraGuidePlanet {
+  return (GUIDE_PLANET_ORDER as string[]).includes(id)
+}
+
+function chartPlanetsInNak(
+  placements: Placement[],
+  nakIndex: number,
+): Array<{ id: NakshatraGuidePlanet; pada: number }> {
+  return placements
+    .filter((p) => p.nakshatraIndex === nakIndex && isGuidePlanet(p.grahaId))
+    .map((p) => ({ id: p.grahaId as NakshatraGuidePlanet, pada: p.pada }))
+    .sort((a, b) => GUIDE_PLANET_ORDER.indexOf(a.id) - GUIDE_PLANET_ORDER.indexOf(b.id))
+}
+
+function OverviewTab({
+  chars,
+  placements,
+}: {
+  chars: NakshatraCharacteristics
+  placements: Placement[]
+}) {
   const t = useTranslations('nakshatra.overview')
-  const { hi } = useLang()
+  const { hi, lang } = useLang()
   const nm = (en: string) => (hi ? termHi(en) : en)
+  const lagnaPlacement = placements.find((p) => p.grahaId === 'As')
+  const lagnaNakIdx = lagnaPlacement?.nakshatraIndex
+  const inBirthStar = useMemo(
+    () => chartPlanetsInNak(placements, chars.index),
+    [placements, chars.index],
+  )
+  const otherByNak = useMemo(() => {
+    const byNak = new Map<number, Array<{ id: NakshatraGuidePlanet; pada: number }>>()
+    for (const p of placements) {
+      if (!isGuidePlanet(p.grahaId) || p.nakshatraIndex === chars.index) continue
+      const list = byNak.get(p.nakshatraIndex) ?? []
+      list.push({ id: p.grahaId, pada: p.pada })
+      byNak.set(p.nakshatraIndex, list)
+    }
+    return [...byNak.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([nakIndex, planets]) => ({
+        nakIndex,
+        planets: planets.sort(
+          (a, b) => GUIDE_PLANET_ORDER.indexOf(a.id) - GUIDE_PLANET_ORDER.indexOf(b.id),
+        ),
+      }))
+  }, [placements, chars.index])
+
+  const neededIndices = useMemo(() => {
+    const set = new Set<number>([chars.index, ...otherByNak.map((r) => r.nakIndex)])
+    if (lagnaNakIdx != null) set.add(lagnaNakIdx)
+    return [...set]
+  }, [chars.index, otherByNak, lagnaNakIdx])
+
+  const [guides, setGuides] = useState<Map<number, NakshatraDeepGuide>>(new Map())
+  const [guidesLoading, setGuidesLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setGuidesLoading(true)
+    void loadNakshatraDeepGuides(neededIndices, lang).then((map) => {
+      if (cancelled) return
+      setGuides(map)
+      setGuidesLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [neededIndices, lang])
+
+  const guide = guides.get(chars.index) ?? null
+  const lagnaGuide =
+    lagnaNakIdx != null && lagnaNakIdx !== chars.index
+      ? (guides.get(lagnaNakIdx) ?? null)
+      : null
+  const otherOccupied = otherByNak
+    .map((row) => {
+      const g = guides.get(row.nakIndex)
+      return g ? { ...row, guide: g } : null
+    })
+    .filter((row): row is { nakIndex: number; planets: Array<{ id: NakshatraGuidePlanet; pada: number }>; guide: NakshatraDeepGuide } => row != null)
+
   const rows: { key: string; value: string; tone?: string }[] = [
     { key: 'deity', value: chars.deity },
     { key: 'gana', value: nm(chars.gana), tone: ganaClass(chars.gana) },
@@ -474,20 +560,291 @@ function OverviewTab({ chars }: { chars: NakshatraCharacteristics }) {
     { key: 'symbol', value: chars.symbol },
   ]
   return (
+    <div className={styles.stack}>
+      <section className={styles.panel}>
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>{t('title')}</h3>
+          <div className={styles.sectionRule} />
+        </div>
+        <div className={styles.traitGrid}>
+          {rows.map(({ key, value, tone }) => (
+            <div key={key} className={styles.traitCard}>
+              <div className={styles.traitLabel}>{t(key)}</div>
+              <div className={cn(styles.traitValue, tone)}>{value}</div>
+            </div>
+          ))}
+        </div>
+        <PadaMap nakIdx={chars.index} pada={chars.pada} />
+      </section>
+
+      {guidesLoading ? (
+        <section className={styles.panel}>
+          <p className={styles.guideLead}>{t('guidesLoading')}</p>
+        </section>
+      ) : null}
+
+      {guide ? <TeachingGuidePanel guide={guide} birthPada={chars.pada} /> : null}
+
+      {guide ? (
+        <ChartInterpPanel
+          guide={guide}
+          chartPlanets={inBirthStar}
+          showLagna={lagnaNakIdx === chars.index}
+        />
+      ) : null}
+
+      {lagnaGuide && lagnaPlacement ? (
+        <section className={styles.panel}>
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>{t('lagnaInterpTitle')}</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.guideLead}>
+            {t('lagnaInterpLead', { name: lagnaGuide.name })}
+          </p>
+          <GuideDisclosure title={t('lagnaNotes')} paragraphs={[lagnaGuide.lagnaNotes]} defaultOpen />
+        </section>
+      ) : null}
+
+      {otherOccupied.length ? (
+        <section className={styles.panel}>
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>{t('otherPlacements')}</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.guideLead}>{t('otherPlacementsLead')}</p>
+          <div className={styles.guidePlanetGrid}>
+            {otherOccupied.map(({ nakIndex, planets, guide: g }) => (
+              <OccupiedNakshatraCard
+                key={nakIndex}
+                guide={g}
+                planets={planets}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
+/** Button accordion — avoid controlled <details>, which crashes React 19 removeChild. */
+function GuideDisclosure({
+  title,
+  paragraphs,
+  defaultOpen = false,
+}: {
+  title: string
+  paragraphs: string[]
+  defaultOpen?: boolean
+}) {
+  if (!paragraphs.length) return null
+  return (
+    <GuideDisclosureSlot title={title} defaultOpen={defaultOpen}>
+      {paragraphs.map((p, i) => (
+        <p key={`${title}-${i}`} className={styles.guideProse}>{p}</p>
+      ))}
+    </GuideDisclosureSlot>
+  )
+}
+
+function GuideDisclosureSlot({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  const panelId = useId()
+  return (
+    <div className={styles.guideDisclosure}>
+      <button
+        type="button"
+        className={styles.guideDisclosureSummary}
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span>{title}</span>
+        <ChevronDown
+          size={14}
+          aria-hidden
+          className={cn(styles.guideDisclosureChevron, open && styles.guideDisclosureChevronOpen)}
+        />
+      </button>
+      <div
+        id={panelId}
+        className={styles.guideDisclosureBody}
+        role="region"
+        hidden={!open}
+      >
+        {open ? children : null}
+      </div>
+    </div>
+  )
+}
+
+function OccupiedNakshatraCard({
+  guide,
+  planets,
+}: {
+  guide: NakshatraDeepGuide
+  planets: Array<{ id: NakshatraGuidePlanet; pada: number }>
+}) {
+  const t = useTranslations('nakshatra.overview')
+  const { hi } = useLang()
+  const graha = (id: NakshatraGuidePlanet) => (hi ? termHi(GRAHA_NAMES[id]) : GRAHA_NAMES[id])
+
+  return (
+    <div className={styles.guidePlanetCard}>
+      <div className={styles.guidePlanetName}>
+        {guide.name}
+        <span className={styles.guidePadaMeta}> · {guide.keyword}</span>
+      </div>
+      {planets.map(({ id, pada }) => {
+        const effect = guide.planetEffects[id]
+        const padaLine = guide.planetPadaResults[id]?.[pada - 1]
+        if (!effect && !padaLine) return null
+        return (
+          <div key={`${guide.index}-${id}`} className={styles.guideOccupiedPlanet}>
+            <div className={styles.guideOccupiedPlanetName}>{graha(id)}</div>
+            {effect ? <p className={styles.guideProse}>{effect}</p> : null}
+            {padaLine ? (
+              <p className={styles.guidePlanetPada}>
+                <strong>{t('chartPadaResult', { n: pada })}: </strong>{padaLine}
+              </p>
+            ) : null}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function TeachingGuidePanel({
+  guide,
+  birthPada,
+}: {
+  guide: NakshatraDeepGuide
+  birthPada: number
+}) {
+  const t = useTranslations('nakshatra.overview')
+  const birthPadaGuide = guide.padas.find((p) => p.pada === birthPada) ?? guide.padas[0]
+
+  return (
     <section className={styles.panel}>
       <div className={styles.sectionHead}>
-        <h3 className={styles.sectionTitle}>{t('title')}</h3>
+        <h3 className={styles.sectionTitle}>{t('teachingTitle')}</h3>
         <div className={styles.sectionRule} />
       </div>
-      <div className={styles.traitGrid}>
-        {rows.map(({ key, value, tone }) => (
-          <div key={key} className={styles.traitCard}>
-            <div className={styles.traitLabel}>{t(key)}</div>
-            <div className={cn(styles.traitValue, tone)}>{value}</div>
-          </div>
-        ))}
+      <p className={styles.guideLead}>{t('teachingLead')}</p>
+      <p className={styles.guideKeyword}>
+        <strong>{t('keyword')}: </strong>{guide.keyword}
+      </p>
+      <div className={styles.guideMeta}>
+        <span className={styles.guideChip}><strong>{t('span')}: </strong>{guide.degreeSpan}</span>
+        <span className={styles.guideChip}><strong>{t('colour')}: </strong>{guide.colour}</span>
+        <span className={styles.guideChip}><strong>{t('bodyPart')}: </strong>{guide.bodyPart}</span>
       </div>
-      <PadaMap nakIdx={chars.index} pada={chars.pada} />
+
+      <div className={styles.guideDisclosureGroup}>
+        <GuideDisclosure title={t('theory')} paragraphs={guide.theory} defaultOpen />
+        <GuideDisclosure title={t('deityNotes')} paragraphs={guide.deityNotes} />
+        <GuideDisclosure title={t('rulerNotes')} paragraphs={guide.rulerNotes} />
+        <GuideDisclosure title={t('rashiNotes')} paragraphs={guide.rashiNotes} />
+        <GuideDisclosure title={t('symbolNotes')} paragraphs={guide.symbolNotes} />
+        <GuideDisclosure title={t('mythology')} paragraphs={guide.mythology} />
+        <GuideDisclosure title={t('animalNotes')} paragraphs={guide.animalNotes} />
+        <GuideDisclosure title={t('doshaNotes')} paragraphs={guide.doshaNotes} />
+        <GuideDisclosureSlot title={t('yourPada')} defaultOpen>
+          <div className={cn(styles.guidePadaItem, styles.guidePadaItemActive)}>
+            <div className={styles.guidePadaHead}>
+              <span className={styles.guidePadaName}>
+                {t('pada', { n: birthPadaGuide.pada })} · {birthPadaGuide.navamsa}
+              </span>
+              <span className={styles.guidePadaMeta}>{birthPadaGuide.span}</span>
+            </div>
+            <p className={styles.guideProse}>{birthPadaGuide.summary}</p>
+          </div>
+        </GuideDisclosureSlot>
+        <GuideDisclosureSlot title={t('allPadas')}>
+          <ul className={styles.guidePadaList}>
+            {guide.padas.map((p) => (
+              <li
+                key={p.pada}
+                className={cn(styles.guidePadaItem, p.pada === birthPada && styles.guidePadaItemActive)}
+              >
+                <div className={styles.guidePadaHead}>
+                  <span className={styles.guidePadaName}>{t('pada', { n: p.pada })} · {p.navamsa}</span>
+                  <span className={styles.guidePadaMeta}>{p.span}</span>
+                </div>
+                <p className={styles.guideProse}>{p.summary}</p>
+              </li>
+            ))}
+          </ul>
+        </GuideDisclosureSlot>
+      </div>
+    </section>
+  )
+}
+
+function ChartInterpPanel({
+  guide,
+  chartPlanets,
+  showLagna,
+}: {
+  guide: NakshatraDeepGuide
+  chartPlanets: Array<{ id: NakshatraGuidePlanet; pada: number }>
+  showLagna: boolean
+}) {
+  const t = useTranslations('nakshatra.overview')
+  const { hi } = useLang()
+  const graha = (id: NakshatraGuidePlanet) => (hi ? termHi(GRAHA_NAMES[id]) : GRAHA_NAMES[id])
+  const merged = chartPlanets
+    .map(({ id, pada }) => ({
+      id,
+      pada,
+      effect: guide.planetEffects[id],
+      padaLine: guide.planetPadaResults[id]?.[pada - 1],
+    }))
+    .filter((e) => Boolean(e.effect || e.padaLine))
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.sectionHead}>
+        <h3 className={styles.sectionTitle}>{t('chartInterpTitle')}</h3>
+        <div className={styles.sectionRule} />
+      </div>
+      <p className={styles.guideLead}>{t('chartInterpLead')}</p>
+
+      <div className={styles.guideDisclosureGroup}>
+        <GuideDisclosureSlot title={t('planetEffects')}>
+          {merged.length ? (
+            <div className={styles.guidePlanetGrid}>
+              {merged.map(({ id, pada, effect, padaLine }) => (
+                <div key={id} className={styles.guidePlanetCard}>
+                  <div className={styles.guidePlanetName}>{graha(id)}</div>
+                  {effect ? <p className={styles.guideProse}>{effect}</p> : null}
+                  {padaLine ? (
+                    <p className={styles.guidePlanetPada}>
+                      <strong>{t('chartPadaResult', { n: pada })}: </strong>{padaLine}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.guideEmpty}>{t('planetEffectsEmpty')}</p>
+          )}
+        </GuideDisclosureSlot>
+
+        {showLagna ? (
+          <GuideDisclosure title={t('lagnaNotes')} paragraphs={[guide.lagnaNotes]} />
+        ) : null}
+      </div>
     </section>
   )
 }

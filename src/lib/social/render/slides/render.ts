@@ -573,7 +573,8 @@ function textBlocks(ctx: CanvasRenderingContext2D, rc: RenderCtx, spec: Extract<
     const lines = splitLines(ctx, p, COL_W - 40, o, 6)
     blocks.push({ min: lines.length * lh, draw: (y) => lines.forEach((ln, i) => text(ctx, ln, CX, y + lh * 0.74 + i * lh, { ...o, color: t.ink })) })
   }
-  for (const b of spec.bullets ?? []) {
+  const bulletSpecs = spec.bullets ?? []
+  bulletSpecs.forEach((b, bi) => {
     const items = b.items.slice(0, 6)
     const tone = b.tone ?? 'neutral'
     const head = b.title ? 56 : 0
@@ -581,6 +582,8 @@ function textBlocks(ctx: CanvasRenderingContext2D, rc: RenderCtx, spec: Extract<
     const h = head + lineSets.reduce((n, l) => n + l.length * 40 + 16, 0) + 30
     blocks.push({
       min: h,
+      // Keep the first bullet group; later ones can drop when the frame is short.
+      optional: bi > 0,
       draw: (y) => {
         drawPanel(ctx, t, COL_X, y, COL_W, h, tone, 24)
         let yy = y + 24
@@ -595,7 +598,7 @@ function textBlocks(ctx: CanvasRenderingContext2D, rc: RenderCtx, spec: Extract<
         }
       },
     })
-  }
+  })
   return blocks
 }
 

@@ -114,5 +114,12 @@
     "tryAgain": "फिर से प्रयास करें",
     "goHome": "होम जाएँ",
     "errorId": "त्रुटि पहचान: {digest}"
+  },
+  "a11y": {
+    "loading": "लोड हो रहा है",
+    "loadingPage": "पेज लोड हो रहा है",
+    "loadingBrand": "Vedaansh लोड हो रहा है",
+    "closeDialog": "डायलॉग बंद करें",
+    "closePanel": "पैनल बंद करें"
   }
 }
