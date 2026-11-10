@@ -1403,3 +1403,211 @@
   line-height: 1.5;
   color: var(--text-muted);
 }
+
+/* Deep guide (encyclopedic teaching notes) */
+.guideLead {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.guideDisclosureGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.guideDisclosure {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.guideDisclosureSummary {
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--text-gold);
+}
+
+.guideDisclosureChevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.guideDisclosureChevronOpen {
+  transform: rotate(180deg);
+}
+
+.guideDisclosureBody {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.guideKeyword {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.guideKeyword strong {
+  color: var(--text-gold);
+  font-weight: 700;
+}
+
+.guideMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.guideChip {
+  font-size: 0.66rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.guideChip strong {
+  color: var(--text-gold);
+  font-weight: 700;
+}
+
+.guideSection {
+  margin-top: 0.85rem;
+}
+
+.guideSectionTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+}
+
+.guideProse {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.guideProse + .guideProse {
+  margin-top: 0.45rem;
+}
+
+.guidePadaList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guidePadaItem {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.guidePadaItemActive {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+  background: var(--gold-faint);
+}
+
+.guidePadaHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.guidePadaName {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.guidePadaMeta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.guidePlanetGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+
+.guidePlanetCard {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.guidePlanetName {
+  margin: 0 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.guidePlanetPada {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.guidePlanetPada strong {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.guideEmpty {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.guideOccupiedPlanet {
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.guideOccupiedPlanet:first-of-type {
+  margin-top: 0.35rem;
+}
+
+.guideOccupiedPlanetName {
+  margin: 0 0 0.2rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--gold);
+}
