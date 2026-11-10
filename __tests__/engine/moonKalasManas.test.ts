@@ -55,14 +55,11 @@ function stubGraha(
 }
 
 describe('kalaFromElongation', () => {
-  it('maps Amavasya ~0° to Ama (Chandra) and Amrita (Tripura)', () => {
+  it('maps Amavasya ~0° to no kalas (dark-half gate)', () => {
     const r = kalaFromElongation(0)
-    expect(r.activeChandraKala.name).toBe('Ama')
-    expect(r.activeTripuraKala.name).toBe('Amrita')
-    expect(r.activeKala.name).toBe('Ama')
-    expect(r.possessedCount).toBe(1)
-    expect(r.possessionMode).toBe('accumulated')
-    expect(r.paksha).toBe('shukla')
+    expect(r.possessedCount).toBe(0)
+    expect(r.possessionMode).toBe('none')
+    expect(r.paksha).toBe('krishna')
   })
 
   it('Shukla Ashtami (~90°) possesses kalas 1–8, not only the 8th', () => {
@@ -81,6 +78,13 @@ describe('kalaFromElongation', () => {
     expect(r.possessedCount).toBe(16)
     expect(r.awakenedCount).toBe(16)
     expect(r.possessionMode).toBe('accumulated')
+  })
+
+  it('Krishna elongation has no kalas', () => {
+    const r = kalaFromElongation(210) // early Krishna
+    expect(r.possessedCount).toBe(0)
+    expect(r.possessionMode).toBe('none')
+    expect(r.paksha).toBe('krishna')
   })
 
   it('defines both 16-kala systems', () => {
@@ -103,6 +107,11 @@ describe('buildPossessionSummary', () => {
     const s = buildPossessionSummary(8, 'accumulated', CHANDRA_KALAS[7], false, false)
     expect(s).toMatch(/1–8/)
     expect(s).toMatch(/every earlier kala/)
+  })
+
+  it('states no kalas for Krishna half', () => {
+    const s = buildPossessionSummary(0, 'none', CHANDRA_KALAS[0], false, false)
+    expect(s).toMatch(/No lunar kalas/)
   })
 })
 
@@ -199,6 +208,31 @@ describe('analyzeMoonKalasManas', () => {
     expect(result!.activeTripuraKala.name).toBeTruthy()
     expect(result!.chandraKalas).toHaveLength(16)
     expect(result!.tripuraKalas).toHaveLength(16)
+  })
+
+  it('gives zero kalas for Krishna paksha birth', () => {
+    const chart = {
+      grahas: [
+        stubGraha('Su', 1, 0, 10),
+        stubGraha('Mo', 8, 17, 220), // ~210° elongation → Krishna
+        stubGraha('Ve', 2, 3, 45),
+        stubGraha('Ke', 7, 15, 185),
+        stubGraha('Ra', 1, 0, 5),
+        stubGraha('Ma', 1, 1, 15),
+        stubGraha('Me', 3, 5, 70),
+        stubGraha('Ju', 9, 18, 250),
+        stubGraha('Sa', 10, 21, 290),
+      ],
+      lagnas: { ascRashi: 1 },
+      panchang: { tithi: { number: 8, name: 'Ashtami', paksha: 'krishna' } },
+    } as unknown as ChartOutput
+
+    const result = analyzeMoonKalasManas(chart)!
+    expect(result.possessedCount).toBe(0)
+    expect(result.possessionMode).toBe('none')
+    expect(result.possessedChandraKalas).toHaveLength(0)
+    expect(result.possessedTripuraKalas).toHaveLength(0)
+    expect(result.possessionSummary).toMatch(/No lunar kalas/)
   })
 
   it('flags debilitated Moon past-life theme and Purnima', () => {

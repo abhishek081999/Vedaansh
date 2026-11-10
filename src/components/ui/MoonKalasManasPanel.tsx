@@ -83,8 +83,9 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
     ? t('possAll')
     : data.possessionMode === 'accumulated'
       ? t('possAcc', { n: data.possessedCount })
-      : t('possRem', { n: data.possessedCount })
+      : t('possNone')
   const pakshaWord = data.paksha === 'shukla' ? t('shukla') : t('krishna')
+  const hasKalas = data.possessedCount > 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -221,7 +222,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
             </p>
             <PossessionStrip
               count={data.possessedCount}
-              leading={data.activeChandraKala.number}
+              leading={hasKalas ? data.activeChandraKala.number : 0}
               mode={data.possessionMode}
             />
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '0.75rem' }}>
@@ -232,14 +233,14 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                     value: i < data.possessedCount ? 1 : 0,
                     max: 1,
                     color: 'var(--gold)',
-                    active: i + 1 === data.activeChandraKala.number,
+                    active: hasKalas && i + 1 === data.activeChandraKala.number,
                     title: i < data.possessedCount ? t('kalaPossessed', { n: i + 1 }) : t('kalaTitle', { n: i + 1 }),
                   }))}
                   thickness={16}
                   size={170}
                   centerValue={data.possessedCount}
                   centerLabel={t('of16')}
-                  ariaLabel={t('possessedAria', { n: data.possessedCount })}
+                  ariaLabel={hasKalas ? t('possessedAria', { n: data.possessedCount }) : t('noneAria')}
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -248,25 +249,31 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                 <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{t('pakshaDeg', { paksha: pakshaWord, deg: data.elongationDeg.toFixed(0) })}</span>
               </div>
             </div>
-            <div style={{
-              marginTop: '0.75rem',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '0.65rem',
-            }}>
-              <PossessedList
-                title={t('chandraKalas')}
-                items={data.possessedChandraKalas}
-                leadingNumber={data.activeChandraKala.number}
-                total={16}
-              />
-              <PossessedList
-                title={t('tripuraKalas')}
-                items={data.possessedTripuraKalas}
-                leadingNumber={data.activeTripuraKala.number}
-                total={16}
-              />
-            </div>
+            {hasKalas ? (
+              <div style={{
+                marginTop: '0.75rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: '0.65rem',
+              }}>
+                <PossessedList
+                  title={t('chandraKalas')}
+                  items={data.possessedChandraKalas}
+                  leadingNumber={data.activeChandraKala.number}
+                  total={16}
+                />
+                <PossessedList
+                  title={t('tripuraKalas')}
+                  items={data.possessedTripuraKalas}
+                  leadingNumber={data.activeTripuraKala.number}
+                  total={16}
+                />
+              </div>
+            ) : (
+              <p style={{ margin: '0.75rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                {t('krishnaNone')}
+              </p>
+            )}
             {!showFull && (
               <div style={{ marginTop: '0.55rem', fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
                 <Lock size={12} aria-hidden /> {t('openKalasGold')}
@@ -675,7 +682,7 @@ function PossessionStrip({
 }: {
   count: number
   leading: number
-  mode: 'accumulated' | 'remaining'
+  mode: 'accumulated' | 'none'
 }) {
   const t = useTranslations('planetsA.moon')
   return (
@@ -690,7 +697,7 @@ function PossessionStrip({
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
       }}>
-        <span>{mode === 'accumulated' ? t('stripAcc') : t('stripRem')}</span>
+        <span>{mode === 'accumulated' ? t('stripAcc') : t('stripNone')}</span>
         <span>{count}/16</span>
       </div>
       <div style={{
@@ -698,12 +705,12 @@ function PossessionStrip({
         gridTemplateColumns: 'repeat(16, minmax(0, 1fr))',
         gap: 3,
       }}
-        aria-label={t('possessedAria', { n: count })}
+        aria-label={count > 0 ? t('possessedAria', { n: count }) : t('noneAria')}
       >
         {Array.from({ length: 16 }, (_, i) => {
           const n = i + 1
           const on = n <= count
-          const lead = n === leading
+          const lead = count > 0 && n === leading
           return (
             <div
               key={n}
@@ -845,7 +852,7 @@ function KalasSection({
   activeChandra: MoonKalaDef
   activeTripura: MoonKalaDef
   possessedCount: number
-  possessionMode: 'accumulated' | 'remaining'
+  possessionMode: 'accumulated' | 'none'
   possessionSummary: string
   possessionTitle: string
   paksha: 'shukla' | 'krishna'
@@ -854,10 +861,11 @@ function KalasSection({
   worshipNote: string
 }) {
   const t = useTranslations('planetsA.moon')
+  const hasKalas = possessedCount > 0
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <Card>
-        <Label>{possessionMode === 'accumulated' ? t('possessedAtBirth') : t('remainingAfter')}</Label>
+        <Label>{possessionMode === 'accumulated' ? t('possessedAtBirth') : t('noneAtBirth')}</Label>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-gold)' }}>
           {possessionTitle}
         </div>
@@ -866,12 +874,12 @@ function KalasSection({
         </p>
         <PossessionStrip
           count={possessedCount}
-          leading={activeChandra.number}
+          leading={hasKalas ? activeChandra.number : 0}
           mode={possessionMode}
         />
         <p style={{ margin: '0.55rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          {paksha === 'shukla' ? t('shuklaAcc') : t('krishnaWane')}
-          {t('leadingPair', { cn: activeChandra.number, cname: activeChandra.name, tn: activeTripura.number, tname: activeTripura.name })}
+          {paksha === 'shukla' ? t('shuklaAcc') : t('krishnaNone')}
+          {hasKalas && t('leadingPair', { cn: activeChandra.number, cname: activeChandra.name, tn: activeTripura.number, tname: activeTripura.name })}
         </p>
       </Card>
 
@@ -951,8 +959,8 @@ function KalasSection({
             </div>
             {chandraKalas.map((ck, i) => {
               const tk = tripuraKalas[i]
-              const possessed = ck.number <= possessedCount
-              const isLeading = ck.number === activeChandra.number
+              const possessed = hasKalas && ck.number <= possessedCount
+              const isLeading = hasKalas && ck.number === activeChandra.number
               return (
                 <div
                   key={ck.number}
@@ -1016,9 +1024,9 @@ function KalasSection({
           gap: '0.55rem',
         }}>
           {(kalaView === 'chandra' ? chandraKalas : tripuraKalas).map(k => {
-            const possessed = k.number <= possessedCount
+            const possessed = hasKalas && k.number <= possessedCount
             const leading = kalaView === 'chandra' ? activeChandra : activeTripura
-            const isLeading = k.number === leading.number
+            const isLeading = hasKalas && k.number === leading.number
             return (
               <div
                 key={`${kalaView}-${k.number}`}

@@ -112,19 +112,19 @@ export interface MoonKalasManasResult {
   activeKala: MoonKalaDef
   /**
    * How many kalas are possessed at birth.
-   * Shukla / Purnima: cumulative from Amavasya (Ashtami → 1–8; Purnima → all 16).
-   * Krishna: remaining as light wanes from Purnima toward Amavasya.
+   * Shukla / Purnima only: cumulative Amavasya → Purnima (Ashtami → 1–8; Purnima → all 16).
+   * Krishna paksha (dark half): no kalas — count is 0.
    */
   awakenedCount: number
   /** Same as awakenedCount — preferred name for the cumulative teaching */
   possessedCount: number
-  /** accumulated = waxing (you keep 1…N); remaining = waning after Purnima */
-  possessionMode: 'accumulated' | 'remaining'
+  /** accumulated = Shukla fill (1…N); none = Krishna half (no kalas) */
+  possessionMode: 'accumulated' | 'none'
   /** Human summary, e.g. "Possessed kalas 1–8 (Amavasya → Ashtami)" */
   possessionSummary: string
-  /** Chandra kalas 1…possessedCount */
+  /** Chandra kalas 1…possessedCount (empty on Krishna) */
   possessedChandraKalas: MoonKalaDef[]
-  /** Tripura kalas 1…possessedCount */
+  /** Tripura kalas 1…possessedCount (empty on Krishna) */
   possessedTripuraKalas: MoonKalaDef[]
   isAmavasya: boolean
   isPurnima: boolean
@@ -419,43 +419,38 @@ function sameSignOrConjunct(a: GrahaData, b: GrahaData, orb = 8): boolean {
 
 function kalaIndexFromElongation(elongationDeg: number): {
   idx: number
-  /** Kalas possessed: cumulative on shukla (1…N), remaining on krishna */
+  /** Kalas possessed: cumulative on Shukla only (1…N). Krishna = 0. */
   possessedCount: number
-  possessionMode: 'accumulated' | 'remaining'
+  possessionMode: 'accumulated' | 'none'
   paksha: 'shukla' | 'krishna'
 } {
   const e = normalizeLon(elongationDeg)
 
-  // Exact / near Purnima: all 16 possessed (not only the 16th)
-  if (e >= 174 && e <= 186) {
-    return { idx: 15, possessedCount: 16, possessionMode: 'accumulated', paksha: e < 180 ? 'shukla' : 'krishna' }
+  // Near Purnima on the bright side: all 16 (not only the 16th). Past 180° = Krishna = none.
+  if (e >= 174 && e <= 180) {
+    return { idx: 15, possessedCount: 16, possessionMode: 'accumulated', paksha: 'shukla' }
   }
 
   const paksha: 'shukla' | 'krishna' = e < 180 ? 'shukla' : 'krishna'
 
   if (paksha === 'shukla') {
-    // Cumulative: Amavasya → birth tithi. Ashtami (~84–96°) → possess kalas 1–8.
+    // Cumulative Amavasya → birth tithi. Ashtami (~84–96°) → possess kalas 1–8.
+    // Near 0° is the Amavasya gate — no filled kala yet until light rises in Shukla.
     if (e < 1) {
-      return { idx: 0, possessedCount: 1, possessionMode: 'accumulated', paksha }
+      return { idx: 0, possessedCount: 0, possessionMode: 'none', paksha: 'krishna' }
     }
     const possessedCount = Math.min(16, Math.max(1, Math.floor(e / 12) + 1))
     const idx = Math.min(15, possessedCount - 1)
     return { idx, possessedCount, possessionMode: 'accumulated', paksha }
   }
 
-  // Krishna: kalas diminish from the full set toward Amavasya
-  const fromPurna = e - 180
-  if (e >= 359 || e < 0.5) {
-    return { idx: 0, possessedCount: 1, possessionMode: 'remaining', paksha }
-  }
-  const remaining = Math.min(16, Math.max(1, 16 - Math.floor(fromPurna / 12)))
-  const idx = Math.min(15, Math.max(0, remaining - 1))
-  return { idx, possessedCount: remaining, possessionMode: 'remaining', paksha }
+  // Krishna half (Purnima → Amavasya): no lunar kalas
+  return { idx: 0, possessedCount: 0, possessionMode: 'none', paksha }
 }
 
 export function buildPossessionSummary(
   possessedCount: number,
-  possessionMode: 'accumulated' | 'remaining',
+  possessionMode: 'accumulated' | 'none',
   leadingChandra: MoonKalaDef,
   isPurnima: boolean,
   isAmavasya: boolean,
@@ -464,26 +459,23 @@ export function buildPossessionSummary(
   if (lang === 'hi') {
     const P = MOON_TEXT_HI.possession
     if (isPurnima || possessedCount >= 16) return P.all
-    if (isAmavasya || possessedCount <= 1) return P.minimal
-    return fill(possessionMode === 'accumulated' ? P.accumulated : P.remaining, { n: possessedCount, kala: leadingChandra.name })
+    if (possessionMode === 'none' || possessedCount <= 0 || isAmavasya) return P.none
+    return fill(P.accumulated, { n: possessedCount, kala: leadingChandra.name })
   }
   if (isPurnima || possessedCount >= 16) {
     return 'All 16 kalas possessed (Purnima) — not only the 16th; the full set from Amavasya to Full Moon is yours.'
   }
-  if (isAmavasya || possessedCount <= 1) {
-    return 'Minimal kala (Amavasya) — only the first kala is present; light and mind strength are at their lowest.'
+  if (possessionMode === 'none' || possessedCount <= 0 || isAmavasya) {
+    return 'No lunar kalas in this half — kalas fill only Amavasya → Purnima (Shukla). Krishna paksha carries none.'
   }
-  if (possessionMode === 'accumulated') {
-    return `Possessed kalas 1–${possessedCount} (Amavasya → ${leadingChandra.name}) — every earlier kala is included, not only the leading one.`
-  }
-  return `Remaining kalas 1–${possessedCount} (waning from Purnima) — light is reducing; leading edge is ${leadingChandra.name}.`
+  return `Possessed kalas 1–${possessedCount} (Amavasya → ${leadingChandra.name}) — every earlier kala is included, not only the leading one.`
 }
 
 /**
  * Elongation Moon−Sun: 0° Amavasya … 180° Purnima … 360° Amavasya.
  *
- * Teaching: kalas accumulate. Purnima birth → all 16. Shukla Ashtami → kalas 1–8.
- * Same index drives both Chandra and Tripura Sundari lists.
+ * Teaching: kalas fill only Amavasya → Purnima. Purnima → all 16. Shukla Ashtami → 1–8.
+ * Krishna paksha has no kalas. Same index drives both Chandra and Tripura lists on Shukla.
  */
 export function kalaFromElongation(elongationDeg: number): {
   activeChandraKala: MoonKalaDef
@@ -492,7 +484,7 @@ export function kalaFromElongation(elongationDeg: number): {
   activeKala: MoonKalaDef
   awakenedCount: number
   possessedCount: number
-  possessionMode: 'accumulated' | 'remaining'
+  possessionMode: 'accumulated' | 'none'
   paksha: 'shukla' | 'krishna'
 } {
   const { idx, possessedCount, possessionMode, paksha } = kalaIndexFromElongation(elongationDeg)
@@ -547,7 +539,7 @@ function computePakshaBaliEn(
     return {
       band: 'weakest',
       label: 'Amavasya — weakest',
-      detail: 'New Moon: kalas at minimum. Mind needs careful support; major Amavasya pujas can still yield quick results.',
+      detail: 'New Moon: no lunar kalas in the dark half. Mind needs careful support; major Amavasya pujas can still yield quick results.',
       strengthPct: 8,
     }
   }
@@ -590,8 +582,8 @@ function computePakshaBaliEn(
   }
   return {
     band: 'waning',
-    label: 'Kalas decreasing',
-    detail: 'After Krishna Panchami lunar kalas diminish toward Amavasya. Mind may feel drained; avoid over-commitment.',
+    label: 'Paksha strength waning',
+    detail: 'After Krishna Panchami paksha strength fades toward Amavasya. There are no lunar kalas in Krishna — mind may feel drained; avoid over-commitment.',
     strengthPct: Math.max(12, 55 - (tithiInPaksha - 5) * 6),
   }
 }
@@ -1011,7 +1003,7 @@ export function analyzeMoonKalasManas(chart: ChartOutput, lang: EngineLang = 'en
   const elongation = normalizeLon(moon.lonSidereal - sun.lonSidereal)
   const tithi = chart.panchang.tithi
   const isAmavasya = tithi.number === 30 || tithi.name === 'Amavasya' || elongation < 6 || elongation >= 354
-  const isPurnima = tithi.number === 15 || tithi.name === 'Purnima' || (elongation >= 174 && elongation <= 186)
+  const isPurnima = tithi.number === 15 || tithi.name === 'Purnima' || (elongation >= 174 && elongation <= 180)
 
   let {
     activeChandraKala,
@@ -1041,10 +1033,12 @@ export function analyzeMoonKalasManas(chart: ChartOutput, lang: EngineLang = 'en
     activeChandraKala = CK[15]
     activeTripuraKala = TK[15]
     activeKala = activeChandraKala
-  } else if (isAmavasya) {
-    possessedCount = 1
-    awakenedCount = 1
-    possessionMode = 'remaining'
+  } else if (isAmavasya || tithiPaksha === 'krishna') {
+    // Dark half (incl. Amavasya): no lunar kalas — only Amavasya → Purnima fills them
+    possessedCount = 0
+    awakenedCount = 0
+    possessionMode = 'none'
+    paksha = 'krishna'
     activeChandraKala = CK[0]
     activeTripuraKala = TK[0]
     activeKala = activeChandraKala
@@ -1053,16 +1047,8 @@ export function analyzeMoonKalasManas(chart: ChartOutput, lang: EngineLang = 'en
     possessedCount = tithiInPaksha
     awakenedCount = tithiInPaksha
     possessionMode = 'accumulated'
+    paksha = 'shukla'
     const idx = Math.min(15, possessedCount - 1)
-    activeChandraKala = CK[idx]
-    activeTripuraKala = TK[idx]
-    activeKala = activeChandraKala
-  } else if (tithiPaksha === 'krishna' && tithiInPaksha >= 1 && tithiInPaksha <= 14) {
-    // Waning: remaining ≈ 16 − progress into Krishna
-    possessedCount = Math.max(1, 16 - tithiInPaksha)
-    awakenedCount = possessedCount
-    possessionMode = 'remaining'
-    const idx = Math.min(15, Math.max(0, possessedCount - 1))
     activeChandraKala = CK[idx]
     activeTripuraKala = TK[idx]
     activeKala = activeChandraKala
@@ -1188,14 +1174,14 @@ export function analyzeMoonKalasManas(chart: ChartOutput, lang: EngineLang = 'en
   const worshipNote = hi
     ? (isAmavasya ? W.amavasya : isPurnima ? W.purnima : possessionMode === 'accumulated'
         ? fill(W.shukla, { n: possessedCount, kala: activeChandraKala.name, deg: elongation.toFixed(1) })
-        : fill(W.krishna, { n: possessedCount }))
+        : W.krishna)
     : isAmavasya
     ? 'Amavasya is extremely important for major pujas (Tantric, Vedic, Puranic, Dakshin or Vam marga) — results of worship come very quickly.'
     : isPurnima
       ? 'Purnima is excellent for worship and ritual; all 16 kalas are possessed (the full set, not only Purna / Purnima).'
       : possessionMode === 'accumulated'
         ? `Shukla paksha — you possess kalas 1–${possessedCount} (from Amavasya through ${activeChandraKala.name}). Elongation ≈ ${elongation.toFixed(1)}°.`
-        : `Krishna paksha — ${possessedCount}/16 kalas remain as light wanes from Purnima.`
+        : 'Krishna paksha — no lunar kalas. Kalas fill only Amavasya → Purnima (Shukla).'
 
   const moonMeta = {
     rashi: moon.rashi,
@@ -1245,9 +1231,9 @@ export function analyzeMoonKalasManas(chart: ChartOutput, lang: EngineLang = 'en
         'Moon is Jal Tattva. Emotions and sensitivity flow like water — sometimes beyond ordinary control. Moon = Mano Gati (mind’s movement).',
     },
     chandraKalasNote:
-      'Chandra kalas describe the Moon’s own light and mind (mano-gati). They accumulate: Purnima birth has all 16; Shukla Ashtami has kalas 1–8 from Amavasya through Ashtami — not only the leading kala.',
+      'Chandra kalas describe the Moon’s own light and mind (mano-gati). They fill only Amavasya → Purnima: Purnima has all 16; Shukla Ashtami has kalas 1–8 — not only the leading kala. Krishna paksha has no kalas.',
     shriVidyaNote:
-      'Tripura Sundari kalas are the goddess’s 16 kalas in Shri Vidya. Same cumulative possession as Chandra kalas (same elongation), different names and sadhana emphasis. Moon is likened to Shri Yantra — Full Moon gazing when yantra/place is unavailable.',
+      'Tripura Sundari kalas are the goddess’s 16 kalas in Shri Vidya. Same Shukla possession count as Chandra kalas (same elongation); Krishna has none. Names differ by sadhana emphasis. Moon is likened to Shri Yantra — Full Moon gazing when yantra/place is unavailable.',
     analysisFramework: buildAnalysisFramework(
       moonMeta,
       paksha,
