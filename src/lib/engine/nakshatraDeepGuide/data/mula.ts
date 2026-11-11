@@ -1,7 +1,7 @@
 // Mula — index 18
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const MULA_GUIDE: NakshatraDeepGuide = {
+export const MULA_GUIDE: NakshatraDeepGuideSeed = {
   index: 18,
   name: 'Mula',
   keyword: 'Root / radical liberation',
@@ -42,6 +42,22 @@ export const MULA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — movement and change. Restless mind, hard to relax, slow to adjust to new situations.',
   ],
+  coreCharacteristics: [
+    'Extremely truth-seeking, radical, and root-oriented',
+    'Compelled to go to the very foundation of any issue',
+    'Destroys false beliefs, weak structures, and illusions',
+    'Life marked by sudden upheavals followed by rebirth',
+    'Spiritually intense, detached from superficial success',
+    'Fearless in questioning authority, tradition, and dogma',
+  ],
+  negativeTendencies: [
+    'Destructive speech',
+    'Emotional detachment',
+    'Instability',
+    'Nihilistic thinking',
+  ],
+  goodAges: [35, 40],
+  badAges: [46, 25],
   lagnaNotes:
     'Strong desire for self-discovery and higher knowledge; questions tradition and explores beyond ordinary understanding. Family relationships and practical responsibilities remain equally important.',
   planetEffects: {

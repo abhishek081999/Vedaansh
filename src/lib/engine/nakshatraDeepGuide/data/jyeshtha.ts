@@ -1,7 +1,7 @@
 // Jyeshtha — index 17
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const JYESHTHA_GUIDE: NakshatraDeepGuide = {
+export const JYESHTHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 17,
   name: 'Jyeshtha',
   keyword: 'Elder authority / hard-won seniority',
@@ -43,6 +43,22 @@ export const JYESHTHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — movement and nervous energy. Mentally active, restless, easily stressed. Peaceful environment, routine, and comfort help balance.',
   ],
+  coreCharacteristics: [
+    'Extremely protective, authoritative, and responsibility-driven',
+    'Natural “elder” energy — takes charge in crises',
+    'Strong instinct to protect family, team, or nation',
+    'Strategic, intelligent, and commanding',
+    'Sensitive to respect and recognition',
+    'Often carries heavy karmic responsibility',
+  ],
+  negativeTendencies: [
+    'Control issues',
+    'Suspicion',
+    'Fear of losing authority',
+    'Stress from over-responsibility',
+  ],
+  goodAges: [54, 43],
+  badAges: [29, 50],
   lagnaNotes:
     'Planets in Jyeshtha mark a transition between material and spiritual interests. Strong worldly ambition often precedes a gradual turn toward deeper understanding.',
   planetEffects: {

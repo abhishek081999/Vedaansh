@@ -1,7 +1,7 @@
 // Hasta — index 12
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const HASTA_GUIDE: NakshatraDeepGuide = {
+export const HASTA_GUIDE: NakshatraDeepGuideSeed = {
   index: 12,
   name: 'Hasta',
   keyword: 'Skilled hand / personal craft',
@@ -41,6 +41,22 @@ export const HASTA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — movement, activity, nervous energy. May appear calm while restless, tense, and overthinking inside. Yoga, physical discipline, and routine help.',
   ],
+  coreCharacteristics: [
+    'Highly skilled, dexterous, and solution-oriented',
+    'Natural ability to take control of situations',
+    'Excellent hand–eye coordination',
+    'Quick thinking combined with practical execution',
+    'Adaptable, clever, and communicative',
+    'Capable of turning chaos into order',
+  ],
+  negativeTendencies: [
+    'Manipulative behavior',
+    'Over-control',
+    'Restlessness',
+    'Opportunism',
+  ],
+  goodAges: [47, 35],
+  badAges: [40, 33],
   lagnaNotes:
     'Hasta natives are generally intelligent, practical, and skilled, believing they can achieve their goals — yet may become overly controlling or material-focused.',
   planetEffects: {

@@ -1,7 +1,7 @@
 // Dhanishtha — index 22
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const DHANISHTHA_GUIDE: NakshatraDeepGuide = {
+export const DHANISHTHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 22,
   name: 'Dhanishtha',
   keyword: 'Wealth of character / rhythmic power',
@@ -42,6 +42,22 @@ export const DHANISHTHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — heat, energy, activity. Ambitious and achievement-oriented; excess intensity brings impatience, overexertion, burnout.',
   ],
+  coreCharacteristics: [
+    'Extremely dynamic, ambitious, and rhythm-driven',
+    'Strong ability to create wealth, resources, and influence',
+    'Thrives in groups, networks, and collective systems',
+    'Natural organizer with leadership in motion-based environments',
+    'Competitive, courageous, and action-oriented',
+    'Strong sense of timing and opportunity',
+  ],
+  negativeTendencies: [
+    'Impatience',
+    'Aggressiveness',
+    'Ego clashes',
+    'Burnout due to constant activity',
+  ],
+  goodAges: [48, 52],
+  badAges: [34, 40],
   lagnaNotes:
     'Strong responsibility toward others; often takes on more duties than necessary.',
   planetEffects: {

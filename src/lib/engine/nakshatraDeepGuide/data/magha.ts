@@ -1,7 +1,7 @@
 // Magha — index 9
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const MAGHA_GUIDE: NakshatraDeepGuide = {
+export const MAGHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 9,
   name: 'Magha',
   keyword: 'Ancestral power / royal seat',
@@ -44,6 +44,22 @@ export const MAGHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — stability, nourishment, endurance. Calm, emotional, philosophical; excess comfort, overeating, and attachment to pleasure are risks.',
   ],
+  coreCharacteristics: [
+    'Strong royal, authoritative, and ancestral consciousness',
+    'Deep respect for lineage, tradition, and heritage',
+    'Natural leadership and command presence',
+    'Strong sense of entitlement to respect and authority',
+    'Connected to past-life karma and ancestral blessings',
+    'Works best when honoring tradition and duty',
+  ],
+  negativeTendencies: [
+    'Ego and arrogance',
+    'Obsession with status',
+    'Living in the past',
+    'Looking down on others',
+  ],
+  goodAges: [36, 29],
+  badAges: [39, 40],
   lagnaNotes:
     'Magha Ascendant often shows leadership, ambition, and hunger for recognition, with a natural link to ancestors and tradition, and a preference for independence and authority.',
   planetEffects: {

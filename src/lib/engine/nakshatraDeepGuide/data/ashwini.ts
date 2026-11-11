@@ -1,7 +1,7 @@
 // Ashwini — index 0
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const ASHWINI_GUIDE: NakshatraDeepGuide = {
+export const ASHWINI_GUIDE: NakshatraDeepGuideSeed = {
   index: 0,
   name: 'Ashwini',
   keyword: 'Dawn / healing initiation',
@@ -49,6 +49,22 @@ export const ASHWINI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Ashwini is strongly Vata — movement, activity, communication, and nervous energy. Restlessness and new ideas come easily; impatience, distraction, and stress vulnerability are the shadow.',
   ],
+  coreCharacteristics: [
+    'Extremely fast, energetic, and action-oriented',
+    'Natural initiators — they start things before others even think',
+    'Strong instinct to heal, fix, and rescue',
+    'Courageous, fearless, and spontaneous',
+    'Works best in emergencies and crisis situations',
+    'Strong Ketu influence gives healing powers, intuition, and spiritual speed',
+  ],
+  negativeTendencies: [
+    'Impatience',
+    'Incomplete execution',
+    'Recklessness',
+    'Difficulty with long-term consistency',
+  ],
+  goodAges: [28, 29],
+  badAges: [42, 46],
   lagnaNotes:
     'Ashwini Lagna tends toward energetic, adventurous, independent people with leadership and healing gifts. They honour past experience while hunting new openings. Main pitfalls: impatience, impulsive choices, and expecting quick results.',
   planetEffects: {

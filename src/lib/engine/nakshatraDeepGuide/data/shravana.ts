@@ -1,7 +1,7 @@
 // Shravana — index 21
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const SHRAVANA_GUIDE: NakshatraDeepGuide = {
+export const SHRAVANA_GUIDE: NakshatraDeepGuideSeed = {
   index: 21,
   name: 'Shravana',
   keyword: 'Sacred listening / learned silence',
@@ -42,6 +42,21 @@ export const SHRAVANA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — emotional stability, patience, calm. Excess attachment to comfort, food, and emotion creates difficulty; meditation and discipline help.',
   ],
+  coreCharacteristics: [
+    'Extremely receptive, observant, and knowledge-absorbing',
+    'Learns primarily through listening',
+    'Strong respect for tradition, scripture, and lineage of knowledge',
+    'Calm, patient, and thoughtful communicator',
+    'Natural teacher, advisor, and messenger',
+    'Success grows steadily through accumulated wisdom',
+  ],
+  negativeTendencies: [
+    'Over-dependence on others’ opinions',
+    'Mental overload',
+    'Indecisiveness',
+  ],
+  goodAges: [34, 59],
+  badAges: [43, 36],
   lagnaNotes:
     'Strong desire to understand life and control circumstances. Thoughtful, observant, interested in learning; emotional nature often hidden beneath a practical personality.',
   planetEffects: {

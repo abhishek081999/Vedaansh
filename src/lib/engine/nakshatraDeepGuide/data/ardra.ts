@@ -1,7 +1,7 @@
 // Ardra — index 5
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const ARDRA_GUIDE: NakshatraDeepGuide = {
+export const ARDRA_GUIDE: NakshatraDeepGuideSeed = {
   index: 5,
   name: 'Ardra',
   keyword: 'Storm / tear that clears',
@@ -43,6 +43,22 @@ export const ARDRA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — movement, activity, nervous energy. Restless, quick-thinking, talkative, highly active; stress, irregular habits, and weak focus are risks.',
   ],
+  coreCharacteristics: [
+    'Extremely intense, disruptive, and transformative',
+    'Life marked by emotional storms and sudden changes',
+    'Sharp, penetrating intelligence with brutal honesty',
+    'Breaks illusions, hypocrisy, and false structures',
+    'Gains strength through pain and crisis',
+    'Capable of deep compassion after personal suffering',
+  ],
+  negativeTendencies: [
+    'Harsh speech',
+    'Emotional volatility',
+    'Self-destructive habits',
+    'Rebellion without direction',
+  ],
+  goodAges: [26, 36],
+  badAges: [39, 30],
   lagnaNotes:
     'Ardra Ascendants are intelligent, curious, and hungry to learn. They seek change, adapt easily, and may outgrow circumstances quickly — watch negative influences.',
   planetEffects: {

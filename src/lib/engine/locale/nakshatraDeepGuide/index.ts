@@ -4,6 +4,9 @@ import type { NakshatraDeepGuideHi } from './types'
 
 export type { NakshatraDeepGuideHi, NakshatraPadaGuideHi } from './types'
 
+export { NAKSHATRA_ENCYCLOPEDIA_HI } from './encyclopedia.hi'
+export { ABHIJIT_GUIDE_HI } from './abhijit'
+
 // Populated as hi modules are authored — import and register below.
 import { ASHWINI_GUIDE_HI } from './ashwini'
 import { BHARANI_GUIDE_HI } from './bharani'

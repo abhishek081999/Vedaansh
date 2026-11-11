@@ -4,7 +4,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { EngineLang } from '@/lib/engine/lang'
-import { NAKSHATRA_DEEP_GUIDE_HI } from '@/lib/engine/locale/nakshatraDeepGuide'
+import {
+  NAKSHATRA_DEEP_GUIDE_HI,
+  NAKSHATRA_ENCYCLOPEDIA_HI,
+  ABHIJIT_GUIDE_HI,
+} from '@/lib/engine/locale/nakshatraDeepGuide'
 import { ASHWINI_GUIDE } from './data/ashwini'
 import { BHARANI_GUIDE } from './data/bharani'
 import { KRITTIKA_GUIDE } from './data/krittika'
@@ -32,12 +36,25 @@ import { SHATABHISHA_GUIDE } from './data/shatabhisha'
 import { PURVA_BHADRA_GUIDE } from './data/purvaBhadra'
 import { UTTARA_BHADRA_GUIDE } from './data/uttaraBhadra'
 import { REVATI_GUIDE } from './data/revati'
+import { ABHIJIT_GUIDE } from './data/abhijit'
+import { NAKSHATRA_ENCYCLOPEDIA_EN } from './encyclopedia'
 import { localizeNakshatraDeepGuide } from './localize'
-import type { NakshatraDeepGuide } from './types'
+import {
+  localizeAbhijitDeepGuide,
+  mergeEncyclopedia,
+  mergeEncyclopediaHi,
+} from './mergeEncyclopedia'
+import type { AbhijitDeepGuide, NakshatraDeepGuide, NakshatraDeepGuideSeed } from './types'
 
-export type { NakshatraDeepGuide, NakshatraGuidePlanet, NakshatraPadaGuide } from './types'
+export type {
+  AbhijitDeepGuide,
+  NakshatraDeepGuide,
+  NakshatraGuidePlanet,
+  NakshatraPadaGuide,
+  NakshatraGuna,
+} from './types'
 
-const GUIDES: Record<number, NakshatraDeepGuide> = {
+const SEEDS: Record<number, NakshatraDeepGuideSeed> = {
   0: ASHWINI_GUIDE,
   1: BHARANI_GUIDE,
   2: KRITTIKA_GUIDE,
@@ -67,18 +84,32 @@ const GUIDES: Record<number, NakshatraDeepGuide> = {
   26: REVATI_GUIDE,
 }
 
+function buildEn(index: number): NakshatraDeepGuide | null {
+  const seed = SEEDS[index]
+  const enc = NAKSHATRA_ENCYCLOPEDIA_EN[index]
+  if (!seed || !enc) return null
+  return mergeEncyclopedia(seed, enc)
+}
+
 export function getNakshatraDeepGuide(
   index: number,
   lang: EngineLang = 'en',
 ): NakshatraDeepGuide | null {
   const i = ((index % 27) + 27) % 27
-  const en = GUIDES[i]
+  const en = buildEn(i)
   if (!en) return null
   if (lang !== 'hi') return en
-  return localizeNakshatraDeepGuide(en, NAKSHATRA_DEEP_GUIDE_HI[i])
+  const localized = localizeNakshatraDeepGuide(en, NAKSHATRA_DEEP_GUIDE_HI[i])
+  return mergeEncyclopediaHi(localized, NAKSHATRA_ENCYCLOPEDIA_HI[i])
 }
 
 export function listNakshatraDeepGuides(lang: EngineLang = 'en'): NakshatraDeepGuide[] {
   return Array.from({ length: 27 }, (_, i) => getNakshatraDeepGuide(i, lang))
     .filter((g): g is NakshatraDeepGuide => g != null)
+}
+
+/** Special 28th muhurta star — outside the 0–26 list. */
+export function getAbhijitDeepGuide(lang: EngineLang = 'en'): AbhijitDeepGuide {
+  if (lang !== 'hi') return ABHIJIT_GUIDE
+  return localizeAbhijitDeepGuide(ABHIJIT_GUIDE, ABHIJIT_GUIDE_HI)
 }

@@ -1,7 +1,7 @@
 // Purva Phalguni — index 10
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const PURVA_PHALGUNI_GUIDE: NakshatraDeepGuide = {
+export const PURVA_PHALGUNI_GUIDE: NakshatraDeepGuideSeed = {
   index: 10,
   name: 'Purva Phalguni',
   keyword: 'Enjoyment / creative reward',
@@ -43,6 +43,22 @@ export const PURVA_PHALGUNI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — heat, energy, ambition. Passionate, creative, intelligent, hardworking; avoid excess anger, impatience, and overexertion.',
   ],
+  coreCharacteristics: [
+    'Extremely pleasure-loving, charismatic, and socially magnetic',
+    'Strong desire for love, romance, comfort, and enjoyment',
+    'Natural artist with creative and sensual expression',
+    'Easily attracts people, opportunities, and admiration',
+    'Believes life should be lived with joy, beauty, and passion',
+    'Works best when freedom and enjoyment coexist',
+  ],
+  negativeTendencies: [
+    'Laziness',
+    'Overindulgence',
+    'Escapism from responsibility',
+    'Dependency on pleasure',
+  ],
+  goodAges: [26, 28],
+  badAges: [31, 40],
   lagnaNotes:
     'Purva Phalguni Ascendant wants social recognition, material comfort, and meaningful relationships — enjoying life while establishing identity in society.',
   planetEffects: {

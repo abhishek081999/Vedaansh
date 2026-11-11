@@ -1,7 +1,7 @@
 // Anuradha — index 16
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const ANURADHA_GUIDE: NakshatraDeepGuide = {
+export const ANURADHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 16,
   name: 'Anuradha',
   keyword: 'Devoted spark / loyal ascent',
@@ -42,6 +42,22 @@ export const ANURADHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — energetic, intelligent, ambitious, hardworking. Leadership possible; impatience, forcefulness, and short temper are shadows.',
   ],
+  coreCharacteristics: [
+    'Extremely loyal, disciplined, and relationship-oriented',
+    'Strong ability to build and sustain long-term bonds',
+    'Works well within teams, organizations, and alliances',
+    'Emotionally deep but outwardly controlled',
+    'Thrives through cooperation rather than dominance',
+    'Gains success slowly but permanently',
+  ],
+  negativeTendencies: [
+    'Emotional suppression',
+    'Over-sacrifice',
+    'Feeling unappreciated',
+    'Loneliness despite being surrounded by people',
+  ],
+  goodAges: [38, 50],
+  badAges: [35, 52],
   lagnaNotes:
     'Anuradha rising may hold strong ideals and frustrate when reality lags expectation. Accept present circumstances while working toward future goals. Balance material duty with spiritual development. Sun’s strength varies by pada.',
   planetEffects: {

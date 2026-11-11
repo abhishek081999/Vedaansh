@@ -1,7 +1,7 @@
 // Bharani — index 1
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const BHARANI_GUIDE: NakshatraDeepGuide = {
+export const BHARANI_GUIDE: NakshatraDeepGuideSeed = {
   index: 1,
   name: 'Bharani',
   keyword: 'Creation through restraint',
@@ -45,6 +45,22 @@ export const BHARANI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta: enthusiasm, ambition, intelligence, passion, strong temperament. Impatience or exhaustion appear when heat is mismanaged; cool environment, cooling food, and paced lifestyle help.',
   ],
+  coreCharacteristics: [
+    'Extremely intense, enduring, and transformative',
+    'Can tolerate pain and pressure more than most',
+    'Strong connection with life–death–rebirth themes',
+    'High sexual and creative energy',
+    'Emotionally deep and passionate',
+    'Powerful sense of responsibility',
+  ],
+  negativeTendencies: [
+    'Stubbornness',
+    'Emotional extremes',
+    'Excess indulgence',
+    'Suppressed emotions turning destructive',
+  ],
+  goodAges: [26, 41],
+  badAges: [24, 40],
   lagnaNotes:
     'Bharani Ascendant often shows strong personality, creative ability, and appetite for life’s comforts — passionate and determined, sometimes aggressive when expectations fail. Planets here can intensify desire while Yama’s current asks restraint, responsibility, and occasional sacrifice or separation to move forward.',
   planetEffects: {

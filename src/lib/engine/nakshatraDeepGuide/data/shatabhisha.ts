@@ -1,7 +1,7 @@
 // Shatabhisha — index 23
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const SHATABHISHA_GUIDE: NakshatraDeepGuide = {
+export const SHATABHISHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 23,
   name: 'Shatabhisha',
   keyword: 'Healing / hundred stars of the veiled',
@@ -41,6 +41,22 @@ export const SHATABHISHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — restlessness, excess thinking, mental pressure. Calm mind and balanced lifestyle matter.',
   ],
+  coreCharacteristics: [
+    'Extremely mysterious, independent, and research-oriented',
+    'Strong attraction toward healing, science, and hidden knowledge',
+    'Prefers solitude or limited social interaction',
+    'Thinks beyond conventional rules and systems',
+    'Natural problem-solver for complex or unknown issues',
+    'Detached yet deeply compassionate at core',
+  ],
+  negativeTendencies: [
+    'Isolation',
+    'Emotional detachment',
+    'Depression',
+    'Rebellion without direction',
+  ],
+  goodAges: [35, 54],
+  badAges: [38, 44],
   lagnaNotes:
     'Strong ideals and unusual ways of thinking. Independent, secretive, sometimes hard to understand.',
   planetEffects: {

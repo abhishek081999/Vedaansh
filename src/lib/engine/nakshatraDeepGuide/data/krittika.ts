@@ -1,7 +1,7 @@
 // Krittika — index 2
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const KRITTIKA_GUIDE: NakshatraDeepGuide = {
+export const KRITTIKA_GUIDE: NakshatraDeepGuideSeed = {
   index: 2,
   name: 'Krittika',
   keyword: 'Cutting / purifying fire',
@@ -45,6 +45,22 @@ export const KRITTIKA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha: traditionally patient, composed, philosophical — steady in hardship, with leadership and organisational strength when fire is contained.',
   ],
+  coreCharacteristics: [
+    'Extremely sharp, decisive, and truth-oriented',
+    'Natural ability to cut through lies, confusion, and weakness',
+    'Strong moral compass with clear right vs wrong thinking',
+    'Leadership-oriented, authoritative, commanding presence',
+    'Strong purification energy — removes what is impure or unnecessary',
+    'Internally fiery, disciplined, and principled',
+  ],
+  negativeTendencies: [
+    'Harshness and intolerance',
+    'Emotional coldness',
+    'Rigid thinking',
+    'Excessive criticism',
+  ],
+  goodAges: [47, 46],
+  badAges: [28, 43, 44],
   lagnaNotes:
     'Results depend on Ascendant lord, Moon, Mars, Venus, and Sun. Uncontrolled anger is the main spoiler; directed fire builds protectors, leaders, and reformers.',
   planetEffects: {

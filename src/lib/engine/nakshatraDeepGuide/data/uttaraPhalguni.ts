@@ -1,7 +1,7 @@
 // Uttara Phalguni — index 11
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const UTTARA_PHALGUNI_GUIDE: NakshatraDeepGuide = {
+export const UTTARA_PHALGUNI_GUIDE: NakshatraDeepGuideSeed = {
   index: 11,
   name: 'Uttara Phalguni',
   keyword: 'Duty / mature fulfilment',
@@ -44,6 +44,22 @@ export const UTTARA_PHALGUNI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — nervousness and sensitivity to sudden change. Prefer stability, planning, organised routine; unexpected situations raise stress.',
   ],
+  coreCharacteristics: [
+    'Extremely responsible, reliable, and duty-oriented',
+    'Strong sense of honor, commitment, and fairness',
+    'Keeps promises and values long-term stability',
+    'Protective toward family, society, and institutions',
+    'Leadership based on service, not ego',
+    'Believes relationships require responsibility, not just pleasure',
+  ],
+  negativeTendencies: [
+    'Overburdening oneself',
+    'Emotional dryness',
+    'Ignoring personal needs',
+    'Burnout',
+  ],
+  goodAges: [26, 33],
+  badAges: [43, 35],
   lagnaNotes:
     'Uttara Phalguni rising often has strong social skill and lasting impression. Prefers creating its own path; recognition through leadership, discipline, and distinctive ability.',
   planetEffects: {

@@ -1,0 +1,67 @@
+// Abhijit — special 28th muhurta nakshatra (not in 0–26 loop)
+import type { AbhijitDeepGuide } from '../types'
+
+export const ABHIJIT_GUIDE: AbhijitDeepGuide = {
+  name: 'Abhijit',
+  keyword: 'Supreme victory',
+  degreeSpan: "6°40′–10°53′20″ Capricorn (~2 ghaṭī / 48 min)",
+  signs: 'Capricorn',
+  lordName: 'Sun (via Uttara Ashadha)',
+  deity: 'Vishnu (maximum portion)',
+  symbol: 'Single bright star (aligned with Dhruva / Pole Star)',
+  gana: 'Ugra + Sattvic',
+  guna: 'Sattvic',
+  tattva: 'Mixed',
+  bodyPart: 'Brain',
+  coreEnergy:
+    'Abhijit = “Supreme Victory” (Abhi = supreme, Jit = victory). Created by Brahmā through intense penance to help the Devas defeat the Asuras. Contains the combined power of the Tridev. Aligned with Dhruva Tārā (Pole Star) for ~13,000 years then shifts. Only ~48 minutes duration. Kṛṣṇa chose this exact time for the Kurukṣetra war start. Abhijit does not need planets as tools — it delivers karma’s decision directly. Works only for those on Dharma’s path; if adharmic, results are opposite or harsh.',
+  keySignifications: [
+    'Supreme victory on the dharmic path only',
+    'Tridev’s combined power',
+    'Kāla gaṇanā (time calculation) importance',
+    'Noon = peak Sun = Abhijit’s window',
+    'Only 28th nakshatra — special count',
+    'Gap between Uttara Ashadha & Shravana = “time knot”',
+    'Victory in debates, war, and dharmic causes',
+  ],
+  coreCharacteristics: [
+    'Those born at noon carry an invincibility quality',
+    'Can win any battle if walking the dharmic path',
+    'Exceptional decision-making ability',
+    'Leadership in challenging circumstances',
+    'Intelligence beyond ordinary measures',
+    'Connection to divine timing and synchronicity',
+  ],
+  negativeTendencies: [
+    'Ego and arrogance if unchecked',
+    'Severity / harshness',
+    'Challenges come in large form always',
+    'Extra effort required — battles must be fought',
+    'Adharma = swift, severe, permanent downfall',
+    'Not recognised by most astrology software',
+  ],
+  spiritualTechniques: [
+    'Abhijit muhūrta daily (~11:48–12:36) for important work',
+    'Mahāmṛtyuñjaya japa',
+    'Vishnu worship',
+    'Walk strictly on dharma — non-negotiable',
+    'Use the noon hour for the most important tasks',
+  ],
+  careers: [
+    'Defence',
+    'Politics',
+    'Leadership',
+    'Law enforcement',
+    'Any dharmic battle or cause',
+    'Governance',
+    'Crisis decision-making',
+  ],
+  specialNotes: [
+    'Not counted in the standard 27-nakshatra (Pārāśarī) system',
+    'Appears in charts as Uttara Ashadha or Shravana',
+    'Check Sarvatobhadra Chakra for its role',
+    'Duration ≈ 2 ghaṭī = 48 minutes around noon',
+    'Works only for the dharmic path',
+    'Alignment with Pole Star = stability of dharma across ~13,000 years',
+  ],
+}

@@ -1,7 +1,7 @@
 // Pushya — index 7
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const PUSHYA_GUIDE: NakshatraDeepGuide = {
+export const PUSHYA_GUIDE: NakshatraDeepGuideSeed = {
   index: 7,
   name: 'Pushya',
   keyword: 'Nourishment / guided growth',
@@ -43,6 +43,21 @@ export const PUSHYA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — heat, energy, determination. Intelligent, active, decisive, knowledgeable; impatience and burnout are risks.',
   ],
+  coreCharacteristics: [
+    'Extremely disciplined, dependable, and nurturing',
+    'Carries responsibility from a young age',
+    'Protective, patient, and service-oriented',
+    'Grows slowly but steadily',
+    'Highly respected for reliability and ethics',
+    'Emotionally reserved but deeply caring',
+  ],
+  negativeTendencies: [
+    'Emotional suppression',
+    'Overburdening oneself',
+    'Rigidity',
+  ],
+  goodAges: [48, 51],
+  badAges: [43, 44],
   lagnaNotes:
     'Pushya Ascendant tends to be caring, wise, and responsible — seeking emotional security, family comfort, and material stability.',
   planetEffects: {

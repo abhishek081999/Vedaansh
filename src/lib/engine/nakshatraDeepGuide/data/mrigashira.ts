@@ -1,7 +1,7 @@
 // Mrigashira — index 4
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const MRIGASHIRA_GUIDE: NakshatraDeepGuide = {
+export const MRIGASHIRA_GUIDE: NakshatraDeepGuideSeed = {
   index: 4,
   name: 'Mrigashira',
   keyword: 'Curious search / deer’s head',
@@ -44,6 +44,22 @@ export const MRIGASHIRA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — heat, intelligence, sharpness. Active, perceptive, analytical, quick to react; irritation and exhaustion from excess mental and physical drive are the shadow.',
   ],
+  coreCharacteristics: [
+    'Extremely curious, searching, and mentally restless',
+    'Constant urge to seek something better, newer, or more meaningful',
+    'Sharp intellect with a questioning nature',
+    'Youthful, adaptable, and socially engaging',
+    'Strong desire for knowledge, relationships, and experiences',
+    'Quick learner, but struggles with long-term stability',
+  ],
+  negativeTendencies: [
+    'Mental wandering',
+    'Dissatisfaction',
+    'Indecisiveness',
+    'Leaving things unfinished',
+  ],
+  goodAges: [34, 35],
+  badAges: [36, 44],
   lagnaNotes:
     'Mrigashira Ascendant is curious and adventurous, seeking new experience and often dissatisfied with the status quo. Balance exploration with stability.',
   planetEffects: {

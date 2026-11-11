@@ -1,7 +1,7 @@
 // Rohini — index 3
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const ROHINI_GUIDE: NakshatraDeepGuide = {
+export const ROHINI_GUIDE: NakshatraDeepGuideSeed = {
   index: 3,
   name: 'Rohini',
   keyword: 'Attraction / creative growth',
@@ -41,6 +41,22 @@ export const ROHINI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — water, nourishment, stability. Affectionate and sensitive; excess attachment and emotional dependence create difficulty. Weight gain can be a concern.',
   ],
+  coreCharacteristics: [
+    'Extremely fertile, growth-oriented, and nourishing',
+    'Strong desire to build, expand, and multiply',
+    'Attractive personality with magnetic charm',
+    'Deep attachment to comfort, luxury, and security',
+    'Financially and materially inclined',
+    'Emotionally steady when secure',
+  ],
+  negativeTendencies: [
+    'Possessiveness',
+    'Greed',
+    'Over-attachment',
+    'Comfort addiction',
+  ],
+  goodAges: [31, 40],
+  badAges: [27, 32],
   lagnaNotes:
     'Rohini Ascendant can be passionate, pleasure-loving, and strongly attached to personal desires — outwardly confident yet sometimes insecure within. Moon and Venus shape the personality strongly.',
   planetEffects: {
