@@ -74,6 +74,7 @@ export type NakshatraSubTab = 'overview' | 'navtara' | 'taramandal' | 'bestdays'
 type SubTab = NakshatraSubTab
 
 const TAB_DEFS: { id: SubTab; labelKey: string; Icon: LucideIcon }[] = [
+  { id: 'overview', labelKey: 'overview', Icon: Info },
   { id: 'navtara', labelKey: 'navtara', Icon: Compass },
   { id: 'taramandal', labelKey: 'taramandal', Icon: Orbit },
   { id: 'bestdays', labelKey: 'bestdays', Icon: CalendarDays },
@@ -214,17 +215,12 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
 
   useEffect(() => {
     if (!initialTab) return
-    if (initialTab === 'overview') {
-      setSubTab(isMobile ? 'overview' : 'navtara')
-    } else {
-      setSubTab(initialTab)
-    }
+    setSubTab(initialTab === 'overview' ? (isMobile ? 'overview' : 'navtara') : initialTab)
   }, [initialTab, isMobile])
 
   useEffect(() => {
-    if (!isMobile) return
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [subTab, isMobile])
+  }, [subTab])
 
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const birthNakIdx = moon?.nakshatraIndex ?? 0
@@ -260,8 +256,6 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const moonNakIdx = moon?.nakshatraIndex ?? 0
   const tithiNum = chart.panchang.tithi.number
   const varaNum = chart.panchang.vara.number
-  const showOverview = !isMobile || subTab === 'overview'
-  const tabForContent: SubTab = subTab === 'overview' ? 'navtara' : subTab
 
   return (
     <div className={cn(styles.workspace, isMobile && styles.workspaceMobile)}>
@@ -373,11 +367,9 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
         </aside>
 
         <div className={styles.mainCol}>
-          {showOverview && <OverviewTab chars={chars} placements={planetPos} />}
-
-          {!isMobile && (
-            <div className={cn(styles.panel, styles.panelFlow)}>
-              <div className={styles.tabScroll}>
+          <div className={cn(styles.panel, styles.panelFlow)}>
+            {!isMobile && (
+              <div className={styles.tabScrollSticky}>
                 <div className={styles.tabRow} role="tablist" aria-label={tTabs('analysisAria')}>
                   {TAB_DEFS.map(tab => (
                     <button
@@ -394,19 +386,11 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
                   ))}
                 </div>
               </div>
-              <TabContent
-                subTab={tabForContent}
-                birthNakIdx={birthNakIdx}
-                birthNakPada={birthNakPada}
-                moonLon={moonLon}
-                chart={chart}
-                planetPos={planetPos}
-              />
-            </div>
-          )}
+            )}
 
-          {isMobile && subTab !== 'overview' && (
-            <div className={styles.panel}>
+            {subTab === 'overview' ? (
+              <OverviewTab chars={chars} placements={planetPos} />
+            ) : (
               <TabContent
                 subTab={subTab}
                 birthNakIdx={birthNakIdx}
@@ -415,8 +399,8 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
                 chart={chart}
                 planetPos={planetPos}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -571,27 +555,27 @@ function OverviewTab({
     )
   }
   return (
-    <div className={styles.stack}>
-      <section className={styles.panel}>
+    <div className={styles.profileStack}>
+      <section className={styles.profileSummary}>
         <div className={styles.sectionHead}>
           <h3 className={styles.sectionTitle}>{t('title')}</h3>
           <div className={styles.sectionRule} />
         </div>
-        <div className={styles.traitGrid}>
-          {rows.map(({ key, value, tone }) => (
-            <div key={key} className={styles.traitCard}>
-              <div className={styles.traitLabel}>{t(key)}</div>
-              <div className={cn(styles.traitValue, tone)}>{value}</div>
-            </div>
-          ))}
+        <div className={styles.profileSummaryGrid}>
+          <div className={styles.traitGrid}>
+            {rows.map(({ key, value, tone }) => (
+              <div key={key} className={styles.traitCard}>
+                <div className={styles.traitLabel}>{t(key)}</div>
+                <div className={cn(styles.traitValue, tone)}>{value}</div>
+              </div>
+            ))}
+          </div>
+          <PadaMap nakIdx={chars.index} pada={chars.pada} />
         </div>
-        <PadaMap nakIdx={chars.index} pada={chars.pada} />
       </section>
 
       {guidesLoading ? (
-        <section className={styles.panel}>
-          <p className={styles.guideLead}>{t('guidesLoading')}</p>
-        </section>
+        <p className={styles.guideLead}>{t('guidesLoading')}</p>
       ) : null}
 
       {guide ? <TeachingGuidePanel guide={guide} birthPada={chars.pada} /> : null}
@@ -605,7 +589,7 @@ function OverviewTab({
       ) : null}
 
       {lagnaGuide && lagnaPlacement ? (
-        <section className={styles.panel}>
+        <section className={styles.profileBlock}>
           <div className={styles.sectionHead}>
             <h3 className={styles.sectionTitle}>{t('lagnaInterpTitle')}</h3>
             <div className={styles.sectionRule} />
@@ -614,12 +598,12 @@ function OverviewTab({
             {t('lagnaInterpLead', { name: lagnaGuide.name })}
           </p>
           <ChartNakshatraProfile guide={lagnaGuide} compact />
-          <GuideDisclosure title={t('lagnaNotes')} paragraphs={[lagnaGuide.lagnaNotes]} defaultOpen />
+          <GuideDisclosure title={t('lagnaNotes')} paragraphs={[lagnaGuide.lagnaNotes]} />
         </section>
       ) : null}
 
       {otherOccupied.length ? (
-        <section className={styles.panel}>
+        <section className={styles.profileBlock}>
           <div className={styles.sectionHead}>
             <h3 className={styles.sectionTitle}>{t('otherPlacements')}</h3>
             <div className={styles.sectionRule} />
@@ -732,8 +716,8 @@ function ChartNakshatraProfile({
         </span>
       </div>
       <GuideDisclosure title={t('coreEnergy')} paragraphs={[guide.coreEnergy]} defaultOpen={!compact} />
-      <GuideDisclosure title={t('keySignifications')} paragraphs={guide.keySignifications} />
       <GuideDisclosure title={t('coreCharacteristics')} paragraphs={guide.coreCharacteristics} defaultOpen={!compact} />
+      <GuideDisclosure title={t('keySignifications')} paragraphs={guide.keySignifications} />
       <GuideDisclosure title={t('negativeTendencies')} paragraphs={guide.negativeTendencies} />
       {!compact ? (
         <GuideDisclosure title={t('spiritualTechniques')} paragraphs={guide.spiritualTechniques} />
@@ -808,7 +792,7 @@ function TeachingGuidePanel({
   }, [showAbhijit, lang])
 
   return (
-    <section className={styles.panel}>
+    <section className={styles.profileBlock}>
       <div className={styles.sectionHead}>
         <h3 className={styles.sectionTitle}>{t('teachingTitle')}</h3>
         <div className={styles.sectionRule} />
@@ -826,35 +810,6 @@ function TeachingGuidePanel({
       <ChartNakshatraProfile guide={guide} />
 
       <div className={styles.guideDisclosureGroup}>
-        <GuideDisclosure title={t('theory')} paragraphs={guide.theory} />
-        <GuideDisclosure title={t('deityNotes')} paragraphs={guide.deityNotes} />
-        <GuideDisclosure title={t('rulerNotes')} paragraphs={guide.rulerNotes} />
-        <GuideDisclosure title={t('rashiNotes')} paragraphs={guide.rashiNotes} />
-        <GuideDisclosure title={t('symbolNotes')} paragraphs={guide.symbolNotes} />
-        <GuideDisclosure title={t('mythology')} paragraphs={guide.mythology} />
-        <GuideDisclosure title={t('animalNotes')} paragraphs={guide.animalNotes} />
-        <GuideDisclosure title={t('doshaNotes')} paragraphs={guide.doshaNotes} />
-        {abhijit ? (
-          <GuideDisclosureSlot title={t('abhijitTitle')}>
-            <p className={styles.guideLead}>{t('abhijitLead')}</p>
-            <p className={styles.guideKeyword}>
-              <strong>{t('keyword')}: </strong>{abhijit.keyword}
-            </p>
-            <div className={styles.guideMeta}>
-              <span className={styles.guideChip}><strong>{t('span')}: </strong>{abhijit.degreeSpan}</span>
-              <span className={styles.guideChip}><strong>{t('guna')}: </strong>{gunaLabel(abhijit.guna, t)}</span>
-              <span className={styles.guideChip}><strong>{t('tattva')}: </strong>{abhijit.tattva}</span>
-              <span className={styles.guideChip}><strong>{t('bodyPart')}: </strong>{abhijit.bodyPart}</span>
-            </div>
-            <GuideDisclosure title={t('coreEnergy')} paragraphs={[abhijit.coreEnergy]} defaultOpen />
-            <GuideDisclosure title={t('keySignifications')} paragraphs={abhijit.keySignifications} />
-            <GuideDisclosure title={t('coreCharacteristics')} paragraphs={abhijit.coreCharacteristics} />
-            <GuideDisclosure title={t('negativeTendencies')} paragraphs={abhijit.negativeTendencies} />
-            <GuideDisclosure title={t('spiritualTechniques')} paragraphs={abhijit.spiritualTechniques} />
-            <GuideDisclosure title={t('careers')} paragraphs={abhijit.careers} />
-            <GuideDisclosure title={t('specialNotes')} paragraphs={abhijit.specialNotes} />
-          </GuideDisclosureSlot>
-        ) : null}
         <GuideDisclosureSlot title={t('yourPada')} defaultOpen>
           <div className={cn(styles.guidePadaItem, styles.guidePadaItemActive)}>
             <div className={styles.guidePadaHead}>
@@ -882,6 +837,35 @@ function TeachingGuidePanel({
             ))}
           </ul>
         </GuideDisclosureSlot>
+        <GuideDisclosure title={t('theory')} paragraphs={guide.theory} />
+        <GuideDisclosure title={t('deityNotes')} paragraphs={guide.deityNotes} />
+        <GuideDisclosure title={t('rulerNotes')} paragraphs={guide.rulerNotes} />
+        <GuideDisclosure title={t('rashiNotes')} paragraphs={guide.rashiNotes} />
+        <GuideDisclosure title={t('symbolNotes')} paragraphs={guide.symbolNotes} />
+        <GuideDisclosure title={t('mythology')} paragraphs={guide.mythology} />
+        <GuideDisclosure title={t('animalNotes')} paragraphs={guide.animalNotes} />
+        <GuideDisclosure title={t('doshaNotes')} paragraphs={guide.doshaNotes} />
+        {abhijit ? (
+          <GuideDisclosureSlot title={t('abhijitTitle')}>
+            <p className={styles.guideLead}>{t('abhijitLead')}</p>
+            <p className={styles.guideKeyword}>
+              <strong>{t('keyword')}: </strong>{abhijit.keyword}
+            </p>
+            <div className={styles.guideMeta}>
+              <span className={styles.guideChip}><strong>{t('span')}: </strong>{abhijit.degreeSpan}</span>
+              <span className={styles.guideChip}><strong>{t('guna')}: </strong>{gunaLabel(abhijit.guna, t)}</span>
+              <span className={styles.guideChip}><strong>{t('tattva')}: </strong>{abhijit.tattva}</span>
+              <span className={styles.guideChip}><strong>{t('bodyPart')}: </strong>{abhijit.bodyPart}</span>
+            </div>
+            <GuideDisclosure title={t('coreEnergy')} paragraphs={[abhijit.coreEnergy]} />
+            <GuideDisclosure title={t('keySignifications')} paragraphs={abhijit.keySignifications} />
+            <GuideDisclosure title={t('coreCharacteristics')} paragraphs={abhijit.coreCharacteristics} />
+            <GuideDisclosure title={t('negativeTendencies')} paragraphs={abhijit.negativeTendencies} />
+            <GuideDisclosure title={t('spiritualTechniques')} paragraphs={abhijit.spiritualTechniques} />
+            <GuideDisclosure title={t('careers')} paragraphs={abhijit.careers} />
+            <GuideDisclosure title={t('specialNotes')} paragraphs={abhijit.specialNotes} />
+          </GuideDisclosureSlot>
+        ) : null}
       </div>
     </section>
   )
@@ -909,7 +893,7 @@ function ChartInterpPanel({
     .filter((e) => Boolean(e.effect || e.padaLine))
 
   return (
-    <section className={styles.panel}>
+    <section className={styles.profileBlock}>
       <div className={styles.sectionHead}>
         <h3 className={styles.sectionTitle}>{t('chartInterpTitle')}</h3>
         <div className={styles.sectionRule} />
