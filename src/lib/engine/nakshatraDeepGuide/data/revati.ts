@@ -1,7 +1,7 @@
 // Revati — index 26
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const REVATI_GUIDE: NakshatraDeepGuide = {
+export const REVATI_GUIDE: NakshatraDeepGuideSeed = {
   index: 26,
   name: 'Revati',
   keyword: 'Nourishment / cycle’s completion',
@@ -44,6 +44,23 @@ export const REVATI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — calmness, patience, stability, philosophical nature. Composed even in difficult situations.',
   ],
+  coreCharacteristics: [
+    'Extremely compassionate, protective, and guiding',
+    'Natural instinct to lead others safely to their destination',
+    'Gentle, empathetic, and emotionally intelligent',
+    'Highly spiritual without being rigid or dogmatic',
+    'Represents completion, fulfillment, and safe closure',
+    'Selfless helper who finds meaning in service',
+    'Deep inner contentment when helping others succeed',
+  ],
+  negativeTendencies: [
+    'Over-sacrifice',
+    'Weak personal boundaries',
+    'Emotional exhaustion',
+    'Losing self-identity while serving others',
+  ],
+  goodAges: [21, 54],
+  badAges: [44, 31],
   lagnaNotes:
     'Spiritual, imaginative, compassionate. May struggle with practical decisions and worldly responsibilities.',
   planetEffects: {

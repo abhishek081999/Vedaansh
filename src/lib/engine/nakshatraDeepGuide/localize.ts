@@ -88,6 +88,16 @@ export function localizeNakshatraDeepGuide(
     mythology: list(en.mythology, hi.mythology),
     animalNotes: list(en.animalNotes, hi.animalNotes),
     doshaNotes: list(en.doshaNotes, hi.doshaNotes),
+    // Encyclopedic trait/columns are applied via mergeEncyclopediaHi after localize.
+    coreCharacteristics: en.coreCharacteristics,
+    negativeTendencies: en.negativeTendencies,
+    tattva: en.tattva,
+    coreEnergy: en.coreEnergy,
+    keySignifications: en.keySignifications,
+    spiritualTechniques: en.spiritualTechniques,
+    careers: en.careers,
+    specialNotes: en.specialNotes,
+    guna: en.guna,
     lagnaNotes: hi.lagnaNotes,
     planetEffects,
     padas: [

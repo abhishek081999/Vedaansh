@@ -1,7 +1,7 @@
 // Purva Bhadra — index 24
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const PURVA_BHADRA_GUIDE: NakshatraDeepGuide = {
+export const PURVA_BHADRA_GUIDE: NakshatraDeepGuideSeed = {
   index: 24,
   name: 'Purva Bhadra',
   keyword: 'Two-faced fire / fierce awakening',
@@ -41,6 +41,22 @@ export const PURVA_BHADRA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — restless seeking and mental movement; needs grounding while pursuing higher truth.',
   ],
+  coreCharacteristics: [
+    'Extremely intense, ideological, and uncompromising',
+    'Strong inner fire for truth, reform, and higher principles',
+    'Capable of great sacrifice for beliefs',
+    'Sharp intellect with philosophical depth',
+    'Alternates between extreme detachment and extreme intensity',
+    'Often carries a “mission” mindset in life',
+  ],
+  negativeTendencies: [
+    'Fanaticism',
+    'Harsh judgments',
+    'Self-destructive intensity',
+    'Mental extremism',
+  ],
+  goodAges: [56, 35],
+  badAges: [48, 43],
   lagnaNotes:
     'Spiritually inclined, curious, constantly searching for deeper answers; may struggle with uncertainty.',
   planetEffects: {

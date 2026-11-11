@@ -1,7 +1,7 @@
 // Punarvasu — index 6
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const PUNARVASU_GUIDE: NakshatraDeepGuide = {
+export const PUNARVASU_GUIDE: NakshatraDeepGuideSeed = {
   index: 6,
   name: 'Punarvasu',
   keyword: 'Renewal / return home',
@@ -42,6 +42,21 @@ export const PUNARVASU_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Vata — movement and activity. Energetic, imaginative, enthusiastic, mentally active; restlessness, short attention, and focus difficulty are shadows.',
   ],
+  coreCharacteristics: [
+    'Strong ability to recover, rebuild, and begin again',
+    'Naturally optimistic, forgiving, and hopeful',
+    'Life brings repeated losses followed by restoration',
+    'Ethical, generous, and morally guided',
+    'Family-oriented and protective',
+    'Learns wisdom through repeated life cycles',
+  ],
+  negativeTendencies: [
+    'Excessive forgiveness',
+    'Trusting people too easily',
+    'Delayed self-assertion',
+  ],
+  goodAges: [28, 35],
+  badAges: [38, 39],
   lagnaNotes:
     'Punarvasu Ascendants keep exploring until identity clicks — interests and direction may change often. Enjoy the journey rather than frustration at delay; a stable home environment helps.',
   planetEffects: {

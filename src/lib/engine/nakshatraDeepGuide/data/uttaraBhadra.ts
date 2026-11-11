@@ -1,7 +1,7 @@
 // Uttara Bhadra — index 25
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const UTTARA_BHADRA_GUIDE: NakshatraDeepGuide = {
+export const UTTARA_BHADRA_GUIDE: NakshatraDeepGuideSeed = {
   index: 25,
   name: 'Uttara Bhadra',
   keyword: 'Deep wisdom / serpent stillness',
@@ -41,6 +41,22 @@ export const UTTARA_BHADRA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — determination, courage, strong will. Persistent in goals; excess intensity creates frustration or impatience.',
   ],
+  coreCharacteristics: [
+    'Extremely deep, calm, and spiritually mature',
+    'Silent strength and profound emotional depth',
+    'Able to endure long-term suffering with grace',
+    'Detached from surface-level ambitions',
+    'Natural compassion born from lived pain',
+    'Works quietly in the background rather than seeking recognition',
+  ],
+  negativeTendencies: [
+    'Emotional withdrawal',
+    'Depression',
+    'Loneliness',
+    'Excessive detachment',
+  ],
+  goodAges: [29, 51],
+  badAges: [31, 25],
   lagnaNotes:
     'Naturally inclined toward spirituality; must balance inner aspiration with practical responsibility.',
   planetEffects: {

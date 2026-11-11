@@ -46,9 +46,12 @@ import {
   type NakshatraCharacteristics,
 } from '@/lib/engine/nakshatraAdvanced'
 import {
+  loadAbhijitDeepGuide,
   loadNakshatraDeepGuides,
+  type AbhijitDeepGuide,
   type NakshatraDeepGuide,
   type NakshatraGuidePlanet,
+  type NakshatraGuna,
 } from '@/lib/engine/nakshatraDeepGuide'
 import { getRelationshipNavtara } from '@/lib/engine/navtaraPrediction'
 import {
@@ -550,15 +553,23 @@ function OverviewTab({
     .filter((row): row is { nakIndex: number; planets: Array<{ id: NakshatraGuidePlanet; pada: number }>; guide: NakshatraDeepGuide } => row != null)
 
   const rows: { key: string; value: string; tone?: string }[] = [
-    { key: 'deity', value: chars.deity },
+    { key: 'deity', value: guide?.deity ?? chars.deity },
     { key: 'gana', value: nm(chars.gana), tone: ganaClass(chars.gana) },
-    { key: 'yoni', value: chars.yoni },
+    { key: 'yoni', value: guide?.yoni ?? chars.yoni },
     { key: 'nadi', value: nm(chars.nadi) },
     { key: 'varna', value: chars.varna },
     { key: 'nature', value: nm(chars.nature) },
-    { key: 'bodyPart', value: chars.bodyPart },
-    { key: 'symbol', value: chars.symbol },
+    { key: 'bodyPart', value: guide?.bodyPart ?? chars.bodyPart },
+    { key: 'symbol', value: guide?.symbol ?? chars.symbol },
   ]
+  if (guide) {
+    rows.push(
+      { key: 'guna', value: gunaLabel(guide.guna, t) },
+      { key: 'tattva', value: guide.tattva },
+      { key: 'goodAges', value: t('agesYears', { ages: guide.goodAges.join(', ') }) },
+      { key: 'badAges', value: t('agesYears', { ages: guide.badAges.join(', ') }) },
+    )
+  }
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
@@ -602,6 +613,7 @@ function OverviewTab({
           <p className={styles.guideLead}>
             {t('lagnaInterpLead', { name: lagnaGuide.name })}
           </p>
+          <ChartNakshatraProfile guide={lagnaGuide} compact />
           <GuideDisclosure title={t('lagnaNotes')} paragraphs={[lagnaGuide.lagnaNotes]} defaultOpen />
         </section>
       ) : null}
@@ -687,6 +699,51 @@ function GuideDisclosureSlot({
   )
 }
 
+function gunaLabel(
+  guna: NakshatraGuna,
+  t: (key: 'gunaSattvic' | 'gunaRajasic' | 'gunaTamasic') => string,
+): string {
+  if (guna === 'Sattvic') return t('gunaSattvic')
+  if (guna === 'Rajasic') return t('gunaRajasic')
+  return t('gunaTamasic')
+}
+
+/** Chart-facing profile for whatever nakshatra is occupied in this chart. */
+function ChartNakshatraProfile({
+  guide,
+  compact = false,
+}: {
+  guide: NakshatraDeepGuide
+  compact?: boolean
+}) {
+  const t = useTranslations('nakshatra.overview')
+  return (
+    <div className={styles.guideDisclosureGroup}>
+      <div className={styles.guideMeta}>
+        <span className={styles.guideChip}><strong>{t('guna')}: </strong>{gunaLabel(guide.guna, t)}</span>
+        <span className={styles.guideChip}><strong>{t('tattva')}: </strong>{guide.tattva}</span>
+        <span className={styles.guideChip}>
+          <strong>{t('goodAges')}: </strong>
+          {t('agesYears', { ages: guide.goodAges.join(', ') })}
+        </span>
+        <span className={styles.guideChip}>
+          <strong>{t('badAges')}: </strong>
+          {t('agesYears', { ages: guide.badAges.join(', ') })}
+        </span>
+      </div>
+      <GuideDisclosure title={t('coreEnergy')} paragraphs={[guide.coreEnergy]} defaultOpen={!compact} />
+      <GuideDisclosure title={t('keySignifications')} paragraphs={guide.keySignifications} />
+      <GuideDisclosure title={t('coreCharacteristics')} paragraphs={guide.coreCharacteristics} defaultOpen={!compact} />
+      <GuideDisclosure title={t('negativeTendencies')} paragraphs={guide.negativeTendencies} />
+      {!compact ? (
+        <GuideDisclosure title={t('spiritualTechniques')} paragraphs={guide.spiritualTechniques} />
+      ) : null}
+      <GuideDisclosure title={t('careers')} paragraphs={guide.careers} />
+      <GuideDisclosure title={t('specialNotes')} paragraphs={guide.specialNotes} />
+    </div>
+  )
+}
+
 function OccupiedNakshatraCard({
   guide,
   planets,
@@ -704,6 +761,7 @@ function OccupiedNakshatraCard({
         {guide.name}
         <span className={styles.guidePadaMeta}> · {guide.keyword}</span>
       </div>
+      <ChartNakshatraProfile guide={guide} compact />
       {planets.map(({ id, pada }) => {
         const effect = guide.planetEffects[id]
         const padaLine = guide.planetPadaResults[id]?.[pada - 1]
@@ -732,7 +790,22 @@ function TeachingGuidePanel({
   birthPada: number
 }) {
   const t = useTranslations('nakshatra.overview')
+  const { lang } = useLang()
   const birthPadaGuide = guide.padas.find((p) => p.pada === birthPada) ?? guide.padas[0]
+  const showAbhijit = guide.index === 20 || guide.index === 21
+  const [abhijit, setAbhijit] = useState<AbhijitDeepGuide | null>(null)
+
+  useEffect(() => {
+    if (!showAbhijit) {
+      setAbhijit(null)
+      return
+    }
+    let cancelled = false
+    void loadAbhijitDeepGuide(lang).then((g) => {
+      if (!cancelled) setAbhijit(g)
+    })
+    return () => { cancelled = true }
+  }, [showAbhijit, lang])
 
   return (
     <section className={styles.panel}>
@@ -750,8 +823,10 @@ function TeachingGuidePanel({
         <span className={styles.guideChip}><strong>{t('bodyPart')}: </strong>{guide.bodyPart}</span>
       </div>
 
+      <ChartNakshatraProfile guide={guide} />
+
       <div className={styles.guideDisclosureGroup}>
-        <GuideDisclosure title={t('theory')} paragraphs={guide.theory} defaultOpen />
+        <GuideDisclosure title={t('theory')} paragraphs={guide.theory} />
         <GuideDisclosure title={t('deityNotes')} paragraphs={guide.deityNotes} />
         <GuideDisclosure title={t('rulerNotes')} paragraphs={guide.rulerNotes} />
         <GuideDisclosure title={t('rashiNotes')} paragraphs={guide.rashiNotes} />
@@ -759,6 +834,27 @@ function TeachingGuidePanel({
         <GuideDisclosure title={t('mythology')} paragraphs={guide.mythology} />
         <GuideDisclosure title={t('animalNotes')} paragraphs={guide.animalNotes} />
         <GuideDisclosure title={t('doshaNotes')} paragraphs={guide.doshaNotes} />
+        {abhijit ? (
+          <GuideDisclosureSlot title={t('abhijitTitle')}>
+            <p className={styles.guideLead}>{t('abhijitLead')}</p>
+            <p className={styles.guideKeyword}>
+              <strong>{t('keyword')}: </strong>{abhijit.keyword}
+            </p>
+            <div className={styles.guideMeta}>
+              <span className={styles.guideChip}><strong>{t('span')}: </strong>{abhijit.degreeSpan}</span>
+              <span className={styles.guideChip}><strong>{t('guna')}: </strong>{gunaLabel(abhijit.guna, t)}</span>
+              <span className={styles.guideChip}><strong>{t('tattva')}: </strong>{abhijit.tattva}</span>
+              <span className={styles.guideChip}><strong>{t('bodyPart')}: </strong>{abhijit.bodyPart}</span>
+            </div>
+            <GuideDisclosure title={t('coreEnergy')} paragraphs={[abhijit.coreEnergy]} defaultOpen />
+            <GuideDisclosure title={t('keySignifications')} paragraphs={abhijit.keySignifications} />
+            <GuideDisclosure title={t('coreCharacteristics')} paragraphs={abhijit.coreCharacteristics} />
+            <GuideDisclosure title={t('negativeTendencies')} paragraphs={abhijit.negativeTendencies} />
+            <GuideDisclosure title={t('spiritualTechniques')} paragraphs={abhijit.spiritualTechniques} />
+            <GuideDisclosure title={t('careers')} paragraphs={abhijit.careers} />
+            <GuideDisclosure title={t('specialNotes')} paragraphs={abhijit.specialNotes} />
+          </GuideDisclosureSlot>
+        ) : null}
         <GuideDisclosureSlot title={t('yourPada')} defaultOpen>
           <div className={cn(styles.guidePadaItem, styles.guidePadaItemActive)}>
             <div className={styles.guidePadaHead}>

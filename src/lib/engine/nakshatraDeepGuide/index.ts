@@ -5,18 +5,33 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { EngineLang } from '@/lib/engine/lang'
-import type { NakshatraDeepGuideHi } from '@/lib/engine/locale/nakshatraDeepGuide/types'
+import type {
+  AbhijitDeepGuideHi,
+  NakshatraDeepGuideHi,
+  NakshatraEncyclopediaHi,
+} from '@/lib/engine/locale/nakshatraDeepGuide/types'
 import { localizeNakshatraDeepGuide } from './localize'
-import type { NakshatraDeepGuide } from './types'
+import {
+  localizeAbhijitDeepGuide,
+  mergeEncyclopedia,
+  mergeEncyclopediaHi,
+} from './mergeEncyclopedia'
+import type { AbhijitDeepGuide, NakshatraDeepGuide, NakshatraDeepGuideSeed, NakshatraEncyclopediaEntry } from './types'
 
-export type { NakshatraDeepGuide, NakshatraGuidePlanet, NakshatraPadaGuide } from './types'
+export type {
+  AbhijitDeepGuide,
+  NakshatraDeepGuide,
+  NakshatraGuidePlanet,
+  NakshatraPadaGuide,
+  NakshatraGuna,
+} from './types'
 
 /** All 27 indices are authored. */
 export function listNakshatraDeepGuideIndices(): number[] {
   return Array.from({ length: 27 }, (_, i) => i)
 }
 
-const EN_LOADERS: Record<number, () => Promise<NakshatraDeepGuide>> = {
+const EN_LOADERS: Record<number, () => Promise<NakshatraDeepGuideSeed>> = {
   0: () => import('./data/ashwini').then((m) => m.ASHWINI_GUIDE),
   1: () => import('./data/bharani').then((m) => m.BHARANI_GUIDE),
   2: () => import('./data/krittika').then((m) => m.KRITTIKA_GUIDE),
@@ -76,7 +91,26 @@ const HI_LOADERS: Record<number, () => Promise<NakshatraDeepGuideHi>> = {
   26: () => import('@/lib/engine/locale/nakshatraDeepGuide/revati').then((m) => m.REVATI_GUIDE_HI),
 }
 
-const enCache = new Map<number, Promise<NakshatraDeepGuide>>()
+let encEnPromise: Promise<Record<number, NakshatraEncyclopediaEntry>> | null = null
+let encHiPromise: Promise<Record<number, NakshatraEncyclopediaHi>> | null = null
+
+function loadEncEn() {
+  if (!encEnPromise) {
+    encEnPromise = import('./encyclopedia/en').then((m) => m.NAKSHATRA_ENCYCLOPEDIA_EN)
+  }
+  return encEnPromise
+}
+
+function loadEncHi() {
+  if (!encHiPromise) {
+    encHiPromise = import('@/lib/engine/locale/nakshatraDeepGuide/encyclopedia.hi').then(
+      (m) => m.NAKSHATRA_ENCYCLOPEDIA_HI,
+    )
+  }
+  return encHiPromise
+}
+
+const enCache = new Map<number, Promise<NakshatraDeepGuideSeed>>()
 const hiOverlayCache = new Map<number, Promise<NakshatraDeepGuideHi>>()
 const localizedCache = new Map<string, Promise<NakshatraDeepGuide | null>>()
 
@@ -84,7 +118,7 @@ function wrapIndex(index: number): number {
   return ((index % 27) + 27) % 27
 }
 
-function loadEn(i: number): Promise<NakshatraDeepGuide> {
+function loadSeed(i: number): Promise<NakshatraDeepGuideSeed> {
   let p = enCache.get(i)
   if (!p) {
     const loader = EN_LOADERS[i]
@@ -117,10 +151,14 @@ export async function loadNakshatraDeepGuide(
   if (!pending) {
     pending = (async () => {
       try {
-        const en = await loadEn(i)
+        const [seed, encEn] = await Promise.all([loadSeed(i), loadEncEn()])
+        const enc = encEn[i]
+        if (!enc) return null
+        const en = mergeEncyclopedia(seed, enc)
         if (lang !== 'hi') return en
-        const hi = await loadHiOverlay(i)
-        return localizeNakshatraDeepGuide(en, hi)
+        const [hi, encHi] = await Promise.all([loadHiOverlay(i), loadEncHi()])
+        const localized = localizeNakshatraDeepGuide(en, hi)
+        return mergeEncyclopediaHi(localized, encHi[i])
       } catch {
         return null
       }
@@ -143,4 +181,22 @@ export async function loadNakshatraDeepGuides(
     }),
   )
   return new Map(pairs.filter((p): p is readonly [number, NakshatraDeepGuide] => p != null))
+}
+
+let abhijitCache = new Map<string, Promise<AbhijitDeepGuide>>()
+
+export async function loadAbhijitDeepGuide(lang: EngineLang = 'en'): Promise<AbhijitDeepGuide> {
+  const key = lang
+  let pending = abhijitCache.get(key)
+  if (!pending) {
+    pending = (async () => {
+      const en = (await import('./data/abhijit')).ABHIJIT_GUIDE
+      if (lang !== 'hi') return en
+      const hi: AbhijitDeepGuideHi = (await import('@/lib/engine/locale/nakshatraDeepGuide/abhijit'))
+        .ABHIJIT_GUIDE_HI
+      return localizeAbhijitDeepGuide(en, hi)
+    })()
+    abhijitCache.set(key, pending)
+  }
+  return pending
 }

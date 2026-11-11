@@ -1,7 +1,7 @@
 // Chitra — index 13
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const CHITRA_GUIDE: NakshatraDeepGuide = {
+export const CHITRA_GUIDE: NakshatraDeepGuideSeed = {
   index: 13,
   name: 'Chitra',
   keyword: 'Beautiful form / crafted self',
@@ -43,6 +43,22 @@ export const CHITRA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — energy, ambition, determination. Intelligent, creative, passionate; impatience and short temper need balance.',
   ],
+  coreCharacteristics: [
+    'Extremely creative, perfectionist, and visually driven',
+    'Strong urge to create something extraordinary',
+    'Values beauty, symmetry, and excellence',
+    'Seeks recognition for creative work',
+    'Internally intense, externally charming',
+    'Possesses strong design intelligence',
+  ],
+  negativeTendencies: [
+    'Ego issues',
+    'Dissatisfaction',
+    'Obsession with perfection',
+    'Stress due to self-imposed pressure',
+  ],
+  goodAges: [40, 54],
+  badAges: [52, 22],
   lagnaNotes:
     'Chitra rising can show creativity, intelligence, and perfectionism — many talents and a drive to improve everything around them.',
   planetEffects: {

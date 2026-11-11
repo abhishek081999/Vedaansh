@@ -1,7 +1,7 @@
 // Uttara Ashadha — index 20
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const UTTARA_ASHADHA_GUIDE: NakshatraDeepGuide = {
+export const UTTARA_ASHADHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 20,
   name: 'Uttara Ashadha',
   keyword: 'Higher victory / lasting triumph',
@@ -43,6 +43,22 @@ export const UTTARA_ASHADHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — stability, patience, emotional depth. Excess indulgence can sap motivation.',
   ],
+  coreCharacteristics: [
+    'Extremely principled, patient, and destined for lasting success',
+    'Does not seek quick wins; believes in ultimate victory',
+    'Strong moral backbone and sense of righteousness',
+    'Natural authority with quiet confidence',
+    'Carries responsibility for collective good',
+    'Reliable, disciplined, and steady leader',
+  ],
+  negativeTendencies: [
+    'Rigidity',
+    'Emotional distance',
+    'Resistance to change',
+    'Moral stubbornness',
+  ],
+  goodAges: [36, 33],
+  badAges: [44, 38],
   lagnaNotes:
     'Creative, intelligent, philosophical temperament. Gradual talent growth; preference for depth over show; solitude and simplicity often preferred.',
   planetEffects: {

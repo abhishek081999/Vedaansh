@@ -1,7 +1,7 @@
 // Swati — index 14
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const SWATI_GUIDE: NakshatraDeepGuide = {
+export const SWATI_GUIDE: NakshatraDeepGuideSeed = {
   index: 14,
   name: 'Swati',
   keyword: 'Independent wind / self-made path',
@@ -42,6 +42,22 @@ export const SWATI_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — calm, thoughtful, practical. Composed in difficulty; often suited to business and industrial activity.',
   ],
+  coreCharacteristics: [
+    'Extremely independent, freedom-loving, and self-directed',
+    'Strong desire to live life on one’s own terms',
+    'Highly adaptable; survives and grows in changing environments',
+    'Sharp intellect with modern, global outlook',
+    'Learns best through real-world experience rather than authority',
+    'Values equality, fairness, and personal space',
+  ],
+  negativeTendencies: [
+    'Lack of commitment',
+    'Emotional detachment',
+    'Restlessness',
+    'Difficulty with long-term stability',
+  ],
+  goodAges: [53, 24],
+  badAges: [41, 50],
   lagnaNotes:
     'Swati Ascendant gives creativity, independent thinking, and influence over others. Control restlessness and use talent constructively.',
   planetEffects: {

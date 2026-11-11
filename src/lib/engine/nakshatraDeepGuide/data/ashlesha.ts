@@ -1,7 +1,7 @@
 // Ashlesha — index 8
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const ASHLESHA_GUIDE: NakshatraDeepGuide = {
+export const ASHLESHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 8,
   name: 'Ashlesha',
   keyword: 'Embrace / hidden transformation',
@@ -43,6 +43,22 @@ export const ASHLESHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — stability, patience, nourishment. Calm, thoughtful, practical, able to retain knowledge; excess brings emotional attachment, laziness, and mental inactivity.',
   ],
+  coreCharacteristics: [
+    'Extremely intelligent, secretive, and psychologically sharp',
+    'Natural ability to read minds, motives, and hidden intentions',
+    'Strategic, persuasive, and highly intuitive',
+    'Drawn to mystery, secrecy, and control of information',
+    'Powerful healer when evolved; manipulator when unevolved',
+    'Operates best behind the scenes rather than in open spotlight',
+  ],
+  negativeTendencies: [
+    'Manipulation and emotional control',
+    'Jealousy and suspicion',
+    'Obsessive thinking',
+    'Revenge mindset',
+  ],
+  goodAges: [26, 27],
+  badAges: [39, 45],
   lagnaNotes:
     'Ashlesha Ascendant can show intelligence, intuition, wisdom, and spiritual interest, with deep psychological insight. Watch jealousy, possessiveness, and manipulative behaviour.',
   planetEffects: {

@@ -1,7 +1,7 @@
 // Purva Ashadha — index 19
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const PURVA_ASHADHA_GUIDE: NakshatraDeepGuide = {
+export const PURVA_ASHADHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 19,
   name: 'Purva Ashadha',
   keyword: 'Invincible / undeclared strength',
@@ -41,6 +41,21 @@ export const PURVA_ASHADHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Pitta — active, energetic, ambitious, determined. Creative, confident, hardworking; strong desire to achieve something meaningful.',
   ],
+  coreCharacteristics: [
+    'Extremely confident, persuasive, and victory-oriented',
+    'Strong belief in one’s ideas and moral correctness',
+    'Natural motivator who rallies people toward a cause',
+    'Socially expressive and influential',
+    'Thrives in public platforms and ideological battles',
+    'Driven by the need to prove and win',
+  ],
+  negativeTendencies: [
+    'Arrogance',
+    'Moral superiority',
+    'Emotional exaggeration',
+  ],
+  goodAges: [35, 42],
+  badAges: [40, 31],
   lagnaNotes:
     'Interest in knowledge, spirituality, and guiding others. Stay connected to roots; avoid over-dependence on others’ opinions.',
   planetEffects: {

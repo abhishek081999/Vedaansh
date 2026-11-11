@@ -1,7 +1,7 @@
 // Vishakha — index 15
-import type { NakshatraDeepGuide } from '../types'
+import type { NakshatraDeepGuideSeed } from '../types'
 
-export const VISHAKHA_GUIDE: NakshatraDeepGuide = {
+export const VISHAKHA_GUIDE: NakshatraDeepGuideSeed = {
   index: 15,
   name: 'Vishakha',
   keyword: 'Forked path / ambitious victory',
@@ -43,6 +43,21 @@ export const VISHAKHA_GUIDE: NakshatraDeepGuide = {
   doshaNotes: [
     'Kapha — patience, stability, calm approach. Helps remain composed and handle responsibility steadily.',
   ],
+  coreCharacteristics: [
+    'Extremely goal-driven, ambitious, and competitive',
+    'Focused on achievement, recognition, and success',
+    'Works tirelessly until the objective is reached',
+    'Strong desire for social elevation and influence',
+    'Can sacrifice comfort for long-term victory',
+    'Powerful will and persistence',
+  ],
+  negativeTendencies: [
+    'Obsession with results',
+    'Comparison with others',
+    'Inner dissatisfaction even after success',
+  ],
+  goodAges: [39, 26],
+  badAges: [22, 43],
   lagnaNotes:
     'Vishakha rising often shows strong ambition and desire to build something significant. Balance worldly achievement with inner satisfaction.',
   planetEffects: {
