@@ -84,7 +84,7 @@ export async function ogBrandedImage({ title, subtitle, badge }: OgBrandedOption
         />
         <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${baseUrl}/veda-icon.png`} width="72" height="72" alt="" style={{ opacity: 0.9 }} />
+          <img src={`${baseUrl}/veda-icon.png`} width={72} height={72} alt="" style={{ opacity: 0.9 }} />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: 26, fontWeight: 700, color: '#c9a84c', letterSpacing: 2 }}>VEDAANSH</span>
             <span style={{ fontSize: 11, color: '#8b7cf6', letterSpacing: 3, fontWeight: 600 }}>

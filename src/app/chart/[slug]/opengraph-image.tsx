@@ -101,7 +101,7 @@ export default async function OGImage({
           }} />
 
           <div style={{ marginBottom: 40, display: 'flex', alignItems: 'center', gap: 16 }}>
-            <img src={`${baseUrl}/veda-icon.png`} width="80" height="80" alt="" style={{ opacity: 0.9 }} />
+            <img src={`${baseUrl}/veda-icon.png`} width={80} height={80} alt="" style={{ opacity: 0.9 }} />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: 28, fontWeight: 700, color: '#c9a84c', letterSpacing: 2, fontFamily }}>VEDAANSH</span>
               <span style={{ fontSize: 12, color: '#8b7cf6', letterSpacing: fontFamily === 'serif' ? 3 : 0, fontWeight: 600, fontFamily }}>॥ ज्योतिष्मते नमः ॥</span>
@@ -166,7 +166,7 @@ export default async function OGImage({
     return new ImageResponse(
       (
         <div style={{ width: '100%', height: '100%', background: '#0e0e18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 64, fontFamily: 'serif', gap: 24 }}>
-          <img src={`${baseUrl}/veda-icon.png`} width="80" height="80" alt="" />
+          <img src={`${baseUrl}/veda-icon.png`} width={80} height={80} alt="" />
           VEDAANSH
         </div>
       ),

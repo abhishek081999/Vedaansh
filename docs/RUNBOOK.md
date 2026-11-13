@@ -50,7 +50,7 @@ Local Mongo probe: `npm run test:mongo`
 |-------|------------|
 | Concurrent Swiss Ephemeris | Default `CHART_CALC_CONCURRENCY` serializes calc |
 | Large Redis gzip writes | Queued chart-cache writes |
-| Heap vs RAM | Standard plan: `NODE_OPTIONS=--max-old-space-size=1536` (2 GB). On 512 MB, keep heap ≤450 |
+| Heap vs RAM | Standard plan: `NODE_OPTIONS=--max-old-space-size=1536` in `render.yaml` (2 GB). Do **not** hardcode a lower `--max-old-space-size` in `npm start` — CLI flags override `NODE_OPTIONS` and can OOM under chart load. On 512 MB only, set heap ≤450 via `NODE_OPTIONS`. |
 
 After calc, `cleanupEphemeris()` must re-set `EPHE_PATH` after `swe_close()` or fallback becomes slow Moshier.
 
