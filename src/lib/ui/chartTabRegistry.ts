@@ -9,6 +9,7 @@ export type ChartTabId =
   | 'planets'
   | 'navamsha'
   | 'chaturthamsa'
+  | 'saptamsha'
   | 'dashamsa'
   | 'dwadashamsha'
   | 'drekkana'
@@ -35,6 +36,7 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'planets',
   'navamsha',
   'chaturthamsa',
+  'saptamsha',
   'dashamsa',
   'dwadashamsha',
   'drekkana',
@@ -51,6 +53,7 @@ export const FLUSH_PADDING_CHART_TABS: readonly ChartTabId[] = [
   'planets',
   'navamsha',
   'chaturthamsa',
+  'saptamsha',
   'dashamsa',
   'dwadashamsha',
   'drekkana',

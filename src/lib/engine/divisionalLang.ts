@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/divisionalLang.ts
 //  Shared language helpers for the divisional-chart engines
-//  (D3, D4, D9, D10, D12, D27). English output is unchanged; Hindi
+//  (D3, D4, D7, D9, D10, D12, D27). English output is unchanged; Hindi
 //  names come from the glossary and display tables live in
-//  src/lib/engine/locale/divisional*.hi.ts.
+//  src/lib/engine/locale/*.hi.ts.
 // ─────────────────────────────────────────────────────────────
 
 import type { Dignity, GrahaId, Rashi } from '@/types/astrology'

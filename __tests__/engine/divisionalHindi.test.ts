@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 //  __tests__/engine/divisionalHindi.test.ts
-//  Hindi parity for the divisional-chart engines (D3, D4, D9 + Predictions, D10, D12, D27).
+//  Hindi parity for the divisional-chart engines (D3, D4, D7, D9 + Predictions, D10, D12, D27).
 //  - every English table entry has a Hindi twin with the same {slots}
 //  - Hindi output keeps ids / numbers / enums identical to English
 //  - Hindi output is Devanagari; English stays the default
@@ -12,6 +12,7 @@ import * as d3 from '@/lib/engine/locale/drekkana.hi'
 import * as d4 from '@/lib/engine/locale/chaturthamsa.hi'
 import * as d4c from '@/lib/engine/locale/chaturthamsaClassical.hi'
 import * as d9 from '@/lib/engine/locale/navamsha.hi'
+import * as d7 from '@/lib/engine/locale/saptamsha.hi'
 import * as d12 from '@/lib/engine/locale/dwadashamsha.hi'
 import * as d27 from '@/lib/engine/locale/nakshatramsha.hi'
 import * as d9p from '@/lib/engine/locale/navamshaPredictions.hi'
@@ -99,6 +100,15 @@ describe('divisional Hindi tables', () => {
     for (const h of HOUSES) expect(d9.D9_RASHI_FLAVOR_HI[h].endsWith(' ऊर्जा')).toBe(true)
     expectHindiTemplates('D9_TEXT_HI', d9.D9_TEXT_HI)
   })
+  it('D7 Saptamsha tables are complete', () => {
+    expectHindiTable('D7_HOUSE_THEMES_HI', d7.D7_HOUSE_THEMES_HI, HOUSES)
+    expectHindiTable('D7_LAGNA_SIGN_FLAVOR_HI', d7.D7_LAGNA_SIGN_FLAVOR_HI, HOUSES)
+    expectHindiTable('D7_LAGNA_PLANET_HI', d7.D7_LAGNA_PLANET_HI, GRAHAS)
+    expectHindiTable('D7_MOON_SIGN_HI', d7.D7_MOON_SIGN_HI, HOUSES)
+    expectHindiTable('D7_VENUS_SIGN_HI', d7.D7_VENUS_SIGN_HI, HOUSES)
+    expect(DEVANAGARI.test(d7.D7_PURPOSE_HI)).toBe(true)
+    expectHindiTemplates('D7_TEXT_HI', d7.D7_TEXT_HI)
+  })
   it('D12 / D27 tables are complete', () => {
     expectHindiTable('D12_HOUSE_THEMES_HI', d12.D12_HOUSE_THEMES_HI, HOUSES)
     expectHindiTable('D12_LAGNA_SIGN_FLAVOR_HI', d12.D12_LAGNA_SIGN_FLAVOR_HI, HOUSES)
@@ -159,6 +169,7 @@ describe('divisional engines in Hindi', () => {
     const { analyzeChaturthamsa } = await import('@/lib/engine/chaturthamsaAnalysis')
     const { buildChaturthamsaClassical } = await import('@/lib/engine/chaturthamsaClassical')
     const { analyzeNavamsha } = await import('@/lib/engine/navamshaAnalysis')
+    const { analyzeSaptamsha } = await import('@/lib/engine/saptamshaAnalysis')
     const { analyzeDwadashamsha } = await import('@/lib/engine/dwadashamshaAnalysis')
     const { analyzeNakshatramsha } = await import('@/lib/engine/nakshatramshaAnalysis')
     const { analyzeNavamshaPredictions } = await import('@/lib/engine/navamshaPredictions')
@@ -174,6 +185,7 @@ describe('divisional engines in Hindi', () => {
       const runs: [string, (lang?: 'en' | 'hi') => unknown][] = [
         ['D3', (l) => analyzeDrekkana(chart, l)],
         ['D4', (l) => analyzeChaturthamsa(chart, l)],
+        ['D7', (l) => analyzeSaptamsha(chart, l)],
         ['D9', (l) => analyzeNavamsha(chart, l)],
         ['D12', (l) => analyzeDwadashamsha(chart, l)],
         ['D27', (l) => analyzeNakshatramsha(chart, l)],
@@ -211,7 +223,7 @@ describe('divisional engines in Hindi', () => {
 
   it('English templates carry the same slots as Hindi', async () => {
     // Templates are built with fill(); a slot missing in Hindi would print literally.
-    const mods = [d3.D3_TEXT_HI, d4.D4_TEXT_HI, d4c.D4C_TEXT_HI, d9.D9_TEXT_HI, d12.D12_TEXT_HI, d27.D27_TEXT_HI]
+    const mods = [d3.D3_TEXT_HI, d4.D4_TEXT_HI, d4c.D4C_TEXT_HI, d7.D7_TEXT_HI, d9.D9_TEXT_HI, d12.D12_TEXT_HI, d27.D27_TEXT_HI]
     for (const t of mods) for (const v of Object.values(t)) expect(v.includes('{') ? slots(v).length > 0 : true).toBe(true)
   })
 })
