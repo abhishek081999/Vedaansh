@@ -6,6 +6,7 @@
 
 import React, { useMemo, useState } from 'react'
 import {
+  Building2,
   Heart,
   Home,
   Hourglass,
@@ -30,7 +31,7 @@ import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import styles from './ChaturthamsaWorkspace.module.css'
 
-type TabId = 'overview' | 'classical' | 'heart' | 'keyPlanets' | 'houses' | 'relocation' | 'affinity'
+type TabId = 'overview' | 'classical' | 'heart' | 'keyPlanets' | 'houses' | 'property' | 'relocation' | 'affinity'
 
 const TABS: { id: TabId; Icon: LucideIcon }[] = [
   { id: 'overview', Icon: Sparkles },
@@ -38,6 +39,7 @@ const TABS: { id: TabId; Icon: LucideIcon }[] = [
   { id: 'heart', Icon: Heart },
   { id: 'keyPlanets', Icon: Home },
   { id: 'houses', Icon: Layers },
+  { id: 'property', Icon: Building2 },
   { id: 'relocation', Icon: Hourglass },
   { id: 'affinity', Icon: Users },
 ]
@@ -425,6 +427,59 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
         </section>
       )}
 
+      {tab === 'property' && (
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>{t('propertyTitle')}</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+            {t('propertyIntro')}
+          </p>
+          {analysis.devotionHints.length > 0 && (
+            <>
+              <div className={styles.sectionHead}>
+                <h3 className={styles.sectionTitle}>{t('devotionTitle')}</h3>
+                <div className={styles.sectionRule} />
+              </div>
+              <ul className={styles.noteList} style={{ marginBottom: '0.85rem' }}>
+                {analysis.devotionHints.map((h) => (
+                  <li key={h} className={styles.noteItem}>{h}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {analysis.propertyNotes.length === 0 ? (
+            <p className={styles.emptyHint}>{t('propertyEmpty')}</p>
+          ) : (
+            <div className={styles.insightGrid}>
+              {analysis.propertyNotes.map((n) => (
+                <article key={n.id} className={cn(styles.insightCard, toneClass(n.tone))}>
+                  <h4 className={styles.insightTitle}>{n.title}</h4>
+                  <p className={styles.insightText}>{n.locality}</p>
+                </article>
+              ))}
+            </div>
+          )}
+          {analysis.patterns.length > 0 && (
+            <>
+              <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
+                <h3 className={styles.sectionTitle}>{t('patternsTitle')}</h3>
+                <div className={styles.sectionRule} />
+              </div>
+              <div className={styles.insightGrid}>
+                {analysis.patterns.map((p) => (
+                  <article key={p.id} className={cn(styles.insightCard, toneClass(p.tone))}>
+                    <h4 className={styles.insightTitle}>{p.title}</h4>
+                    <p className={styles.insightText}>{p.text}</p>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
       {tab === 'relocation' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
@@ -467,6 +522,22 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
                   <div className={styles.statLabel}>{t('path')}</div>
                   <div className={styles.statValue}>{relocation.pathLabel || '—'}</div>
                   <div className={styles.statHint}>{t('vimshottari')}</div>
+                </div>
+                <div className={styles.statCard}>
+                  <div className={styles.statLabel}>{t('relocDusthana')}</div>
+                  <div className={styles.statValue}>{relocation.dusthanaDashaActive ? t('yes') : t('no')}</div>
+                </div>
+                <div className={styles.statCard}>
+                  <div className={styles.statLabel}>{t('reloc49')}</div>
+                  <div className={styles.statValue}>{relocation.fourthNinthLink ? t('yes') : t('no')}</div>
+                </div>
+                <div className={styles.statCard}>
+                  <div className={styles.statLabel}>{t('relocMoSa')}</div>
+                  <div className={styles.statValue}>{relocation.moonSaturnBuild ? t('yes') : t('no')}</div>
+                </div>
+                <div className={styles.statCard}>
+                  <div className={styles.statLabel}>{t('reloc12')}</div>
+                  <div className={styles.statValue}>{relocation.twelfthAbroad ? t('yes') : t('no')}</div>
                 </div>
               </div>
 

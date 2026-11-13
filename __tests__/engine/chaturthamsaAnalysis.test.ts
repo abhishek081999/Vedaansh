@@ -253,8 +253,85 @@ describe('analyzeChaturthamsa', () => {
     expect(result!.keyTriad).toHaveLength(3)
     expect(result!.keyTriad.map((t) => t.role).sort()).toEqual(['fourthLord', 'jupiter', 'moon'])
     expect(result!.focusedHouses.map((h) => h.house)).toEqual([3, 4, 6, 8, 9, 11])
-    expect(result!.purpose).toMatch(/contentment|4th/i)
+    expect(result!.purpose).toMatch(/heart|contentment|4th/i)
     expect(result!.affinityGuide.length).toBeGreaterThan(0)
+    expect(result!.affinityGuide.some((n) => n.pair === 'sign-match')).toBe(true)
+    expect(result!.devotionHints.some((h) => /Ram|Surya/i.test(h))).toBe(true)
+  })
+
+  it('builds property locality from prominent lagna/4th planets', () => {
+    const asc = 1 as Rashi
+    const fourth = 4 as Rashi
+    const grahas = d4Set(asc, { Ju: asc, Ve: fourth, Sa: fourth, Ma: fourth })
+    const result = analyzeChaturthamsa(chartOf(asc, grahas))
+    expect(result).not.toBeNull()
+    expect(result!.propertyNotes.some((n) => n.id === 'prop-ju')).toBe(true)
+    expect(result!.propertyNotes.some((n) => n.id === 'prop-ve')).toBe(true)
+    expect(result!.propertyNotes.some((n) => n.id === 'prop-sa-ma')).toBe(true)
+    expect(result!.devotionHints.some((h) => /Hanuman|Ram/i.test(h))).toBe(false) // Ju on lagna, not Ma
+    // Put Mars on lagna for devotion
+    const withMars = d4Set(asc, { Ma: asc })
+    const r2 = analyzeChaturthamsa(chartOf(asc, withMars))
+    expect(r2!.devotionHints.some((h) => /Hanuman|Ram/i.test(h))).toBe(true)
+  })
+
+  it('flags Ketu in 4th and Venus–Ketu Leo décor pattern', () => {
+    const asc = 2 as Rashi // Taurus → 4th = Leo (5)
+    const grahas = d4Set(asc, { Ke: 5 as Rashi, Ve: 5 as Rashi })
+    const result = analyzeChaturthamsa(chartOf(asc, grahas))
+    expect(result).not.toBeNull()
+    expect(result!.houses.find((h) => h.house === 4)!.reading).toMatch(/sanyasi|Ketu|settle/i)
+    expect(result!.patterns.some((p) => p.id === 've-ke-leo')).toBe(true)
+  })
+
+  it('marks twelfth abroad and Moon–Saturn build on dasha path', () => {
+    const asc = 1 as Rashi
+    const grahas = d4Set(asc, { Ju: 12 as Rashi }) // Ju = 12th lord of Aries? Capricorn is 10, Aquarius 11, Pisces 12 — Ju rules Pisces
+    for (const g of grahas) {
+      if (houseOf(g.rashi, asc) === 1) g.rashi = 2 as Rashi
+    }
+    grahas.find((g) => g.id === 'Ju')!.rashi = 12 as Rashi
+    grahas.find((g) => g.id === 'Mo')!.rashi = 5 as Rashi
+    grahas.find((g) => g.id === 'Sa')!.rashi = 9 as Rashi
+
+    const now = Date.now()
+    const dashas = {
+      vimshottari: [{
+        lord: 'Mo',
+        start: new Date(now - 86400000),
+        end: new Date(now + 86400000 * 365),
+        durationMs: 86400000 * 365,
+        level: 1,
+        isCurrent: true,
+        children: [{
+          lord: 'Sa',
+          start: new Date(now - 86400000),
+          end: new Date(now + 86400000 * 30),
+          durationMs: 86400000 * 30,
+          level: 2,
+          isCurrent: true,
+          children: [],
+        }],
+      }],
+    }
+    const result = analyzeChaturthamsa(chartOf(asc, grahas, dashas as unknown as ChartOutput['dashas']))
+    expect(result!.relocation!.moonSaturnBuild).toBe(true)
+    expect(result!.relocation!.detail).toMatch(/renovat|build/i)
+
+    const abroadDashas = {
+      vimshottari: [{
+        lord: 'Ju',
+        start: new Date(now - 86400000),
+        end: new Date(now + 86400000 * 365),
+        durationMs: 86400000 * 365,
+        level: 1,
+        isCurrent: true,
+        children: [],
+      }],
+    }
+    const abroad = analyzeChaturthamsa(chartOf(asc, grahas, abroadDashas as unknown as ChartOutput['dashas']))
+    expect(abroad!.relocation!.twelfthAbroad).toBe(true)
+    expect(abroad!.relocation!.dusthanaDashaActive).toBe(true)
   })
 })
 
