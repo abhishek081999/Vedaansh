@@ -41,6 +41,7 @@ const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPa
 const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
 const NavamshaWorkspace = dynamic(() => import('@/components/ui/NavamshaWorkspace').then(m => m.NavamshaWorkspace), { ssr: false })
 const ChaturthamsaWorkspace = dynamic(() => import('@/components/ui/ChaturthamsaWorkspace').then(m => m.ChaturthamsaWorkspace), { ssr: false })
+const SaptamshaWorkspace = dynamic(() => import('@/components/ui/SaptamshaWorkspace').then(m => m.SaptamshaWorkspace), { ssr: false })
 const DashamsaWorkspace = dynamic(() => import('@/components/ui/DashamsaWorkspace').then(m => m.DashamsaWorkspace), { ssr: false })
 const DwadashamshaWorkspace = dynamic(() => import('@/components/ui/DwadashamshaWorkspace').then(m => m.DwadashamshaWorkspace), { ssr: false })
 const DrekkanaWorkspace = dynamic(() => import('@/components/ui/DrekkanaWorkspace').then(m => m.DrekkanaWorkspace), { ssr: false })
@@ -1944,6 +1945,8 @@ function HomeContent() {
                     <NavamshaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'chaturthamsa' ? (
                     <ChaturthamsaWorkspace chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'saptamsha' ? (
+                    <SaptamshaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'dashamsa' ? (
                     <DashamsaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'dwadashamsha' ? (

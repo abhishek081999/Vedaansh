@@ -138,6 +138,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
     label: 'Divisional Chart Analysis',
     tabs: [
       { id: 'chaturthamsa', label: 'Chaturthamsha (D4)', icon: Building2, path: ASTROLOGY_HOME_PATH },
+      { id: 'saptamsha', label: 'Saptamsha (D7)', icon: Heart, path: ASTROLOGY_HOME_PATH },
       { id: 'dashamsa', label: 'Dashamsha (D10)', icon: Briefcase, path: ASTROLOGY_HOME_PATH },
       { id: 'dwadashamsha', label: 'Dwadashamsha (D12)', icon: CloudMoon, path: ASTROLOGY_HOME_PATH },
       { id: 'drekkana', label: 'Drekkana (D3)', icon: Brain, path: ASTROLOGY_HOME_PATH },
