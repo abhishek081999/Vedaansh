@@ -201,7 +201,7 @@ export const CM_HI = {
     ['Personality and profession will not feel like the same room.', 'व्यक्तित्व और पेशा एक कमरे जैसे नहीं लगेंगे।'],
     ['Working style:', 'कार्य शैली:'],
     ['Consistent, disciplined, long-term commitment', 'संगत, अनुशासित, दीर्घकालिक प्रतिबद्धता'],
-    ['NEVER switch jobs — staying IS the strategy; leaving = biggest mistake', 'नौकरी कभी न बदलें — ठहरना ही रणनीति; जाना सबसे बड़ी गलती'],
+    ['NEVER switch jobs — staying IS the strategy; leaving is the biggest mistake', 'नौकरी कभी न बदलें — ठहरना ही रणनीति; जाना सबसे बड़ी गलती'],
     ['NEVER switch jobs — staying IS the leverage for success.', 'नौकरी मत बदलें — ठहरना ही सफलता का उत्तोलन है।'],
     [
       'The chart is not asking for a pure salary. The person has to face a market, a partner, or their own name.',

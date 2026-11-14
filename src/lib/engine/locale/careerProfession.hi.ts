@@ -362,7 +362,7 @@ export const CP_HI = {
     ['Bhava Bala of the 10th', 'दशम का भावबल'],
     ['Name the field from the 10th lord after the chart is complete.', 'चार्ट पूर्ण होने पर दशमेश से क्षेत्र नामित करें।'],
     ['Consistent, disciplined, long-term commitment', 'संगत, अनुशासित, दीर्घकालिक प्रतिबद्धता'],
-    ['NEVER switch jobs — staying IS the strategy; leaving = biggest mistake', 'नौकरी कभी न बदलें — ठहरना ही रणनीति; जाना सबसे बड़ी गलती'],
+    ['NEVER switch jobs — staying IS the strategy; leaving is the biggest mistake', 'नौकरी कभी न बदलें — ठहरना ही रणनीति; जाना सबसे बड़ी गलती'],
     ['NEVER switch jobs — staying IS the leverage for success.', 'नौकरी मत बदलें — ठहरना ही सफलता का उत्तोलन है।'],
     ['A career break belongs in this life.', 'इस जीवन में करियर विराम अपेक्षित है।'],
   ] as [string, string][],

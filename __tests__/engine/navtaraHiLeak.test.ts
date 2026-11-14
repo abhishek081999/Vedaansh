@@ -81,7 +81,7 @@ describe('navtara Hindi leak', () => {
     expect(en.current.maha?.tara).toBe('Janma')
     expect(en.current.synthesis).toContain('Mahadasha')
     expect(en.current.synthesis).toContain('Navtara shows experience nature')
-    expect(en.current.decisionAdvice).toContain('Act in line with your nature')
+    expect(en.current.decisionAdvice).toContain('Act in keeping with your nature')
     expect(getTaraFromBirth(17, 19).name).toBe('Vipat')
     expect(getTaraFromBirth(17, 19).isHard).toBe(true)
     expect(getTaraFromBirth(17, 19).shortLabel).toBe(TARA_DECISION_PROFILES.Vipat.shortLabel)
