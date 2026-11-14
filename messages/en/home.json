@@ -68,18 +68,23 @@
     "title": "Every core Vedaansh journey",
     "description": "Jump straight to the tool you need.",
     "startChart": "Start a chart",
+    "lanesLabel": "Choose a journey",
+    "toolCount": "{count} tools",
     "groups": {
       "chart": {
         "title": "Read your chart",
-        "description": "Start from your birth details."
+        "description": "Start from your birth details.",
+        "short": "Your chart"
       },
       "timing": {
         "title": "Plan the right time",
-        "description": "Check the day before you commit."
+        "description": "Check the day before you commit.",
+        "short": "Timing"
       },
       "advanced": {
         "title": "Go deeper",
-        "description": "Classical systems for closer study."
+        "description": "Classical systems for closer study.",
+        "short": "Go deeper"
       }
     },
     "cards": {

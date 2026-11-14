@@ -1,11 +1,11 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/home/LandingExplore.tsx
-//  Tool directory on the landing page, grouped by purpose
+//  Tool directory on the landing page: three journey lanes
 // ─────────────────────────────────────────────────────────────
 
 import { Link } from '@/i18n/navigation'
-import type { ComponentType, MouseEvent } from 'react'
+import { useState, type ComponentType, type MouseEvent } from 'react'
 import {
   ArrowRight,
   BookOpen,
@@ -41,10 +41,9 @@ type ExploreSection = {
   icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
-const EXPLORE_GROUPS: { id: string; tier: 'primary' | 'secondary' | 'tertiary'; sections: ExploreSection[] }[] = [
+const EXPLORE_GROUPS: { id: string; sections: ExploreSection[] }[] = [
   {
     id: 'chart',
-    tier: 'primary',
     sections: [
       { id: 'astrology', href: '/?new=true', ctaName: 'major_sections_astrology', icon: Sparkles },
       { id: 'today', href: '/today', ctaName: 'major_sections_today', icon: CalendarCheck },
@@ -57,7 +56,6 @@ const EXPLORE_GROUPS: { id: string; tier: 'primary' | 'secondary' | 'tertiary'; 
   },
   {
     id: 'timing',
-    tier: 'secondary',
     sections: [
       { id: 'panchang', href: '/panchang', ctaName: 'major_sections_panchang', icon: Compass },
       { id: 'calendar', href: '/panchang/calendar', ctaName: 'major_sections_calendar', icon: Calendar },
@@ -67,7 +65,6 @@ const EXPLORE_GROUPS: { id: string; tier: 'primary' | 'secondary' | 'tertiary'; 
   },
   {
     id: 'advanced',
-    tier: 'tertiary',
     sections: [
       { id: 'nakshatra', href: '/nakshatra', ctaName: 'major_sections_nakshatra', icon: Star },
       { id: 'jaimini', href: '/jaimini', ctaName: 'major_sections_jaimini', icon: Zap },
@@ -92,67 +89,122 @@ type LandingExploreProps = {
   withChartGate: (href: string, e?: MouseEvent<HTMLElement>) => void
 }
 
+/**
+ * Three journey lanes. Desktop and tablet show every lane side by side;
+ * below 768px a segmented switcher shows one lane at a time. All links stay
+ * in the DOM so crawlers and keyboard users reach every tool.
+ */
 export function LandingExplore({ trackLandingCta, withChartGate }: LandingExploreProps) {
   const t = useTranslations('home.explore')
+  const [activeLane, setActiveLane] = useState(EXPLORE_GROUPS[0].id)
+
+  const open = (section: ExploreSection) => (e: MouseEvent<HTMLAnchorElement>) => {
+    trackLandingCta(section.ctaName)
+    withChartGate(section.href, e)
+  }
+
   return (
-    <div className="landing-section-row-content">
+    <div className="landing-section-row-content lj">
       <VedicSectionHeader
         kicker={t('kicker')}
         title={t('title')}
         description={t('description')}
         theme="gold"
       />
-      {EXPLORE_GROUPS.map((group, groupIdx) => (
-        <div
-          key={group.id}
-          className={`landing-major-group landing-explore-tier landing-explore-tier--${group.tier}`}
-          data-count={group.sections.length}
-        >
-          <div className="landing-explore-group-head">
-            <h3 className="landing-major-group-title">{t(`groups.${group.id}.title`)}</h3>
-            <p className="landing-explore-group-desc">{t(`groups.${group.id}.description`)}</p>
-          </div>
-          <div className="landing-major-sections-grid landing-reveal-stagger">
-            {group.sections.map((section, idx) => {
-              const IconComponent = section.icon
-              const isLead = group.tier === 'primary' && idx === 0
-              const isGold = section.gold === true
-              return (
+
+      <div className="lj-switch" role="group" aria-label={t('lanesLabel')}>
+        {EXPLORE_GROUPS.map((group) => (
+          <button
+            key={group.id}
+            type="button"
+            className="lj-switch-btn"
+            aria-pressed={activeLane === group.id}
+            aria-controls={`lj-lane-${group.id}`}
+            onClick={() => setActiveLane(group.id)}
+          >
+            <span>{t(`groups.${group.id}.short`)}</span>
+            <span className="lj-switch-count">{group.sections.length}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="lj-lanes">
+        {EXPLORE_GROUPS.map((group, groupIdx) => {
+          // The chart lane opens with the Astrology workspace as its featured entry.
+          const lead = group.id === 'chart' ? group.sections[0] : null
+          const rest = lead ? group.sections.slice(1) : group.sections
+          return (
+            <section
+              key={group.id}
+              id={`lj-lane-${group.id}`}
+              className={`lj-lane lj-lane--${group.id}`}
+              data-active={activeLane === group.id}
+              aria-labelledby={`lj-lane-title-${group.id}`}
+              style={{ ['--stagger-i' as string]: groupIdx }}
+            >
+              <header className="lj-lane-head">
+                <span className="lj-lane-num" aria-hidden="true">
+                  {String(groupIdx + 1).padStart(2, '0')}
+                </span>
+                <div className="lj-lane-heading">
+                  <h3 id={`lj-lane-title-${group.id}`} className="lj-lane-title">
+                    {t(`groups.${group.id}.title`)}
+                  </h3>
+                  <p className="lj-lane-desc">{t(`groups.${group.id}.description`)}</p>
+                </div>
+                <span className="lj-lane-count">{t('toolCount', { count: group.sections.length })}</span>
+              </header>
+
+              {lead && (
                 <Link
-                  key={section.id}
-                  href={section.href}
-                  onClick={(e) => {
-                    trackLandingCta(section.ctaName)
-                    withChartGate(section.href, e)
-                  }}
+                  href={lead.href}
+                  onClick={open(lead)}
                   onMouseMove={trackPointer}
-                  className={`landing-major-section-card landing-premium-card${isLead ? ' landing-explore-lead' : ''}`}
-                  style={{ ['--stagger-i' as string]: groupIdx * 6 + idx }}
+                  className="lj-lead"
                 >
-                  <div className="card-icon-wrapper">
-                    <IconComponent size={20} strokeWidth={2} />
-                  </div>
-                  <div className="card-body">
-                    <span className={`card-kicker${isGold ? ' landing-explore-gold' : ''}`}>{t(`cards.${section.id}.subtitle`)}</span>
-                    <span className="stat-value">{t(`cards.${section.id}.title`)}</span>
-                    <span className="stat-sub">{t(`cards.${section.id}.text`)}</span>
-                  </div>
-                  {isLead ? (
-                    <span className="landing-explore-lead-cta" aria-hidden="true">
+                  <span className="lj-lead-icon" aria-hidden="true">
+                    <lead.icon size={22} strokeWidth={1.8} />
+                  </span>
+                  <span className="lj-lead-body">
+                    <span className="lj-lead-kicker">{t(`cards.${lead.id}.subtitle`)}</span>
+                    <span className="lj-lead-title">{t(`cards.${lead.id}.title`)}</span>
+                    <span className="lj-lead-text">{t(`cards.${lead.id}.text`)}</span>
+                    <span className="lj-lead-cta">
                       {t('startChart')}
-                      <ArrowRight size={14} strokeWidth={2.5} />
+                      <ArrowRight size={14} strokeWidth={2.5} aria-hidden="true" />
                     </span>
-                  ) : (
-                    <span className="card-arrow" aria-hidden="true">
-                      <ArrowRight size={14} strokeWidth={2.5} />
-                    </span>
-                  )}
+                  </span>
                 </Link>
-              )
-            })}
-          </div>
-        </div>
-      ))}
+              )}
+
+              <ul className="lj-list">
+                {rest.map((section) => {
+                  const Icon = section.icon
+                  return (
+                    <li key={section.id}>
+                      <Link href={section.href} onClick={open(section)} className="lj-row">
+                        <span className="lj-row-icon" aria-hidden="true">
+                          <Icon size={17} strokeWidth={1.9} />
+                        </span>
+                        <span className="lj-row-body">
+                          <span className="lj-row-title">
+                            {t(`cards.${section.id}.title`)}
+                            {section.gold && (
+                              <span className="lj-gold">{t(`cards.${section.id}.subtitle`)}</span>
+                            )}
+                          </span>
+                          <span className="lj-row-text">{t(`cards.${section.id}.text`)}</span>
+                        </span>
+                        <ArrowRight className="lj-row-arrow" size={15} strokeWidth={2.2} aria-hidden="true" />
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )
+        })}
+      </div>
     </div>
   )
 }
