@@ -1,4 +1,5 @@
-/* Navamsha (D9) workspace — dual charts, mapping, interpretations */
+/* Shared divisional-chart (varga) workspace — D3 · D4 · D7 · D9 · D10 · D12 · D27
+   One stylesheet for every varga analysis view: hero → stats → charts → grouped tabs → sections. */
 
 .workspace {
   --nv-blue: var(--blue, #3b82f6);
@@ -7,7 +8,7 @@
   gap: var(--space-3, 0.75rem);
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   padding: 0.1rem 0 1.25rem;
 }
 
@@ -189,7 +190,7 @@
   }
 }
 
-.journeyNodeD9 {
+.journeyNodeFocus {
   border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
   background: color-mix(in srgb, var(--gold-faint) 70%, var(--surface-2));
 }
@@ -330,7 +331,7 @@
   overflow: hidden;
 }
 
-.chartCardD9 {
+.chartCardFocus {
   border-color: color-mix(in srgb, var(--gold) 30%, var(--border-soft));
   box-shadow: 0 0 0 3px var(--gold-faint);
 }
@@ -376,7 +377,7 @@
   letter-spacing: 0.02em;
 }
 
-.chartCardD9 .chartTag {
+.chartCardFocus .chartTag {
   background: var(--gold-faint);
   border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
   color: var(--text-gold);
@@ -691,7 +692,9 @@
 .insightCard {
   --accent: var(--text-muted);
   display: flex;
-  gap: 0.7rem;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-left: 3px solid var(--accent) !important;
   align-items: flex-start;
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-soft));
   border-radius: var(--r-md);
@@ -1602,4 +1605,151 @@
 
 .ageItem strong {
   color: var(--text-primary);
+}
+
+/* ── Shell additions (shared across every varga) ─────────── */
+
+.insightCardIcon {
+  flex-direction: row;
+  gap: 0.7rem;
+}
+
+.dashaStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Sticky grouped tab bar */
+.tabNav {
+  position: sticky;
+  top: var(--varga-sticky-top, 0px);
+  z-index: 6;
+  box-shadow: 0 6px 18px -14px color-mix(in srgb, var(--text-primary) 45%, transparent);
+}
+
+/* Hero badge overflow */
+.badgeMore {
+  cursor: pointer;
+  background: transparent;
+  font: inherit;
+}
+
+.badgeRose {
+  color: var(--rose, #e11d48);
+  border-color: color-mix(in srgb, var(--rose, #e11d48) 35%, var(--border-soft));
+  background: color-mix(in srgb, var(--rose, #e11d48) 8%, transparent);
+}
+
+/* Mobile chart switch: one chart at a time below the two-column breakpoint */
+.chartSwitch {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+}
+
+.chartSwitchBtn {
+  border: 1px solid transparent;
+  border-radius: var(--r-sm, 6px);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-height: 32px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+}
+
+.chartSwitchBtnActive {
+  background: var(--gold-faint);
+  color: var(--text-gold);
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+}
+
+.chartsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+@media (max-width: 1099px) {
+  .chartsRow[data-show='d1'] .chartCardFocus,
+  .chartsRow[data-show='focus'] .chartCardBase {
+    display: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .chartSwitch {
+    display: none;
+  }
+}
+
+/* Signal balance (overview) */
+.balance {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.balanceRing {
+  flex: 0 0 auto;
+  width: 96px;
+}
+
+.balanceBody {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.balanceTitle {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.balanceCaption {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* Long hero summaries: clamp to four lines with a read-more toggle */
+.heroSubClamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.readMore {
+  margin-top: 0.3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-gold);
+  cursor: pointer;
+}
+
+.readMore:hover {
+  text-decoration: underline;
 }

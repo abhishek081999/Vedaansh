@@ -5,7 +5,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import type { D4Tone } from '@/lib/engine/chaturthamsaAnalysis'
 import type {
   ChaturthamsaClassical,
   ChaturthamsaPlanetPhala,
@@ -14,26 +13,17 @@ import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { cn } from '@/lib/ui/cn'
 import { useTranslations } from 'next-intl'
 import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
-import styles from './ChaturthamsaWorkspace.module.css'
+import { vargaStyles as styles, toneClass, VargaSectionHead } from '@/components/ui/varga/VargaShell'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className={styles.section}>
-      <div className={styles.sectionHead}>
-        <h3 className={styles.sectionTitle}>{title}</h3>
-        <div className={styles.sectionRule} />
-      </div>
+      <VargaSectionHead title={title} />
       {children}
     </section>
   )
 }
 
-function toneClass(tone: D4Tone): string {
-  if (tone === 'supportive') return styles.insightStrength
-  if (tone === 'challenging') return styles.insightCaution
-  if (tone === 'mixed') return styles.insightHighlight
-  return styles.insightInfo
-}
 
 function PlanetPhalaCard({ p }: { p: ChaturthamsaPlanetPhala }) {
   const [open, setOpen] = useState(p.priority)
@@ -91,7 +81,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
   return (
     <>
       <Section title={t('predictions')}>
-        <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+        <p className={styles.leadText}>
           {classical.framing}
         </p>
         <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-primary)', fontSize: '0.84rem', lineHeight: 1.55 }}>

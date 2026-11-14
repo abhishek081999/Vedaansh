@@ -8906,260 +8906,438 @@ select.input {
 
 
 
-/* Explore: three tiers of emphasis, from a featured chart group to a flat index */
-.landing-explore-group-head {
+/* ── Explore: three journey lanes (LandingExplore.tsx) ───────────────
+   Desktop/tablet: lanes side by side. Below 768px: a segmented switcher
+   shows one lane at a time. Every tool uses the same row; the chart lane
+   opens with a featured Astrology entry. */
+.lj-switch {
+  display: none;
+}
+
+.lj-lanes {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.lj-lane {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.2rem 0.75rem;
-  margin-bottom: 0.85rem;
-  padding-bottom: 0.6rem;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1.1rem 0.6rem 0.6rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--surface-1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.landing-reveal.is-visible .lj-lane {
+  animation: landing-reveal-up 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--reveal-delay, 0ms) + (var(--stagger-i, 0) * 90ms) + 120ms);
+}
+
+.lj-lane-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'num heading'
+    'num count';
+  column-gap: 0.75rem;
+  row-gap: 0.35rem;
+  padding: 0 0.5rem 0.9rem;
+  margin-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-soft);
 }
 
-.landing-shell .landing-explore-tier .landing-major-group-title {
+.lj-lane-num {
+  grid-area: num;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-gold);
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.lj-lane-heading {
+  grid-area: heading;
+  min-width: 0;
+}
+
+.landing-major-sections .lj-lane-title,
+.lj-lane-title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.15rem;
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
+  line-height: 1.25;
   color: var(--text-primary);
 }
 
-.landing-shell .landing-explore-tier .landing-major-group-title::after {
-  display: none;
-}
-
-.landing-explore-group-desc {
-  margin: 0;
+.lj-lane-desc {
+  margin: 0.15rem 0 0;
   font-size: 0.8rem;
+  line-height: 1.4;
   color: var(--text-muted);
 }
 
-.landing-explore-tier + .landing-explore-tier {
-  margin-top: 2.25rem;
+.lj-lane-count {
+  grid-area: count;
+  justify-self: start;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: var(--gold-faint);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-gold);
 }
 
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card {
-  background: var(--surface-1) !important;
-  border: 1px solid var(--border-soft) !important;
-  box-shadow: none !important;
+/* Featured entry (Astrology workspace) */
+.lj-lead {
+  position: relative;
+  display: flex;
+  gap: 0.85rem;
+  margin: 0.25rem 0 0.45rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--gold) 45%, var(--border));
+  background:
+    radial-gradient(220px circle at var(--mouse-x, 85%) var(--mouse-y, 0%), color-mix(in oklab, var(--gold) 22%, transparent), transparent 70%),
+    color-mix(in oklab, var(--gold) 12%, var(--surface-1));
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card:hover {
-  transform: translateY(-2px) !important;
-  border-color: var(--border-bright) !important;
-  box-shadow: var(--shadow-card) !important;
+.lj-lead:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
 }
 
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card::after {
-  transform: scaleX(0);
+.lj-lead-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--gold) 40%, transparent);
+  background: color-mix(in oklab, var(--gold) 16%, transparent);
+  color: var(--text-gold);
 }
 
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card:hover .card-icon-wrapper {
-  transform: none;
-  box-shadow: none;
+.lj-lead-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
 }
 
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .card-kicker {
+.lj-lead-kicker {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+}
+
+.lj-lead-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.lj-lead-text {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.lj-lead-cta {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  min-height: 1.15rem;
-  color: var(--text-muted) !important;
-  opacity: 1;
-  letter-spacing: 0.1em;
-  line-height: 1;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--surface-1);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .landing-explore-gold {
-  padding: 0 0.45rem;
+.lj-lead:hover .lj-lead-cta svg {
+  transform: translateX(2px);
+}
+
+.lj-lead-cta svg {
+  transition: transform 0.2s ease;
+}
+
+[data-theme='classic'] .lj-lead {
+  border-color: var(--classic-maroon-deep);
+  background:
+    radial-gradient(240px circle at var(--mouse-x, 85%) var(--mouse-y, 0%), rgba(244, 208, 138, 0.2), transparent 70%),
+    linear-gradient(135deg, var(--primary-brand), var(--classic-maroon-deep));
+  color: #ffffff;
+}
+
+[data-theme='classic'] .lj-lead-icon {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--classic-gold);
+}
+
+[data-theme='classic'] .lj-lead-kicker {
+  color: var(--classic-gold);
+}
+
+[data-theme='classic'] .lj-lead-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme='classic'] .lj-lead-cta {
+  background: var(--classic-gold);
+  color: var(--classic-maroon-deep);
+}
+
+/* Tool rows — one shape for every tool */
+.lj-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lj-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.55rem 0.5rem;
+  border-radius: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background-color 0.18s ease;
+}
+
+.lj-row:hover,
+.lj-row:focus-visible {
+  background: var(--surface-2);
+}
+
+.lj-row:focus-visible,
+.lj-lead:focus-visible,
+.lj-switch-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.lj-row-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 10px;
+  background: var(--gold-faint);
+  border: 1px solid color-mix(in oklab, var(--gold) 22%, transparent);
+  color: var(--text-gold);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.lj-row:hover .lj-row-icon {
+  background: var(--gold);
+  color: var(--surface-1);
+}
+
+.lj-row-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lj-row-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.lj-row-text {
+  margin-top: 0.1rem;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.lj-gold {
+  padding: 0.05rem 0.42rem;
   border-radius: 999px;
   border: 1px solid var(--gold);
   background: var(--gold-faint);
-  color: var(--text-gold) !important;
-}
-
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .stat-sub {
-  font-size: 0.8rem !important;
-  line-height: 1.45 !important;
-}
-
-/* Lead card */
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead {
-  grid-column: span 2;
-  background: color-mix(in oklab, var(--gold) 14%, var(--surface-1)) !important;
-  border-color: color-mix(in oklab, var(--gold) 45%, var(--border)) !important;
-}
-
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-value {
-  font-size: 1.45rem !important;
-  white-space: normal;
-}
-
-.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-sub {
-  display: block;
-  max-width: 34rem;
-  font-size: 0.88rem !important;
-}
-
-.landing-explore-lead-cta {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.85rem;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-family: var(--font-sans, inherit);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
   color: var(--text-gold);
 }
 
-[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead {
-  background: linear-gradient(135deg, var(--primary-brand), var(--classic-maroon-deep)) !important;
-  border-color: var(--classic-maroon-deep) !important;
-}
-
-[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-value,
-[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead:hover .stat-value,
-[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-sub {
-  color: #ffffff !important;
-}
-
-[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .card-kicker,
-[data-theme='classic'] .landing-explore-lead-cta {
-  color: var(--classic-gold) !important;
-}
-
-[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .card-icon-wrapper {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-/* Tertiary: flat index rows */
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid {
-  gap: 0 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.7rem;
-  padding: 0.75rem 1rem 0.75rem 0.25rem !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--border-soft) !important;
-  border-radius: 0 !important;
-}
-
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card:hover {
-  transform: none !important;
-  border-color: var(--border-soft) !important;
-  box-shadow: none !important;
-}
-
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card::before,
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card::after,
-.landing-shell .landing-explore-tier--tertiary .card-arrow,
-.landing-shell .landing-explore-tier--tertiary .card-kicker {
-  display: none !important;
-}
-
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .card-icon-wrapper,
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card:hover .card-icon-wrapper {
-  width: 1.75rem;
-  height: 1.75rem;
-  margin: 0;
-  background: transparent;
-  border: 0;
+.lj-row-arrow {
+  flex-shrink: 0;
   color: var(--text-gold);
+  opacity: 0.45;
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .stat-value {
-  margin: 0 0 0.1rem;
-  font-size: 0.95rem !important;
+.lj-row:hover .lj-row-arrow {
+  opacity: 1;
+  transform: translateX(2px);
 }
 
-@media (hover: hover) and (min-width: 640px) {
-  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .card-arrow {
-    opacity: 0;
+/* Tablet: chart lane spans the top, timing and deeper sit beneath */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .lj-lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card:hover .card-arrow {
-    opacity: 1;
-  }
-}
-
-@media (min-width: 640px) and (max-width: 1023px) {
-  .landing-shell .landing-explore-tier--primary .landing-major-sections-grid .landing-major-section-card:nth-child(6) {
-    grid-column: span 2;
-  }
-}
-
-@media (min-width: 640px) {
-
-  /* Secondary: icon beside text */
-  .landing-shell .landing-explore-tier--secondary .landing-major-sections-grid .landing-major-section-card {
-    flex-direction: row;
-    gap: 0.75rem;
+  .lj-lane--chart {
+    grid-column: 1 / -1;
   }
 
-  .landing-shell .landing-explore-tier--secondary .landing-major-sections-grid .landing-major-section-card .card-icon-wrapper {
-    margin-bottom: 0;
+  .lj-lane--chart .lj-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.5rem;
   }
 }
 
-@media (min-width: 1024px) {
-  .landing-explore-tier--primary .landing-major-sections-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+/* Phone: segmented switcher, one lane at a time */
+@media (max-width: 767px) {
+  .lj-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin: 0 0 0.85rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--surface-2);
   }
 
-  .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  /* Lead fills three of the four columns as a banner */
-  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead {
-    grid-column: span 3;
-    flex-direction: row;
+  .lj-switch-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 1.1rem;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.5rem;
+    min-width: 0;
+    padding: 0 0.4rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
   }
 
-  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .card-icon-wrapper {
-    width: 3rem;
-    height: 3rem;
-    margin-bottom: 0;
+  .lj-switch-btn > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .landing-explore-lead-cta {
+  .lj-switch-btn[aria-pressed='true'] {
+    background: var(--surface-1);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .lj-switch-count {
     flex-shrink: 0;
-    margin-top: 0;
-    margin-right: 0.5rem;
+    min-width: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: var(--gold-faint);
+    font-size: 0.66rem;
+    color: var(--text-gold);
+  }
+
+  [data-theme='classic'] .lj-switch-btn[aria-pressed='true'] {
+    background: var(--primary-brand);
+    color: #ffffff;
+  }
+
+  [data-theme='classic'] .lj-switch-btn[aria-pressed='true'] .lj-switch-count {
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--classic-gold);
+  }
+
+  .lj-lanes {
+    display: block;
+  }
+
+  .lj-lane[data-active='false'] {
+    display: none;
+  }
+
+  .lj-lane {
+    padding: 0.9rem 0.4rem 0.4rem;
+    border-radius: 16px;
+  }
+
+  .landing-reveal.is-visible .lj-lane {
+    animation-delay: 120ms;
+  }
+
+  .lj-lane-num {
+    font-size: 1.6rem;
+  }
+
+  /* The switcher already shows each lane's count */
+  .lj-lane-count {
+    display: none;
+  }
+
+  .lj-lane-head {
+    grid-template-areas: 'num heading';
+  }
+
+  .lj-lead-title {
+    font-size: 1.2rem;
   }
 }
 
-@media (max-width: 639px) {
-  .landing-explore-tier + .landing-explore-tier {
-    margin-top: 1.5rem;
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal.is-visible .lj-lane {
+    animation: none;
   }
 
-  .landing-shell .landing-explore-tier--primary .landing-major-sections-grid .landing-major-section-card:nth-child(6) {
-    grid-column: span 2;
-  }
-
-  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-value {
-    font-size: 1.25rem !important;
-  }
-
-  .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .stat-sub {
-    display: block;
+  .lj-lead,
+  .lj-row,
+  .lj-row-arrow,
+  .lj-lead-cta svg {
+    transition: none;
   }
 }
 

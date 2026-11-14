@@ -6,6 +6,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import {
+  Compass,
+  Crown,
+  Hourglass,
+  Navigation,
   BookOpen,
   Briefcase,
   GitBranch,
@@ -19,12 +23,9 @@ import {
   Waypoints,
   type LucideIcon,
 } from 'lucide-react'
-import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { PanelShell } from '@/components/ui/patterns'
 import {
   analyzeDashamsa,
-  type CareerTone,
-  type DashamsaInsight,
 } from '@/lib/engine/dashamsaAnalysis'
 import { buildDashamsaClassical } from '@/lib/engine/dashamsaClassical'
 import { buildDashamsaPractical } from '@/lib/engine/dashamsaPractical'
@@ -33,46 +34,39 @@ import { buildDashamsaAdvanced } from '@/lib/engine/dashamsaAdvanced'
 import { DashamsaClassicalPanel } from '@/components/ui/DashamsaClassicalPanel'
 import { DashamsaSynthesisPanel } from '@/components/ui/DashamsaSynthesisPanel'
 import { DashamsaAdvancedPanel } from '@/components/ui/DashamsaAdvancedPanel'
-import { RASHI_SHORT } from '@/types/astrology'
 import { useTranslations } from 'next-intl'
 import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import { cn } from '@/lib/ui/cn'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_HI } from '@/i18n/jyotish'
-import styles from './DashamsaWorkspace.module.css'
+import {
+  vargaStyles as styles,
+  tabIconMap,
+  useVargaTabGroups,
+  VargaCharts,
+  VargaHero,
+  VargaTabNav,
+  VargaWorkspace,
+  type VargaTabSpec,
+  insightClass, toneClass, compactDashaPath, VargaSectionHead, VargaSignalBalance, VargaInsightGrid } from '@/components/ui/varga/VargaShell'
 
 type TabId = 'energy' | 'classical' | 'synthesis' | 'advanced' | 'karma' | 'sectors' | 'pending' | 'bondage' | 'karmaYoga' | 'circuit' | 'survival'
 
-const TABS: { id: TabId; Icon: LucideIcon }[] = [
-  { id: 'energy', Icon: Sparkles },
-  { id: 'classical', Icon: ScrollText },
-  { id: 'synthesis', Icon: Target },
-  { id: 'advanced', Icon: Microscope },
-  { id: 'survival', Icon: LifeBuoy },
-  { id: 'bondage', Icon: Waypoints },
-  { id: 'circuit', Icon: GitBranch },
-  { id: 'karmaYoga', Icon: BookOpen },
-  { id: 'karma', Icon: Layers },
-  { id: 'sectors', Icon: Briefcase },
-  { id: 'pending', Icon: HandHeart },
+const TABS: VargaTabSpec<TabId>[] = [
+  { id: 'energy', Icon: Sparkles, group: 'read' },
+  { id: 'classical', Icon: ScrollText, group: 'depth' },
+  { id: 'synthesis', Icon: Target, group: 'read' },
+  { id: 'advanced', Icon: Microscope, group: 'depth' },
+  { id: 'survival', Icon: LifeBuoy, group: 'themes' },
+  { id: 'bondage', Icon: Waypoints, group: 'themes' },
+  { id: 'circuit', Icon: GitBranch, group: 'themes' },
+  { id: 'karmaYoga', Icon: BookOpen, group: 'themes' },
+  { id: 'karma', Icon: Layers, group: 'chart' },
+  { id: 'sectors', Icon: Briefcase, group: 'themes' },
+  { id: 'pending', Icon: HandHeart, group: 'themes' },
 ]
 
-function compactDashaPath(pathLabel: string): string {
-  const parts = pathLabel.split(/\s*\/\s*/).filter(Boolean)
-  if (parts.length <= 1) return pathLabel
-  const out: string[] = []
-  for (const p of parts) {
-    if (out[out.length - 1] !== p) out.push(p)
-  }
-  return out.join(' / ')
-}
-
-function insightClass(kind: DashamsaInsight['kind']): string {
-  if (kind === 'strength') return styles.insightStrength
-  if (kind === 'caution') return styles.insightCaution
-  if (kind === 'highlight') return styles.insightHighlight
-  return styles.insightInfo
-}
+const TAB_ICON = tabIconMap(TABS)
 
 function dignityPill(dignity: string): string | null {
   if (dignity === 'exalted' || dignity === 'moolatrikona' || dignity === 'own') return styles.pillStrong
@@ -80,20 +74,10 @@ function dignityPill(dignity: string): string | null {
   return null
 }
 
-function toneClass(tone: CareerTone): string {
-  if (tone === 'supportive') return styles.toneSupportive
-  if (tone === 'challenging') return styles.toneChallenging
-  if (tone === 'mixed') return styles.toneMixed
-  return styles.toneNeutral
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, Icon, children }: { title: string; Icon?: LucideIcon; children: React.ReactNode }) {
   return (
     <section className={styles.section}>
-      <div className={styles.sectionHead}>
-        <h3 className={styles.sectionTitle}>{title}</h3>
-        <div className={styles.sectionRule} />
-      </div>
+      <VargaSectionHead Icon={Icon} title={title} />
       {children}
     </section>
   )
@@ -106,6 +90,7 @@ interface DashamsaWorkspaceProps {
 
 export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: DashamsaWorkspaceProps) {
   const t = useTranslations('divisional.d10')
+  const tabGroups = useVargaTabGroups(TABS, (id) => t(`tabs.${id}`), (id) => t(`tabs.${id}Short`))
   const c = useDivisionalCommon()
   const { lang, hi } = c
   const [tab, setTab] = useState<TabId>('energy')
@@ -156,7 +141,6 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
       : null),
     [analysis, classical, chart, lang],
   )
-  const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   if (!analysis || !practical) {
     return (
@@ -179,146 +163,63 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
   const { karma, sectors, pending, bondage, karmaYoga, circuit, survival } = practical
 
   return (
-    <div className={styles.workspace}>
-      <header className={styles.hero}>
-        <div className={styles.heroGlow} aria-hidden />
-        <div className={styles.heroTop}>
-          <div>
-            <p className={styles.eyebrow}>{t('eyebrow')}</p>
-            <h2 className={styles.heroTitle}>
-              {analysis.d10LagnaName}
-              {!hi && (
-                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {analysis.d10LagnaSanskrit}</span>
-              )}
-            </h2>
-            <p className={styles.heroSub}>{analysis.summary}</p>
-          </div>
-          <div className={styles.badgeRow}>
-            <span className={cn(styles.badge, styles.badgeGold)}>
-              {t('badgeDigpala', { name: analysis.lagnaDigpala.name })}
-            </span>
-            {classical && (
-              <span className={cn(styles.badge, styles.badgeGold)}>
-                {t('badgeMahat', { grade: classical.mahatphala.gradeLabel })}
-              </span>
-            )}
-            {synthesis && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>
-                {t('badgeTrack', {
-                  id: t(`trackName.${synthesis.track.id}`),
-                  a10: hi ? RASHI_HI[synthesis.a10.rashi] ?? synthesis.a10.rashiShort : synthesis.a10.rashiShort,
-                })}
-              </span>
-            )}
-            {advanced && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>
-                {t('badgeAdv', { n: advanced.raja.filter((r) => r.formed).length })}
-              </span>
-            )}
-            <span className={cn(styles.badge, styles.badgeTeal)}>
-              {t('badgeSector', { short: sectors.lagnaSector.short })}
-            </span>
-            <span className={cn(styles.badge, karma.recognition.tone === 'supportive' ? styles.badgeGold : styles.badgeTeal)}>
-              {t('badgeRecognition', { score: karma.recognition.score })}
-            </span>
-            {analysis.direction.foreignTheme && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeOverseas')}</span>
-            )}
-            {dasha && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>
-                {t('badgeDasha', { path: compactDashaPath(dasha.pathLabel) })}
-              </span>
-            )}
-          </div>
-        </div>
+    <VargaWorkspace varga="D10">
+      <VargaHero
+        varga="D10"
+        eyebrow={t('eyebrow')}
+        title={analysis.d10LagnaName}
+        sanskrit={hi ? undefined : analysis.d10LagnaSanskrit}
+        summary={analysis.summary}
+        journey={{ from: c.sign(chart.lagnas.ascRashi as Rashi), to: analysis.d10LagnaName }}
+        badges={[
+          { key: 'sector', label: t('badgeSector', { short: sectors.lagnaSector.short }), tone: 'teal' },
+          { key: 'recognition', label: t('badgeRecognition', { score: karma.recognition.score }), tone: karma.recognition.tone === 'supportive' ? 'gold' : 'teal' },
+          dasha && { key: 'dasha', Icon: Hourglass, label: t('badgeDasha', { path: compactDashaPath(dasha.pathLabel) }), tone: 'plain' },
+          classical && { key: 'mahat', label: t('badgeMahat', { grade: classical.mahatphala.gradeLabel }), tone: 'gold' },
+          { key: 'digpala', label: t('badgeDigpala', { name: analysis.lagnaDigpala.name }), tone: 'gold' },
+          synthesis && {
+            key: 'track',
+            label: t('badgeTrack', {
+              id: t(`trackName.${synthesis.track.id}`),
+              a10: hi ? RASHI_HI[synthesis.a10.rashi] ?? synthesis.a10.rashiShort : synthesis.a10.rashiShort,
+            }),
+            tone: 'teal',
+          },
+          advanced && { key: 'adv', label: t('badgeAdv', { n: advanced.raja.filter((r) => r.formed).length }), tone: 'teal' },
+          analysis.direction.foreignTheme && { key: 'overseas', label: t('badgeOverseas'), tone: 'teal' },
+        ]}
+        stats={[
+          { key: 'lagna', Icon: Compass, label: t('statLagna'), value: analysis.d10LagnaName, hint: t('statLagnaHint') },
+          { key: 'digpala', Icon: Navigation, label: t('statDigpala'), value: analysis.lagnaDigpala.name, hint: analysis.direction.compass },
+          {
+            key: 'tenth',
+            Icon: Crown,
+            label: t('statTenthDigpala'),
+            value: analysis.keyLords[1]?.digpalaName ?? '—',
+            hint: analysis.keyLords[1]
+              ? t('statTenthHint', { name: analysis.keyLords[1].name, house: analysis.keyLords[1].d10House })
+              : t('statTenthFallback'),
+          },
+          { key: 'sector', Icon: Briefcase, label: t('statSector'), value: sectors.lagnaSector.short, hint: sectors.lagnaSector.headline, accent: 'gold' },
+        ]}
+      />
 
-        <div className={styles.statGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statLagna')}</div>
-            <div className={styles.statValue}>{analysis.d10LagnaName}</div>
-            <div className={styles.statHint}>{t('statLagnaHint')}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statDigpala')}</div>
-            <div className={styles.statValue}>{analysis.lagnaDigpala.name}</div>
-            <div className={styles.statHint}>{analysis.direction.compass}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statTenthDigpala')}</div>
-            <div className={styles.statValue}>{analysis.keyLords[1]?.digpalaName ?? '—'}</div>
-            <div className={styles.statHint}>
-              {analysis.keyLords[1]
-                ? t('statTenthHint', { name: analysis.keyLords[1].name, house: analysis.keyLords[1].d10House })
-                : t('statTenthFallback')}
-            </div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statSector')}</div>
-            <div className={styles.statValue}>{sectors.lagnaSector.short}</div>
-            <div className={styles.statHint}>{sectors.lagnaSector.headline}</div>
-          </div>
-        </div>
-      </header>
+      <VargaCharts
+        chart={chart}
+        d1Title={t('chartD1')}
+        d1Accent={t('chartD1Accent')}
+        focus={{
+          tag: 'D10',
+          title: t('chartD10'),
+          accent: `${c.lagnaOf(d10Asc)}${dashaHighlights.length ? t('chartDasha', { houses: dashaHighlights.join(',') }) : ''}`,
+          ascRashi: d10Asc,
+          grahas: d10Grahas,
+          vargaName: 'D10',
+          highlightHouses: dashaHighlights.length ? dashaHighlights : [1, 10, 11],
+        }}
+      />
 
-      <div className={styles.chartsRow}>
-        <div className={styles.chartCard}>
-          <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>{t('chartD1')}</span>
-            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
-          </div>
-          <ChakraSelector
-            ascRashi={chart.lagnas.ascRashi as Rashi}
-            grahas={chart.vargas?.D1 ?? chart.grahas}
-            vargaName="D1"
-            moonNakIndex={moonNakIndex}
-            arudhas={chart.arudhas}
-            tithiNumber={chart.panchang.tithi.number}
-            varaNumber={chart.panchang.vara.number}
-            defaultStyle="north"
-            size={280}
-            showCharaDrishtiControls
-          />
-        </div>
-        <div className={styles.chartCard}>
-          <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>{t('chartD10')}</span>
-            <span className={styles.chartAccent}>
-              {c.lagnaOf(d10Asc)}
-              {dashaHighlights.length ? t('chartDasha', { houses: dashaHighlights.join(',') }) : ''}
-            </span>
-          </div>
-          <ChakraSelector
-            ascRashi={d10Asc}
-            grahas={d10Grahas}
-            vargaName="D10"
-            lagnas={chart.lagnas}
-            moonNakIndex={moonNakIndex}
-            defaultStyle="north"
-            size={280}
-            showCharaDrishtiControls
-            highlightHouses={dashaHighlights.length ? dashaHighlights : [1, 10, 11]}
-          />
-        </div>
-      </div>
-
-      <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
-          {TABS.map(({ id, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              className={cn(styles.tabBtn, tab === id && styles.tabBtnActive)}
-              onClick={() => setTab(id)}
-            >
-              <Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t(`tabs.${id}`)}</span>
-              <span className={styles.tabLabelShort}>{t(`tabs.${id}Short`)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      <VargaTabNav groups={tabGroups} active={tab} onChange={setTab} ariaLabel={t('tabsAria')} />
 
       {tab === 'classical' && (
         classical
@@ -340,18 +241,12 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'energy' && (
         <>
-          <Section title={t('energyTitle')}>
-            <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <Section Icon={TAB_ICON.energy} title={t('energyTitle')}>
+            <p className={styles.leadText}>
               {analysis.d10LagnaTheme}
             </p>
-            <div className={styles.insightGrid}>
-              {analysis.insights.map((ins) => (
-                <article key={ins.title} className={cn(styles.insightCard, insightClass(ins.kind))}>
-                  <h4 className={styles.insightTitle}>{ins.title}</h4>
-                  <p className={styles.insightText}>{ins.text}</p>
-                </article>
-              ))}
-            </div>
+            <VargaSignalBalance kinds={analysis.insights.map((i) => i.kind)} />
+          <VargaInsightGrid insights={analysis.insights} />
           </Section>
 
           <Section title={t('protocolTitle')}>
@@ -472,7 +367,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'bondage' && (
         <>
-          <Section title={t('bondageWhy')}>
+          <Section Icon={TAB_ICON.bondage} title={t('bondageWhy')}>
             <p className={styles.heroSub} style={{ marginBottom: 0, maxWidth: 'none' }}>{bondage.framing}</p>
           </Section>
 
@@ -565,7 +460,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'karma' && (
         <>
-          <Section title={t('karmaWhy')}>
+          <Section Icon={TAB_ICON.karma} title={t('karmaWhy')}>
             <p className={styles.heroSub} style={{ marginBottom: 0, maxWidth: 'none' }}>{karma.whyToday}</p>
           </Section>
 
@@ -719,7 +614,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'sectors' && (
         <>
-          <Section title={t('threeLayer')}>
+          <Section Icon={TAB_ICON.sectors} title={t('threeLayer')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.5rem', maxWidth: 'none' }}>{sectors.method}</p>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               {sectors.houseFlavorNotes.map((n) => (
@@ -796,7 +691,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'survival' && (
         <>
-          <Section title={t('survivalTitle')}>
+          <Section Icon={TAB_ICON.survival} title={t('survivalTitle')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.65rem', maxWidth: 'none' }}>
               {survival.framing}
             </p>
@@ -931,8 +826,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'circuit' && (
         <>
-          <Section title={t('circuitTitle')}>
-            <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <Section Icon={TAB_ICON.circuit} title={t('circuitTitle')}>
+            <p className={styles.leadText}>
               {circuit.framing}
             </p>
             <ol style={{ margin: '0 0 0.85rem', paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
@@ -1038,8 +933,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'karmaYoga' && (
         <>
-          <Section title={t('gitaTitle')}>
-            <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <Section Icon={TAB_ICON.karmaYoga} title={t('gitaTitle')}>
+            <p className={styles.leadText}>
               {karmaYoga.framing}
             </p>
             <article className={cn(
@@ -1186,8 +1081,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'pending' && (
         <>
-          <Section title={t('pendingAxis')}>
-            <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <Section Icon={TAB_ICON.pending} title={t('pendingAxis')}>
+            <p className={styles.leadText}>
               {pending.axisRule}
             </p>
             {pending.items.length === 0 ? (
@@ -1270,6 +1165,6 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
           </Section>
         </>
       )}
-    </div>
+    </VargaWorkspace>
   )
 }

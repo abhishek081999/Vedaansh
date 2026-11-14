@@ -7,6 +7,8 @@
 import React, { useMemo, useState } from 'react'
 import {
   Award,
+  Compass,
+  Navigation,
   Baby,
   Heart,
   HeartCrack,
@@ -15,48 +17,42 @@ import {
   Sparkles,
   Users,
   Flower2,
-  type LucideIcon,
 } from 'lucide-react'
-import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { PanelShell } from '@/components/ui/patterns'
 import {
   analyzeSaptamsha,
-  type D7Tone,
-  type SaptamshaInsight,
 } from '@/lib/engine/saptamshaAnalysis'
 import { cn } from '@/lib/ui/cn'
 import { useTranslations } from 'next-intl'
 import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
-import styles from './SaptamshaWorkspace.module.css'
+import {
+  vargaStyles as styles,
+  tabIconMap,
+  useVargaTabGroups,
+  VargaCharts,
+  VargaHero,
+  VargaTabNav,
+  VargaWorkspace,
+  toneAccent,
+  type VargaTabSpec,
+  toneClass, VargaSectionHead, VargaSignalBalance, VargaInsightGrid } from '@/components/ui/varga/VargaShell'
 
 type TabId = 'overview' | 'pillars' | 'desire' | 'devotion' | 'progeny' | 'love' | 'recognition' | 'relating' | 'houses'
 
-const TABS: { id: TabId; Icon: LucideIcon }[] = [
-  { id: 'overview', Icon: Sparkles },
-  { id: 'pillars', Icon: Scale },
-  { id: 'desire', Icon: Heart },
-  { id: 'devotion', Icon: Flower2 },
-  { id: 'progeny', Icon: Baby },
-  { id: 'love', Icon: HeartCrack },
-  { id: 'recognition', Icon: Award },
-  { id: 'relating', Icon: Users },
-  { id: 'houses', Icon: Layers },
+const TABS: VargaTabSpec<TabId>[] = [
+  { id: 'overview', Icon: Sparkles, group: 'read' },
+  { id: 'pillars', Icon: Scale, group: 'read' },
+  { id: 'desire', Icon: Heart, group: 'themes' },
+  { id: 'devotion', Icon: Flower2, group: 'themes' },
+  { id: 'progeny', Icon: Baby, group: 'themes' },
+  { id: 'love', Icon: HeartCrack, group: 'themes' },
+  { id: 'recognition', Icon: Award, group: 'themes' },
+  { id: 'relating', Icon: Users, group: 'themes' },
+  { id: 'houses', Icon: Layers, group: 'chart' },
 ]
 
-function insightClass(kind: SaptamshaInsight['kind']): string {
-  if (kind === 'strength') return styles.insightStrength
-  if (kind === 'caution') return styles.insightCaution
-  if (kind === 'highlight') return styles.insightHighlight
-  return styles.insightInfo
-}
-
-function toneClass(tone: D7Tone): string {
-  if (tone === 'supportive') return styles.toneSupportive
-  if (tone === 'challenging') return styles.toneChallenging
-  if (tone === 'mixed') return styles.toneMixed
-  return styles.toneNeutral
-}
+const TAB_ICON = tabIconMap(TABS)
 
 interface SaptamshaWorkspaceProps {
   chart: ChartOutput
@@ -66,10 +62,10 @@ interface SaptamshaWorkspaceProps {
 export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: SaptamshaWorkspaceProps) {
   const [tab, setTab] = useState<TabId>('overview')
   const t = useTranslations('divisional.d7')
+  const tabGroups = useVargaTabGroups(TABS, (id) => t(`tabs.${id}`), (id) => t(`tabs.${id}Short`))
   const c = useDivisionalCommon()
   const { lang } = c
   const analysis = useMemo(() => analyzeSaptamsha(chart, lang), [chart, lang])
-  const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   const d7Asc = (chart.vargaLagnas?.D7 ?? 1) as Rashi
   const d7Grahas = chart.vargas?.D7 ?? []
@@ -91,158 +87,68 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
   const { relating, desire, devotion, recognition, progeny, loveLife, pillars } = analysis
 
   return (
-    <div className={styles.workspace}>
-      <header className={styles.hero}>
-        <div className={styles.heroGlow} aria-hidden />
-        <div className={styles.heroTop}>
-          <div>
-            <p className={styles.eyebrow}>{t('eyebrow')}</p>
-            <h2 className={styles.heroTitle}>
-              {analysis.d7LagnaName}
-              {!c.hi && (
-                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{' '}· {analysis.d7LagnaSanskrit}</span>
-              )}
-            </h2>
-            <p className={styles.heroSub}>{analysis.summary}</p>
-          </div>
-          <div className={styles.badgeRow}>
-            {relating.lagnaEmpty ? (
-              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeEmpty')}</span>
-            ) : (
-              <span className={cn(styles.badge, styles.badgeGold)}>
-                {t('badgeOnLagna', { names: relating.occupants.map((o) => o.name).join(' · ') })}
-              </span>
-            )}
-            <span className={cn(styles.badge, styles.badgeGold)}>
-              {t('badgeClutch', { who: relating.clutchLabel })}
-            </span>
-            {progeny.tone === 'challenging' && (
-              <span className={cn(styles.badge)} style={{ color: 'var(--rose, #fb7185)' }}>
-                {t('badgeProgeny')}
-              </span>
-            )}
-            {(loveLife.tone === 'challenging' || loveLife.playboyFlag) && (
-              <span className={cn(styles.badge)} style={{ color: 'var(--rose, #fb7185)' }}>
-                {t('badgeLove')}
-              </span>
-            )}
-          </div>
-        </div>
+    <VargaWorkspace varga="D7">
+      <VargaHero
+        varga="D7"
+        eyebrow={t('eyebrow')}
+        title={analysis.d7LagnaName}
+        sanskrit={c.hi ? undefined : analysis.d7LagnaSanskrit}
+        summary={analysis.summary}
+        journey={{ from: c.sign(chart.lagnas.ascRashi as Rashi), to: analysis.d7LagnaName }}
+        badges={[
+          relating.lagnaEmpty
+            ? { key: 'lagna', label: t('badgeEmpty'), tone: 'teal' }
+            : { key: 'lagna', label: t('badgeOnLagna', { names: relating.occupants.map((o) => o.name).join(' · ') }), tone: 'gold' },
+          progeny.tone === 'challenging' && { key: 'progeny', label: t('badgeProgeny'), tone: 'rose' },
+          (loveLife.tone === 'challenging' || loveLife.playboyFlag) && { key: 'love', label: t('badgeLove'), tone: 'rose' },
+          { key: 'clutch', label: t('badgeClutch', { who: relating.clutchLabel }), tone: 'gold' },
+        ]}
+        stats={[
+          { key: 'lagna', Icon: Compass, label: t('statLagna'), value: analysis.d7LagnaName, hint: t('statLagnaHint') },
+          { key: 'clutch', Icon: Users, label: t('statClutch'), value: relating.clutchLabel, hint: relating.clutchReading },
+          { key: 'dharma', Icon: Scale, label: t('statDharma'), value: c.tone(pillars[0].tone), hint: pillars[0].focus, accent: toneAccent(pillars[0].tone) },
+          {
+            key: 'distance',
+            Icon: Navigation,
+            label: t('statDistance'),
+            value: relating.distance === 'long' ? t('distanceLong') : relating.distance === 'mixed' ? t('distanceMixed') : t('distanceLocal'),
+            hint: relating.distanceReading,
+          },
+        ]}
+      />
 
-        <div className={styles.statGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statLagna')}</div>
-            <div className={styles.statValue}>{analysis.d7LagnaName}</div>
-            <div className={styles.statHint}>{t('statLagnaHint')}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statClutch')}</div>
-            <div className={styles.statValue}>{relating.clutchLabel}</div>
-            <div className={styles.statHint}>{relating.clutchReading}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statDharma')}</div>
-            <div className={styles.statValue}>{c.tone(pillars[0].tone)}</div>
-            <div className={styles.statHint}>{pillars[0].focus}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('statDistance')}</div>
-            <div className={styles.statValue}>
-              {relating.distance === 'long'
-                ? t('distanceLong')
-                : relating.distance === 'mixed'
-                  ? t('distanceMixed')
-                  : t('distanceLocal')}
-            </div>
-            <div className={styles.statHint}>{relating.distanceReading}</div>
-          </div>
-        </div>
-      </header>
+      <VargaCharts
+        chart={chart}
+        d1Title={t('chartD1')}
+        d1Accent={t('chartD1Accent')}
+        focus={{
+          tag: 'D7',
+          title: t('chartD7'),
+          accent: t('chartD7Accent', { lagna: c.lagnaOf(d7Asc) }),
+          ascRashi: d7Asc,
+          grahas: d7Grahas,
+          vargaName: 'D7',
+          highlightHouses: [1, 5, 7],
+        }}
+      />
 
-      <div className={styles.chartsRow}>
-        <div className={styles.chartCard}>
-          <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>{t('chartD1')}</span>
-            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
-          </div>
-          <ChakraSelector
-            ascRashi={chart.lagnas.ascRashi as Rashi}
-            grahas={chart.vargas?.D1 ?? chart.grahas}
-            vargaName="D1"
-            moonNakIndex={moonNakIndex}
-            arudhas={chart.arudhas}
-            tithiNumber={chart.panchang.tithi.number}
-            varaNumber={chart.panchang.vara.number}
-            defaultStyle="north"
-            size={280}
-            showCharaDrishtiControls
-          />
-        </div>
-        <div className={styles.chartCard}>
-          <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>{t('chartD7')}</span>
-            <span className={styles.chartAccent}>{t('chartD7Accent', { lagna: c.lagnaOf(d7Asc) })}</span>
-          </div>
-          <ChakraSelector
-            ascRashi={d7Asc}
-            grahas={d7Grahas}
-            vargaName="D7"
-            lagnas={chart.lagnas}
-            moonNakIndex={moonNakIndex}
-            defaultStyle="north"
-            size={280}
-            showCharaDrishtiControls
-            highlightHouses={[1, 5, 7]}
-          />
-        </div>
-      </div>
-
-      <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
-          {TABS.map((tb) => (
-            <button
-              key={tb.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === tb.id}
-              className={cn(styles.tabBtn, tab === tb.id && styles.tabBtnActive)}
-              onClick={() => setTab(tb.id)}
-            >
-              <tb.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === tb.id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t(`tabs.${tb.id}`)}</span>
-              <span className={styles.tabLabelShort}>{t(`tabs.${tb.id}Short`)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      <VargaTabNav groups={tabGroups} active={tab} onChange={setTab} ariaLabel={t('tabsAria')} />
 
       {tab === 'overview' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('insightsTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('insightsTitle')} />
+          <p className={styles.leadText}>
             {analysis.purpose}
           </p>
-          <div className={styles.insightGrid}>
-            {analysis.insights.map((ins) => (
-              <article key={`${ins.kind}-${ins.title}`} className={cn(styles.insightCard, insightClass(ins.kind))}>
-                <h4 className={styles.insightTitle}>{ins.title}</h4>
-                <p className={styles.insightText}>{ins.text}</p>
-              </article>
-            ))}
-          </div>
+          <VargaSignalBalance kinds={analysis.insights.map((i) => i.kind)} />
+          <VargaInsightGrid insights={analysis.insights} />
         </section>
       )}
 
       {tab === 'pillars' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('pillarsTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('pillarsTitle')} />
+          <p className={styles.leadText}>
             {t('pillarsIntro')}
           </p>
           <div className={styles.insightGrid}>
@@ -267,11 +173,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'desire' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('desireTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('desireTitle')} />
+          <p className={styles.leadText}>
             {t('desireIntro')}
           </p>
           <div className={styles.sketchGrid}>
@@ -303,11 +206,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'devotion' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('devotionTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('devotionTitle')} />
+          <p className={styles.leadText}>
             {t('devotionIntro')}
           </p>
           <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.85rem' }}>
@@ -325,10 +225,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
           </article>
           {devotion.deityHints.length > 0 && (
             <>
-              <div className={styles.sectionHead} style={{ marginTop: '0.5rem' }}>
-                <h3 className={styles.sectionTitle}>{t('devotionHints')}</h3>
-                <div className={styles.sectionRule} />
-              </div>
+              <VargaSectionHead title={t('devotionHints')} style={{ marginTop: '0.5rem' }} />
               <div className={styles.insightGrid}>
                 {devotion.deityHints.map((hint) => (
                   <article key={hint} className={cn(styles.insightCard, styles.insightInfo)}>
@@ -343,11 +240,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'progeny' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('progenyTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('progenyTitle')} />
+          <p className={styles.leadText}>
             {t('progenyIntro')}
           </p>
           <div className={styles.insightGrid}>
@@ -402,11 +296,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'love' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('loveTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('loveTitle')} />
+          <p className={styles.leadText}>
             {t('loveIntro')}
           </p>
           <div className={styles.insightGrid}>
@@ -445,10 +336,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
           {loveLife.d3Notes.length > 0 && (
             <>
-              <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>{t('loveD3')}</h3>
-                <div className={styles.sectionRule} />
-              </div>
+              <VargaSectionHead title={t('loveD3')} style={{ marginTop: '1.1rem' }} />
               <div className={styles.insightGrid}>
                 {loveLife.d3Notes.map((n) => (
                   <article key={n.id} className={cn(styles.insightCard, toneClass(n.tone))}>
@@ -462,10 +350,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
           {loveLife.patterns.length > 0 && (
             <>
-              <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>{t('lovePatterns')}</h3>
-                <div className={styles.sectionRule} />
-              </div>
+              <VargaSectionHead title={t('lovePatterns')} style={{ marginTop: '1.1rem' }} />
               <div className={styles.insightGrid}>
                 {loveLife.patterns.map((p) => (
                   <article key={p.id} className={cn(styles.insightCard, toneClass(p.tone))}>
@@ -481,11 +366,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'recognition' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('recognitionTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('recognitionTitle')} />
+          <p className={styles.leadText}>
             {t('recognitionIntro')}
           </p>
           <div className={styles.insightGrid}>
@@ -547,11 +429,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'relating' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('relatingTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('relatingTitle')} />
+          <p className={styles.leadText}>
             {t('relatingIntro')}
           </p>
 
@@ -580,10 +459,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
           {relating.occupants.length > 0 && (
             <>
-              <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>{t('planetsOnLagna')}</h3>
-                <div className={styles.sectionRule} />
-              </div>
+              <VargaSectionHead title={t('planetsOnLagna')} style={{ marginTop: '1.1rem' }} />
               <div className={styles.cardGrid}>
                 {relating.occupants.map((o) => (
                   <article key={o.id} className={styles.planetCard}>
@@ -600,10 +476,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
             </>
           )}
 
-          <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-            <h3 className={styles.sectionTitle}>{t('meetingTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
+          <VargaSectionHead title={t('meetingTitle')} style={{ marginTop: '1.1rem' }} />
           <article className={cn(styles.insightCard, styles.insightInfo)} style={{ marginBottom: '0.85rem' }}>
             <p className={styles.insightText}>{relating.meetingReading}</p>
             <p className={styles.insightText} style={{ marginTop: '0.45rem' }}>{relating.distanceReading}</p>
@@ -616,10 +489,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
           {relating.patterns.length > 0 && (
             <>
-              <div className={styles.sectionHead} style={{ marginTop: '0.5rem' }}>
-                <h3 className={styles.sectionTitle}>{t('patternsTitle')}</h3>
-                <div className={styles.sectionRule} />
-              </div>
+              <VargaSectionHead title={t('patternsTitle')} style={{ marginTop: '0.5rem' }} />
               <div className={styles.insightGrid}>
                 {relating.patterns.map((pat) => (
                   <article key={pat.id} className={cn(styles.insightCard, toneClass(pat.tone))}>
@@ -635,11 +505,8 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
 
       {tab === 'houses' && (
         <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>{t('focusedTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
-          <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+          <VargaSectionHead Icon={TAB_ICON[tab]} title={t('focusedTitle')} />
+          <p className={styles.leadText}>
             {t('focusedIntro')}
           </p>
           <div className={styles.houseGrid}>
@@ -666,10 +533,7 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
             ))}
           </div>
 
-          <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-            <h3 className={styles.sectionTitle}>{t('planetsTitle')}</h3>
-            <div className={styles.sectionRule} />
-          </div>
+          <VargaSectionHead title={t('planetsTitle')} style={{ marginTop: '1.1rem' }} />
           <div className={styles.cardGrid}>
             {analysis.planets.map((p) => (
               <article key={p.id} className={styles.planetCard}>
@@ -689,6 +553,6 @@ export function SaptamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: Sapt
           </div>
         </section>
       )}
-    </div>
+    </VargaWorkspace>
   )
 }
