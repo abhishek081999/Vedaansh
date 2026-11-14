@@ -50,6 +50,6 @@ describe('nakshatraMuhurta', () => {
     const m = getNakshatraMuhurtaMeta(0)
     expect(m.basicEnergy).toMatch(/Horse/)
     expect(m.basicEnergy).toMatch(/Shakti/i)
-    expect(getNakshatraMuhurtaMeta(2).fallEffect).toMatch(/cut\/refined/i)
+    expect(getNakshatraMuhurtaMeta(2).fallEffect).toMatch(/cut and refined/i)
   })
 })

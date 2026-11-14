@@ -82,15 +82,15 @@ const GROUPS: Record<MuhurtaNakGroupId, MuhurtaNakGroupMeta> = {
     id: 'Dhruva',
     label: 'Dhruva (Sthira)',
     aka: 'Fixed',
-    weekdayHint: 'Sunday affinity in classical lists',
-    goodFor: 'Foundations, house construction, wells, Upanayana, agriculture',
-    energy: 'Stable, enduring, suited to lasting establishments',
+    weekdayHint: 'Linked with Sunday in classical lists',
+    goodFor: 'Foundations, house building, wells, Upanayana and agriculture',
+    energy: 'Stable and lasting; suited to permanent establishments',
   },
   Chara: {
     id: 'Chara',
     label: 'Chara (Chalayaman)',
     aka: 'Movable',
-    weekdayHint: 'Monday affinity in classical lists',
+    weekdayHint: 'Linked with Monday in classical lists',
     goodFor: 'Travel, driving, movement, relocation',
     energy: 'Mobile, change-oriented, favours journeys',
   },
@@ -98,40 +98,40 @@ const GROUPS: Record<MuhurtaNakGroupId, MuhurtaNakGroupMeta> = {
     id: 'Ugra',
     label: 'Ugra (Kroor)',
     aka: 'Fierce / cruel',
-    weekdayHint: 'Tuesday affinity in classical lists',
-    goodFor: 'Aggressive / cautionary acts — weapons training, poison research (medicinal), forceful work',
-    energy: 'Fierce intensity; avoid soft auspicious rites',
+    weekdayHint: 'Linked with Tuesday in classical lists',
+    goodFor: 'Aggressive or cautionary acts — weapons training, (medicinal) research into poisons, forceful work',
+    energy: 'Fierce intensity; avoid gentle auspicious rites',
   },
   Mishra: {
     id: 'Mishra',
     label: 'Mishra (Dwiswabhava)',
     aka: 'Mixed',
-    weekdayHint: 'Wednesday affinity in classical lists',
-    goodFor: 'Craft, metalwork, gas-related work, interior design',
-    energy: 'Dual nature — adaptable to skilled crafts',
+    weekdayHint: 'Linked with Wednesday in classical lists',
+    goodFor: 'Crafts, metalwork, gas-related work and interior design',
+    energy: 'A dual nature — adaptable to skilled crafts',
   },
   Laghu: {
     id: 'Laghu',
     label: 'Laghu (Kshipra)',
     aka: 'Light / quick',
-    weekdayHint: 'Thursday affinity in classical lists',
-    goodFor: 'Shop opening, buying, education start, partnerships, new light work',
-    energy: 'Quick, light, favourable for swift starts',
+    weekdayHint: 'Linked with Thursday in classical lists',
+    goodFor: 'Opening a shop, buying, starting education, partnerships and new light work',
+    energy: 'Quick and light; favourable for swift beginnings',
   },
   Mridu: {
     id: 'Mridu',
     label: 'Mridu (Maitra)',
     aka: 'Soft / friendly',
-    weekdayHint: 'Friday affinity in classical lists',
-    goodFor: 'Music, new clothes, games, friendship, jewellery',
+    weekdayHint: 'Linked with Friday in classical lists',
+    goodFor: 'Music, new clothes, games, friendship and jewellery',
     energy: 'Gentle, pleasant, socially harmonious',
   },
   Tikshna: {
     id: 'Tikshna',
     label: 'Tikshna (Daruna)',
     aka: 'Sharp / severe',
-    weekdayHint: 'Saturday affinity in classical lists',
-    goodFor: 'Tantra, sadhana, Hatha Yoga, animal training, hypnotism',
+    weekdayHint: 'Linked with Saturday in classical lists',
+    goodFor: 'Tantra, sadhana, Hatha Yoga, animal training and hypnotism',
     energy: 'Sharp and severe; suited to intense practices',
   },
 }
@@ -141,19 +141,19 @@ const MUKHAS: Record<MukhaId, MukhaMeta> = {
     id: 'Urdhvamukhi',
     label: 'Urdhvamukhi',
     meaning: 'Upward-facing',
-    goodFor: 'Multi-storey buildings, temples, parks — anything requiring upward growth',
+    goodFor: 'Multi-storey buildings, temples and parks — anything that needs to grow upward',
   },
   Adhomukhi: {
     id: 'Adhomukhi',
     label: 'Adhomukhi',
     meaning: 'Downward-facing',
-    goodFor: 'Wells, ponds, foundations, tunnels, basements, mines, drainage',
+    goodFor: 'Wells, ponds, foundations, tunnels, basements, mines and drainage',
   },
   Tiryakmukhi: {
     id: 'Tiryakmukhi',
     label: 'Tiryakmukhi',
     meaning: 'Side-facing',
-    goodFor: 'Roads, driving, travel, media / content delivery',
+    goodFor: 'Roads, driving, travel and media or content delivery',
   },
 }
 
@@ -241,7 +241,7 @@ export function getAbhijitWindow(moonLonSidereal?: number | null, lang: EngineLa
     return {
       active: false,
       spanLabel,
-      note: hi ? ABHIJIT_HI.unknown : 'Special 28th muhurta nakshatra — Laghu/Kshipra; check Moon longitude for Abhijit window.',
+      note: hi ? ABHIJIT_HI.unknown : 'A special 28th muhurta nakshatra — Laghu/Kshipra; check the Moon’s longitude for the Abhijit window.',
     }
   }
   const active = isAbhijitLongitude(moonLonSidereal)
@@ -249,8 +249,8 @@ export function getAbhijitWindow(moonLonSidereal?: number | null, lang: EngineLa
     active,
     spanLabel,
     note: active
-      ? hi ? ABHIJIT_HI.active : 'Abhijit is active — treat as Laghu (Kshipra); excellent for light auspicious starts.'
-      : hi ? ABHIJIT_HI.inactive : 'Outside Abhijit span; use the current Moon nakshatra’s muhurta group.',
+      ? hi ? ABHIJIT_HI.active : 'Abhijit is active — treat it as Laghu (Kshipra); excellent for light, auspicious beginnings.'
+      : hi ? ABHIJIT_HI.inactive : 'Outside the Abhijit span; use the muhurta group of the current Moon nakshatra.',
   }
 }
 
@@ -261,59 +261,59 @@ export function getAbhijitWindow(moonLonSidereal?: number | null, lang: EngineLa
  */
 export const NAKSHATRA_FALL_EFFECTS: string[] = [
   // Ashwini
-  'Quick starts and healing; rush energy; pioneering moves; vehicles and speed',
+  'Quick starts and healing; a rush of energy; pioneering moves; vehicles and speed',
   // Bharani
-  'Birth–death extremes; restraint and release; heavy karma; creative or reproductive pressure',
+  'The extremes of birth and death; restraint and release; heavy karma; creative or reproductive pressure',
   // Krittika
-  'Things get cut/refined; sharp communication; court/legal outcomes; purifying fire',
+  'Things are cut and refined; sharp communication; court or legal outcomes; purifying fire',
   // Rohini
-  'Growth, beauty, and attraction; comfort and fertility; creative or material blossoming',
+  'Growth, beauty and attraction; comfort and fertility; creative or material blossoming',
   // Mrigashira
   'Searching and roaming; curiosity; mild restlessness; hunting for options',
   // Ardra
-  'Storms then clarity; emotional upheaval; research through crisis; transformative tears',
+  'Storms followed by clarity; emotional upheaval; research through crisis; transforming tears',
   // Punarvasu
-  'Return and renewal; second chances; restoration after loss; hopeful rebound',
+  'Return and renewal; second chances; restoration after loss; a hopeful rebound',
   // Pushya
   'Nourishment and protection; mentoring; steady care; auspicious support',
   // Ashlesha
-  'Entanglement and secrecy; clinging bonds; shrewd strategy; venom then medicine',
+  'Entanglement and secrecy; clinging bonds; shrewd strategy; venom that becomes medicine',
   // Magha
-  'Ancestral power and status; authority seats; legacy; pride of lineage',
+  'Ancestral power and status; seats of authority; legacy; pride in lineage',
   // Purva Phalguni
-  'Pleasure, rest, and romance; celebration; creative leisure; union themes',
+  'Pleasure, rest and romance; celebration; creative leisure; themes of union',
   // Uttara Phalguni
   'Contracts and patronage; lasting alliances; duty after pleasure; social standing',
   // Hasta
-  'Skilled hands and craft; manipulation of detail; deals; clever problem-solving',
+  'Skilled hands and craft; handling detail; deals; clever problem-solving',
   // Chitra
-  'Design, form, and flash; craftsmanship; image-making; sudden brilliant ideas',
+  'Design, form and flair; craftsmanship; image-making; sudden brilliant ideas',
   // Swati
   'Independence and airy movement; trade winds; self-reliance; flexible partnerships',
   // Vishakha
-  'Ambition and forked aims; achievement drive; rivalry; goal fixation',
+  'Ambition and divided aims; a drive to achieve; rivalry; fixation on goals',
   // Anuradha
   'Friendship and devotion; occult loyalty; organised groups; hidden support',
   // Jyeshtha
-  'Seniority and control; responsibility; protective dominance; mid-life authority',
+  'Seniority and control; responsibility; protective dominance; authority in mid-life',
   // Mula
-  'Root disruption; uprooting; investigation to the core; endings that clear ground',
+  'Disruption at the root; uprooting; investigating to the core; endings that clear the ground',
   // Purva Ashadha
-  'Early victory energy; invincible push; pride; emotional conviction',
+  'The energy of early victory; an unstoppable push; pride; emotional conviction',
   // Uttara Ashadha
-  'Later lasting victory; enduring fame; structured success; leadership that sticks',
+  'Later, lasting victory; enduring fame; structured success; leadership that endures',
   // Shravana
   'Listening and learning; news; counsel; pathways of knowledge and travel',
   // Dhanishtha
-  'Rhythm, wealth, and music; status through skill; group prosperity; ambition',
+  'Rhythm, wealth and music; status through skill; group prosperity; ambition',
   // Shatabhisha
-  'Healing grids and secrecy; medicine; isolation for cure; technical mysteries',
+  'Healing networks and secrecy; medicine; isolation for the sake of cure; technical mysteries',
   // Purva Bhadra
-  'Fiery idealism; sacrifice; radical speech; scorched transformation',
+  'Fiery idealism; sacrifice; radical speech; scorching transformation',
   // Uttara Bhadra
-  'Deep stability after ordeal; wisdom in depth; kundalini calm; enduring support',
+  'Deep stability after an ordeal; profound wisdom; calm kundalini; enduring support',
   // Revati
-  'Completion and safe passage; nourishment; endings that protect; journey’s close',
+  'Completion and safe passage; nourishment; protective endings; the close of a journey',
 ]
 
 /** `group.id` / `mukha.id` stay English; labels and text follow `lang`. */
@@ -364,7 +364,7 @@ export function getAshwiniYogaNotes(
       id: 'sarvartha_siddhi',
       label: hi ? ASHWINI_HI.sarvartha.label : 'Sarvartha Siddhi Yoga',
       quality: 'auspicious',
-      detail: hi ? ASHWINI_HI.sarvartha.detail : 'Ashwini on Tue/Thu/Fri — generally good for most work (see Vish Yoga caveat if Tue + Saptami).',
+      detail: hi ? ASHWINI_HI.sarvartha.detail : 'Ashwini on Tuesday, Thursday or Friday — generally good for most work (note the Vish Yoga caveat for Tuesday + Saptami).',
     })
   }
   if (isTue) {
@@ -380,7 +380,7 @@ export function getAshwiniYogaNotes(
       id: 'vish_yoga',
       label: hi ? ASHWINI_HI.vish.label : 'Vish Yoga (Madhu mein Vish)',
       quality: 'inauspicious',
-      detail: hi ? ASHWINI_HI.vish.detail : 'Ashwini + Tuesday + Saptami — avoid all shubh karyas despite Amrit Siddhi label.',
+      detail: hi ? ASHWINI_HI.vish.detail : 'Ashwini + Tuesday + Saptami — avoid all shubh karyas despite the Amrit Siddhi label.',
     })
   }
   return notes
@@ -388,8 +388,8 @@ export function getAshwiniYogaNotes(
 
 /** Compact Ashwini activity hints for muhurta UI */
 export const ASHWINI_ACTIVITY_HINT = {
-  favour: 'Horses/vehicles, pets, travel, plantation business, govt jobs, light finance (with empty 5/8/9 & Chara lagna caveat)',
-  avoid: 'Agricultural ploughing/sowing and soil fertilisation timing',
+  favour: 'Horses and vehicles, pets, travel, plantation business, government jobs and light finance (subject to the empty 5/8/9 and Chara lagna caveat)',
+  avoid: 'Timing for ploughing, sowing and fertilising the soil',
 }
 
 export function getAshwiniActivityHint(lang: EngineLang = 'en'): typeof ASHWINI_ACTIVITY_HINT {

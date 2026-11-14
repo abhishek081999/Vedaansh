@@ -70,7 +70,7 @@ describe('nakshatra remedies Hindi leak', () => {
     expect(getNakshatraRemedies(26, 'en')).toEqual(NAKSHATRA_REMEDIES[26])
     expect(getNakshatraMuhurtaRating(3, 'marriage')).toEqual({
       rating: 'Excellent',
-      note: 'Rohini — Brahma favourite, auspicious for marriage',
+      note: 'Rohini — Brahma’s favourite, auspicious for marriage',
     })
     expect(getNakshatraMuhurtaRating(1, 'finance').note).toBe('Ugra (fierce) — not recommended')
     expect(getNakshatraMuhurtaRating(2, 'finance').note).toBe('Misra (mixed) — moderate results')

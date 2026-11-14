@@ -47,9 +47,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 1,
     hindi: 'जन्म',
     shortLabel: 'Growth & nature',
-    meaning: 'Birth star — first effect on body and soul growth; sets your baseline nature.',
-    experience: 'Identity, ego, leadership style, and how you carry your birth-nakshatra psychology.',
-    decisionWindow: 'Act in line with your nature; avoid forcing a new persona.',
+    meaning: 'The birth star — its first effect is on the growth of body and soul, and it sets your baseline nature.',
+    experience: 'Identity, ego, leadership style and how you carry the psychology of your birth nakshatra.',
+    decisionWindow: 'Act in keeping with your nature; avoid forcing a new persona.',
     tone: 'neutral',
     isHard: false,
   },
@@ -58,9 +58,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 2,
     hindi: 'संपत्',
     shortLabel: 'Gains & opportunity',
-    meaning: 'Wealth / opportunity tara — benefits, openings, and material or status gains.',
-    experience: 'Doors open; resources and chances arrive more readily.',
-    decisionWindow: 'Say yes to aligned opportunities; still verify with chart dignity.',
+    meaning: 'The tara of wealth and opportunity — benefits, openings, and material or status gains.',
+    experience: 'Doors open; resources and chances come more easily.',
+    decisionWindow: 'Say yes to opportunities that fit you, but still check them against the chart’s dignities.',
     tone: 'supportive',
     isHard: false,
   },
@@ -69,9 +69,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 3,
     hindi: 'विपत्',
     shortLabel: 'Crisis & struggle',
-    meaning: 'Caution tara. Problems and worry can feel stronger, and you may need to push through.',
-    experience: 'Struggle, friction, and “I must do this” obstinacy; results often incomplete.',
-    decisionWindow: 'Do not prove yourself; delay high-risk moves; expect friction even on good goals.',
+    meaning: 'A tara of caution. Problems and worries can feel heavier, and you may have to push through.',
+    experience: 'Struggle, friction and an obstinate “I must do this”; results are often incomplete.',
+    decisionWindow: 'Do not try to prove yourself; postpone high-risk moves; expect friction even with good goals.',
     trap: 'Stubbornness can deepen the crisis.',
     tone: 'challenging',
     isHard: true,
@@ -81,9 +81,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 4,
     hindi: 'क्षेम',
     shortLabel: 'Protection & solutions',
-    meaning: 'Well-being tara — protection and solutions (often after or through difficulty).',
-    experience: 'Problems may appear, but solutions and cover arrive with them.',
-    decisionWindow: 'Lean into repair, healing, and consolidating what you already have.',
+    meaning: 'The tara of well-being — protection and solutions (often after or through difficulty).',
+    experience: 'Problems may arise, but solutions and protection come along with them.',
+    decisionWindow: 'Focus on repair, healing and consolidating what you already have.',
     tone: 'supportive',
     isHard: false,
   },
@@ -92,10 +92,10 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 5,
     hindi: 'प्रत्यरी',
     shortLabel: 'Opposition',
-    meaning: 'Opposition tara — challenges, pushback, and pressure to prove yourself.',
-    experience: 'Wherever you speak or push hard, resistance rises; karma of being tested.',
-    decisionWindow: 'Speak less; listen more; avoid confrontational proving. Where you talk, you can get stuck.',
-    trap: 'Over-explaining or arguing worsens outcomes.',
+    meaning: 'The tara of opposition — challenges, pushback and pressure to prove yourself.',
+    experience: 'Wherever you speak up or push hard, resistance grows; the karma of being tested.',
+    decisionWindow: 'Speak less, listen more and avoid confrontational attempts to prove yourself. Where you talk, you can get stuck.',
+    trap: 'Over-explaining or arguing makes outcomes worse.',
     tone: 'challenging',
     isHard: true,
   },
@@ -104,9 +104,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 6,
     hindi: 'साधक',
     shortLabel: 'Achievement & change',
-    meaning: 'Achievement tara — success and transformation (not only spiritual).',
-    experience: 'Skill, effort, and life-direction shifts crystallize into visible results.',
-    decisionWindow: 'Commit to transformation work; accept that change can feel good or hard.',
+    meaning: 'The tara of achievement — success and transformation (not only spiritual).',
+    experience: 'Skill, effort and shifts in life direction turn into visible results.',
+    decisionWindow: 'Commit to the work of transformation, and accept that change can feel good or hard.',
     tone: 'transformative',
     isHard: false,
   },
@@ -115,9 +115,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 7,
     hindi: 'वध',
     shortLabel: 'Loss & release',
-    meaning: 'Letting-go tara. It points to endings, blows to pride, and having to let things go.',
-    experience: 'Something held tightly loosens; ego or attachments take a hit.',
-    decisionWindow: 'Release, complete, and stop clinging. Do not start ego-driven fights.',
+    meaning: 'The tara of letting go. It points to endings, blows to pride and having to release things.',
+    experience: 'Something held tightly begins to loosen; ego or attachments take a hit.',
+    decisionWindow: 'Release, complete and stop clinging. Do not start fights driven by ego.',
     trap: 'Clinging turns loss into prolonged pain.',
     tone: 'challenging',
     isHard: true,
@@ -127,9 +127,9 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 8,
     hindi: 'मित्र',
     shortLabel: 'Support',
-    meaning: 'Friend tara — allies, support, and cooperative help.',
-    experience: 'People and circumstances lean toward you; partnerships ease the load.',
-    decisionWindow: 'Collaborate, ask for help, and build alliances.',
+    meaning: 'The tara of friendship — allies, support and cooperative help.',
+    experience: 'People and circumstances lean in your favour; partnerships lighten the load.',
+    decisionWindow: 'Collaborate, ask for help and build alliances.',
     tone: 'supportive',
     isHard: false,
   },
@@ -138,10 +138,10 @@ export const TARA_DECISION_PROFILES: Record<TaraName, TaraDecisionProfile> = {
     taraNumber: 9,
     hindi: 'अति मित्र',
     shortLabel: 'Grace & protection',
-    meaning: 'Best-friend tara — grace, cover, and strong protective results.',
-    experience: 'Most outcomes tilt favorable; divine protection tone.',
-    decisionWindow: 'Receive success without over-controlling; stay humble.',
-    trap: 'Hidden trap: over-control and inflated ego after repeated wins (9/10 succeed, 1 fails hard).',
+    meaning: 'The tara of the best friend — grace, protection and strongly supportive results.',
+    experience: 'Most outcomes lean favourable, with a tone of divine protection.',
+    decisionWindow: 'Accept success without over-controlling it; stay humble.',
+    trap: 'The hidden trap: over-control and an inflated ego after repeated wins (9 in 10 succeed, but 1 fails badly).',
     tone: 'supportive',
     isHard: false,
   },
@@ -341,8 +341,8 @@ function synthesizeExperience(
   const H = NAVTARA_TEXT_HI.synth
   if (!maha) {
     return {
-      synthesis: hi ? H.emptySynthesis : 'Load a chart with Vimshottari dasha to read the current Navtara window.',
-      decisionAdvice: hi ? H.emptyAdvice : 'Practice on natal planets first: note which grahas sit in Vipat, Pratyari, and Vadha.',
+      synthesis: hi ? H.emptySynthesis : 'Load a chart with Vimshottari dasha to see the current Navtara window.',
+      decisionAdvice: hi ? H.emptyAdvice : 'Start by practising on the natal planets: note which grahas fall in Vipat, Pratyari and Vadha.',
       experienceTone: 'neutral',
     }
   }
@@ -380,7 +380,7 @@ function synthesizeExperience(
         ? fill(H.blendSoftHard, { aShort: a.shortLabel })
         : ` Supportive MD with a hard AD: overall promise stays, but this sub-period can deliver a jolt (${a.shortLabel.toLowerCase()}).`
     } else if (hardCount === 2) {
-      blend = hi ? H.blendBothHard : ' Both periods are hard taras — keep decisions defensive and low-ego.'
+      blend = hi ? H.blendBothHard : ' Both periods fall in hard taras — keep decisions defensive and ego-free.'
     } else {
       blend = hi
         ? fill(H.blendCombined, { mShort: m.shortLabel, aShort: a.shortLabel })
@@ -512,7 +512,7 @@ export function buildGocharaNavtaraReport(
       ? fill(G.matched, { list })
       : `Dasha-matched gochara (event candidates): ${list}.`)
   } else {
-    parts.push(hi ? G.none : 'No dasha-matched transit lords today — gochara gives tone/energy, not a full event trigger.')
+    parts.push(hi ? G.none : 'No transit lords match the dasha today — gochara sets the tone and energy, not a complete trigger for events.')
   }
   if (hardTransits.length) {
     const names = hardTransits.map(p => p.grahaName).join(', ')
@@ -699,7 +699,7 @@ export function getRelationshipNavtara(
   if (mutualHard) {
     advice = hi
       ? R.mutual
-      : 'Mutual hard tara — expect friction both ways; keep contracts clear and egos low.'
+      : 'A hard tara on both sides — expect friction from each direction; keep contracts clear and egos low.'
   } else if (aProf.isHard || bProf.isHard) {
     const hardSide = aProf.isHard ? (hi ? nameA : labelA) : (hi ? nameB : labelB)
     advice = hi
@@ -708,11 +708,11 @@ export function getRelationshipNavtara(
   } else if (hasSupport) {
     advice = hi
       ? R.support
-      : 'Supportive tara link — good for alliance, learning, and shared ventures; still confirm with full matching.'
+      : 'A supportive tara link — good for alliances, learning and shared ventures; still confirm with full matching.'
   } else {
     advice = hi
       ? R.neutral
-      : 'Neutral growth link — relationship tone follows chart dignity and dasha more than tara alone.'
+      : 'A neutral growth link — the tone of the relationship depends more on chart dignity and dasha than on tara alone.'
   }
 
   return { aToB, bToA, mutualHard, hasSupport, summary, advice }

@@ -82,21 +82,21 @@ export const NAKSHATRA_VARNA: string[] = [
 
 /** Shakti (power/purpose) */
 export const NAKSHATRA_SHAKTI: string[] = [
-  'Shighra Shakti (to heal quickly)','Yama Shakti (to remove the life, take away)','Shikha Shakti (to give heat and light)',
-  'Rohana Shakti (ability to grow)','Prinana Shakti (to give fulfillment)',
-  'Yatana Shakti (to make achievements with effort)','Punargamana Shakti (to restore)',
-  'Vardhanashakti (to nourish)','Vishleshana Shakti (to destroy and separate)',
+  'Shighra Shakti (the power to heal quickly)','Yama Shakti (the power to take life away)','Shikha Shakti (the power to give heat and light)',
+  'Rohana Shakti (the power to grow)','Prinana Shakti (the power to bring fulfilment)',
+  'Yatana Shakti (the power to achieve through effort)','Punargamana Shakti (to restore)',
+  'Vardhanashakti (to nourish)','Vishleshana Shakti (the power to destroy and separate)',
   'Kshobhana Shakti (to leave)',
-  'Priti Shakti (to enjoy)','Chhardana Shakti (to give brightness, to shine)',
-  'Sarva Shakti (power of giving everything)','Tvashti Shakti (to transform)',
-  'Pradhvamsa Shakti (to scatter like wind)',
-  'Vyapana Shakti (to spread, pervade)','Radhana Shakti (to worship, adhere)',
-  'Bhardana Shakti (to give power over others)','Barhana Shakti (to destroy and remove)',
-  'Tarpana Shakti (to refresh / invigorate)',
-  'Apyayana Shakti (to expand, strengthen)','Sharvanaa Shakti (to give hearing abilities)',
-  'Kshapa Shakti (to be brilliant and prosperous)','Bheshaja Shakti (to give healing)',
-  'Yajana Shakti (to elevate through yajna)','Brahma Shakti (to become cosmic, unify)',
-  'Poshana Shakti (to nourish, cherish)',
+  'Priti Shakti (to enjoy)','Chhardana Shakti (the power to bring brightness and shine)',
+  'Sarva Shakti (the power to give everything)','Tvashti Shakti (to transform)',
+  'Pradhvamsa Shakti (the power to scatter like the wind)',
+  'Vyapana Shakti (the power to spread and pervade)','Radhana Shakti (the power to worship and stay devoted)',
+  'Bhardana Shakti (the power to gain influence over others)','Barhana Shakti (the power to destroy and remove)',
+  'Tarpana Shakti (the power to refresh and invigorate)',
+  'Apyayana Shakti (the power to expand and strengthen)','Sharvanaa Shakti (the power to grant the gift of hearing)',
+  'Kshapa Shakti (the power to shine and prosper)','Bheshaja Shakti (the power to heal)',
+  'Yajana Shakti (the power to rise through yajna)','Brahma Shakti (the power to become cosmic and unite)',
+  'Poshana Shakti (the power to nourish and cherish)',
 ]
 
 /** Nature: Chara (movable), Sthira (fixed), Misra (mixed/dual) */
@@ -147,15 +147,15 @@ export interface TaraQuality {
 }
 
 export const TARA_QUALITIES: Record<TaraName, { quality: 'auspicious' | 'inauspicious' | 'neutral'; meaning: string; recommendation: string }> = {
-  'Janma':    { quality: 'neutral',     meaning: 'Birth star — body/soul growth and baseline nature',   recommendation: 'Act in line with your nature; caution on forced new personas' },
-  'Sampat':   { quality: 'auspicious',  meaning: 'Star of wealth, opportunity, and gains',              recommendation: 'Excellent for financial and material pursuits' },
-  'Vipat':    { quality: 'inauspicious',meaning: 'Star of crisis, struggle, and stubborn pressure',     recommendation: 'Avoid travel and major risks; do not force proving yourself' },
-  'Kshema':   { quality: 'auspicious',  meaning: 'Star of protection and solutions (often via hardship)', recommendation: 'Ideal for healing, repair, and consolidating gains' },
-  'Pratyari': { quality: 'inauspicious',meaning: 'Star of opposition — speak less, listen more',        recommendation: 'Avoid confrontations; where you talk, you can get stuck' },
-  'Sadhaka':  { quality: 'auspicious',  meaning: 'Star of achievement and transformation',              recommendation: 'Best for skills, career moves, and committed change' },
-  'Vadha':    { quality: 'inauspicious',meaning: 'Star of loss and release (not literal death)',        recommendation: 'Let go; postpone ego-driven starts; complete endings cleanly' },
-  'Mitra':    { quality: 'auspicious',  meaning: 'Star of friendship, allies, and support',             recommendation: 'Excellent for partnerships, networking, social matters' },
-  'Ati-Mitra':{ quality: 'auspicious',  meaning: 'Star of grace — watch over-control after wins',       recommendation: 'Most favourable; stay humble; avoid over-controlling outcomes' },
+  'Janma':    { quality: 'neutral',     meaning: 'The birth star — growth of body and soul, and your baseline nature',   recommendation: 'Act in keeping with your nature; be careful about forcing a new persona' },
+  'Sampat':   { quality: 'auspicious',  meaning: 'The star of wealth, opportunity and gains',              recommendation: 'Excellent for financial and material pursuits' },
+  'Vipat':    { quality: 'inauspicious',meaning: 'The star of crisis, struggle and persistent pressure',     recommendation: 'Avoid travel and major risks; do not push to prove yourself' },
+  'Kshema':   { quality: 'auspicious',  meaning: 'The star of protection and solutions (often found through hardship)', recommendation: 'Ideal for healing, repairs and consolidating gains' },
+  'Pratyari': { quality: 'inauspicious',meaning: 'The star of opposition — speak less and listen more',        recommendation: 'Avoid confrontation; the more you talk, the more you may get stuck' },
+  'Sadhaka':  { quality: 'auspicious',  meaning: 'The star of achievement and transformation',              recommendation: 'Best for building skills, career moves and committed change' },
+  'Vadha':    { quality: 'inauspicious',meaning: 'The star of loss and letting go (not literal death)',        recommendation: 'Let go; postpone ego-driven beginnings; close endings cleanly' },
+  'Mitra':    { quality: 'auspicious',  meaning: 'The star of friendship, allies and support',             recommendation: 'Excellent for partnerships, networking and social matters' },
+  'Ati-Mitra':{ quality: 'auspicious',  meaning: 'The star of grace — avoid over-controlling after success',       recommendation: 'The most favourable; stay humble and avoid over-controlling outcomes' },
 }
 
 /**
@@ -229,8 +229,8 @@ const NAKSHATRA_SYMBOL: string[] = [
   'Teardrop / Diamond','Bow and Quiver','Flower (Lotus)','Coiled Serpent','Throne Room',
   'Couch (Palang)','Fig Tree / Bed','Hand (Open Palm)','Pearl / Lamp','Coral / Flame',
   'Potter\'s Wheel','Umbrella / Canopy','Umbrella / Ear-Ring','Elephant Goad (Ankusha)','Fan / Tusk',
-  'Elephant Tusk / Bed','Ear (Shravana = hearing)','Drum (Mridanga)','100 Stars / Empty Circle',
-  'Sword / Two Front Legs of Funeral Cot','Snake in Water / Last Two Legs of Funeral Cot','Drum / Fish in Water',
+  'Elephant Tusk / Bed','Ear (Shravana = hearing)','Drum (Mridanga)','100 stars / an empty circle',
+  'A sword / the two front legs of a funeral cot','A snake in water / the last two legs of a funeral cot','A drum / a fish in water',
 ]
 
 export function getNakshatraCharacteristics(index: number, pada: number = 1, lang: EngineLang = 'en'): NakshatraCharacteristics {
@@ -291,11 +291,11 @@ export function isPanchaka(nakIndex: number): PanchakaType {
 }
 
 const PANCHAKA_DESCRIPTIONS: Record<Exclude<PanchakaType, null>, string> = {
-  'Mrityu Panchaka': 'A time for extra care. If you can, delay planned surgery, travel, and signing documents',
-  'Agni Panchaka':   'Take care around fire and electrical work, and try to avoid arguments',
-  'Raja Panchaka':   'Dealings with authorities or elders may be harder; delay legal matters if you can',
-  'Chora Panchaka':  'Keep valuables safe and check contracts carefully',
-  'Roga Panchaka':   'A good time to rest. If it is safe to wait, delay planned medical procedures, and follow your doctor’s advice',
+  'Mrityu Panchaka': 'A time to take extra care. If possible, postpone planned surgery, travel and the signing of documents',
+  'Agni Panchaka':   'Be careful with fire and electrical work, and try to avoid arguments',
+  'Raja Panchaka':   'Dealings with authorities or elders may be harder; postpone legal matters if you can',
+  'Chora Panchaka':  'Keep valuables safe and read contracts carefully',
+  'Roga Panchaka':   'A good time to rest. If it is safe to wait, postpone planned medical procedures, and follow your doctor’s advice',
 }
 
 export function checkPanchaka(nakIndex: number, lang: EngineLang = 'en'): PanchakaResult {

@@ -83,11 +83,11 @@ describe('nakshatraAdvanced Hindi leak', () => {
   it('keeps English characteristic and panchaka sentences when lang is omitted', () => {
     expect(getNakshatraCharacteristics(0).deity).toBe('Ashwini Kumars')
     expect(getNakshatraCharacteristics(0).yoni).toBe('Horse')
-    expect(getNakshatraCharacteristics(0).shakti).toBe('Shighra Shakti (to heal quickly)')
-    expect(getTarabala(0, 0).meaning).toBe('Birth star — body/soul growth and baseline nature')
-    expect(getTarabala(0, 0).recommendation).toBe('Act in line with your nature; caution on forced new personas')
+    expect(getNakshatraCharacteristics(0).shakti).toBe('Shighra Shakti (the power to heal quickly)')
+    expect(getTarabala(0, 0).meaning).toBe('The birth star — growth of body and soul, and your baseline nature')
+    expect(getTarabala(0, 0).recommendation).toBe('Act in keeping with your nature; be careful about forcing a new persona')
     expect(checkPanchaka(0).description).toBe('No Panchaka dosha present')
-    expect(checkPanchaka(22).description).toBe('A time for extra care. If you can, delay planned surgery, travel, and signing documents')
+    expect(checkPanchaka(22).description).toBe('A time to take extra care. If possible, postpone planned surgery, travel and the signing of documents')
     expect(checkPanchaka(22).panchaka).toBe('Mrityu Panchaka')
   })
 

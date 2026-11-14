@@ -112,29 +112,29 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Garuda Tārāmaṇḍala',
     kingIndex: 21, // Shravana
     kingWhy:
-      'Vishnu is the deity of Shravana; cosmic sound, guidance, and direction flow through Garuda energy via this star.',
-    theme: 'Protection, communication, and cosmic messaging along the sky-path.',
+      'Vishnu is the deity of Shravana; through this star, cosmic sound, guidance and direction flow with Garuda’s energy.',
+    theme: 'Protection, communication and cosmic messages travelling along the sky-path.',
     functions: [
       'Protect the person',
-      'Make you a communicator and message-bearer',
+      'Make you a communicator and bearer of messages',
       'Open the sky-path (ākāśa mārga)',
-      'Sharpen hearing / receptive power (śravaṇa śakti)',
+      'Sharpen hearing and receptive power (śravaṇa śakti)',
       'Give direction and guidance',
     ],
     works: [
-      'Relay cosmic sound, cosmic energy, and cosmic messages',
-      'Travel or messages received through dreams, cosmic energy, or elders',
+      'Carry cosmic sound, cosmic energy and cosmic messages',
+      'Travel, or messages received through dreams, cosmic energy or elders',
       'Bring career clarity',
     ],
     members: [m(21), m(22), m(23)], // Shravana, Dhanishtha, Shatabhisha
     planetNotes: [
       {
         grahaId: 'Su',
-        summary: 'Guidance, leadership, intelligence, journalism / public voice.',
+        summary: 'Guidance, leadership, intelligence, journalism and a public voice.',
         details: [
-          'Sun in Garuda tends to guide, lead, and broadcast intelligence.',
-          'Journalism, media, and fame can show even when Mercury looks weak on paper.',
-          'Sun in Shravana specifically: karmic drive to reach the top of the pyramid — CEO / apex authority in the chosen field.',
+          'The Sun in Garuda tends to guide, lead and broadcast intelligence.',
+          'Journalism, media and fame can appear even when Mercury looks weak on paper.',
+          'The Sun in Shravana specifically: a karmic drive to reach the top of the pyramid — CEO or the highest authority in one’s chosen field.',
         ],
       },
     ],
@@ -146,27 +146,27 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Nāga Maṇḍala',
     kingIndex: 8, // Ashlesha
     kingWhy:
-      'Ashlesha is the coiled-serpent star — the seat of Naga energy that holds and transforms occult / kundalini force.',
-    theme: 'Hidden powers, kundalini, fear, and transformation.',
+      'Ashlesha is the star of the coiled serpent — the seat of Naga energy, which holds and transforms occult and kundalini force.',
+    theme: 'Hidden powers, kundalini, fear and transformation.',
     functions: [
       'Awaken hidden powers and kundalini',
-      'Surface and work through fear',
-      'Transform energy (the Naga “fan” spreads and reshapes force)',
+      'Bring fear to the surface and work through it',
+      'Transform energy (the Naga’s “hood” spreads and reshapes force)',
       'Reveal hidden secrets',
     ],
     works: [
-      'Bring karmas into conscious view from time to time',
+      'Bring karmas into conscious awareness from time to time',
       'Purify emotions',
     ],
     members: [m(5), m(8), m(17)], // Ardra, Ashlesha, Jyeshtha
     planetNotes: [
       {
         grahaId: 'Su',
-        summary: 'Tantric / occult Sun — aura mastery and hard boundaries.',
+        summary: 'A tantric or occult Sun — mastery of the aura and firm boundaries.',
         details: [
-          'Sun in Naga becomes a tantric Sun: hidden anger and occult-related mastery.',
-          'Whether or not you identify as spiritual, intelligence is pulled off the usual track toward occult / edge knowledge.',
-          'Strong control of aura and boundaries — who enters your field, whose vibe feels safe or unsafe.',
+          'The Sun in Naga becomes a tantric Sun: hidden anger and mastery related to the occult.',
+          'Whether or not one identifies as spiritual, intelligence is drawn away from the usual track toward occult or fringe knowledge.',
+          'Strong control over the aura and boundaries — who enters your space, and whose energy feels safe or unsafe.',
         ],
       },
     ],
@@ -178,16 +178,16 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Deva Maṇḍala',
     kingIndex: 7, // Pushya
     kingWhy:
-      'Jupiter rules Pushya — the sattvic, nourishing star that anchors dharma and blessing in this group.',
-    theme: 'Dharma, virtue, blessings, and the flow of knowledge.',
+      'Jupiter rules Pushya — the sattvic, nourishing star that anchors dharma and blessings in this group.',
+    theme: 'Dharma, virtue, blessings and the flow of knowledge.',
     functions: [
       'Protect and increase the inner flow of knowledge',
       'Distribute knowledge',
-      'Uphold dharma, virtues, and blessings',
+      'Uphold dharma, virtue and blessings',
     ],
     works: [
       'Increase auspicious (śubha) karma',
-      'Protect family, children, and wealth',
+      'Protect family, children and wealth',
       'Support spiritual advancement',
     ],
     members: [m(7), m(25), m(3), m(6)], // Pushya, Uttara Bhadra, Rohini, Punarvasu
@@ -201,15 +201,15 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     aka: 'Asura group',
     kingIndex: 2, // Krittika
     kingWhy:
-      'Krittika is the purified form of Agni with cutting, separating, and breaking force — raw asura strength used in destruction and breakthrough.',
-    theme: 'Power, strength, enjoyment (bhoga), anger, and victory.',
+      'Krittika is the purified form of Agni, with the force to cut, separate and break — raw asura strength used for destruction and breakthrough.',
+    theme: 'Power, strength, enjoyment (bhoga), anger and victory.',
     functions: [
       'Grant power and strength',
       'Fuel bhoga (enjoyment) and krodha (anger)',
       'Deliver victory',
     ],
     works: [
-      'Drive aggressive breakthroughs — often through destruction of the outer obstacle and the inner pattern',
+      'Drive aggressive breakthroughs — often by destroying both the outer obstacle and the inner pattern',
       'Carry strong sexual magnetism',
     ],
     members: [m(2), m(10), m(19), m(15)], // Krittika, Purva Phalguni, Purva Ashadha, Vishakha
@@ -222,15 +222,15 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Pitṛ Tārāmaṇḍala',
     kingIndex: 9, // Magha
     kingWhy:
-      'The Pitrs are directly linked to Magha — throne, ancestral energy, and lineage all issue from this star.',
-    theme: 'Lineage, ancestral karma, and DNA-level memory.',
+      'The Pitrs are directly linked with Magha — the throne, ancestral energy and lineage all arise from this star.',
+    theme: 'Lineage, ancestral karma and memory at the level of DNA.',
     functions: [
-      'Carry lineage (lineage DNA / ancestral memory)',
-      'Activate ancestors’ responsibilities placed on you',
-      'Leadership of family and family karma',
+      'Carry the lineage (lineage DNA and ancestral memory)',
+      'Activate the responsibilities your ancestors have placed upon you',
+      'Leadership of the family and of family karma',
     ],
     works: [
-      'Reflect ancestral duty into career and public role',
+      'Reflect ancestral duty in career and public life',
       'Validate and activate lineage contracts over time',
     ],
     members: [
@@ -241,10 +241,10 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     planetNotes: [
       {
         grahaId: 'Su',
-        summary: 'Authority inherited from father or lineage.',
+        summary: 'Authority inherited from the father or the lineage.',
         details: [
-          'Sun in Pitru almost always confers authority.',
-          'That authority often arrives through the father or the wider lineage.',
+          'The Sun in Pitru almost always grants authority.',
+          'That authority often comes through the father or the wider lineage.',
         ],
       },
     ],
@@ -256,7 +256,7 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Māruta Maṇḍala',
     aka: 'Vayu Mandal',
     kingIndex: 14, // Swati
-    kingWhy: 'Swati is the wind-star — intelligence and speed that move like Marut / Vayu.',
+    kingWhy: 'Swati is the wind star — intelligence and speed that move like Marut or Vayu.',
     theme: 'Speed, intelligence, and communication.',
     functions: [
       'Give speed and sharp intelligence',
@@ -265,8 +265,8 @@ export const TARAMANDALS: TaramandalDefinition[] = [
       'Build networking',
     ],
     works: [
-      'Mind runs very fast before any major success',
-      'Pulls the person toward intellect-related work (intellectual status / merit)',
+      'The mind races before any major success',
+      'Draws the person toward intellectual work (intellectual status and merit)',
     ],
     members: [
       m(23),           // Shatabhisha
@@ -282,17 +282,17 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Agni Maṇḍala',
     kingIndex: 24, // Purva Bhadra
     kingWhy:
-      'Purva Bhadrapada holds fire, tantra, and tapas together — the central Rudra form of this mandal.',
-    theme: 'Purification, tapas, and transformative fire.',
+      'Purva Bhadrapada brings together fire, tantra and tapas — the central Rudra form of this mandal.',
+    theme: 'Purification, tapas and transforming fire.',
     functions: [
       'Purify',
-      'Give tapas and drive toward action (karma)',
+      'Give tapas and a drive toward action (karma)',
       'Keep light (ujālā) in life',
       'Fuel transformation',
     ],
     works: [
       'Sharply raise decision-making capacity',
-      'Burn / balance pāpa (one’s own and, at times, others’)',
+      'Burn away or balance pāpa (one’s own and, at times, that of others)',
       'Accelerate speed of execution',
     ],
     members: [m(2), m(1), m(24), m(15)], // Krittika, Bharani, Purva Bhadra, Vishakha
@@ -304,15 +304,15 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     name: 'Soma Mandal',
     sanskrit: 'Soma Maṇḍala',
     kingIndex: 3, // Rohini
-    kingWhy: 'Rohini carries the fullest Chandra / Apsara nectar of this group.',
-    theme: 'Apsara and Moon energy — emotion, art, affection, softness.',
+    kingWhy: 'Rohini carries the fullest nectar of Chandra and the Apsaras in this group.',
+    theme: 'Apsara and Moon energy — emotion, art, affection and softness.',
     functions: [
       'Deepen emotions and affection',
-      'Open art and aesthetic sensitivity',
+      'Open up art and aesthetic sensitivity',
       'Soften and nourish (komalatā)',
     ],
     works: [
-      'Colour relationships, creativity, and emotional tone of the chart',
+      'Colour the chart’s relationships, creativity and emotional tone',
     ],
     members: [m(3), m(12), m(26)], // Rohini, Hasta, Revati
     planetNotes: [],
@@ -323,15 +323,15 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     name: 'Vaishya Mandal',
     sanskrit: 'Vaiśya Maṇḍala',
     kingIndex: 16, // Anuradha
-    kingWhy: 'Anuradha holds Lakshmi’s growth-and-harmony current for this group.',
-    theme: 'Growth, nourishment, wealth, and good fortune (Lakshmi energy).',
+    kingWhy: 'Anuradha holds Lakshmi’s current of growth and harmony for this group.',
+    theme: 'Growth, nourishment, wealth and good fortune (Lakshmi’s energy).',
     functions: [
       'Increase wealth',
       'Raise social standing',
       'Bring harmony into relationships',
     ],
     works: [
-      'Nourish and expand resources over time',
+      'Nourish and grow resources over time',
       'Support saubhāgya (good fortune)',
     ],
     members: [
@@ -347,10 +347,10 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     name: 'Cosmic Pashu Mandal',
     sanskrit: 'Brahmāṇḍīya Paśu Maṇḍala',
     kingIndex: 0, // Ashwini
-    kingWhy: 'Ashwini is the instinctive healer-horseman — survival intelligence at the head of this herd.',
-    theme: 'Instincts, survival intelligence, and creativity under pressure.',
+    kingWhy: 'Ashwini is the instinctive healer-horseman — the survival intelligence that leads this herd.',
+    theme: 'Instinct, survival intelligence and creativity under pressure.',
     functions: [
-      'Sharpen instincts and survival intelligence',
+      'Sharpen instinct and survival intelligence',
       'Teach how to live through any difficulty',
       'Fuel creativity',
     ],
@@ -371,28 +371,28 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     name: 'Mrityu Karma Mandal',
     sanskrit: 'Mṛtyu Karma Maṇḍala',
     kingIndex: 18, // Mula
-    kingWhy: 'Mula is named as the king; full member list pending further teaching.',
-    theme: 'A constellation linked to endings and karma (details coming soon).',
+    kingWhy: 'Mula is named as the king; the full list of members awaits further teaching.',
+    theme: 'A constellation connected with endings and karma (details coming soon).',
     functions: [],
     works: [],
     members: [m(18)], // king only until group is taught
     planetNotes: [],
     complete: false,
-    pendingNote: 'Full nakshatra group not yet taught — only the king (Mula) is recorded.',
+    pendingNote: 'The full nakshatra group has not yet been taught — only the king (Mula) is recorded.',
   },
   {
     id: 'gyan',
     name: 'Cosmic Gyan Mandal',
     sanskrit: 'Brahmāṇḍīya Jñāna Maṇḍala',
     kingIndex: 17, // Jyeshtha
-    kingWhy: 'Jyeshtha is named as the king; full member list pending further teaching.',
-    theme: 'Cosmic knowledge constellation (details forthcoming).',
+    kingWhy: 'Jyeshtha is named as the king; the full list of members awaits further teaching.',
+    theme: 'The constellation of cosmic knowledge (details to come).',
     functions: [],
     works: [],
     members: [m(17)], // king only until group is taught
     planetNotes: [],
     complete: false,
-    pendingNote: 'Full nakshatra group not yet taught — only the king (Jyeshtha) is recorded.',
+    pendingNote: 'The full nakshatra group has not yet been taught — only the king (Jyeshtha) is recorded.',
   },
 ]
 

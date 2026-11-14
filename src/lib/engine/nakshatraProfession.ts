@@ -153,16 +153,16 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Fast, Instant Action',
     hiddenPower: 'Speed is Success',
     careerFields: ['Doctor', 'Emergency Medicine', 'Healer', 'Startup Founder', 'Disaster Management'],
-    bottomLine: 'First-mover wins; whoever acts fastest succeeds',
+    bottomLine: 'The first mover wins; whoever acts fastest succeeds',
     pitfall: 'Over-idealism (Deva)',
   },
   {
     index: 1, name: 'Bharani', lord: 'Ve', signs: 'Aries', gana: 'Manushya',
     coreMeaning: 'Transformation, Control, Endurance',
-    workingStyle: 'Works under extreme pressure; holds pain',
+    workingStyle: 'Works under extreme pressure and can bear pain',
     hiddenPower: 'Endurance = Career Strength',
     careerFields: ['Administration', 'Authority roles', 'Corporate', 'Government', 'High-volume Retail', 'Military'],
-    bottomLine: 'Working in high-pressure environments is the domain',
+    bottomLine: 'High-pressure environments are their domain',
     pitfall: 'Greed (Manushya)',
   },
   {
@@ -180,16 +180,16 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Beautifies and builds everything',
     hiddenPower: 'Wealth through Multiplication',
     careerFields: ['Design', 'Luxury goods', 'Finance', 'Hospitality', 'Real estate'],
-    bottomLine: 'Creating and multiplying value — the Wealth Nakshatra',
+    bottomLine: 'Creates and multiplies value — the Wealth Nakshatra',
     pitfall: 'Greed (Manushya)',
   },
   {
     index: 4, name: 'Mrigashira', lord: 'Ma', signs: 'Taurus/Gemini', gana: 'Deva',
     coreMeaning: 'Searching, Exploring, Curiosity',
-    workingStyle: 'Perpetual exploration; search never ends',
+    workingStyle: 'Endless exploration; the search never stops',
     hiddenPower: 'The Endless Hunt',
     careerFields: ['Research', 'Marketing', 'Sales', 'Product development'],
-    bottomLine: 'Exploring that never concludes; always higher targets',
+    bottomLine: 'Exploration that never ends; always aiming higher',
     pitfall: 'Over-idealism (Deva)',
   },
   {
@@ -204,10 +204,10 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
   {
     index: 6, name: 'Punarvasu', lord: 'Ju', signs: 'Gemini/Cancer', gana: 'Deva',
     coreMeaning: 'Restoration, Return to Basics',
-    workingStyle: 'Repeat → Improve → Repeat cycle',
+    workingStyle: 'A cycle of repeat → improve → repeat',
     hiddenPower: 'Improvisation through Repetition',
     careerFields: ['Teacher', 'Advisor', 'Policy Maker', 'Strategist', 'Consultant'],
-    bottomLine: 'Takes years to perfect — but creates masterwork eventually',
+    bottomLine: 'Takes years to perfect — but eventually produces a masterpiece',
     pitfall: 'Over-idealism (Deva)',
   },
   {
@@ -216,7 +216,7 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Creates support systems quietly',
     hiddenPower: 'Support IS the Power',
     careerFields: ['Support roles', 'Nurturing professions', 'Healthcare infrastructure', 'NGO'],
-    bottomLine: 'Invisible backbone that holds everything together',
+    bottomLine: 'The invisible backbone that holds everything together',
     pitfall: 'Over-idealism (Deva)',
   },
   {
@@ -225,7 +225,7 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Manipulates; binds things invisibly',
     hiddenPower: 'Invisible Control Mechanisms',
     careerFields: ['Politics', 'Psychology', 'Intelligence', 'Covert operations'],
-    bottomLine: 'Making people do things without them realizing it',
+    bottomLine: 'Gets people to act without their realising it',
     pitfall: 'Control obsession (Rakshasa)',
   },
   {
@@ -234,16 +234,16 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Continues and expands inherited power',
     hiddenPower: 'Legacy Power',
     careerFields: ['Bureaucracy', 'Politics', 'Corporate Leadership', 'Business dynasties'],
-    bottomLine: 'Carrying forward and amplifying power that came before',
+    bottomLine: 'Carries forward and amplifies the power that came before',
     pitfall: 'Control obsession (Rakshasa)',
   },
   {
     index: 10, name: 'Purva Phalguni', lord: 'Ve', signs: 'Leo', gana: 'Manushya',
     coreMeaning: 'Pleasure, Attraction, Charm',
     workingStyle: 'Attracts through personal charm',
-    hiddenPower: 'Charm IS the Earning Tool',
+    hiddenPower: 'Charm IS the tool for earning',
     careerFields: ['Media', 'Entertainment', 'Modeling', 'Jewelry', 'Apparel', 'Fashion', 'Management'],
-    bottomLine: 'Career is built entirely on personal charm and attractiveness',
+    bottomLine: 'A career built entirely on personal charm and attractiveness',
     pitfall: 'Greed (Manushya)',
   },
   {
@@ -261,7 +261,7 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Hands-on; making livelihood manually',
     hiddenPower: 'Hands = Destiny',
     careerFields: ['Surgery', 'Craft', 'Technology', 'Labor', 'Skilled trades', 'Design'],
-    bottomLine: 'Earning through what your hands can do',
+    bottomLine: 'Earns through what the hands can do',
     pitfall: 'Over-idealism (Deva)',
   },
   {
@@ -270,13 +270,13 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Combines beauty with precision',
     hiddenPower: 'Beauty WITH Precision',
     careerFields: ['Architecture', 'Interior Design', 'Product Design', 'Art'],
-    bottomLine: 'Creating structures that are both functional and beautiful',
+    bottomLine: 'Creates structures that are both functional and beautiful',
     pitfall: 'Control obsession (Rakshasa)',
   },
   {
     index: 14, name: 'Swati', lord: 'Ra', signs: 'Libra', gana: 'Manushya',
     coreMeaning: 'Independence + Flexibility',
-    workingStyle: 'Functions best with freedom; adapts easily',
+    workingStyle: 'Works best with freedom; adapts easily',
     hiddenPower: 'Freedom Breeds Growth',
     careerFields: ['Business', 'Entrepreneurship', 'Independent trade', 'Freelancing'],
     bottomLine: 'Where there is freedom, there is growth',
@@ -288,7 +288,7 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Obsessive focus on goals',
     hiddenPower: 'Obsession = Success',
     careerFields: ['Politics', 'Business', 'Passion-driven careers', 'Goal-oriented roles'],
-    bottomLine: 'Single-pointed obsessive focus; the goal is everything',
+    bottomLine: 'Single-minded, obsessive focus; the goal is everything',
     pitfall: 'Control obsession (Rakshasa)',
   },
   {
@@ -297,7 +297,7 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Builds entirely through relationships',
     hiddenPower: 'Network = Net Worth',
     careerFields: ['Diplomacy', 'HR', 'Politics', 'Business', 'Corporate management'],
-    bottomLine: 'Success comes through who you know; network is everything',
+    bottomLine: 'Success comes through who you know; the network is everything',
     pitfall: 'Over-idealism (Deva)',
   },
   {
@@ -306,25 +306,25 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Power through concealment',
     hiddenPower: 'Secrecy IS the Power',
     careerFields: ['Intelligence agencies', 'Senior administration', 'CEO/CXO', 'RAW'],
-    bottomLine: 'The more secret your work, the more powerful you become',
+    bottomLine: 'The more secret the work, the more powerful one becomes',
     pitfall: 'Control obsession (Rakshasa)',
   },
   {
     index: 18, name: 'Mula', lord: 'Ke', signs: 'Sagittarius', gana: 'Rakshasa',
     coreMeaning: 'Root Cause, Foundation, Uprooting',
-    workingStyle: 'Breaks things to root level to understand',
+    workingStyle: 'Breaks things down to the root to understand them',
     hiddenPower: 'Root-level Deconstruction',
     careerFields: ['Research', 'System dismantling', 'Innovation', 'Demolition', 'Policy'],
-    bottomLine: 'Must destroy to understand; then rebuild from roots',
+    bottomLine: 'Must destroy in order to understand, then rebuild from the roots',
     pitfall: 'Control obsession (Rakshasa)',
   },
   {
     index: 19, name: 'Purva Ashadha', lord: 'Ve', signs: 'Sagittarius', gana: 'Manushya',
     coreMeaning: 'Victory through Persuasion',
-    workingStyle: 'Persistent convincing; never gives up',
+    workingStyle: 'Keeps persuading; never gives up',
     hiddenPower: 'Convincing Power',
     careerFields: ['Marketing', 'Sales', 'Politics', 'Events', 'Concept Selling'],
-    bottomLine: 'Success = ability to convince; sells vision before delivery',
+    bottomLine: 'Success is the ability to persuade; sells the vision before delivering',
     pitfall: 'Greed (Manushya)',
   },
   {
@@ -333,16 +333,16 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Consistent, disciplined, long-term commitment',
     hiddenPower: 'Consistency = Victory',
     careerFields: ['Government service', 'Long-term corporate', 'Administrative services'],
-    bottomLine: 'NEVER switch jobs — staying IS the strategy; leaving = biggest mistake',
+    bottomLine: 'NEVER switch jobs — staying IS the strategy; leaving is the biggest mistake',
     pitfall: 'Greed (Manushya)',
   },
   {
     index: 21, name: 'Shravana', lord: 'Mo', signs: 'Capricorn', gana: 'Deva',
     coreMeaning: 'Learning through Listening',
-    workingStyle: 'Absorbs knowledge through hearing deeply',
+    workingStyle: 'Absorbs knowledge by listening deeply',
     hiddenPower: 'Listening = Knowledge = Power',
     careerFields: ['Communication', 'Media', 'Broadcasting', 'Teaching', 'Counseling'],
-    bottomLine: 'Must listen deeply; knowledge and success come through ears',
+    bottomLine: 'Must listen deeply; knowledge and success come through the ears',
     pitfall: 'Over-idealism (Deva)',
   },
   {
@@ -351,7 +351,7 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Wealth arrives through perfect timing',
     hiddenPower: 'Timing IS Wealth',
     careerFields: ['Music', 'Operations Management', 'Engineering', 'Production'],
-    bottomLine: 'Perfect timing = money; timing is the only variable that matters',
+    bottomLine: 'Perfect timing means money; timing is the only variable that matters',
     pitfall: 'Greed (Manushya)',
   },
   {
@@ -360,16 +360,16 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Works alone; discoveries happen in solitude',
     hiddenPower: 'Isolation = Discovery',
     careerFields: ['Medical Research', 'Psychology', 'Graphic Design', 'AI', 'Space Engineering'],
-    bottomLine: 'More isolated, more discoveries; solitude is the workplace',
+    bottomLine: 'The more isolated, the more discoveries; solitude is the workplace',
     pitfall: 'Greed (Manushya)',
   },
   {
     index: 24, name: 'Purva Bhadrapada', lord: 'Ju', signs: 'Aquarius/Pisces', gana: 'Manushya',
     coreMeaning: 'Extreme Transformation',
-    workingStyle: 'Takes things to absolute extreme for breakthroughs',
+    workingStyle: 'Takes things to the absolute extreme for breakthroughs',
     hiddenPower: 'Extremity Creates Breakthroughs',
     careerFields: ['Philosophy', 'Occult', 'Extreme innovation', 'Radical research'],
-    bottomLine: 'Only by going to extremes can true breakthroughs be achieved',
+    bottomLine: 'True breakthroughs come only by going to extremes',
     pitfall: 'Greed (Manushya)',
   },
   {
@@ -378,16 +378,16 @@ export const NAKSHATRA_PROFESSIONS: NakshatraProfessionProfile[] = [
     workingStyle: 'Deep mastery through sustained stability',
     hiddenPower: 'Depth = Mastery = Success',
     careerFields: ['Deep consulting', 'Philosophy', 'Mastery-requiring fields'],
-    bottomLine: 'Cannot succeed without achieving TRUE depth; mastery is everything',
+    bottomLine: 'Cannot succeed without TRUE depth; mastery is everything',
     pitfall: 'Over-idealism (Deva)',
   },
   {
     index: 26, name: 'Revati', lord: 'Me', signs: 'Pisces', gana: 'Deva',
     coreMeaning: 'Completion, Guidance',
-    workingStyle: 'Moves forward through giving and receiving guidance',
+    workingStyle: 'Moves forward by giving and receiving guidance',
     hiddenPower: 'Guidance is the Path',
     careerFields: ['Mentoring', 'Spiritual guidance', 'Completion-oriented roles', 'Counseling'],
-    bottomLine: 'Career advances through guidance — giving it AND seeking it',
+    bottomLine: 'Career advances through guidance — both giving it AND seeking it',
     pitfall: 'Over-idealism (Deva)',
   },
 ]
@@ -427,14 +427,14 @@ export const PROFESSION_FUNCTIONAL_GROUPS: ProfessionFunctionalGroup[] = [
   {
     id: 'starters', label: 'Starters',
     nakshatraIndices: [0, 7, 12],
-    coreFunction: 'Initiate, begin, launch new things',
-    bestEnvironments: 'Startups, Emergency services, New projects',
+    coreFunction: 'Initiates, begins and launches new things',
+    bestEnvironments: 'Startups, emergency services, new projects',
   },
   {
     id: 'builders', label: 'Builders',
     nakshatraIndices: [3, 11, 20],
     coreFunction: 'Create, construct, sustain long-term',
-    bestEnvironments: 'Finance, Administration, Construction, Long-term corporate',
+    bestEnvironments: 'Finance, administration, construction, long-term corporate roles',
   },
   {
     id: 'analyzers', label: 'Analyzers',
@@ -446,7 +446,7 @@ export const PROFESSION_FUNCTIONAL_GROUPS: ProfessionFunctionalGroup[] = [
     id: 'destroyers', label: 'Destroyers',
     nakshatraIndices: [5, 18, 23],
     coreFunction: 'Break down, dismantle, innovate',
-    bestEnvironments: 'IT, Research, Innovation labs, Demolition',
+    bestEnvironments: 'IT, research, innovation labs, demolition',
   },
   {
     id: 'controllers', label: 'Controllers',
@@ -463,19 +463,19 @@ export const PROFESSION_FUNCTIONAL_GROUPS: ProfessionFunctionalGroup[] = [
   {
     id: 'performers', label: 'Performers',
     nakshatraIndices: [10, 19, 24],
-    coreFunction: 'Persuade, perform, transform through extremes',
+    coreFunction: 'Persuades, performs and transforms through extremes',
     bestEnvironments: 'Entertainment, Marketing, Philosophy',
   },
   {
     id: 'strategists', label: 'Strategists',
     nakshatraIndices: [15, 1, 25],
-    coreFunction: 'Plan obsessively, endure, master deeply',
-    bestEnvironments: 'Politics, High-pressure admin, Deep consulting',
+    coreFunction: 'Plans obsessively, endures and masters deeply',
+    bestEnvironments: 'Politics, high-pressure administration, in-depth consulting',
   },
   {
     id: 'listeners', label: 'Listeners',
     nakshatraIndices: [21, 6],
-    coreFunction: 'Absorb, learn, restore through listening',
+    coreFunction: 'Absorbs, learns and restores through listening',
     bestEnvironments: 'Media, Teaching, Advisory, Policy',
   },
 ]
@@ -527,11 +527,11 @@ export function listAriesPadaComparison(lang: EngineLang = 'en') {
 export const GANA_CAREER_INFO: Record<CareerGana, GanaCareerInfo> = {
   Deva: {
     gana: 'Deva',
-    theme: 'Growth & Expansion; System Building',
+    theme: 'Growth and expansion; building systems',
     strength: 'Building and expanding systems; teaching; advising',
     pitfall: 'Over-idealism',
-    pitfallDamage: 'Sets unrealistic standards; loses practical grip; disappointed easily',
-    solution: 'Ground expectations; accept practical imperfections',
+    pitfallDamage: 'Sets unrealistic standards, loses practical grip and is easily disappointed',
+    solution: 'Keep expectations grounded and accept practical imperfections',
     examples: ['Ashwini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana', 'Revati'],
   },
   Manushya: {
@@ -539,8 +539,8 @@ export const GANA_CAREER_INFO: Record<CareerGana, GanaCareerInfo> = {
     theme: 'Practical, Business & Execution',
     strength: 'Commerce, media, management, execution',
     pitfall: 'Greed',
-    pitfallDamage: 'Spreads too thin; chases everything; cannot commit to one path',
-    solution: 'Choose ONE primary path; go deep before going wide',
+    pitfallDamage: 'Spreads too thin, chases everything and cannot commit to one path',
+    solution: 'Choose ONE main path; go deep before going wide',
     examples: ['Bharani', 'Rohini', 'Ardra', 'Purva Phalguni', 'Uttara Phalguni', 'Swati', 'Dhanishtha', 'Shatabhisha', 'Purva Ashadha', 'Uttara Ashadha', 'Purva Bhadrapada'],
   },
   Rakshasa: {
@@ -548,8 +548,8 @@ export const GANA_CAREER_INFO: Record<CareerGana, GanaCareerInfo> = {
     theme: 'Power & Control',
     strength: 'Strategy, intelligence, transformation, politics',
     pitfall: 'Control obsession',
-    pitfallDamage: 'Alienates colleagues; micromanages; creates toxic environments',
-    solution: 'Learn to delegate; trust the process; release control',
+    pitfallDamage: 'Alienates colleagues, micromanages and creates toxic environments',
+    solution: 'Learn to delegate, trust the process and let go of control',
     examples: ['Krittika', 'Ashlesha', 'Magha', 'Chitra', 'Vishakha', 'Jyeshtha', 'Mula'],
   },
 }
@@ -557,42 +557,42 @@ export const GANA_CAREER_INFO: Record<CareerGana, GanaCareerInfo> = {
 // ── Pada execution styles ─────────────────────────────────────
 
 export const PADA_CAREER_STYLES: Record<Rashi, PadaCareerStyle> = {
-  1:  { rashi: 1,  energy: 'Action, Risk, Startup energy', executionStyle: 'Fast, aggressive, first-mover', exampleProfessions: 'Emergency doctor, Entrepreneur, Military officer' },
-  2:  { rashi: 2,  energy: 'Finance, Value, Assets, Healing', executionStyle: 'Steady, value-building', exampleProfessions: 'Wealth manager, Healer, Asset builder' },
-  3:  { rashi: 3,  energy: 'Communication, Ideas, Media', executionStyle: 'Quick ideas, brainstorming', exampleProfessions: 'Startup marketer, Branding expert, Communicator' },
+  1:  { rashi: 1,  energy: 'Action, Risk, Startup energy', executionStyle: 'Fast, aggressive, first-mover', exampleProfessions: 'Emergency doctor, entrepreneur, military officer' },
+  2:  { rashi: 2,  energy: 'Finance, Value, Assets, Healing', executionStyle: 'Steady, value-building', exampleProfessions: 'Wealth manager, healer, asset builder' },
+  3:  { rashi: 3,  energy: 'Communication, Ideas, Media', executionStyle: 'Quick ideas, brainstorming', exampleProfessions: 'Startup marketer, branding expert, communicator' },
   4:  { rashi: 4,  energy: 'Care, Public, Hospitality, Nurturing', executionStyle: 'Emotional, caring approach', exampleProfessions: 'Therapist, Caregiver, Hospitality professional' },
-  5:  { rashi: 5,  energy: 'Authority, Leadership, Command', executionStyle: 'Commanding, visible', exampleProfessions: 'Leader, Director, Public authority figure' },
-  6:  { rashi: 6,  energy: 'Analysis, Process, Precision', executionStyle: 'Methodical, detail-oriented', exampleProfessions: 'Analyst, Process engineer, Quality controller' },
+  5:  { rashi: 5,  energy: 'Authority, Leadership, Command', executionStyle: 'Commanding, visible', exampleProfessions: 'Leader, director, public authority figure' },
+  6:  { rashi: 6,  energy: 'Analysis, Process, Precision', executionStyle: 'Methodical, detail-oriented', exampleProfessions: 'Analyst, process engineer, quality controller' },
   7:  { rashi: 7,  energy: 'Business, Negotiation, Partnerships', executionStyle: 'Balanced, deal-making', exampleProfessions: 'Businessman, Negotiator, Mediator' },
   8:  { rashi: 8,  energy: 'Research, Secrecy, Depth', executionStyle: 'Investigative, hidden', exampleProfessions: 'Researcher, Intelligence officer, Investigator' },
   9:  { rashi: 9,  energy: 'Teaching, Law, Travel, Philosophy', executionStyle: 'Expansive, principled', exampleProfessions: 'Teacher, Lawyer, Traveler, Philosopher' },
   10: { rashi: 10, energy: 'Administration, Structure, Governance', executionStyle: 'Structured, disciplined', exampleProfessions: 'Administrator, Bureaucrat, Manager' },
-  11: { rashi: 11, energy: 'Technology, Innovation, Systems', executionStyle: 'Innovative, systemic', exampleProfessions: 'Tech professional, Innovator, System designer' },
-  12: { rashi: 12, energy: 'Creativity, Spirituality, Imagination', executionStyle: 'Creative, intuitive', exampleProfessions: 'Artist, Spiritual guide, Creative professional' },
+  11: { rashi: 11, energy: 'Technology, Innovation, Systems', executionStyle: 'Innovative, systemic', exampleProfessions: 'Tech professional, innovator, system designer' },
+  12: { rashi: 12, energy: 'Creativity, Spirituality, Imagination', executionStyle: 'Creative, intuitive', exampleProfessions: 'Artist, spiritual guide, creative professional' },
 }
 
 /** Ashwini pada detail example (illustrative of pada layering) */
 export const ASHWINI_PADA_DETAILS = [
-  { pada: 1, navamsa: 'Aries', combo: 'Ashwini (Speed) + Aries (Action)', expression: 'Emergency action roles', roles: 'Emergency doctor, Disaster management, First responder' },
-  { pada: 2, navamsa: 'Taurus', combo: 'Ashwini (Healing) + Taurus (Assets/Value)', expression: 'Healing + asset building', roles: 'Healer with practice/clinic ownership, Health asset management' },
-  { pada: 3, navamsa: 'Gemini', combo: 'Ashwini (Initiation) + Gemini (Ideas)', expression: 'Fast idea generation', roles: 'Startup founder, Marketing strategist, Branding expert' },
-  { pada: 4, navamsa: 'Cancer', combo: 'Ashwini (Care) + Cancer (Nurturing)', expression: 'Emotional healing and care', roles: 'Therapist, Emotional caregiver, Nurturing doctor' },
+  { pada: 1, navamsa: 'Aries', combo: 'Ashwini (speed) + Aries (action)', expression: 'Emergency action roles', roles: 'Emergency doctor, disaster management, first responder' },
+  { pada: 2, navamsa: 'Taurus', combo: 'Ashwini (healing) + Taurus (assets and value)', expression: 'Healing + asset building', roles: 'A healer who owns a practice or clinic; managing health assets' },
+  { pada: 3, navamsa: 'Gemini', combo: 'Ashwini (initiation) + Gemini (ideas)', expression: 'Fast idea generation', roles: 'Startup founder, marketing strategist, branding expert' },
+  { pada: 4, navamsa: 'Cancer', combo: 'Ashwini (care) + Cancer (nurturing)', expression: 'Emotional healing and care', roles: 'Therapist, emotional caregiver, nurturing doctor' },
 ]
 
 /** Same Aries (1st) pada across different nakshatras */
 export const ARIES_PADA_COMPARISON = [
-  { nakshatraIndex: 0, base: 'Speed, Initiation', ariesAdds: 'Aggressive action', expression: 'Emergency doctor, Disaster management, Fast first-mover' },
-  { nakshatraIndex: 3, base: 'Growth, Value multiplication', ariesAdds: 'Aggressive growth', expression: 'Business aggressive growth, Out-of-turn promotions (IPS, Paramilitary)' },
-  { nakshatraIndex: 6, base: 'Restore, Improve', ariesAdds: 'Action-oriented consulting', expression: 'Consultant who quickly restarts/rebuilds organizations' },
+  { nakshatraIndex: 0, base: 'Speed, Initiation', ariesAdds: 'Aggressive action', expression: 'Emergency doctor, disaster management, fast first mover' },
+  { nakshatraIndex: 3, base: 'Growth, Value multiplication', ariesAdds: 'Aggressive growth', expression: 'Aggressive business growth; out-of-turn promotions (IPS, paramilitary)' },
+  { nakshatraIndex: 6, base: 'Restore, Improve', ariesAdds: 'Action-oriented consulting', expression: 'A consultant who quickly restarts or rebuilds organisations' },
   { nakshatraIndex: 9, base: 'Legacy, Authority', ariesAdds: 'Aggressive authority', expression: 'Politics, Assertive authority roles' },
-  { nakshatraIndex: 12, base: 'Hands-on skill', ariesAdds: 'Skilled fast action', expression: 'Skilled craftsperson with speed, Action-oriented designer' },
+  { nakshatraIndex: 12, base: 'Hands-on skill', ariesAdds: 'Skilled fast action', expression: 'A skilled, fast craftsperson; an action-oriented designer' },
   { nakshatraIndex: 15, base: 'Obsessive goal', ariesAdds: 'Aggressive goal pursuit', expression: 'High-performance sales, Aggressive politics' },
 ]
 
 // ── Planet skills ─────────────────────────────────────────────
 
 export const PLANET_CAREER_SKILLS: PlanetCareerSkill[] = [
-  { planet: 'Su', skill: 'Authority, Command', positive: 'Leadership, Government, Direction', ifWeak: 'Cannot hold authority; loses positions' },
+  { planet: 'Su', skill: 'Authority, Command', positive: 'Leadership, Government, Direction', ifWeak: 'Cannot hold on to authority; loses positions' },
   { planet: 'Mo', skill: 'Public connection, Emotion', positive: 'Mass appeal, Public-facing roles', ifWeak: 'Dissatisfied; no emotional fulfillment' },
   { planet: 'Ma', skill: 'Action, Drive, Energy', positive: 'Execution, military precision, sports', ifWeak: 'Cannot execute; paralysis' },
   { planet: 'Me', skill: 'Intelligence, Communication', positive: 'Analysis, writing, tech, trade', ifWeak: 'Poor communication; missed opportunities' },
@@ -600,7 +600,7 @@ export const PLANET_CAREER_SKILLS: PlanetCareerSkill[] = [
   { planet: 'Ve', skill: 'Attraction, Charm, Beauty', positive: 'Art, luxury, entertainment', ifWeak: 'Unattractive output; lacks appeal' },
   { planet: 'Sa', skill: 'Structure, Discipline', positive: 'Administration, long-term building', ifWeak: 'No structure; chaotic work' },
   { planet: 'Ra', skill: 'Innovation, Disruption', positive: 'Technology, foreign, unconventional', ifWeak: 'Erratic; unstable unconventional path' },
-  { planet: 'Ke', skill: 'Detachment, Insight', positive: 'Research, spirituality, deep focus', ifWeak: 'Cannot let go; scattered depth' },
+  { planet: 'Ke', skill: 'Detachment, Insight', positive: 'Research, spirituality, deep focus', ifWeak: 'Cannot let go; depth gets scattered' },
 ]
 
 export function getPlanetCareerSkill(id: GrahaId, lang: EngineLang = 'en'): PlanetCareerSkill | undefined {
@@ -646,20 +646,20 @@ export function listNakshatraLordChain(lang: EngineLang = 'en') {
 // ── Planet + nakshatra career combinations ────────────────────
 
 export const PLANET_NAKSHATRA_CAREER_COMBOS: PlanetNakshatraCareerCombo[] = [
-  { planet: 'Su', skill: 'Authority', nakshatraIndex: 9,  expression: 'IAS, IFS, Administrative services, Corporate authority', notes: 'Government/Corporate authority' },
+  { planet: 'Su', skill: 'Authority', nakshatraIndex: 9,  expression: 'IAS, IFS, administrative services, corporate authority', notes: 'Government/Corporate authority' },
   { planet: 'Su', skill: 'Authority', nakshatraIndex: 20, expression: 'Administrative service, disciplined authority', notes: 'Long-term government roles' },
   { planet: 'Su', skill: 'Authority', nakshatraIndex: 15, expression: 'Political strategist, Policy maker', notes: 'Strategic authority' },
-  { planet: 'Su', skill: 'Authority', nakshatraIndex: 21, expression: 'Public speaker, Media authority figure', notes: 'Communication authority' },
+  { planet: 'Su', skill: 'Authority', nakshatraIndex: 21, expression: 'Public speaker, authority figure in the media', notes: 'Communication authority' },
   { planet: 'Su', skill: 'Authority', nakshatraIndex: 8,  expression: 'Hidden power, Intelligence roles', notes: 'Covert authority' },
   { planet: 'Mo', skill: 'Public emotion', nakshatraIndex: 3,  expression: 'Luxury, Hospitality industry', notes: 'Value + care combined' },
   { planet: 'Mo', skill: 'Public emotion', nakshatraIndex: 14, expression: 'Business, Trade', notes: 'Independent commerce' },
-  { planet: 'Mo', skill: 'Public emotion', nakshatraIndex: 23, expression: 'Psychology, Healing — always healing something', notes: 'Isolated healing' },
+  { planet: 'Mo', skill: 'Public emotion', nakshatraIndex: 23, expression: 'Psychology and healing — always healing something', notes: 'Isolated healing' },
   { planet: 'Mo', skill: 'Public emotion', nakshatraIndex: 16, expression: 'Networking-based career', notes: 'Relationship-driven work' },
   { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 2,  expression: 'Surgeon, Military (direction matters)', notes: 'Sharp cutting action' },
-  { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 22, expression: 'Operations, Engineering, Production Management, Music/Dance instruction', notes: 'Timed action' },
-  { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 18, expression: 'Demolition, Deconstruction-based research, Breaking systems', notes: 'Root-level action' },
-  { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 17, expression: 'Intelligence, Senior administration, Secretive power roles', notes: 'Intelligent covert action' },
-  { planet: 'Me', skill: 'Intelligence', nakshatraIndex: 0,  expression: 'Startup founder — quick intelligent moves', notes: 'Fast intelligent initiation' },
+  { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 22, expression: 'Operations, engineering, production management, teaching music or dance', notes: 'Timed action' },
+  { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 18, expression: 'Demolition, research based on deconstruction, breaking down systems', notes: 'Root-level action' },
+  { planet: 'Ma', skill: 'Action, Drive', nakshatraIndex: 17, expression: 'Intelligence work, senior administration, secretive positions of power', notes: 'Intelligent covert action' },
+  { planet: 'Me', skill: 'Intelligence', nakshatraIndex: 0,  expression: 'Startup founder — quick, intelligent moves', notes: 'Fast intelligent initiation' },
   { planet: 'Me', skill: 'Intelligence', nakshatraIndex: 5,  expression: 'IT, Coding, Ethical Hacking', notes: 'Tech intelligence' },
   { planet: 'Me', skill: 'Intelligence', nakshatraIndex: 12, expression: 'Skill-based work, Design', notes: 'Hands-on intelligence' },
   { planet: 'Me', skill: 'Intelligence', nakshatraIndex: 21, expression: 'Communication, Media', notes: 'Verbal intelligence' },
@@ -670,14 +670,14 @@ export const PLANET_NAKSHATRA_CAREER_COMBOS: PlanetNakshatraCareerCombo[] = [
   { planet: 'Ve', skill: 'Attraction', nakshatraIndex: 10, expression: 'Entertainment industry', notes: 'Pure charm expression' },
   { planet: 'Ve', skill: 'Attraction', nakshatraIndex: 13, expression: 'Design, Architecture', notes: 'Aesthetic precision' },
   { planet: 'Sa', skill: 'Structure', nakshatraIndex: 20, expression: 'Administration, Disciplined long-term roles', notes: 'Structured discipline' },
-  { planet: 'Sa', skill: 'Structure', nakshatraIndex: 23, expression: 'Isolated research, Creative work done alone', notes: 'Structured isolation' },
-  { planet: 'Sa', skill: 'Structure', nakshatraIndex: 16, expression: 'Corporate management, Structured team environments', notes: 'Networked structure' },
-  { planet: 'Ra', skill: 'Innovation', nakshatraIndex: 5,  expression: 'Revolution in Tech or any field; total disruption', notes: 'Disruptive innovation' },
+  { planet: 'Sa', skill: 'Structure', nakshatraIndex: 23, expression: 'Solitary research, creative work done alone', notes: 'Structured isolation' },
+  { planet: 'Sa', skill: 'Structure', nakshatraIndex: 16, expression: 'Corporate management, structured team environments', notes: 'Networked structure' },
+  { planet: 'Ra', skill: 'Innovation', nakshatraIndex: 5,  expression: 'Revolution in tech or any field; complete disruption', notes: 'Disruptive innovation' },
   { planet: 'Ra', skill: 'Innovation', nakshatraIndex: 14, expression: 'Global business, Global organizations', notes: 'Independent global innovation' },
-  { planet: 'Ra', skill: 'Innovation', nakshatraIndex: 23, expression: 'AI, Space Engineering, Cutting-edge research', notes: 'Future-tech innovation' },
+  { planet: 'Ra', skill: 'Innovation', nakshatraIndex: 23, expression: 'AI, space engineering, cutting-edge research', notes: 'Future-tech innovation' },
   { planet: 'Ke', skill: 'Detachment', nakshatraIndex: 18, expression: 'Occult, Deep root-level research', notes: 'Detached deep inquiry' },
   { planet: 'Ke', skill: 'Detachment', nakshatraIndex: 0,  expression: 'Spiritual healer', notes: 'Healing through detachment' },
-  { planet: 'Ke', skill: 'Detachment', nakshatraIndex: 26, expression: 'Guide, Counselor, Moksha path shower', notes: 'Completion through guidance' },
+  { planet: 'Ke', skill: 'Detachment', nakshatraIndex: 26, expression: 'Guide, counsellor, one who shows the path to moksha', notes: 'Completion through guidance' },
 ]
 
 export function findPlanetNakshatraCombo(planet: GrahaId, nakIndex: number): PlanetNakshatraCareerCombo | undefined {
@@ -694,33 +694,33 @@ export const CAREER_DIAGNOSIS: CareerDiagnosisRow[] = NAKSHATRA_PROFESSIONS.map(
 
 // Override with sharper diagnosis copy from the source table
 const DIAGNOSIS_OVERRIDES: Partial<Record<number, string>> = {
-  0: 'Speed-based roles in that planet\'s domain',
-  1: 'Authority/pressure roles in that planet\'s domain',
-  2: 'Surgical/analytical roles in that planet\'s domain',
-  3: 'Value-creation roles in that planet\'s domain',
-  4: 'Research/sales roles in that planet\'s domain',
-  5: 'Tech/breaking roles in that planet\'s domain',
-  6: 'Teaching/advising roles in that planet\'s domain',
-  7: 'Support/nurturing roles in that planet\'s domain',
-  8: 'Political/psychological roles in that planet\'s domain',
-  9: 'Leadership/legacy roles in that planet\'s domain',
-  10: 'Entertainment/media roles in that planet\'s domain',
-  11: 'Long-term structured roles in that planet\'s domain',
-  12: 'Manual/craft roles in that planet\'s domain',
-  13: 'Design/architectural roles in that planet\'s domain',
-  14: 'Entrepreneurial roles in that planet\'s domain',
-  15: 'Goal-driven roles in that planet\'s domain',
-  16: 'Relationship-based roles in that planet\'s domain',
-  17: 'Covert/senior roles in that planet\'s domain',
-  18: 'Research/demolition roles in that planet\'s domain',
-  19: 'Convincing/marketing roles in that planet\'s domain',
-  20: 'Long-term government/corporate in that planet\'s domain',
-  21: 'Communication/media roles in that planet\'s domain',
-  22: 'Operations/music roles in that planet\'s domain',
-  23: 'Isolated research roles in that planet\'s domain',
-  24: 'Extreme/philosophical roles in that planet\'s domain',
-  25: 'Deep mastery roles in that planet\'s domain',
-  26: 'Mentoring/guiding roles in that planet\'s domain',
+  0: 'Speed-based roles in that planet’s domain',
+  1: 'Roles of authority or pressure in that planet’s domain',
+  2: 'Surgical or analytical roles in that planet’s domain',
+  3: 'Value-creating roles in that planet’s domain',
+  4: 'Research or sales roles in that planet’s domain',
+  5: 'Tech or disruptive roles in that planet’s domain',
+  6: 'Teaching or advisory roles in that planet’s domain',
+  7: 'Supportive or nurturing roles in that planet’s domain',
+  8: 'Political or psychological roles in that planet’s domain',
+  9: 'Leadership or legacy roles in that planet’s domain',
+  10: 'Entertainment or media roles in that planet’s domain',
+  11: 'Long-term, structured roles in that planet’s domain',
+  12: 'Manual or craft roles in that planet’s domain',
+  13: 'Design or architectural roles in that planet’s domain',
+  14: 'Entrepreneurial roles in that planet’s domain',
+  15: 'Goal-driven roles in that planet’s domain',
+  16: 'Relationship-based roles in that planet’s domain',
+  17: 'Covert or senior roles in that planet’s domain',
+  18: 'Research or demolition roles in that planet’s domain',
+  19: 'Persuasion or marketing roles in that planet’s domain',
+  20: 'Long-term government or corporate roles in that planet’s domain',
+  21: 'Communication or media roles in that planet’s domain',
+  22: 'Operations or music roles in that planet’s domain',
+  23: 'Solitary research roles in that planet’s domain',
+  24: 'Extreme or philosophical roles in that planet’s domain',
+  25: 'Roles of deep mastery in that planet’s domain',
+  26: 'Mentoring or guiding roles in that planet’s domain',
 }
 
 for (const row of CAREER_DIAGNOSIS) {
@@ -731,8 +731,8 @@ for (const row of CAREER_DIAGNOSIS) {
 // ── Nakshatra lord chain ──────────────────────────────────────
 
 export const NAKSHATRA_LORD_CHAIN: { lord: GrahaId; nakshatraIndices: number[]; meaning: string }[] = [
-  { lord: 'Ke', nakshatraIndices: [0, 9, 18], meaning: 'Spiritual direction, detachment from mainstream' },
-  { lord: 'Ve', nakshatraIndices: [1, 10, 19], meaning: 'Attraction, luxury, pleasure in career' },
+  { lord: 'Ke', nakshatraIndices: [0, 9, 18], meaning: 'Spiritual direction and detachment from the mainstream' },
+  { lord: 'Ve', nakshatraIndices: [1, 10, 19], meaning: 'Attraction, luxury and pleasure in career' },
   { lord: 'Su', nakshatraIndices: [2, 11, 20], meaning: 'Authority, government, structured power' },
   { lord: 'Mo', nakshatraIndices: [3, 12, 21], meaning: 'Public, emotion, mass connection' },
   { lord: 'Ma', nakshatraIndices: [4, 13, 22], meaning: 'Action, engineering, rhythm' },
@@ -783,7 +783,7 @@ export function getCareerIndicators(chart: ChartOutput, lang: EngineLang = 'en')
       'tenthLord',
       '10th Lord',
       'PRIMARY',
-      'Career Blueprint — overall design and direction of profession',
+      'Career Blueprint — the overall design and direction of the profession',
       tenthLordId,
       tenthLord?.nakshatraIndex ?? 0,
       tenthLord?.pada ?? 1,
@@ -792,7 +792,7 @@ export function getCareerIndicators(chart: ChartOutput, lang: EngineLang = 'en')
       'moon',
       'Moon',
       'SECONDARY',
-      'Satisfaction, passion, emotional fulfillment — will there be joy?',
+      'Satisfaction, passion and emotional fulfilment — will there be joy?',
       'Mo',
       moon?.nakshatraIndex ?? 0,
       moon?.pada ?? 1,
@@ -801,7 +801,7 @@ export function getCareerIndicators(chart: ChartOutput, lang: EngineLang = 'en')
       'rahu',
       'Rahu',
       'TERTIARY',
-      'Unconventional trajectory — sudden rise OR sudden fall',
+      'An unconventional path — a sudden rise OR a sudden fall',
       'Ra',
       rahu?.nakshatraIndex ?? 0,
       rahu?.pada ?? 1,
@@ -821,7 +821,7 @@ export function buildCareerFormula(chart: ChartOutput, lang: EngineLang = 'en'):
   const planetSkill = skill?.skill ?? (hi ? SKILL_FALLBACK_HI : 'Skill')
   const nakshatraHow = primary.profile.hiddenPower
   const nakshatraName = primary.nakshatraName
-  const houseWhere = hi ? HOUSE_WHERE_HI : '10th House — public career domain'
+  const houseWhere = hi ? HOUSE_WHERE_HI : 'The 10th house — the domain of public career'
   const padaExecution = padaStyle.executionStyle
   const padaRashiName = hi ? RASHI_HI[primary.padaRashi] : RASHI_NAMES[primary.padaRashi]
 
