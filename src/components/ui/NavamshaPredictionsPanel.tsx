@@ -19,7 +19,7 @@ import { cn } from '@/lib/ui/cn'
 import { useTranslations } from 'next-intl'
 import { termHi } from '@/i18n/jyotish'
 import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
-import styles from './NavamshaWorkspace.module.css'
+import { vargaStyles as styles } from '@/components/ui/varga/VargaShell'
 
 type View = 'planets' | 'rules' | 'signs'
 

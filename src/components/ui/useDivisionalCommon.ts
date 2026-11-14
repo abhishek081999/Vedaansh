@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
-import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { Dignity, GrahaId, Rashi } from '@/types/astrology'
 
 export function useDivisionalCommon() {
@@ -21,6 +21,8 @@ export function useDivisionalCommon() {
     vitality: (n: number) => t('vitality', { n }),
     /** Short sign label for chart captions ("Ari" / "मेष"). */
     signShort: (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r]),
+    /** Full sign name ("Aries" / "मेष"). */
+    sign: (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r]),
     lagnaOf: (r: Rashi) => t('lagnaSuffix', { sign: hi ? RASHI_HI[r] : RASHI_SHORT[r] }),
     graha: (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]),
   }

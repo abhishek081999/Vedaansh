@@ -21,7 +21,30 @@
     "houseShort": "H{n}",
     "retro": "℞",
     "lagnaSuffix": "{sign} lagna",
-    "vitality": "Vitality {n}"
+    "vitality": "Vitality {n}",
+    "shell": {
+      "moreBadges": "+{n} more",
+      "journeyAria": "Lagna shift from D1 to this varga",
+      "chartSwitchAria": "Choose chart",
+      "chartD1": "D1 · {title}",
+      "groups": {
+        "read": "Read",
+        "themes": "Themes",
+        "chart": "Chart",
+        "depth": "Depth"
+      },
+      "balance": {
+        "title": "Signal balance",
+        "caption": "How this chart's readings split between strengths and cautions.",
+        "strength": "Strengths",
+        "highlight": "Highlights",
+        "info": "Notes",
+        "caution": "Cautions"
+      },
+      "journeyLagna": "{varga} lagna",
+      "readMore": "Read more",
+      "readLess": "Show less"
+    }
   },
   "d27": {
     "tabs": {

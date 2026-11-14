@@ -5,30 +5,20 @@
 'use client'
 
 import React, { useCallback, useState } from 'react'
-import type { CareerTone } from '@/lib/engine/dashamsaAnalysis'
 import type { DashamsaSynthesis } from '@/lib/engine/dashamsaSynthesis'
 import { cn } from '@/lib/ui/cn'
 import { useTranslations } from 'next-intl'
-import styles from './DashamsaWorkspace.module.css'
+import { vargaStyles as styles, toneClass, VargaSectionHead } from '@/components/ui/varga/VargaShell'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className={styles.section}>
-      <div className={styles.sectionHead}>
-        <h3 className={styles.sectionTitle}>{title}</h3>
-        <div className={styles.sectionRule} />
-      </div>
+      <VargaSectionHead title={title} />
       {children}
     </section>
   )
 }
 
-function toneClass(tone: CareerTone): string {
-  if (tone === 'supportive') return styles.insightStrength
-  if (tone === 'challenging') return styles.insightCaution
-  if (tone === 'mixed') return styles.insightHighlight
-  return styles.insightInfo
-}
 
 function confidenceClass(c: DashamsaSynthesis['profession']['confidence']): string {
   if (c === 'high') return styles.insightStrength

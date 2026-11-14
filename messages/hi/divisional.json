@@ -21,7 +21,30 @@
     "houseShort": "भाव {n}",
     "retro": "℞",
     "lagnaSuffix": "{sign} लग्न",
-    "vitality": "जीवनी-शक्ति {n}"
+    "vitality": "जीवनी-शक्ति {n}",
+    "shell": {
+      "moreBadges": "+{n} और",
+      "journeyAria": "D1 से इस वर्ग तक लग्न परिवर्तन",
+      "chartSwitchAria": "कुंडली चुनें",
+      "chartD1": "D1 · {title}",
+      "groups": {
+        "read": "पढ़ें",
+        "themes": "विषय",
+        "chart": "कुंडली",
+        "depth": "गहराई"
+      },
+      "balance": {
+        "title": "संकेत संतुलन",
+        "caption": "इस कुंडली के निष्कर्ष बल और सावधानी में कैसे बँटे हैं।",
+        "strength": "बल",
+        "highlight": "मुख्य बिंदु",
+        "info": "टिप्पणी",
+        "caution": "सावधानी"
+      },
+      "journeyLagna": "{varga} लग्न",
+      "readMore": "और पढ़ें",
+      "readLess": "कम दिखाएँ"
+    }
   },
   "d27": {
     "tabs": {

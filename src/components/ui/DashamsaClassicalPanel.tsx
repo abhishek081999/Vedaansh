@@ -5,31 +5,21 @@
 'use client'
 
 import React, { useState } from 'react'
-import type { CareerTone } from '@/lib/engine/dashamsaAnalysis'
 import type { DashamsaClassical, DashamsaPlanetPhala } from '@/lib/engine/dashamsaClassical'
 import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/ui/cn'
-import styles from './DashamsaWorkspace.module.css'
+import { vargaStyles as styles, toneClass, VargaSectionHead } from '@/components/ui/varga/VargaShell'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className={styles.section}>
-      <div className={styles.sectionHead}>
-        <h3 className={styles.sectionTitle}>{title}</h3>
-        <div className={styles.sectionRule} />
-      </div>
+      <VargaSectionHead title={title} />
       {children}
     </section>
   )
 }
 
-function toneClass(tone: CareerTone): string {
-  if (tone === 'supportive') return styles.insightStrength
-  if (tone === 'challenging') return styles.insightCaution
-  if (tone === 'mixed') return styles.insightHighlight
-  return styles.insightInfo
-}
 
 function PlanetPhalaCard({ p }: { p: DashamsaPlanetPhala }) {
   const t = useTranslations('divisional.d10.cl')
@@ -78,7 +68,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
   return (
     <>
       <Section title={t('predictions')}>
-        <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
+        <p className={styles.leadText}>
           {classical.framing}
         </p>
         <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-primary)', fontSize: '0.84rem', lineHeight: 1.55 }}>
