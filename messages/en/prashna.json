@@ -329,7 +329,10 @@
     "weight": "weight {n}",
     "timing": "Timing",
     "around": "Around {date}",
-    "separate": "Separate methods, not added or averaged."
+    "separate": "Separate methods, not added or averaged.",
+    "signTitle": "Praśna lagna — classical sign groups",
+    "signSub": "Lagna at {deg}° in the sign",
+    "signHint": "In praśna: a Char lagna shows movement, travel or a quick change; Sthir shows the matter staying put or a lost thing still nearby; a dual sign follows its degree. Use the sign’s direction, places and colour to describe a lost object or a person. The lagna lord {lord} points {lordDir}. A study aid, not a forecast."
   },
   "ref": {
     "title": "The 56 ślokas of Ṣaṭpañcāśikā",

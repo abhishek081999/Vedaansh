@@ -25,6 +25,7 @@ import {
 import { getSatpanchasikaSloka } from '@/lib/engine/satpanchasikaSlokas'
 import type { StabilityResult } from '@/lib/engine/prashnaStability'
 import type { EngineLang } from '@/lib/engine/lang'
+import { PrashnaLagnaSignCard } from './PrashnaLagnaSignCard'
 
 /** Verdict colours; the labels live in `prashna.verdict`. */
 export const VERDICT_STYLE: Record<SatpanchasikaVerdict, { color: string }> = {
@@ -220,7 +221,7 @@ function PlanetTable({ reading }: { reading: SatpanchasikaReading }) {
   )
 }
 
-export function SatpanchasikaPanel({ reading: r, questionText, stability, askedOn }: { reading: SatpanchasikaReading; questionText: string; stability?: StabilityResult | null; askedOn?: string }) {
+export function SatpanchasikaPanel({ reading: r, questionText, stability, askedOn, lagnaRashi, lagnaDegree }: { reading: SatpanchasikaReading; questionText: string; stability?: StabilityResult | null; askedOn?: string; lagnaRashi?: number; lagnaDegree?: number }) {
   const tr = useTranslations('prashna.sat')
   const tv = useTranslations('prashna.verdict')
   const tp = useTranslations('prashna.polarity')
@@ -263,6 +264,8 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
           {r.notices.map(n => <span key={n}>{n}</span>)}
         </div>
       </div>
+
+      {lagnaRashi ? <PrashnaLagnaSignCard lagnaRashi={lagnaRashi} lagnaDegree={lagnaDegree ?? 0} /> : null}
 
       {/* Rules that fired */}
       <Section title={tr('fired', { n: r.fired.length })} Icon={Scale}>

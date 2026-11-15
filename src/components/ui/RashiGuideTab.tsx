@@ -27,6 +27,7 @@ import {
 } from '@/lib/engine/classicalInterpretations'
 import { getLagnaLordClassical } from '@/lib/engine/classicalChartAnalysis'
 import { ClassicalNotesList } from './ClassicalNotesList'
+import { RashiClassificationGrid } from './RashiClassificationGrid'
 
 interface RashiGuideTabProps {
   chart: ChartOutput
@@ -117,6 +118,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
         onToggle={() => toggle('lagna')}
       >
         {lagnaDeep ? <DeepGuideBlock guide={lagnaDeep} dense={false} /> : null}
+        <RashiClassificationGrid rashi={ascRashi} degree={chart.lagnas.ascDegreeInRashi} title={t('signGroupsAt', { sign: RASHI_NAMES[ascRashi], deg: chart.lagnas.ascDegreeInRashi.toFixed(1) })} />
         <Bullets title={t('coreNature')} items={lagnaProfile.coreNature} />
         <ClassicalNotesList title={t('classicalRashi')} notes={getRashiClassical(ascRashi)} />
         <ClassicalNotesList title={t('classicalLagnaLord')} notes={getLagnaLordClassical(chart)} />
@@ -157,6 +159,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
           />
           <ClassicalNotesList title={t('classicalSign', { sign: RASHI_NAMES[moonRashi] })} notes={getRashiClassical(moonRashi)} />
           {moonDeep ? <DeepGuideBlock guide={moonDeep} dense /> : null}
+          <RashiClassificationGrid rashi={moonRashi} degree={moon?.degree} showPlaces={false} title={t('signGroupsAt', { sign: RASHI_NAMES[moonRashi], deg: (moon?.degree ?? 0).toFixed(1) })} />
           <Bullets title={t('signEssence')} items={moonProfile.coreNature.slice(0, 4)} />
           <Bullets title={t('remedies')} items={moonProfile.remedies.slice(0, 3)} />
         </Accordion>
@@ -187,6 +190,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
           />
           <ClassicalNotesList title={t('classicalSign', { sign: RASHI_NAMES[sunRashi] })} notes={getRashiClassical(sunRashi)} />
           {sunDeep ? <DeepGuideBlock guide={sunDeep} dense /> : null}
+          <RashiClassificationGrid rashi={sunRashi} degree={sun?.degree} showPlaces={false} title={t('signGroupsAt', { sign: RASHI_NAMES[sunRashi], deg: (sun?.degree ?? 0).toFixed(1) })} />
           <Bullets title={t('signEssence')} items={sunProfile.coreNature.slice(0, 4)} />
         </Accordion>
       ) : null}
@@ -258,6 +262,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
                 </p>
               </div>
               {h.deep ? <DeepGuideBlock guide={h.deep} dense /> : null}
+              <RashiClassificationGrid rashi={h.rashi} title={t('signGroups', { sign: RASHI_NAMES[h.rashi] })} />
               <ClassicalNotesList title={t('classicalSign', { sign: RASHI_NAMES[h.rashi] })} notes={getRashiClassical(h.rashi)} />
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 {h.profile.coreSummary}

@@ -387,7 +387,9 @@
       "Char": "Char",
       "Sthir": "Sthir",
       "Dwiswabhav": "Dwiswabhav"
-    }
+    },
+    "signGroups": "Classical sign groups — {sign}",
+    "signGroupsAt": "Classical sign groups — {sign} at {deg}°"
   },
   "cheat": {
     "subtitle": "Quick consultation reference for this chart",

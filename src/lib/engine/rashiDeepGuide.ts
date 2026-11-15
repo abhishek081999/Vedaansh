@@ -9,6 +9,8 @@ import type { ClassicalGrahaId } from './houseInterpretations'
 import type { EngineLang } from './lang'
 import { termHi } from '@/i18n/jyotish'
 import { RASHI_DEEP_GUIDE_HI, RASHI_SHARED_TEACHINGS_HI } from './locale/rashiDeepGuide.hi'
+import { RASHI_CLASSIFICATION_NOTES_EN } from './rashiClassification'
+import { RASHI_CLASSIFICATION_NOTES_HI } from './locale/rashiClassification.hi'
 
 export interface RashiNakshatraSpan {
   name: string
@@ -997,6 +999,7 @@ export const RASHI_SHARED_TEACHINGS: RashiSharedTeaching[] = [
   SOUL_JOURNEY_PHASES,
   CHART_KEYWORD_TEACHING,
   KARMA_TEACHING,
+  { id: 'sign-groups', title: RASHI_CLASSIFICATION_NOTES_EN.title, points: RASHI_CLASSIFICATION_NOTES_EN.points },
 ]
 
 export function getRashiDeepGuide(rashi: number, lang: EngineLang = 'en'): RashiDeepGuide | null {
@@ -1070,7 +1073,7 @@ function deepGuideHi(en: RashiDeepGuide): RashiDeepGuide {
 export function getRashiSharedTeachings(lang: EngineLang = 'en'): RashiSharedTeaching[] {
   if (lang !== 'hi') return RASHI_SHARED_TEACHINGS
   return RASHI_SHARED_TEACHINGS.map((t, i) => {
-    const hi = RASHI_SHARED_TEACHINGS_HI[i]
+    const hi = t.id === 'sign-groups' ? RASHI_CLASSIFICATION_NOTES_HI : RASHI_SHARED_TEACHINGS_HI[i]
     return hi && hi.points.length === t.points.length ? { ...t, title: hi.title, points: hi.points } : t
   })
 }
