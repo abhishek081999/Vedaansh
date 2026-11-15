@@ -11,6 +11,7 @@ import type { VedicPolarity, VedicPrashnaReading } from '@/lib/engine/vedicPrash
 import { grahaName, ordinal } from '@/lib/engine/satpanchasikaFacts'
 import type { StabilityResult } from '@/lib/engine/prashnaStability'
 import { Section, StabilitySection, VERDICT_STYLE, approxDate } from './SatpanchasikaPanel'
+import { PrashnaLagnaSignCard } from './PrashnaLagnaSignCard'
 
 const POLARITY: Record<VedicPolarity, { color: string; label: string }> = {
   favourable: { color: 'var(--teal)', label: 'Favourable' },
@@ -21,11 +22,14 @@ const POLARITY: Record<VedicPolarity, { color: string; label: string }> = {
 
 const GROUPS = ['Significators', 'Their connection', 'Tajika', 'The Moon', 'The house'] as const
 
-export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn }: {
+export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn, lagnaRashi, lagnaDegree }: {
   reading: VedicPrashnaReading
   questionText: string
   stability: StabilityResult | null
   askedOn?: string
+  /** Praśna lagna sign (1–12) and degree inside it, for the sign-groups card */
+  lagnaRashi?: number
+  lagnaDegree?: number
 }) {
   const tr = useTranslations('prashna.vedic')
   const tv = useTranslations('prashna.verdict')
@@ -71,6 +75,8 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
           ))}
         </div>
       </Section>
+
+      {lagnaRashi ? <PrashnaLagnaSignCard lagnaRashi={lagnaRashi} lagnaDegree={lagnaDegree ?? 0} /> : null}
 
       <Section title={tr('factors', { n: r.factors.length })} Icon={Scale}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>

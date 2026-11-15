@@ -1576,7 +1576,7 @@ export default function PrashnaPage() {
 
               {/* ── Satpanchasika rule engine ───────────────────────────────── */}
               {mode === 'satpanchasika' && satpanchasikaReading && (
-                <SatpanchasikaPanel reading={satpanchasikaReading} questionText={questionText} stability={stability} askedOn={chart.meta?.birthDate} />
+                <SatpanchasikaPanel reading={satpanchasikaReading} questionText={questionText} stability={stability} askedOn={chart.meta?.birthDate} lagnaRashi={chart.lagnas.ascRashi} lagnaDegree={chart.lagnas.ascDegreeInRashi} />
               )}
               {mode === 'satpanchasika' && satResult.error && (
                 <div role="alert" style={{ fontSize: '0.78rem', color: 'var(--rose)', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid var(--rose)' }}>
@@ -1586,7 +1586,7 @@ export default function PrashnaPage() {
 
               {/* ── Vedic praśna ──────────────────────────────────────────────── */}
               {mode === 'vedic' && vedicReading && (
-                <VedicPrashnaPanel reading={vedicReading} questionText={questionText} stability={stability} askedOn={chart.meta?.birthDate} />
+                <VedicPrashnaPanel reading={vedicReading} questionText={questionText} stability={stability} askedOn={chart.meta?.birthDate} lagnaRashi={chart.lagnas.ascRashi} lagnaDegree={chart.lagnas.ascDegreeInRashi} />
               )}
               {mode === 'vedic' && vedicResult.error && (
                 <div role="alert" style={{ fontSize: '0.78rem', color: 'var(--rose)', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid var(--rose)' }}>
