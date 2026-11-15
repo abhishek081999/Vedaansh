@@ -280,6 +280,19 @@
     "principles": "How to read karana",
     "note": "Traditional teaching, not medical or financial advice. Health lines are classical sensitivities only."
   },
+  "nakshatraTeaching": {
+    "title": "Nakshatra teaching · {nakshatra}",
+    "subtitle": "Nakshatra is the air element — the Moon's nakshatra brings the thoughts that drive a life.",
+    "group": "{lord} group: {list}",
+    "essence": "How thoughts arrive",
+    "realm": "Realm",
+    "nature": "Life pattern",
+    "shadow": "Shadow",
+    "helper": "Who helps",
+    "remedies": "Class remedies",
+    "principles": "How to read nakshatra",
+    "note": "Traditional teaching, not medical or financial advice. Wear stones only after checking with an astrologer; health lines do not replace medical care."
+  },
   "sanskaras": {
     "title": "16 Samskaras",
     "subtitle": "Life-cycle rites (distinct from daily 48-min muhurta)",

@@ -524,6 +524,7 @@ export function NatalPanchangPanel({
           varaNumber={p.vara.number}
           yogaName={p.yoga.name}
           karanaName={p.karana.name}
+          nakshatraIndex={p.nakshatra.index}
         />
       )}
 

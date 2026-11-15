@@ -14,6 +14,7 @@ import { TithiTeachingCard } from './TithiTeachingCard'
 import { VaarTeachingCard } from './VaarTeachingCard'
 import { YogaTeachingCard } from './YogaTeachingCard'
 import { KaranaTeachingCard } from './KaranaTeachingCard'
+import { NakshatraTeachingCard } from './NakshatraTeachingCard'
 
 const capsLabel = { fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'var(--text-muted)', marginBottom: 3 }
 const body = { fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }
@@ -47,6 +48,7 @@ export function PanchangVisheshSection({
   varaNumber,
   yogaName,
   karanaName,
+  nakshatraIndex,
 }: {
   result: PanchangVisheshResult
   mode: 'natal' | 'daily'
@@ -54,6 +56,7 @@ export function PanchangVisheshSection({
   varaNumber: number
   yogaName: string
   karanaName?: string
+  nakshatraIndex?: number
 }) {
   const t = useTranslations('panchang.vishesh')
   const { lang, hi } = useLang()
@@ -171,6 +174,8 @@ export function PanchangVisheshSection({
       <TithiTeachingCard tithiNumber={tithiNumber} varaNumber={varaNumber} mode={mode} />
 
       <YogaTeachingCard yogaName={yogaName} mode={mode} />
+
+      {nakshatraIndex != null && <NakshatraTeachingCard nakshatraIndex={nakshatraIndex} mode={mode} />}
 
       {karanaName && (
         <KaranaTeachingCard karanaName={karanaName} tithiNumber={tithiNumber} varaNumber={varaNumber} mode={mode} />

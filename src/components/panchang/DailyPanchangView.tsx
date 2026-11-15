@@ -544,6 +544,7 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
             varaNumber={data.vara.number}
             yogaName={data.yoga.name}
             karanaName={data.karana.name}
+            nakshatraIndex={data.nakshatra.index}
           />
         )}
         <SanskarasReference />
