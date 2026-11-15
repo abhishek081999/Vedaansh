@@ -10,6 +10,11 @@ import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, termHi } from '@/i18n/jyotish'
 import { panchakStatusLabel, visheshLevelLabel } from '@/lib/engine/panchangVishesh'
 import { MASA_LABEL_HI } from '@/lib/engine/locale/panchangVishesh.hi'
+import { TithiTeachingCard } from './TithiTeachingCard'
+import { VaarTeachingCard } from './VaarTeachingCard'
+import { YogaTeachingCard } from './YogaTeachingCard'
+import { KaranaTeachingCard } from './KaranaTeachingCard'
+import { NakshatraTeachingCard } from './NakshatraTeachingCard'
 
 const capsLabel = { fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'var(--text-muted)', marginBottom: 3 }
 const body = { fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }
@@ -42,12 +47,16 @@ export function PanchangVisheshSection({
   tithiNumber,
   varaNumber,
   yogaName,
+  karanaName,
+  nakshatraIndex,
 }: {
   result: PanchangVisheshResult
   mode: 'natal' | 'daily'
   tithiNumber: number
   varaNumber: number
   yogaName: string
+  karanaName?: string
+  nakshatraIndex?: number
 }) {
   const t = useTranslations('panchang.vishesh')
   const { lang, hi } = useLang()
@@ -159,6 +168,18 @@ export function PanchangVisheshSection({
           <div style={body}>{t('anandadiNote', { note: an.note, deity: an.deity, nak: an.nakshatraUsed })}</div>
         </div>
       </div>
+
+      <VaarTeachingCard varaNumber={varaNumber} mode={mode} />
+
+      <TithiTeachingCard tithiNumber={tithiNumber} varaNumber={varaNumber} mode={mode} />
+
+      <YogaTeachingCard yogaName={yogaName} mode={mode} />
+
+      {nakshatraIndex != null && <NakshatraTeachingCard nakshatraIndex={nakshatraIndex} mode={mode} />}
+
+      {karanaName && (
+        <KaranaTeachingCard karanaName={karanaName} tithiNumber={tithiNumber} varaNumber={varaNumber} mode={mode} />
+      )}
 
       {natal && (deep || yogaNote || result.sensitiveBirth.length > 0) && (
         <div style={card}>

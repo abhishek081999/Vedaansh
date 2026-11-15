@@ -21,6 +21,7 @@ import { LocationPicker, getSavedLocation, type LocationValue } from '@/componen
 import { MuhurtaNowStrip } from '@/components/ui/MuhurtaNowStrip'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
+import { MuhurtaLimbPriorityCard } from '@/components/panchang/MuhurtaLimbPriorityCard'
 import { calcTaraBala, calcChandraBala, checkPersonalMuhurtaBooking } from '@/lib/engine/muhurtaPersonal'
 import {
   analyzeMuhurta,
@@ -707,6 +708,8 @@ export default function MuhurtaPage() {
           loading={timelineLoading}
           avoidNow={avoidNowLabels}
         />
+
+        <MuhurtaLimbPriorityCard activity={purpose} />
 
         {results[0]?.panchang?.sunrise && results[0]?.panchang?.sunset && (
           <DinmanMuhurtaStrip

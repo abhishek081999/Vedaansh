@@ -186,5 +186,29 @@
       "solar": "सूर्य",
       "lunar": "चंद्र"
     }
+  },
+  "limbPriority": {
+    "title": "पहले किस अंग को तौलें · {purpose}",
+    "subtitle": "उद्देश्य तय करता है कि पंचांग का कौन-सा अंग सबसे अहम है; अंतिम परिणाम नाड़िका तय करती है।",
+    "principles": "अंगों को कैसे तौलें",
+    "limbs": {
+      "vara": "वार",
+      "tithi": "तिथि",
+      "karana": "करण",
+      "nakshatra": "नक्षत्र",
+      "yoga": "योग",
+      "nadika": "नाड़िका (घटी)"
+    },
+    "purpose": {
+      "GENERAL": "सामान्य",
+      "MARRIAGE": "विवाह",
+      "RELATIONSHIP": "संबंध",
+      "EDUCATION": "पढ़ाई / इंटरव्यू",
+      "BUSINESS": "व्यापार",
+      "REAL_ESTATE": "संपत्ति",
+      "HEALTH": "स्वास्थ्य",
+      "TRAVEL": "यात्रा",
+      "SPIRITUAL": "पूजा"
+    }
   }
 }

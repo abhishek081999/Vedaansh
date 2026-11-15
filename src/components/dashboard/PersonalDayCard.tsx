@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react'
 import { Lock } from 'lucide-react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
+import { getTithiTeaching } from '@/lib/engine/tithiTeaching'
 import { getKaranaMeta, formatKaranaWeatherLine } from '@/lib/engine/karanaMeta'
 import { getYogaMeta, formatYogaWeatherLine } from '@/lib/engine/yogaMeta'
 import {
@@ -48,6 +49,7 @@ export function PersonalDayCard({
   userPlan = 'free',
 }: PersonalDayCardProps) {
   const t = useTranslations('chart.personalDay')
+  const tt = useTranslations('panchang.tithiTeaching')
   const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
@@ -162,6 +164,7 @@ export function PersonalDayCard({
   }
 
   const tithiMeta = todayTithiNum != null ? getTithiDayMeta(todayTithiNum, lang) : null
+  const tithiTeaching = todayTithiNum != null ? getTithiTeaching(todayTithiNum, lang) : null
   const tithiAccent = tithiMeta
     ? (tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)')
     : accentColor
@@ -457,6 +460,46 @@ export function PersonalDayCard({
               </>
             )}
           </div>
+          {tithiTeaching && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem 0.55rem', marginTop: '0.1rem' }}>
+              <div>
+                <div style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>
+                  {tt('essence')}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.35 }}>
+                  {tithiTeaching.essence}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>
+                  {tt('today')}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+                  {tithiTeaching.dayFeeling}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>
+                  {tt('goodFor')}
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '0.9rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {tithiTeaching.goodFor.map((item) => (
+                    <li key={item} style={{ fontSize: '0.62rem', color: 'var(--text-primary)', lineHeight: 1.3 }}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>
+                  {tt('avoid')}
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '0.9rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {tithiTeaching.avoid.map((item) => (
+                    <li key={item} style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
           {showFull && (
             <>
               <div style={{

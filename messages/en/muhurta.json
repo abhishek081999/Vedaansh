@@ -186,5 +186,29 @@
       "solar": "Solar",
       "lunar": "Lunar"
     }
+  },
+  "limbPriority": {
+    "title": "Which limb to weigh first · {purpose}",
+    "subtitle": "The purpose decides which panchang limb matters most; nadika settles the final outcome.",
+    "principles": "How to weigh the limbs",
+    "limbs": {
+      "vara": "Vara",
+      "tithi": "Tithi",
+      "karana": "Karana",
+      "nakshatra": "Nakshatra",
+      "yoga": "Yoga",
+      "nadika": "Nadika (ghati)"
+    },
+    "purpose": {
+      "GENERAL": "General",
+      "MARRIAGE": "Wedding",
+      "RELATIONSHIP": "Relationship",
+      "EDUCATION": "Learning / interview",
+      "BUSINESS": "Business",
+      "REAL_ESTATE": "Property",
+      "HEALTH": "Health",
+      "TRAVEL": "Travel",
+      "SPIRITUAL": "Worship"
+    }
   }
 }

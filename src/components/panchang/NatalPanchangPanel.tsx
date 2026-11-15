@@ -3,6 +3,7 @@
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { getTithiDayMeta, getTithiMoonCombo } from '@/lib/engine/tithiMeta'
+import { getTithiTeaching } from '@/lib/engine/tithiTeaching'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import { getYogaMeta } from '@/lib/engine/yogaMeta'
 import { getNakshatraMuhurtaMeta } from '@/lib/engine/nakshatraMuhurta'
@@ -47,12 +48,14 @@ export function NatalPanchangPanel({
 }) {
   const t = useTranslations('panchang.natal')
   const tl = useTranslations('panchang.limbs')
+  const tt = useTranslations('panchang.tithiTeaching')
   const { lang, tag, hi } = useLang()
   const show = (en: string) => (hi ? termHi(en) : en)
   const graha = (id: GrahaId) => (hi ? GRAHA_HI[id] ?? id : id)
   const tz = p.location.tz
   const pakLabel = p.tithi.paksha === 'shukla' ? t('shuklaPaksha') : t('krishnaPaksha')
   const tithiMeta = getTithiDayMeta(p.tithi.number, lang)
+  const tithiTeaching = getTithiTeaching(p.tithi.number, lang)
   const tithiNatureColor = tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)'
   const moonCombo = getTithiMoonCombo(p.tithi.number, moonRashi, lang)
   const comboAccent = moonCombo.moonMatchesAffinity ? 'var(--teal)' : 'var(--gold)'
@@ -143,6 +146,9 @@ export function NatalPanchangPanel({
           <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.35 }}>
             {tithiMeta.group.peopleTraits}
           </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-primary)', fontWeight: 600, marginTop: 6, lineHeight: 1.35 }}>
+            {tithiTeaching.essence}
+          </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{tl('nakshatra')}</div>
@@ -208,6 +214,59 @@ export function NatalPanchangPanel({
               <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{t('deity', { deity: karanaMeta.deity })}</span>
             </div>
           )}
+        </div>
+      </div>
+
+      <div style={{
+        padding: '0.9rem 1rem',
+        borderRadius: 'var(--r-md)',
+        border: '1px solid var(--border)',
+        background: 'var(--surface-2)',
+      }}>
+        <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
+          {t('tithiNature')}
+        </div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+          {tithiMeta.name}
+          {tithiTeaching.devi ? ` · ${tithiTeaching.devi}` : ''}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem', marginBottom: '0.55rem' }}>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{tt('essence')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.35 }}>{tithiTeaching.essence}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{tt('today')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{tithiTeaching.dayFeeling}</div>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem', marginBottom: '0.55rem' }}>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{tt('goodFor')}</div>
+            <ul style={{ margin: 0, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {tithiTeaching.goodFor.map((item) => (
+                <li key={item} style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{tt('avoid')}</div>
+            <ul style={{ margin: 0, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {tithiTeaching.avoid.map((item) => (
+                <li key={item} style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{tt('nature')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{tithiTeaching.nature}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>{tt('shadow')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{tithiTeaching.shadow}</div>
+          </div>
         </div>
       </div>
 
@@ -464,6 +523,8 @@ export function NatalPanchangPanel({
           tithiNumber={p.tithi.number}
           varaNumber={p.vara.number}
           yogaName={p.yoga.name}
+          karanaName={p.karana.name}
+          nakshatraIndex={p.nakshatra.index}
         />
       )}
 
