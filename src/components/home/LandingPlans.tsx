@@ -39,9 +39,9 @@ export function LandingPlans({ trackLandingCta }: { trackLandingCta: (ctaName: s
         description={t('description')}
         theme="gold"
       />
-      <div className={styles.plans}>
+      <div className={styles.plans} data-stagger>
         {PLANS.map((plan) => (
-          <article key={plan.id} className={`${styles.plan} ${plan.id === 'gold' ? styles.planFeatured : ''}`}>
+          <article key={plan.id} className={`${styles.plan} ${plan.id === 'gold' ? styles.planFeatured : ''}`} data-spotlight>
             <h3>{t(`${plan.id}.name`)}</h3>
             <p className={styles.planBlurb}>{t(`${plan.id}.blurb`)}</p>
             <p className={styles.planPrice}>

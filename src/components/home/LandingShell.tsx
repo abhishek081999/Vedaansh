@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { createPortal } from 'react-dom'
 import { markLandingPainted, wasLandingPainted } from '@/components/home/landingPaint'
 
 const LANDING_STARS = Array.from({ length: 28 }, (_, i) => ({
@@ -126,6 +127,31 @@ export function LandingVedicDivider() {
   )
 }
 
+/** Cards that get the cursor-following glow (`--spot-x` / `--spot-y`, styled in globals.css). */
+const SPOTLIGHT_SELECTOR = '.landing-premium-pillar, .lj-row, [data-spotlight]'
+
+/** Points the glow of the card under the cursor at the cursor. One listener for the whole page. */
+function handleSpotlightMove(event: React.PointerEvent<HTMLDivElement>) {
+  if (event.pointerType !== 'mouse') return
+  const card = (event.target as Element).closest<HTMLElement>(SPOTLIGHT_SELECTOR)
+  if (!card) return
+  const rect = card.getBoundingClientRect()
+  card.style.setProperty('--spot-x', `${event.clientX - rect.left}px`)
+  card.style.setProperty('--spot-y', `${event.clientY - rect.top}px`)
+}
+
+/**
+ * Thin gold bar at the top of the window that fills as the page scrolls. Pure CSS scroll
+ * timeline, so browsers without it simply don't show it. Portalled to <body> so no
+ * transformed ancestor can pin it inside the page.
+ */
+function LandingScrollProgress() {
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
+  if (!mounted) return null
+  return createPortal(<div className="landing-scroll-progress" aria-hidden="true" />, document.body)
+}
+
 export function LandingShell({ children }: { children: React.ReactNode }) {
   // The server-rendered hero is replaced by the interactive one — don't fade the page in twice.
   const [skipEnter] = React.useState(wasLandingPainted)
@@ -134,8 +160,13 @@ export function LandingShell({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <div className={skipEnter ? 'landing-shell' : 'fade-in landing-shell'} style={{ width: '100%', maxWidth: 1240 }}>
+    <div
+      className={skipEnter ? 'landing-shell' : 'fade-in landing-shell'}
+      style={{ width: '100%', maxWidth: 1240 }}
+      onPointerMove={handleSpotlightMove}
+    >
       <LandingAmbient />
+      <LandingScrollProgress />
       {children}
     </div>
   )

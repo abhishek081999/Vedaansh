@@ -25,12 +25,13 @@ export function LandingGuides({ trackLandingCta }: TrackProps) {
   return (
     <div className="landing-section-row-content">
       <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
-      <div className={styles.guides}>
+      <div className={styles.guides} data-stagger>
         {FEATURED_GUIDES.map((guide) => (
           <Link
             key={guide.slug}
             href={`/guides/${guide.slug}`}
             className={styles.guide}
+            data-spotlight
             onClick={() => trackLandingCta(`guide_${guide.slug}`)}
           >
             <span>{t(`items.${guide.slug}.topic`)}</span>

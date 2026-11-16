@@ -54,8 +54,8 @@ export function LandingWorkspaceShowcase({ onOpen }: { onOpen: () => void }) {
         description={t('description')}
         theme="gold"
       />
-      <div className={styles.bento}>
-        <article className={`${styles.bentoCard} ${styles.bentoChart}`}>
+      <div className={styles.bento} data-stagger>
+        <article className={`${styles.bentoCard} ${styles.bentoChart}`} data-spotlight>
           <header>
             <h3>{t('rashi.title')}</h3>
             <p>{t('rashi.text')}</p>
@@ -75,7 +75,7 @@ export function LandingWorkspaceShowcase({ onOpen }: { onOpen: () => void }) {
           <span className={styles.sampleTag}>{t('rashi.sample')}</span>
         </article>
 
-        <article className={`${styles.bentoCard} ${styles.bentoWide}`}>
+        <article className={`${styles.bentoCard} ${styles.bentoWide}`} data-spotlight>
           <header>
             <h3>{t('dasha.title')}</h3>
             <p>{t('dasha.text')}</p>
@@ -90,7 +90,7 @@ export function LandingWorkspaceShowcase({ onOpen }: { onOpen: () => void }) {
           </div>
         </article>
 
-        <article className={styles.bentoCard}>
+        <article className={styles.bentoCard} data-spotlight>
           <header>
             <h3>{t('ashtakavarga.title')}</h3>
             <p>{t('ashtakavarga.text')}</p>
@@ -102,7 +102,7 @@ export function LandingWorkspaceShowcase({ onOpen }: { onOpen: () => void }) {
           </div>
         </article>
 
-        <article className={styles.bentoCard}>
+        <article className={styles.bentoCard} data-spotlight>
           <header>
             <h3>{t('shadbala.title')}</h3>
             <p>{t('shadbala.text')}</p>
@@ -118,7 +118,7 @@ export function LandingWorkspaceShowcase({ onOpen }: { onOpen: () => void }) {
           </ul>
         </article>
 
-        <article className={`${styles.bentoCard} ${styles.bentoFull}`}>
+        <article className={`${styles.bentoCard} ${styles.bentoFull}`} data-spotlight>
           <header>
             <h3>{t('vargas.title')}</h3>
             <p>{t('vargas.text')}</p>
