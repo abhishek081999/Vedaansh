@@ -1901,7 +1901,8 @@ select.input {
   cursor: pointer;
   text-align: left;
   font: inherit;
-  transition: all 0.25s ease;
+  transition: 0.25s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .sidenav-profile-btn:hover,
@@ -1923,7 +1924,8 @@ select.input {
   font-weight: 700;
   font-size: 0.95rem;
   flex-shrink: 0;
-  transition: all 0.25s ease;
+  transition: 0.25s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .sidenav-profile-btn:hover .sidenav-avatar {
@@ -1972,7 +1974,8 @@ select.input {
   font-weight: 600;
   font-size: 0.8rem;
   letter-spacing: 0.02em;
-  transition: all 0.25s ease;
+  transition: 0.25s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .sidenav-signin:hover {
@@ -2040,12 +2043,12 @@ select.input {
   padding: 0.4rem 0.75rem 0.25rem;
   margin-top: 0.85rem;
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--sidenav-section-color);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .sidenav-submenu:not(.sidenav-submenu--nested) > .sidenav-link--sub {
@@ -2054,14 +2057,14 @@ select.input {
 }
 
 .sidenav-group-label {
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--sidenav-section-color);
   padding: 0.3rem 0.75rem 0.3rem 1.45rem;
   margin-top: 0.25rem;
-  opacity: 0.75;
+  opacity: 0.9;
 }
 
 .sidenav-nested-group {
@@ -2085,13 +2088,13 @@ select.input {
   background: transparent;
   color: var(--sidenav-section-color);
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  opacity: 0.85;
+  opacity: 0.9;
   transition:
     background 0.22s cubic-bezier(0.16, 1, 0.3, 1),
     color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
@@ -2267,7 +2270,8 @@ select.input {
   height: 1rem;
   flex-shrink: 0;
   opacity: 0.65;
-  transition: all 0.22s ease;
+  transition: 0.22s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .sidenav-accordion-btn:hover .sidenav-accordion-icon {
@@ -2321,7 +2325,8 @@ select.input {
   color: var(--gold);
   opacity: 0.35;
   margin-bottom: 0.15rem;
-  transition: all 0.3s ease;
+  transition: 0.3s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .sidenav-footer-om svg {
@@ -2917,7 +2922,8 @@ select.input {
   text-decoration: none;
   font-size: 1.15rem;
   line-height: 1;
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .chart-action-wrap {
@@ -3754,7 +3760,8 @@ select.input {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-right: 0.25rem;
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -4480,7 +4487,8 @@ select.input {
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
   padding: 1.5rem 0 !important;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 /* Glass panels — frosted section containers (made borderless and card-free) */
@@ -4493,7 +4501,8 @@ select.input {
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
   padding: 1.5rem 0 !important;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .landing-glass-panel::before {
@@ -4591,7 +4600,8 @@ select.input {
   box-shadow: none !important;
   padding: 0.75rem 1.25rem !important;
   opacity: 1;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .landing-shell .stat-chip-display::after {
@@ -4798,7 +4808,8 @@ select.input {
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
   padding: 0.5rem 0 !important;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 [data-theme='dark'] .landing-hero-carousel.card {
@@ -5187,7 +5198,8 @@ select.input {
   align-items: center;
   justify-content: center;
   box-shadow: none !important;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 [data-theme='dark'] .landing-hero-vedic-art {
@@ -5725,7 +5737,8 @@ select.input {
   border: 1px solid var(--border);
   opacity: 0.75;
   color: var(--text-muted);
-  transition: all 0.3s ease;
+  transition: 0.3s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
   transform: none;
 }
 
@@ -6190,35 +6203,6 @@ select.input {
   font-weight: 600;
 }
 
-.pricing-header {
-  padding: 0 2rem;
-  height: 3.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  backdrop-filter: blur(16px);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--border-soft);
-  gap: 0.75rem;
-}
-
-@media (max-width: 768px) {
-  .pricing-header {
-    padding: 0.55rem 0.75rem;
-    height: auto;
-    min-height: 56px;
-  }
-}
-
-.pricing-header-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
 .charts-toolbar {
   display: flex;
   gap: 0.75rem;
@@ -6628,15 +6612,12 @@ select.input {
     bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  .pricing-header {
-    padding: 0.55rem 0.75rem;
-    height: auto;
-    min-height: 56px;
+  /* Install banner sits above the sticky "Start" CTA rather than covering it. */
+  body:has(.landing-sticky-mobile-cta.is-visible) .pwa-install-banner {
+    bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--space-3);
   }
 
-  .pricing-header-actions {
-    gap: 0.45rem;
-  }
 
   .charts-toolbar > * {
     flex: 1 1 100%;
@@ -7321,7 +7302,8 @@ select.input {
   font-weight: 700;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .vp-pill:hover {
@@ -7346,7 +7328,8 @@ select.input {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
   flex-shrink: 0;
   border: 2px solid transparent;
 }
@@ -7373,7 +7356,8 @@ select.input {
   border-radius: var(--r-md);
   width: 100%;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
   border: 1px solid var(--border-soft);
 }
 
@@ -7391,7 +7375,8 @@ select.input {
   overflow: hidden;
   margin-bottom: 1.5rem;
   border-radius: var(--r-lg, 0.75rem);
-  transition: all 0.4s ease;
+  transition: 0.4s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .landing-section-row::after {
@@ -7466,7 +7451,8 @@ select.input {
   height: 2.8rem;
   border-radius: 50%;
   margin-bottom: 0.95rem;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
   border: 1px solid transparent;
 }
 
@@ -7531,7 +7517,8 @@ select.input {
   opacity: 0.045;
   pointer-events: none;
   z-index: 0;
-  transition: all 0.3s ease;
+  transition: 0.3s ease;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
 .landing-flow-item {

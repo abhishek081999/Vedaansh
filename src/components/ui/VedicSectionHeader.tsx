@@ -18,7 +18,7 @@ export function VedicSectionHeader({
   return (
     <div className={`landing-section-header landing-section-header--${theme} ${align === 'left' ? 'align-left' : ''}`}>
       <div className="themed-kicker">{kicker}</div>
-      <h3 className="themed-title">{title}</h3>
+      <h2 className="themed-title">{title}</h2>
       
       {/* Symmetrical Classical/Vedic Filigree Scroll Divider */}
       <div className="themed-filigree-wrapper" aria-hidden="true">

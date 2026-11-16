@@ -105,7 +105,7 @@
     "bavQuality": "BAV {quality}",
     "windows": "Next 30 Days Windows",
     "calculating": "Calculating windows",
-    "calculatingDots": "Calculating windows...",
+    "calculatingDots": "Calculating windows…",
     "forecastUnavailable": "Forecast unavailable right now.",
     "quality": {
       "excellent": "excellent",

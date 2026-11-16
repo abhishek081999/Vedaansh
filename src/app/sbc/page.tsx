@@ -24,7 +24,6 @@ import { useSession } from 'next-auth/react'
 import {
   Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart, Lock,
 } from 'lucide-react'
-import { ThemeToggle }     from '@/components/ui/ThemeToggle'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { Button }          from '@/components/ui/primitives/Button'
 import { BREAKPOINTS }     from '@/lib/ui/breakpoints'
@@ -463,7 +462,6 @@ export default function SBCPage() {
         </div>
         <nav style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
           {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>{t('page.muhurta')}</Link>}
-          <ThemeToggle />
         </nav>
       </header>
 

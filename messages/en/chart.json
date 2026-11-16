@@ -621,7 +621,7 @@
     "karana": "Karana {v}",
     "shukla": "Shukla",
     "krishna": "Krishna",
-    "loading": "Loading live panchang...",
+    "loading": "Loading live panchang…",
     "am": "am",
     "pm": "pm"
   },
@@ -639,7 +639,7 @@
     "emailClient": "Email to Client",
     "emailHeading": "Send Dossier via Email",
     "sent": "✓ Sent successfully to {email}",
-    "sending": "Sending...",
+    "sending": "Sending…",
     "sendNow": "Send Now",
     "cancel": "Cancel",
     "emailFailed": "Failed to send email",

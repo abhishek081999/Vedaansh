@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { PLAN_PRICES, PLAN_PRICES_USD, type PaymentCurrency } from '@/lib/subscription/pricing'
 import { PaymentHelpRequest, type PaymentHelpReason } from '@/components/pricing/PaymentHelpRequest'
 
@@ -336,23 +335,6 @@ export default function PricingPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
 
-      {/* Header */}
-      <header className="pricing-header">
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <Image src="/veda-icon.png" alt="Vedaansh" width={24} height={24} style={{ objectFit: 'contain' }} />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
-        </Link>
-        <div className="pricing-header-actions">
-          {session ? (
-            <Link href="/account" style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-              {t('header.myAccount')}
-            </Link>
-          ) : (
-            <Link href="/login" className="btn btn-primary btn-sm">{t('header.signIn')}</Link>
-          )}
-          <ThemeToggle />
-        </div>
-      </header>
 
       <main style={{ 
         flex: 1, 

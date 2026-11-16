@@ -16,7 +16,7 @@
     "active": "Active Sessions",
     "prospects": "Prospective"
   },
-  "filterPh": "Filter by name, email, or tag...",
+  "filterPh": "Filter by name, email, or tag…",
   "emptyFilter": "No clients match your filter",
   "emptyLibrary": "Your client library is currently empty",
   "alerts": {
@@ -53,9 +53,9 @@
     "deleteTitle": "Delete Client",
     "sessionLogs": "Session Logs ({count})",
     "remedies": "Remedies ({count})",
-    "notePh": "New note...",
+    "notePh": "New note…",
     "save": "Save",
-    "remedyPh": "Gem, Mantra, etc...",
+    "remedyPh": "Gem, Mantra, etc…",
     "add": "Add",
     "followUp": "Follow-up",
     "dasha": "Dasha",

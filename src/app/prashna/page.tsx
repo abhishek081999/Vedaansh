@@ -15,7 +15,6 @@ import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { Check, Lightbulb, Lock, X } from 'lucide-react'
 import { formatInTimeZone } from 'date-fns-tz'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, Rashi, UserPlan } from '@/types/astrology'
 import { useChartStyle } from '@/components/providers/ChartStyleProvider'
@@ -594,7 +593,6 @@ export default function PrashnaPage() {
             style={{ padding: '0.35rem 0.6rem', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--surface-2)', cursor: 'pointer', fontSize: '0.85rem' }}>
             🖨️
           </button>}
-          <ThemeToggle />
         </div>
       </header>
 
