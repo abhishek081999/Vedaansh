@@ -522,16 +522,16 @@ export function NorthIndianChakra({
                       <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">{L.retro}</tspan>
                     )}
                     {g.isCombust && (
-                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">C</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">{L.combust}</tspan>
                     )}
-                    {mbTags.map(t => (
+                    {mbTags.map(tag => (
                       <tspan
-                        key={t}
+                        key={tag}
                         fontSize={subMarkFs}
                         fontWeight="700"
                         baselineShift="0.28em"
-                        fill={t === 'M' ? 'var(--rose)' : '#c9842a'}
-                      >{t}</tspan>
+                        fill={tag === 'M' ? 'var(--rose)' : '#c9842a'}
+                      >{L.mbMark(tag)}</tspan>
                     ))}
                     {kar ? <tspan>{` [${kar}]`}</tspan> : null}
                   </text>

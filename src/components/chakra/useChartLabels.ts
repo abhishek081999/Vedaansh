@@ -17,7 +17,12 @@ export function useChartLabels() {
       if (id === 'AS' || id === 'As' || id === 'Asc') return t('asc')
       return GRAHA_SHORT_HI[id as GrahaId] ?? id
     },
+    /** Compact superscript marks: EN R/C/M/B · HI व/अ/मा/बा */
     retro: t('retro'),
+    combust: t('combust'),
+    maraka: t('maraka'),
+    badhaka: t('badhaka'),
+    mbMark: (code: 'M' | 'B'): string => (code === 'M' ? t('maraka') : t('badhaka')),
     t,
   }
 }

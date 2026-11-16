@@ -336,9 +336,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Vedaansh" />
-        <Script id="theme-init" strategy="beforeInteractive" nonce={nonce}>
-          {themeScript}
-        </Script>
+        {/* Plain inline script (not next/script): App Router queues beforeInteractive
+            scripts until the runtime boots, so first paint showed the classic theme. */}
+        <script id="theme-init" nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           id="ld-website"
           type="application/ld+json"

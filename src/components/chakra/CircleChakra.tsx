@@ -350,16 +350,16 @@ export function CircleChakra({
                       <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">{L.retro}</tspan>
                     )}
                     {g.isCombust && (
-                      <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">C</tspan>
+                      <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">{L.combust}</tspan>
                     )}
-                    {mbTags.map(t => (
+                    {mbTags.map(tag => (
                       <tspan
-                        key={t}
+                        key={tag}
                         fontSize={subPf}
                         fontWeight="700"
                         baselineShift="0.28em"
-                        fill={t === 'M' ? 'var(--rose)' : '#c9842a'}
-                      >{t}</tspan>
+                        fill={tag === 'M' ? 'var(--rose)' : '#c9842a'}
+                      >{L.mbMark(tag)}</tspan>
                     ))}
                     {showDegrees ? <tspan>{` ${Math.floor(g.degree)}°`}</tspan> : null}
                   </text>

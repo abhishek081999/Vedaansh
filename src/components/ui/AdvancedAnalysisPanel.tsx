@@ -277,6 +277,9 @@ export function ConditionBadges({
   isMaraka?: boolean
   isBadhaka?: boolean
 }) {
+  const { hi } = useLang()
+  const tTip = useTranslations('chart.tooltip')
+  const tChakra = useTranslations('chart.chakra')
   const badges: React.ReactNode[] = []
   if (graha?.isCombust) {
     badges.push(
@@ -288,8 +291,8 @@ export function ConditionBadges({
         borderRadius: 3,
         border: '1px solid rgba(245,158,11,0.35)',
         fontWeight: 700,
-      }}>
-        C
+      }} title={tTip('combust')}>
+        {tChakra('combust')}
       </span>
     )
   }
@@ -304,8 +307,8 @@ export function ConditionBadges({
         borderRadius: 3,
         border: '1px solid rgba(224,123,142,0.35)',
         fontWeight: 700,
-      }} title="Maraka (2nd/7th lord)">
-        M
+      }} title={tTip('maraka')}>
+        {tChakra('maraka')}
       </span>
     )
   }
@@ -320,8 +323,8 @@ export function ConditionBadges({
         borderRadius: 3,
         border: '1px solid rgba(201,132,42,0.35)',
         fontWeight: 700,
-      }} title="Badhaka (Bādhakeśa)">
-        B
+      }} title={tTip('badhaka')}>
+        {tChakra('badhaka')}
       </span>
     )
   }
@@ -337,8 +340,8 @@ export function ConditionBadges({
         borderRadius: 3,
         border: `1px solid ${color.border}`,
         fontWeight: 600,
-      }}>
-        G{graha.gandanta.severity === 'exact' ? '!' : ''}
+      }} title={tTip('gandanta')}>
+        {hi ? 'ग' : 'G'}{graha.gandanta.severity === 'exact' ? '!' : ''}
       </span>
     )
   }
@@ -354,8 +357,8 @@ export function ConditionBadges({
         borderRadius: 3,
         border: `1px solid ${color.border}`,
         fontWeight: 600,
-      }}>
-        P
+      }} title={tTip('pushkara')}>
+        {hi ? 'पु' : 'P'}
       </span>
     )
   }
@@ -372,8 +375,8 @@ export function ConditionBadges({
         borderRadius: 3,
         border: `1px solid ${color.border}`,
         fontWeight: 600,
-      }}>
-        Y{isWinner ? 'W' : 'L'}
+      }} title={tTip('yuddha')}>
+        {hi ? (isWinner ? 'यु↑' : 'यु↓') : `Y${isWinner ? 'W' : 'L'}`}
       </span>
     )
   }

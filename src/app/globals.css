@@ -9309,6 +9309,9 @@ html[lang^="hi"] {
   --font-body: var(--font-noto-deva), var(--font-inter), 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-sans: var(--font-noto-deva), var(--font-inter), 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-display: var(--font-noto-deva), var(--font-newsreader), 'Noto Sans Devanagari', Georgia, serif;
+  /* Chart glyphs: JetBrains has no Devanagari — use Noto bold so सू/चं/मं stay readable */
+  --font-chart-planets: var(--font-noto-deva), 'Noto Sans Devanagari', var(--font-jetbrains-mono), monospace;
+  --fw-chart-planet: 700;
 }
 html[lang^="hi"] body { line-height: 1.7; }
 
