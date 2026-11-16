@@ -14,7 +14,7 @@ import { VARGA_META } from '@/lib/engine/vargas'
 import { analyzeMarriedLife } from '@/lib/engine/marriedLifeAnalysis'
 import { analyzeCareerMethod } from '@/lib/engine/careerMethod'
 import { getDoshaSnapshot, getRemedySnapshot, type DoshaTone } from '@/lib/engine/dashboardInsights'
-import { DashCard, DashEmpty, DashNote, DashRow, TONE_COLOR, type CardTone } from '@/components/dashboard/DashboardCardShell'
+import { DashCard, DashEmpty, DashNote, DashRow, DashStatusRow, TONE_COLOR, type CardTone } from '@/components/dashboard/DashboardCardShell'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { termHi } from '@/i18n/jyotish'
@@ -44,17 +44,17 @@ export function DoshaSnapshotCard({
   return (
     <DashCard title={t('doshaTitle')} meta={t('fromLagna')}>
       {coreFlags.map(f => (
-        <DashRow
+        <DashStatusRow
           key={f.id}
-          dot
           tone={DOSHA_TONE[f.tone]}
           label={f.label}
-          value={<><strong>{t(DOSHA_WORD[f.tone])}</strong> · {f.detail}</>}
+          status={t(DOSHA_WORD[f.tone])}
+          detail={f.detail}
         />
       ))}
       {shrapFlags.length > 0 && (
-        <div style={{ marginTop: '0.35rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+        <div style={{ marginTop: '0.6rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 }}>
             <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>
               {t('shrapDesk')}
             </span>
@@ -69,12 +69,12 @@ export function DoshaSnapshotCard({
             ) : null}
           </div>
           {shrapFlags.map(f => (
-            <DashRow
+            <DashStatusRow
               key={f.id}
-              dot
               tone={DOSHA_TONE[f.tone]}
               label={f.label}
-              value={<><strong>{t(DOSHA_WORD[f.tone])}</strong> · {f.detail}</>}
+              status={t(DOSHA_WORD[f.tone])}
+              detail={f.detail}
             />
           ))}
         </div>
