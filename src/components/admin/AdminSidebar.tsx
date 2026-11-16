@@ -1,5 +1,6 @@
 'use client'
 import { Link, usePathname } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React from 'react'
 
 export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => void }) {
@@ -54,7 +55,7 @@ export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => voi
                   color: isActive ? 'var(--gold)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--gold-faint)' : 'transparent',
                   fontSize: '0.9rem',
-                  transition: 'all 0.15s',
+                  transition: interactiveTransition('0.15s'),
                   fontWeight: isActive ? 600 : 400,
                   borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
                 }}

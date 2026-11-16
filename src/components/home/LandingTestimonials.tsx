@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useTranslations } from 'next-intl'
-import { LandingReveal } from '@/components/home/LandingReveal'
+import { LandingSection } from '@/components/home/LandingSection'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import styles from '@/components/home/LandingSections.module.css'
 
@@ -24,7 +24,7 @@ export function LandingTestimonials() {
   if (TESTIMONIALS.length === 0) return null
 
   return (
-    <LandingReveal as="section" className="landing-section-row landing-section-row--gold">
+    <LandingSection as="section" className="landing-section-row landing-section-row--gold">
       <div className="landing-section-row-content">
         <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
         <div className={styles.testimonials}>
@@ -39,6 +39,6 @@ export function LandingTestimonials() {
           ))}
         </div>
       </div>
-    </LandingReveal>
+    </LandingSection>
   )
 }

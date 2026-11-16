@@ -13,6 +13,9 @@ export interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
+/** Delay before the manual install guide banner appears on mobile browsers. */
+const MANUAL_GUIDE_DELAY_MS = 30_000
+
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
@@ -32,12 +35,17 @@ export function usePwaInstall() {
       setVisible(true)
     }
 
-    if (mobileEligible) {
-      setVisible(true)
-    }
+    // Manual-install guide (iOS etc.): wait until the visitor has spent a moment on the
+    // page instead of covering the first screen and its primary CTA on arrival.
+    const guideTimer = mobileEligible
+      ? window.setTimeout(() => setVisible(true), MANUAL_GUIDE_DELAY_MS)
+      : undefined
 
     window.addEventListener('beforeinstallprompt', onBeforeInstall)
-    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      if (guideTimer !== undefined) window.clearTimeout(guideTimer)
+    }
   }, [])
 
   const install = useCallback(async () => {

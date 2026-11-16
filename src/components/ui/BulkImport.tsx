@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useTranslations } from 'next-intl'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useRef, useState, useCallback } from 'react'
 
 /** Spreadsheet header tokens the importer matches. Keep these English. */
@@ -212,7 +213,7 @@ export function BulkImport({ onImportComplete }: Props) {
                     background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)',
                     borderRadius: '6px', padding: '3px 10px',
                     fontSize: '0.72rem', color: 'var(--gold)', cursor: downloading ? 'wait' : 'pointer',
-                    fontWeight: 600, transition: 'all 0.15s',
+                    fontWeight: 600, transition: interactiveTransition('0.15s'),
                     opacity: downloading ? 0.6 : 1,
                   }}
                 >
@@ -258,7 +259,7 @@ export function BulkImport({ onImportComplete }: Props) {
                     : file
                     ? 'rgba(78,205,196,0.05)'
                     : 'var(--surface-2)',
-                  transition: 'all 0.2s',
+                  transition: interactiveTransition('0.2s'),
                 }}
               >
                 {file ? (

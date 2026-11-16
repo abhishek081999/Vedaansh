@@ -837,3 +837,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Range sliders drop the default outline above — give keyboard users a visible ring back. */
+.rangeInput:focus-visible,
+.timeRangeInput:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}

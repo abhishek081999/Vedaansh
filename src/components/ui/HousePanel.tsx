@@ -4,6 +4,7 @@
 //  Bhava Analysis — Sripati Madhya / Sandhi / Dasham Madhya / Mandi
 // ─────────────────────────────────────────────────────────────
 import React, { useMemo, useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import type { ChartOutput, Rashi, UpagrahaData } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
@@ -319,7 +320,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
               fontSize: '0.8rem',
               whiteSpace: 'nowrap',
               flexShrink: 0,
-              transition: 'all 0.2s',
+              transition: interactiveTransition('0.2s'),
               boxShadow: activeTab === t.id ? 'var(--shadow-sm)' : 'none',
             }}
           >
@@ -381,7 +382,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                   padding: '1.5rem',
                   position: 'relative',
                   overflow: 'hidden',
-                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  transition: interactiveTransition('0.3s cubic-bezier(0.16, 1, 0.3, 1)'),
                   background: 'var(--surface-1)',
                   border: `1px solid ${selectedHouse === h.houseNum ? 'var(--gold)' : 'var(--border-soft)'}`,
                   display: 'flex',

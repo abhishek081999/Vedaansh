@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
@@ -143,7 +144,7 @@ export function Drawer({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s',
+              transition: interactiveTransition('0.2s'),
             }}
           >
             ✕

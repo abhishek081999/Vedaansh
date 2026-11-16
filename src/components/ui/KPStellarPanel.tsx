@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { Layers, Home, Star } from 'lucide-react'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
@@ -98,7 +99,7 @@ export function KPStellarPanel({ chart }: KPStellarPanelProps) {
                   fontWeight: 600,
                   cursor: 'pointer',
                   textTransform: 'uppercase',
-                  transition: 'all 0.2s',
+                  transition: interactiveTransition('0.2s'),
                 }}
               >
                 {tabLabel(tab)}

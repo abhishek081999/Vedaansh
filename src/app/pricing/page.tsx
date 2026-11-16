@@ -1,11 +1,11 @@
 'use client'
 // src/app/pricing/page.tsx — Subscription tiers
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { PLAN_PRICES, PLAN_PRICES_USD, type PaymentCurrency } from '@/lib/subscription/pricing'
 import { PaymentHelpRequest, type PaymentHelpReason } from '@/components/pricing/PaymentHelpRequest'
 
@@ -57,23 +57,39 @@ function amountText(minor: number, currency: PaymentCurrency): string {
   return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)
 }
 
-/** Visual tokens only — display copy comes from the pricing catalogue. */
-const TIER_STYLE: Record<PlanKey, { color: string; border: string; bg: string }> = {
+/**
+ * Visual tokens only — display copy comes from the pricing catalogue.
+ * Theme tokens throughout so each plan follows the active theme: Gold (recommended)
+ * carries the brand colour and primary button, Platinum the neutral ink, Free stays quiet.
+ */
+const TIER_STYLE: Record<PlanKey, { color: string; onColor: string; border: string; bg: string; ctaClass: string }> = {
   free: {
-    color: 'var(--text-gold)',
-    border: 'rgba(201,168,76,0.40)',
-    bg: 'rgba(201,168,76,0.06)',
+    color: 'var(--text-secondary)',
+    onColor: 'var(--surface-1)',
+    border: 'var(--border)',
+    bg: 'var(--surface-2)',
+    ctaClass: 'btn btn-secondary',
   },
   gold: {
-    color: 'var(--accent)',
-    border: 'rgba(139,124,246,0.50)',
-    bg: 'rgba(139,124,246,0.08)',
+    color: 'var(--gold)',
+    onColor: 'var(--text-on-gold)',
+    border: 'color-mix(in oklab, var(--gold) 45%, transparent)',
+    bg: 'color-mix(in oklab, var(--gold) 7%, transparent)',
+    ctaClass: 'btn btn-primary',
   },
   platinum: {
-    color: 'var(--teal)',
-    border: 'rgba(78,205,196,0.50)',
-    bg: 'rgba(78,205,196,0.08)',
+    color: 'var(--text-primary)',
+    onColor: 'var(--surface-1)',
+    border: 'color-mix(in oklab, var(--text-primary) 30%, transparent)',
+    bg: 'color-mix(in oklab, var(--text-primary) 4%, transparent)',
+    ctaClass: 'btn btn-secondary pricing-cta-platinum',
   },
+}
+
+/** Razorpay needs a literal colour — use the active theme's brand colour. */
+function checkoutThemeColor(): string {
+  const brand = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim()
+  return /^#[0-9a-f]{3,8}$/i.test(brand) ? brand : '#8c0030'
 }
 
 const PLAN_KEYS: PlanKey[] = ['free', 'gold', 'platinum']
@@ -291,7 +307,7 @@ export default function PricingPage() {
           name:  data.userName,
           email: data.userEmail,
         },
-        theme: { color: planKey === 'gold' ? '#8B7CF6' : '#4ECDC4' },
+        theme: { color: checkoutThemeColor() },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
           // 4. Verify payment signature + activate subscription via webhook
           //    (webhook handles plan upgrade asynchronously)
@@ -336,23 +352,6 @@ export default function PricingPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
 
-      {/* Header */}
-      <header className="pricing-header">
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <Image src="/veda-icon.png" alt="Vedaansh" width={24} height={24} style={{ objectFit: 'contain' }} />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
-        </Link>
-        <div className="pricing-header-actions">
-          {session ? (
-            <Link href="/account" style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-              {t('header.myAccount')}
-            </Link>
-          ) : (
-            <Link href="/login" className="btn btn-primary btn-sm">{t('header.signIn')}</Link>
-          )}
-          <ThemeToggle />
-        </div>
-      </header>
 
       <main style={{ 
         flex: 1, 
@@ -417,7 +416,7 @@ export default function PricingPage() {
               background: billing === b ? 'var(--surface-1)' : 'transparent',
               color: billing === b ? 'var(--text-primary)' : 'var(--text-muted)',
               boxShadow: billing === b ? 'var(--shadow-card)' : 'none',
-              transition: 'all 0.15s',
+              transition: interactiveTransition('0.15s'),
             }}>
               {t(`billing.${b}`)}
               {b === 'yearly' && (
@@ -508,8 +507,8 @@ export default function PricingPage() {
                   padding: '0.7rem 1.1rem',
                   borderRadius: 'var(--r-md)',
                   border: 'none',
-                  background: 'var(--text-gold)',
-                  color: '#fff',
+                  background: 'var(--gold)',
+                  color: 'var(--text-on-gold)',
                   fontFamily: 'var(--font-display)',
                   fontSize: '0.85rem',
                   fontWeight: 700,
@@ -569,14 +568,14 @@ export default function PricingPage() {
                 padding: '1.75rem',
                 display: 'flex', flexDirection: 'column', gap: '1.25rem',
                 position: 'relative',
-                boxShadow: isGold ? '0 4px 24px rgba(139,124,246,0.12)' : 'none',
+                boxShadow: isGold ? '0 4px 24px color-mix(in oklab, var(--gold) 14%, transparent)' : 'none',
               }}>
                 {/* Popular badge */}
                 {badge && (
                   <div style={{
                     position: 'absolute', top: -1, right: 20,
                     padding: '0.2rem 0.75rem',
-                    background: tier.color, color: '#fff',
+                    background: tier.color, color: tier.onColor,
                     fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em',
                     textTransform: 'uppercase', fontFamily: 'var(--font-display)',
                     borderRadius: '0 0 var(--r-sm) var(--r-sm)',
@@ -668,17 +667,15 @@ export default function PricingPage() {
                 ) : (
                   <>
                     <button
+                      type="button"
+                      className={tier.ctaClass}
                       onClick={() => handleSubscribe(key as PaidPlan)}
                       disabled={checkoutLoading === key}
                       style={{
-                        display: 'block', width: '100%', padding: '0.65rem 1rem',
-                        textAlign: 'center', background: tier.color,
-                        borderRadius: 'var(--r-md)', textDecoration: 'none',
-                        fontFamily: 'var(--font-display)', fontSize: '0.85rem',
-                        fontWeight: 700, color: '#fff', border: 'none',
+                        width: '100%', justifyContent: 'center', padding: '0.65rem 1rem',
+                        fontSize: '0.88rem', fontWeight: 600,
                         cursor: checkoutLoading === key ? 'not-allowed' : 'pointer',
                         opacity: checkoutLoading === key ? 0.75 : 1,
-                        transition: 'opacity 0.15s',
                       }}
                     >
                       {checkoutLoading === key
@@ -805,7 +802,7 @@ export default function PricingPage() {
         {/* Bottom CTA */}
         <div style={{
           textAlign: 'center', padding: '2rem',
-          background: 'linear-gradient(135deg, rgba(201,168,76,0.07), rgba(139,124,246,0.07))',
+          background: 'color-mix(in oklab, var(--gold) 6%, var(--surface-1))',
           border: '1px solid var(--border)',
           borderRadius: 'var(--r-lg)', maxWidth: 540, width: '100%',
         }}>

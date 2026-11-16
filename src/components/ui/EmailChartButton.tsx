@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput } from '@/types/astrology'
 import { useTranslations } from 'next-intl'
@@ -101,7 +102,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
           fontSize:       compact ? '0.7rem' : '0.8rem',
           fontWeight:     600,
           fontFamily:     'inherit',
-          transition:     'all 0.15s',
+          transition:     interactiveTransition('0.15s'),
           whiteSpace:     'nowrap',
         }}
       >

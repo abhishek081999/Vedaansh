@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useRouter } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { LucideIcon } from 'lucide-react'
@@ -90,7 +91,7 @@ export function MobileBottomNavShell({
         background: 'none',
         cursor: 'pointer',
         color: active ? 'var(--accent)' : 'var(--text-muted)',
-        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: interactiveTransition('0.2s cubic-bezier(0.4, 0, 0.2, 1)'),
         position: 'relative',
       }}
     >

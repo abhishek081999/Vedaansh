@@ -20,7 +20,6 @@ import { ShadbalaTable }    from '@/components/ui/ShadbalaTable'
 import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
 import { InterpretationHub } from '@/components/ui/InterpretationHub'
 import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
-import { ThemeToggle }      from '@/components/ui/ThemeToggle'
 
 const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
 const TattvaPredictionPanel = dynamic(
@@ -228,7 +227,6 @@ export function PublicChartClient({
           <Link href="/?new=true" className="btn btn-primary btn-sm" style={{ fontSize: '0.82rem' }}>
             {t('nav.newChart')}
           </Link>
-          <ThemeToggle />
         </nav>
       </header>
 

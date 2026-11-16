@@ -15,6 +15,7 @@
  */
 
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
@@ -24,7 +25,6 @@ import { useSession } from 'next-auth/react'
 import {
   Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart, Lock,
 } from 'lucide-react'
-import { ThemeToggle }     from '@/components/ui/ThemeToggle'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { Button }          from '@/components/ui/primitives/Button'
 import { BREAKPOINTS }     from '@/lib/ui/breakpoints'
@@ -114,7 +114,7 @@ function PulseMeter({ pulse }: { pulse: SBCAnalysis['financialPulse'] }) {
         <div style={{ 
           position: 'absolute', top: 0, bottom: 0, left: barLeft, width: barWidth, 
           background: `linear-gradient(to right, ${color}cc, ${color})`, 
-          transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)', 
+          transition: 'left 0.8s cubic-bezier(0.16, 1, 0.3, 1), width 0.8s cubic-bezier(0.16, 1, 0.3, 1)', 
           borderRadius: pulse.score >= 0 ? '0 6px 6px 0' : '6px 0 0 6px' 
         }} />
         <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.2)', zIndex: 5 }} />
@@ -463,7 +463,6 @@ export default function SBCPage() {
         </div>
         <nav style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
           {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>{t('page.muhurta')}</Link>}
-          <ThemeToggle />
         </nav>
       </header>
 
@@ -819,7 +818,7 @@ export default function SBCPage() {
                     color: rightTab === id ? 'var(--text-primary)' : 'var(--text-muted)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                     boxShadow: rightTab === id ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                    transition: 'all 0.2s',
+                    transition: interactiveTransition('0.2s'),
                   }}
                 >
                   <span style={{ fontSize: '0.9rem' }}>{icon}</span>
@@ -1062,7 +1061,7 @@ export default function SBCPage() {
                       background: isActive ? color : 'var(--surface-2)',
                       color: isActive ? '#fff' : 'var(--text-secondary)',
                       fontWeight: isActive ? 800 : 600, fontSize: '0.72rem',
-                      transition: 'all 0.2s',
+                      transition: interactiveTransition('0.2s'),
                       outline: isActive ? `2px solid ${color}` : 'none',
                       outlineOffset: 2,
                       boxShadow: isActive ? `0 2px 12px ${color}40` : 'none',
@@ -1134,7 +1133,7 @@ export default function SBCPage() {
                     style={{
                       padding: '0.875rem', borderRadius: 14, cursor: 'pointer',
                       background: 'var(--surface-1)', border: `1px solid ${vm.color}30`,
-                      transition: 'all 0.2s',
+                      transition: interactiveTransition('0.2s'),
                       boxShadow: isExpanded ? `0 4px 20px ${vm.color}30` : 'none',
                     }}
                   >

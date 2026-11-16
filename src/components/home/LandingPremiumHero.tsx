@@ -6,6 +6,7 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { LandingCosmicWheel, useTodaySky, type CosmicWheelVariant } from '@/components/home/LandingCosmicWheel'
 import { LandingTodaySky } from '@/components/home/LandingTodaySky'
+import { wasLandingPainted } from '@/components/home/landingPaint'
 
 type HeroSlide = {
   id: CosmicWheelVariant
@@ -13,14 +14,21 @@ type HeroSlide = {
   cta: { href?: string; action?: 'openAstrology' | 'openMyChart' }
 }
 
+/**
+ * Handlers are optional: the home page server-renders this hero before the workspace
+ * bundle loads (see HomeClientDynamic). Without handlers, CTAs are plain links.
+ */
 type LandingPremiumHeroProps = {
-  trackLandingCta: (ctaName: string) => void
-  onOpenAstrology: () => void
-  onOpenMyChart: () => void
-  showMyChart: boolean
-  showMyCharts: boolean
-  withChartGate: (href: string, e?: MouseEvent<HTMLElement>) => void
+  trackLandingCta?: (ctaName: string) => void
+  onOpenAstrology?: () => void
+  onOpenMyChart?: () => void
+  showMyChart?: boolean
+  showMyCharts?: boolean
+  withChartGate?: (href: string, e?: MouseEvent<HTMLElement>) => void
 }
+
+const NEW_CHART_HREF = '/?new=true'
+const noop = () => {}
 
 // Copy lives in messages/<locale>/home.json under hero.slides.<id>.
 const HERO_SLIDES: HeroSlide[] = [
@@ -32,15 +40,17 @@ const HERO_SLIDES: HeroSlide[] = [
 ]
 
 export function LandingPremiumHero({
-  trackLandingCta,
+  trackLandingCta = noop,
   onOpenAstrology,
   onOpenMyChart,
-  showMyChart,
-  showMyCharts,
+  showMyChart = false,
+  showMyCharts = false,
   withChartGate,
 }: LandingPremiumHeroProps) {
   const [active, setActive] = useState(0)
   const [prevActive, setPrevActive] = useState(0)
+  // Replacing the server-rendered hero: keep the first slide still instead of animating it in again.
+  const [skipFirstEnter] = useState(wasLandingPainted)
   const [reducedMotion, setReducedMotion] = useState(false)
   const { sky, failed: skyFailed } = useTodaySky()
   const t = useTranslations('home.hero')
@@ -76,19 +86,23 @@ export function LandingPremiumHero({
   const handleSlideCta = () => {
     if (slide.cta.action === 'openAstrology') {
       trackLandingCta(`hero_${slide.id}_open_astrology`)
-      onOpenAstrology()
+      onOpenAstrology?.()
       return
     }
     if (slide.cta.action === 'openMyChart') {
       trackLandingCta(`hero_${slide.id}_open_my_chart`)
-      onOpenMyChart()
+      onOpenMyChart?.()
     }
   }
+
+  const suppressEnter = skipFirstEnter && active === prevActive
+  // Action CTAs need the workspace handlers; until they exist, link to the same destination.
+  const slideHref = slide.cta.action && !onOpenAstrology ? NEW_CHART_HREF : slide.cta.href
 
   return (
     <>
     <section
-      className={`landing-premium-hero landing-premium-hero-carousel fade-up ${reducedMotion ? 'reduced-motion' : ''}`}
+      className={`landing-premium-hero landing-premium-hero-carousel ${suppressEnter ? 'landing-hero-no-enter' : 'fade-up'} ${reducedMotion ? 'reduced-motion' : ''}`}
       style={{ ['--hero-accent' as string]: slide.accent }}
       aria-label={t('ariaLabel')}
     >
@@ -120,7 +134,7 @@ export function LandingPremiumHero({
               </ul>
 
               <div className="landing-premium-hero-ctas landing-hero-carousel-cta">
-                {slide.cta.action ? (
+                {slide.cta.action && !slideHref ? (
                   <button
                     type="button"
                     className="btn btn-primary landing-premium-hero-primary landing-hero-carousel-primary"
@@ -130,11 +144,11 @@ export function LandingPremiumHero({
                   </button>
                 ) : (
                   <Link
-                    href={slide.cta.href ?? '/?new=true'}
+                    href={slideHref ?? NEW_CHART_HREF}
                     className="btn btn-primary landing-premium-hero-primary landing-hero-carousel-primary"
                     onClick={(e) => {
                       trackLandingCta(`hero_${slide.id}_cta`)
-                      withChartGate(slide.cta.href ?? '/?new=true', e as unknown as MouseEvent<HTMLElement>)
+                      withChartGate?.(slideHref ?? NEW_CHART_HREF, e as unknown as MouseEvent<HTMLElement>)
                     }}
                     style={{ textDecoration: 'none' }}
                   >
@@ -147,7 +161,7 @@ export function LandingPremiumHero({
                     className="btn btn-ghost landing-premium-hero-ghost"
                     onClick={() => {
                       trackLandingCta('hero_quick_own_chart')
-                      onOpenMyChart()
+                      onOpenMyChart?.()
                     }}
                   >
                     {t('ownChart')}

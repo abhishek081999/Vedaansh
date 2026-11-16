@@ -1,6 +1,7 @@
 // VargaSwitcher.tsx — plan gated
 'use client'
 import React, { useState, useEffect } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
@@ -113,7 +114,7 @@ function Pill({ meta, plan, state, onClick }: {
       style={{
         padding:'0.26rem 0.65rem', fontSize:'0.82rem',
         fontFamily:'var(--font-mono)', cursor:'pointer',
-        border:'1px solid', borderRadius:'4px', transition:'all 0.12s',
+        border:'1px solid', borderRadius:'4px', transition:interactiveTransition('0.12s'),
         background: !unlocked?'transparent':state==='primary'?'var(--gold-faint)':state==='secondary'?'var(--accent-glow)':'transparent',
         borderColor: !unlocked?'var(--border-soft)':state==='primary'?'var(--gold)':state==='secondary'?'var(--accent)':'var(--border)',
         color: !unlocked?'var(--text-muted)':state==='primary'?'var(--gold)':state==='secondary'?'var(--accent)':'var(--text-muted)',

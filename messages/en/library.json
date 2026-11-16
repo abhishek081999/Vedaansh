@@ -12,7 +12,7 @@
     "milan": "Kundali Milan",
     "numerology": "Numerology"
   },
-  "searchPlaceholder": "Search by name, place, hashtag, or notes...",
+  "searchPlaceholder": "Search by name, place, hashtag, or notes…",
   "filters": {
     "close": "✕ CLOSE",
     "open": "⚙ FILTERS",
@@ -110,7 +110,7 @@
     "syncingLabel": "Syncing celestial notes",
     "empty": "No observations recorded for this chart.",
     "deleteTitle": "Delete observation",
-    "placeholder": "Record a new observation...",
+    "placeholder": "Record a new observation…",
     "addTitle": "Add Note (Cmd/Ctrl + Enter)",
     "savingLabel": "Saving note",
     "hint": "Press <kbd>Cmd/Ctrl + Enter</kbd> to save"
@@ -145,11 +145,11 @@
     "close": "Close chart selector",
     "myCharts": "My Charts ({count})",
     "clients": "CRM Clients ({count})",
-    "searchCharts": "Search name, place, or hashtag...",
-    "searchClients": "Search clients...",
+    "searchCharts": "Search name, place, or hashtag…",
+    "searchClients": "Search clients…",
     "filters": "FILTERS",
     "dateRange": "Date Range",
-    "fetching": "Fetching your library...",
+    "fetching": "Fetching your library…",
     "signInBody": "Sign in to pick a chart from your library.",
     "signIn": "Sign In",
     "signInToLoad": "Please sign in to load your saved charts.",

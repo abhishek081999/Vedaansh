@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, ZoomControl, useMapEvents, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -294,7 +295,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
               <button key={m} onClick={() => setViewMode(m)} style={{
                 background: active ? activeColor : 'transparent', border: 'none',
                 padding: '4px 12px', borderRadius: '7px', cursor: 'pointer', fontSize: '0.72rem',
-                fontWeight: 700, color: active ? '#000' : 'var(--text-muted)', transition: 'all 0.2s',
+                fontWeight: 700, color: active ? '#000' : 'var(--text-muted)', transition: interactiveTransition('0.2s'),
               }}>
                 {tMap(m === 'both' ? 'overlay' : m)}
               </button>
@@ -312,7 +313,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                 background: active ? 'var(--gold-faint)' : 'transparent',
                 border: `1px solid ${active ? 'var(--gold)' : 'var(--border)'}`,
                 color: active ? 'var(--gold)' : 'var(--text-muted)',
-                cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', gap: '4px', alignItems: 'center', transition: 'all 0.2s',
+                cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', gap: '4px', alignItems: 'center', transition: interactiveTransition('0.2s'),
               }}>
                 <span>{theme.icon}</span><span>{tThemes(theme.id)}</span>
               </button>
@@ -398,10 +399,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                     cursor: 'pointer', padding: '6px 9px', borderRadius: '10px',
                     width: '100%', marginBottom: '2px', textAlign: 'left',
                     color: active ? (isDark ? '#f0f0f0' : '#111') : (isDark ? '#4a4a5a' : '#bbb'),
-                    transition: 'all 0.18s ease',
+                    transition: interactiveTransition('0.18s ease'),
                   }}
                 >
-                  <span style={{ fontSize: '1.2rem', color: active ? COLORS[id] : (isDark ? '#3a3a4a' : '#ddd'), filter: active ? `drop-shadow(0 0 5px ${COLORS[id]}80)` : 'none', transition: 'all 0.2s', lineHeight: 1, flexShrink: 0 }}>
+                  <span style={{ fontSize: '1.2rem', color: active ? COLORS[id] : (isDark ? '#3a3a4a' : '#ddd'), filter: active ? `drop-shadow(0 0 5px ${COLORS[id]}80)` : 'none', transition: interactiveTransition('0.2s'), lineHeight: 1, flexShrink: 0 }}>
                     {GLYPHS[id]}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import Image from 'next/image'
 import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 
@@ -84,7 +85,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
     <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg
         viewBox="0 0 300 300"
-        style={{ width: '100%', height: '100%', transition: 'all 0.5s ease' }}
+        style={{ width: '100%', height: '100%', transition: interactiveTransition('0.5s ease') }}
         aria-hidden="true"
       >
         <defs>

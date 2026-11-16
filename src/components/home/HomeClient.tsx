@@ -65,7 +65,6 @@ const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').th
 const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPanel').then(m => m.AstroDetailsPanel), { ssr: false })
 const PlanetDetailCard = dynamic(() => import('@/components/ui/PlanetDetailCard').then(m => m.PlanetDetailCard), { ssr: false })
 const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
-const LandingPremiumHero = dynamic(() => import('@/components/home/LandingPremiumHero').then(m => m.LandingPremiumHero), { ssr: false })
 const LandingStickyMobileCta = dynamic(() => import('@/components/home/LandingStickyMobileCta').then(m => m.LandingStickyMobileCta), { ssr: false })
 const AboutPreview = dynamic(() => import('@/components/about/AboutPreview').then(m => m.AboutPreview), { ssr: false })
 const LandingWorkspaceShowcase = dynamic(() => import('@/components/home/LandingWorkspaceShowcase').then(m => m.LandingWorkspaceShowcase), { ssr: false })
@@ -84,6 +83,7 @@ import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/t
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import { LandingShell } from '@/components/home/LandingShell'
+import { LandingPremiumHero } from '@/components/home/LandingPremiumHero'
 import { LandingExplore } from '@/components/home/LandingExplore'
 import landingStyles from '@/components/home/LandingSections.module.css'
 import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
@@ -413,7 +413,7 @@ function fmtClock(value: Date | string | number, tz: string): string {
 
 import { Suspense } from 'react'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
-import { LandingReveal } from '@/components/home/LandingReveal'
+import { LandingSection } from '@/components/home/LandingSection'
 
 /** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
 function buildChartShareUrl(chart: ChartOutput): string {
@@ -3113,19 +3113,19 @@ function HomeContent() {
                 withChartGate={openSectionWithChartGate}
               />
 
-              <LandingReveal as="section" id="landing-horoscope" className="landing-section-row">
+              <LandingSection as="section" id="landing-horoscope" className="landing-section-row">
                 <DailyHoroscope variant="landing" onNavigate={trackLandingCta} onFindMoonSign={openAstrologyApp} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" className="landing-section-row landing-section-row--gold landing-major-sections">
+              <LandingSection as="section" className="landing-section-row landing-section-row--gold landing-major-sections">
                 <LandingExplore trackLandingCta={trackLandingCta} withChartGate={openSectionWithChartGate} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" className="landing-section-row landing-section-row--gold">
+              <LandingSection as="section" className="landing-section-row landing-section-row--gold">
                 <LandingWorkspaceShowcase onOpen={() => { trackLandingCta('showcase_calculate'); openAstrologyApp() }} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" className="landing-section-row landing-section-row--gold" delay={60}>
+              <LandingSection as="section" className="landing-section-row landing-section-row--gold">
                 <div className="landing-section-row-content">
                   <VedicSectionHeader
                     kicker={tHome('why.kicker')}
@@ -3133,11 +3133,11 @@ function HomeContent() {
                     description={tHome('why.description')}
                     theme="gold"
                   />
-                  <div className="landing-premium-pillars landing-reveal-stagger">
+                  <div className="landing-premium-pillars">
                     {landingWhyVedaansh.map((item, idx) => {
                       const PillarIcon = item.icon;
                       return (
-                        <article key={item.id} className="landing-premium-pillar" style={{ ['--stagger-i' as string]: idx }}>
+                        <article key={item.id} className="landing-premium-pillar">
                           <div className="landing-premium-pillar-icon">
                             <PillarIcon size={22} strokeWidth={1.75} />
                           </div>
@@ -3156,18 +3156,18 @@ function HomeContent() {
                     ))}
                   </div>
                 </div>
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" className="landing-section-row landing-section-row--gold landing-flow-card" delay={80}>
+              <LandingSection as="section" className="landing-section-row landing-section-row--gold landing-flow-card">
                 <div className="landing-section-row-content">
                   <VedicSectionHeader
                     kicker={tHome('how.kicker')}
                     title={tHome('how.title')}
                     theme="gold"
                   />
-                  <div className="landing-flow-grid landing-reveal-stagger landing-flow-grid--animated">
+                  <div className="landing-flow-grid landing-flow-grid--animated">
                     {landingJourney.map((item, idx) => (
-                      <article key={item.step} className="landing-premium-pillar landing-flow-step" style={{ ['--stagger-i' as string]: idx }}>
+                      <article key={item.step} className="landing-premium-pillar landing-flow-step">
                         <span className="landing-flow-step-num">{item.step}</span>
                         <h4 className="landing-premium-pillar-title">{item.title}</h4>
                         <p className="landing-premium-pillar-desc">{item.text}</p>
@@ -3175,31 +3175,31 @@ function HomeContent() {
                     ))}
                   </div>
                 </div>
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" className="landing-section-row landing-section-row--gold">
+              <LandingSection as="section" className="landing-section-row landing-section-row--gold">
                 <LandingAudience trackLandingCta={trackLandingCta} withChartGate={openSectionWithChartGate} />
-              </LandingReveal>
+              </LandingSection>
 
               <LandingTestimonials />
 
-              <LandingReveal as="section" id="landing-plans" className="landing-section-row landing-section-row--gold">
+              <LandingSection as="section" id="landing-plans" className="landing-section-row landing-section-row--gold">
                 <LandingPlans trackLandingCta={trackLandingCta} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" className="landing-section-row landing-section-row--gold">
+              <LandingSection as="section" className="landing-section-row landing-section-row--gold">
                 <LandingGuides trackLandingCta={trackLandingCta} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal>
+              <LandingSection>
                 <LandingInstallStrip trackLandingCta={trackLandingCta} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal delay={100}>
+              <LandingSection>
                 <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
-              </LandingReveal>
+              </LandingSection>
 
-              <LandingReveal as="section" id="landing-cta-band" className={`landing-cta-band landing-premium-cta ${landingStyles.ctaBand}`} delay={120}>
+              <LandingSection as="section" id="landing-cta-band" className={`landing-cta-band landing-premium-cta ${landingStyles.ctaBand}`}>
                 <div>
                   <div className="label-caps landing-premium-cta-kicker">{tHome('ctaBand.kicker')}</div>
                   <h3 className="landing-premium-cta-title">{tHome('ctaBand.title')}</h3>
@@ -3217,7 +3217,7 @@ function HomeContent() {
                     </Link>
                   )}
                 </div>
-              </LandingReveal>
+              </LandingSection>
 
               <LandingStickyMobileCta
                 onClick={() => {

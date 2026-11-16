@@ -1,6 +1,7 @@
 'use client'
 // src/app/compare/page.tsx — Professional Kundali Matching & Comparison
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useState, useMemo, useRef, useCallback, useEffect, Suspense } from 'react'
 import React from 'react'
 import dynamic from 'next/dynamic'
@@ -561,7 +562,7 @@ function CompareContent() {
                     fontSize: '0.85rem',
                     fontWeight: view === id ? 700 : 400,
                     color: view === id ? 'var(--text-gold)' : 'var(--text-muted)',
-                    transition: 'all 0.2s'
+                    transition: interactiveTransition('0.2s')
                   }}
                 >
                   {label}

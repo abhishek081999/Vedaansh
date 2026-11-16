@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { markLandingPainted, wasLandingPainted } from '@/components/home/landingPaint'
 
 const LANDING_STARS = Array.from({ length: 28 }, (_, i) => ({
   left: `${(i * 37 + 11) % 100}%`,
@@ -126,8 +127,14 @@ export function LandingVedicDivider() {
 }
 
 export function LandingShell({ children }: { children: React.ReactNode }) {
+  // The server-rendered hero is replaced by the interactive one — don't fade the page in twice.
+  const [skipEnter] = React.useState(wasLandingPainted)
+  React.useEffect(() => {
+    markLandingPainted()
+  }, [])
+
   return (
-    <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
+    <div className={skipEnter ? 'landing-shell' : 'fade-in landing-shell'} style={{ width: '100%', maxWidth: 1240 }}>
       <LandingAmbient />
       {children}
     </div>

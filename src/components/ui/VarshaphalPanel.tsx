@@ -6,6 +6,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
@@ -127,7 +128,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                 fontFamily: 'var(--font-mono)', fontSize: '0.82rem',
                 fontWeight: year === y ? 700 : 400,
                 color: year === y ? '#000' : 'var(--text-secondary)',
-                transition: 'all 0.2s',
+                transition: interactiveTransition('0.2s'),
                 display: 'flex', alignItems: 'center', gap: '4px'
               }}>
                 {y}

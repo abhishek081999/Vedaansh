@@ -67,7 +67,9 @@ gtag('config', '${GA_ID}', { page_path: window.location.pathname });
 `.trim()
 
 // ── Prevent theme flash ───────────────────────────────────────
-const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':t==='dark'?'dark':'classic')}catch(e){}})();`
+// <html> ships data-theme="classic" (the default) so first paint never flashes the dark :root tokens.
+// Browser chrome colour per theme — keep in sync with THEME_CHROME in ThemeToggle.tsx.
+const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');t=t==='light'?'light':t==='dark'?'dark':'classic';document.documentElement.setAttribute('data-theme',t);var c={dark:'#09090f',light:'#ffffff',classic:'#8c0030'}[t];var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',c)}catch(e){}})();`
 
 const BASE_URL = SITE_URL
 
@@ -222,10 +224,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // ── Viewport ──────────────────────────────────────────────────
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: dark)',  color: '#0b0b14' },
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-  ],
+  // Classic (default theme) header maroon; ThemeToggle / theme-init update it for dark and light.
+  themeColor: '#8c0030',
   width:          'device-width',
   initialScale:    1,
   maximumScale:    5,
@@ -318,7 +318,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ) as AbstractIntlMessages
 
   return (
-    <html lang={LOCALE_TAGS[locale]} suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${notoDevanagari.variable}`}>
+    <html lang={LOCALE_TAGS[locale]} data-theme="classic" suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${notoDevanagari.variable}`}>
       <head>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

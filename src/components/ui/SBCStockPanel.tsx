@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import type { SBCAnalysisExtended } from '@/lib/engine/sarvatobhadra'
 import { useLang } from '@/i18n/useLang'
@@ -531,7 +532,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
               fontWeight: activeTab === tab.id ? 700 : 500,
               fontSize: '0.72rem', whiteSpace: 'nowrap',
               boxShadow: activeTab === tab.id ? '0 2px 10px rgba(0,0,0,0.2)' : 'none',
-              transition: 'all 0.2s',
+              transition: interactiveTransition('0.2s'),
               display: 'flex', alignItems: 'center', gap: '0.35rem',
             }}
           >
@@ -575,7 +576,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
                   width: `${Math.abs(signal.score) / 10 * 50}%`,
                   background: `linear-gradient(90deg, ${signal.color}, ${signal.color}88)`,
                   borderRadius: signal.score >= 0 ? '0 10px 10px 0' : '10px 0 0 10px',
-                  transition: 'all 0.6s ease',
+                  transition: 'left 0.6s ease, width 0.6s ease',
                 }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>

@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useSession, signOut } from 'next-auth/react'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -835,7 +836,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               opacity: showScrollTop ? 1 : 0,
               transform: showScrollTop ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.8)',
               pointerEvents: showScrollTop ? 'auto' : 'none',
-              transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: interactiveTransition('0.4s cubic-bezier(0.16, 1, 0.3, 1)'),
             }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'var(--gold-faint)'

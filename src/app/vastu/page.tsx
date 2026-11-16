@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
@@ -171,7 +172,7 @@ export default function VastuPage() {
                 padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem',
                 border: '1px solid rgba(201,168,76,0.35)',
                 background: chartExpanded ? 'rgba(201,168,76,0.15)' : 'transparent',
-                color: 'var(--text-gold)', cursor: 'pointer', transition: 'all 0.2s',
+                color: 'var(--text-gold)', cursor: 'pointer', transition: interactiveTransition('0.2s'),
                 whiteSpace: 'nowrap',
               }}
             >

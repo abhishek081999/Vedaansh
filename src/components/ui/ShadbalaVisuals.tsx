@@ -5,6 +5,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import type { ShadbalaResult, ShadbalaPlanet } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
@@ -91,7 +92,7 @@ function RadarChart({ data, color, size = 120 }: { data: number[], color: string
           stroke={color} 
           strokeWidth="2" 
           strokeLinejoin="round"
-          style={{ transition: 'all 0.4s ease' }}
+          style={{ transition: interactiveTransition('0.4s ease') }}
         />
         {/* Points */}
         {data.map((val, i) => {
@@ -270,7 +271,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: interactiveTransition('0.3s cubic-bezier(0.4, 0, 0.2, 1)'),
                 transform: isHovered ? 'translateY(-4px)' : 'none',
                 boxShadow: isHovered ? `0 12px 24px rgba(0,0,0,0.3), 0 0 10px ${col}22` : 'none',
                 animationDelay: `${index * 0.05}s`

@@ -6,6 +6,7 @@
  */
 
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
@@ -15,7 +16,6 @@ import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { Check, Lightbulb, Lock, X } from 'lucide-react'
 import { formatInTimeZone } from 'date-fns-tz'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, Rashi, UserPlan } from '@/types/astrology'
 import { useChartStyle } from '@/components/providers/ChartStyleProvider'
@@ -594,7 +594,6 @@ export default function PrashnaPage() {
             style={{ padding: '0.35rem 0.6rem', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--surface-2)', cursor: 'pointer', fontSize: '0.85rem' }}>
             🖨️
           </button>}
-          <ThemeToggle />
         </div>
       </header>
 
@@ -742,7 +741,7 @@ export default function PrashnaPage() {
                         borderRadius: 7, padding: '0.3rem 0.15rem',
                         background: category === cat ? `${verdictColor}18` : 'var(--surface-2)',
                         cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                        transition: 'all 0.15s',
+                        transition: interactiveTransition('0.15s'),
                       }}>
                       <span style={{ fontSize: '1rem' }}>{CATEGORY_ICONS[cat]}</span>
                       <span style={{ fontSize: '0.48rem', color: category === cat ? verdictColor : 'var(--text-muted)', fontWeight: 600, lineHeight: 1.2, textAlign: 'center' }}>

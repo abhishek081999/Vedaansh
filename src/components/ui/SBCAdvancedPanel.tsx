@@ -13,6 +13,7 @@
  */
 
 import { useState, useMemo } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import type { SBCCell, SBCGrahaInput, SBCAnalysisExtended, VedhaResult, TithiInfo } from '@/lib/engine/sarvatobhadra'
 import { SBC_NAK_POS, nakFromLon, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
@@ -724,7 +725,7 @@ export function SBCAdvancedPanel({ grid, transitRaw, natalGrahas, analysis, tith
               fontWeight: activeTab === tab.id ? 700 : 500,
               fontSize:'0.72rem', whiteSpace:'nowrap',
               boxShadow: activeTab === tab.id ? '0 2px 10px rgba(0,0,0,0.2)' : 'none',
-              transition:'all 0.2s',
+              transition:interactiveTransition('0.2s'),
               display:'flex', alignItems:'center', gap:'0.35rem',
             }}
           >
@@ -1032,7 +1033,7 @@ export function SBCAdvancedPanel({ grid, transitRaw, natalGrahas, analysis, tith
                     color: predictMode===key ? m.color : 'var(--text-muted)',
                     fontWeight: predictMode===key ? 700 : 500,
                     fontSize:'0.75rem', cursor:'pointer', display:'flex', alignItems:'center', gap:'0.4rem',
-                    transition:'all 0.2s',
+                    transition:interactiveTransition('0.2s'),
                   }}
                 >
                   <span>{m.icon}</span><span>{m.label}</span>
