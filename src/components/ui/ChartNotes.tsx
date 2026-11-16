@@ -110,14 +110,14 @@ export function ChartNotes({ chartId }: { chartId: string }) {
           {notes.map(note => (
             <div 
               key={note._id} 
-              className="p-3 bg-surface-2 border border-border/60 rounded-sm text-[0.85rem] flex gap-3 group transition-all hover:border-gold/30 hover:bg-surface-3"
+              className="p-3 bg-surface-2 border border-border/60 rounded-sm text-[0.85rem] flex gap-3 group transition hover:border-gold/30 hover:bg-surface-3"
             >
               <div className="flex-1 whitespace-pre-wrap text-secondary leading-relaxed">{note.content}</div>
               <div className="flex flex-col items-end gap-2 shrink-0">
                 <span className="text-[0.65rem] text-muted opacity-70 italic">{new Date(note.createdAt).toLocaleString(tag, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 <button
                   onClick={() => handleDelete(note._id)}
-                  className="text-rose opacity-0 group-hover:opacity-60 hover:opacity-100 transition-all p-1 hover:scale-110"
+                  className="text-rose opacity-0 group-hover:opacity-60 hover:opacity-100 transition p-1 hover:scale-110"
                   title={t('deleteTitle')}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -141,7 +141,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
         <button
           onClick={handleAdd}
           disabled={saving || !newNote.trim()}
-          className="btn btn-primary h-auto py-1.5 px-3 disabled:opacity-30 self-end transition-all hover:scale-105 active:scale-95"
+          className="btn btn-primary h-auto py-1.5 px-3 disabled:opacity-30 self-end transition hover:scale-105 active:scale-95"
           title={t('addTitle')}
         >
           {saving ? <Spinner size={16} label={t('savingLabel')} /> : <Plus className="w-4 h-4" />}

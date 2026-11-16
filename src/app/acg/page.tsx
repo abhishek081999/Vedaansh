@@ -193,8 +193,8 @@ export default function ACGPage() {
             <div className="card-gold" style={{ padding: '1.1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>💡</span>
               <div>
-                <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 700, fontSize: '0.82rem' }}>{t('tipTitle')}</p>
-                <p style={{ margin: '0.3rem 0 0', color: 'var(--text-on-gold)', opacity: 0.82, fontSize: '0.73rem', lineHeight: 1.45 }}>
+                <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.82rem' }}>{t('tipTitle')}</p>
+                <p style={{ margin: '0.3rem 0 0', color: 'var(--text-secondary)', fontSize: '0.73rem', lineHeight: 1.45 }}>
                   {t('tipBody')}
                 </p>
               </div>

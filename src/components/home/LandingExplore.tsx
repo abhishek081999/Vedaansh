@@ -140,7 +140,6 @@ export function LandingExplore({ trackLandingCta, withChartGate }: LandingExplor
               className={`lj-lane lj-lane--${group.id}`}
               data-active={activeLane === group.id}
               aria-labelledby={`lj-lane-title-${group.id}`}
-              style={{ ['--stagger-i' as string]: groupIdx }}
             >
               <header className="lj-lane-head">
                 <span className="lj-lane-num" aria-hidden="true">

@@ -6,6 +6,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import type { GrahaData, ChartOutput } from '@/types/astrology'
 import { useTranslations } from 'next-intl'
 
@@ -82,7 +83,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
       border: `1px solid ${enabled ? 'rgba(139,124,246,0.35)' : 'var(--border)'}`,
       borderRadius: 'var(--r-md)',
       padding: '0.75rem 1rem',
-      transition: 'all 0.2s',
+      transition: interactiveTransition('0.2s'),
     }}>
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
@@ -329,7 +330,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
                     display: 'flex', flexDirection: 'column', gap: '0.2rem',
                     padding: '0.85rem 1rem', background: 'var(--surface-2)',
                     border: '1px solid var(--border-soft)', borderRadius: 'var(--r-lg)',
-                    textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
+                    textAlign: 'left', cursor: 'pointer', transition: interactiveTransition('0.15s'),
                     position: 'relative', overflow: 'hidden',
                   }}
                   onMouseEnter={e => {

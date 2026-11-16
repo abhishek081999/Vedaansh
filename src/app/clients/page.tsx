@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
@@ -178,7 +179,7 @@ function ClientCard({
       borderRadius: 'var(--r-xl)',
       padding: '1.25rem',
       display: 'flex', flexDirection: 'column', gap: '0.75rem',
-      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: interactiveTransition('0.2s cubic-bezier(0.4, 0, 0.2, 1)'),
       position: 'relative',
       overflow: 'hidden'
     }}

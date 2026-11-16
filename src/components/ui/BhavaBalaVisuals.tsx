@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import type { BhavaBalaHouse, BhavaBalaResult, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
@@ -345,7 +346,7 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
                     borderRadius: 'var(--r-md)',
                     background: active ? 'var(--surface-2)' : 'var(--surface-1)',
                     border: `1px solid ${active ? 'var(--text-gold)' : 'var(--border)'}`,
-                    transition: 'all 0.2s ease',
+                    transition: interactiveTransition('0.2s ease'),
                     cursor: 'pointer'
                   }}
                 >

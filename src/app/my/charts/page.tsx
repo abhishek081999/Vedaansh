@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useLang } from '@/i18n/useLang'
 import { useTranslations } from 'next-intl'
 import React, { useState, useEffect, useCallback } from 'react'
@@ -243,7 +244,7 @@ function ChartCard({
             background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem',
             color: isDefault ? 'var(--gold)' : 'var(--text-muted)',
             opacity: isDefault ? 1 : 0.3,
-            transition: 'all 0.2s',
+            transition: interactiveTransition('0.2s'),
             padding: '2px',
           }}
           onMouseEnter={e => e.currentTarget.style.opacity = '1'}
@@ -331,7 +332,7 @@ function ChartCard({
             color: 'var(--text-accent, #8b5cf6)',
             cursor: exporting ? 'wait' : 'pointer',
             display: 'flex', alignItems: 'center', gap: '0.3rem',
-            transition: 'all 0.15s',
+            transition: interactiveTransition('0.15s'),
             opacity: exporting ? 0.6 : 1,
           }}
         >
@@ -352,7 +353,7 @@ function ChartCard({
             color: chart.isPublic ? 'var(--teal)' : 'var(--text-muted)',
             cursor: toggling ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', gap: '0.3rem',
-            transition: 'all 0.15s',
+            transition: interactiveTransition('0.15s'),
           }}
         >
           {toggling ? '…' : chart.isPublic ? t('card.publicBtn') : t('card.shareBtn')}
@@ -390,7 +391,7 @@ function ChartCard({
             fontSize: '0.78rem',
             color: confirmDel ? 'var(--rose)' : 'var(--text-muted)',
             cursor: 'pointer',
-            transition: 'all 0.15s',
+            transition: interactiveTransition('0.15s'),
           }}
           onBlur={() => setConfirmDel(false)}
         >
@@ -409,7 +410,7 @@ function ChartCard({
             fontSize: '0.78rem',
             color: showTags ? 'var(--gold)' : 'var(--text-muted)',
             cursor: 'pointer',
-            transition: 'all 0.15s',
+            transition: interactiveTransition('0.15s'),
             fontWeight: 600,
           }}
         >
@@ -428,7 +429,7 @@ function ChartCard({
             fontSize: '0.78rem',
             color: showNotes ? 'var(--accent)' : 'var(--text-muted)',
             cursor: 'pointer',
-            transition: 'all 0.15s',
+            transition: interactiveTransition('0.15s'),
           }}
         >
           ✏

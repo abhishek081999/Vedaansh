@@ -1,5 +1,6 @@
 'use client'
 import React, { useMemo, useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { format, addYears, isWithinInterval } from 'date-fns'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
@@ -269,7 +270,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
                   fontWeight: activeCycle === i ? 700 : 500,
                   fontSize: '0.75rem',
                   whiteSpace: 'nowrap',
-                  transition: 'all 0.2s'
+                  transition: interactiveTransition('0.2s')
                 }}
               >
                 {t('cycleBtn', { n: i + 1, from: i * 12 + 1, to: (i + 1) * 12 })}

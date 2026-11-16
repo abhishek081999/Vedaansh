@@ -4,6 +4,7 @@
 //  Tabbed ACG analysis: Top Cities · Parans · Planetary Guide
 // ─────────────────────────────────────────────────────────────
 import React, { useMemo, useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import { getAcgInterpretation } from '@/lib/engine/astroInterpretation'
 import { grahaName } from '@/i18n/jyotish'
@@ -191,7 +192,7 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                 color: tab === id ? 'var(--text-primary)' : 'var(--text-muted)',
                 display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center',
                 boxShadow: tab === id ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                transition: 'all 0.2s',
+                transition: interactiveTransition('0.2s'),
               }}
             >
               <span>{icon}</span><span>{tTabs(id)}</span>
@@ -353,7 +354,7 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                     background: lifeArea === a ? 'var(--gold-faint)' : 'transparent',
                     border: `1px solid ${lifeArea === a ? 'var(--gold)' : 'var(--border)'}`,
                     color: lifeArea === a ? 'var(--gold)' : 'var(--text-muted)',
-                    cursor: 'pointer', display: 'flex', gap: '4px', alignItems: 'center', transition: 'all 0.2s',
+                    cursor: 'pointer', display: 'flex', gap: '4px', alignItems: 'center', transition: interactiveTransition('0.2s'),
                   }}
                 >
                   <span>{icon}</span><span>{tGuide(a)}</span>

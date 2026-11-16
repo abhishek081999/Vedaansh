@@ -1,5 +1,6 @@
 'use client'
 import { Link } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useCallback, useMemo, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap, Lock } from 'lucide-react'
@@ -276,7 +277,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
             </p>
             <div style={{ display: 'flex', background: 'var(--surface-3)', padding: '3px', borderRadius: '10px', width: 'fit-content', border: '1px solid var(--border-soft)', gap: '2px' }}>
               {(['8', '16'] as const).map(m => (
-                <button key={m} onClick={() => { setMode(m); setSelectedZone(null) }} style={{ padding: '0.42rem 1rem', borderRadius: '7px', border: 'none', background: mode === m ? 'var(--gold)' : 'transparent', color: mode === m ? 'var(--text-on-gold)' : 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.25s', fontWeight: 600, fontSize: '0.78rem', boxShadow: mode === m ? '0 2px 10px rgba(201,168,76,0.35)' : 'none', fontFamily: 'inherit' }}>
+                <button key={m} onClick={() => { setMode(m); setSelectedZone(null) }} style={{ padding: '0.42rem 1rem', borderRadius: '7px', border: 'none', background: mode === m ? 'var(--gold)' : 'transparent', color: mode === m ? 'var(--text-on-gold)' : 'var(--text-secondary)', cursor: 'pointer', transition: interactiveTransition('0.25s'), fontWeight: 600, fontSize: '0.78rem', boxShadow: mode === m ? '0 2px 10px rgba(201,168,76,0.35)' : 'none', fontFamily: 'inherit' }}>
                   {t('hero.kona', { count: m })}
                 </button>
               ))}
@@ -427,7 +428,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                     <path key={zone.id} onClick={() => setSelectedZone(active ? null : zone.id)} className="zone-segment"
                       d={`M 100 100 L ${x1} ${y1} A 89 89 0 0 1 ${x2} ${y2} Z`}
                       fill={col} stroke={active ? col : 'var(--border)'} strokeWidth={active ? 1.2 : 0.4}
-                      style={{ cursor: 'pointer', transition: 'all 0.3s', opacity: active ? 0.58 : zone.score > 70 ? 0.2 : zone.score < 40 ? 0.14 : 0.11, filter: active ? 'url(#segGlow)' : 'none' }}
+                      style={{ cursor: 'pointer', transition: interactiveTransition('0.3s'), opacity: active ? 0.58 : zone.score > 70 ? 0.2 : zone.score < 40 ? 0.14 : 0.11, filter: active ? 'url(#segGlow)' : 'none' }}
                     />
                   )
                 })}
@@ -438,7 +439,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   const tx = 100+70*Math.cos(angle), ty = 100+70*Math.sin(angle)
                   const active = selectedZone === zone.id
                   const col = zone.score > 70 ? '#4ecdc4' : zone.score < 40 ? '#e07b8e' : '#c9a84c'
-                  return <text key={'lbl-'+zone.id} x={tx} y={ty} textAnchor="middle" fill={active ? col : 'var(--text-muted)'} fontSize={mode==='16'?3.8:5.5} fontWeight={active?800:500} transform={`rotate(90 ${tx} ${ty})`} style={{ transition: 'all 0.3s', pointerEvents: 'none' }}>{zone.id}</text>
+                  return <text key={'lbl-'+zone.id} x={tx} y={ty} textAnchor="middle" fill={active ? col : 'var(--text-muted)'} fontSize={mode==='16'?3.8:5.5} fontWeight={active?800:500} transform={`rotate(90 ${tx} ${ty})`} style={{ transition: interactiveTransition('0.3s'), pointerEvents: 'none' }}>{zone.id}</text>
                 })}
 
                 {/* Score dots */}
@@ -459,7 +460,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
               {/* Planet overlays */}
               {positionedPlanets.map(p => (
                 <div key={p.id} title={t('chart.planetTip', { graha: gname(p.id), deg: Math.floor(p.degree), rashi: rname(p.rashi), retro: p.isRetro ? t('chart.retro') : '' })}
-                  style={{ position: 'absolute', top: '50%', left: '50%', transform: `rotate(${p.angle}deg) translateX(${isMobile?p.r*0.78:p.r}px)`, background: p.isRetro ? 'rgba(224,123,142,0.18)' : 'var(--surface-4)', backdropFilter: 'blur(4px)', borderRadius: '50%', width: isMobile?'22px':'28px', height: isMobile?'22px':'28px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile?'0.55rem':'0.65rem', fontWeight: 800, border: `2px solid ${p.isRetro?'var(--rose)':'var(--gold)'}`, boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 8px ${p.isRetro?'rgba(224,123,142,0.4)':'rgba(201,168,76,0.3)'}`, zIndex: 10, cursor: 'help', transition: 'all 0.5s cubic-bezier(0.22,1,0.36,1)' }}>
+                  style={{ position: 'absolute', top: '50%', left: '50%', transform: `rotate(${p.angle}deg) translateX(${isMobile?p.r*0.78:p.r}px)`, background: p.isRetro ? 'rgba(224,123,142,0.18)' : 'var(--surface-4)', backdropFilter: 'blur(4px)', borderRadius: '50%', width: isMobile?'22px':'28px', height: isMobile?'22px':'28px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile?'0.55rem':'0.65rem', fontWeight: 800, border: `2px solid ${p.isRetro?'var(--rose)':'var(--gold)'}`, boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 8px ${p.isRetro?'rgba(224,123,142,0.4)':'rgba(201,168,76,0.3)'}`, zIndex: 10, cursor: 'help', transition: interactiveTransition('0.5s cubic-bezier(0.22,1,0.36,1)') }}>
                   <span style={{ transform: `rotate(${-p.angle}deg)`, color: p.isRetro?'var(--rose)':'var(--text-gold)' }}>{p.id}</span>
                 </div>
               ))}
@@ -540,7 +541,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   {analysis.map(zone => {
                     const sc = zone.score > 70 ? 'var(--teal)' : zone.score < 40 ? 'var(--rose)' : 'var(--gold)'
                     return (
-                      <button key={zone.id} onClick={() => setSelectedZone(zone.id)} className="vastu-zone-card" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.6rem 0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s', fontFamily: 'inherit' }}>
+                      <button key={zone.id} onClick={() => setSelectedZone(zone.id)} className="vastu-zone-card" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.6rem 0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', width: '100%', transition: interactiveTransition('0.2s'), fontFamily: 'inherit' }}>
                         <div style={{ width: 9, height: 9, borderRadius: '50%', background: sc, flexShrink: 0, boxShadow: `0 0 6px ${sc}` }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.83rem', display: 'flex', justifyContent: 'space-between' }}>
@@ -610,8 +611,8 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                 const fill = d.center ? 'rgba(201,168,76,0.28)' : malHit ? 'var(--rose)' : benHit ? 'var(--teal)' : 'transparent'
                 return (
                   <g key={d.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedDeity(d.id)}>
-                    <rect x={d.x*10} y={d.y*10} width={d.w*10} height={d.h*10} fill={fill} fillOpacity={active?0.42:d.center?0.28:fill==='transparent'?0:0.2} stroke={active||d.center?'var(--gold)':'var(--border-soft)'} strokeWidth={active||d.center?0.9:0.2} style={{ transition: 'all 0.2s' }}/>
-                    {d.w >= 1 && d.h >= 1 && <text x={d.x*10+d.w*5} y={d.y*10+d.h*5} fontSize={d.center?4.5:2.1} textAnchor="middle" dominantBaseline="middle" fill={active?'var(--text-gold)':d.center?'var(--text-gold)':'var(--text-muted)'} fontWeight={d.center?800:active||malHit||benHit?700:400} style={{ pointerEvents: 'none', transition: 'all 0.2s' }}>{d.name.substring(0,10)}</text>}
+                    <rect x={d.x*10} y={d.y*10} width={d.w*10} height={d.h*10} fill={fill} fillOpacity={active?0.42:d.center?0.28:fill==='transparent'?0:0.2} stroke={active||d.center?'var(--gold)':'var(--border-soft)'} strokeWidth={active||d.center?0.9:0.2} style={{ transition: interactiveTransition('0.2s') }}/>
+                    {d.w >= 1 && d.h >= 1 && <text x={d.x*10+d.w*5} y={d.y*10+d.h*5} fontSize={d.center?4.5:2.1} textAnchor="middle" dominantBaseline="middle" fill={active?'var(--text-gold)':d.center?'var(--text-gold)':'var(--text-muted)'} fontWeight={d.center?800:active||malHit||benHit?700:400} style={{ pointerEvents: 'none', transition: interactiveTransition('0.2s') }}>{d.name.substring(0,10)}</text>}
                     {hits.length > 0 && <circle cx={d.x*10+d.w*10-2} cy={d.y*10+2} r="1.3" fill={malHit?'var(--rose)':'var(--teal)'}/>}
                   </g>
                 )

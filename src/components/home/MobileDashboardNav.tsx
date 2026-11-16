@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import type { LucideIcon } from 'lucide-react'
@@ -106,7 +107,7 @@ export function MobileDashboardNav({
                     background: 'none',
                     cursor: 'pointer',
                     color: active ? 'var(--accent)' : 'var(--text-muted)',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: interactiveTransition('0.2s cubic-bezier(0.4, 0, 0.2, 1)'),
                     position: 'relative',
                     minWidth: 0,
                   }}
@@ -196,7 +197,7 @@ export function MobileDashboardNav({
                     background: 'none',
                     cursor: 'pointer',
                     color: active ? 'var(--accent)' : 'var(--text-muted)',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: interactiveTransition('0.2s cubic-bezier(0.4, 0, 0.2, 1)'),
                     position: 'relative',
                     scrollSnapAlign: 'center',
                   }}

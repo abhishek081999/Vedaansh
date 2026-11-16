@@ -6,6 +6,7 @@
 // - Browser geolocation ("My location")
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 
 export interface LocationValue {
@@ -178,7 +179,7 @@ export function LocationPicker({ value, onChange, label: labelProp, birthLocatio
             background: 'var(--surface-3)', border: '1px solid var(--border-soft)',
             borderRadius: 'var(--r-sm)', color: 'var(--text-secondary)',
             cursor: geoLoading ? 'wait' : 'pointer', opacity: geoLoading ? 0.6 : 1,
-            transition: 'all 0.15s',
+            transition: interactiveTransition('0.15s'),
           }}
         >
           {geoLoading ? '\u27f3' : '\ud83d\udccd'} {geoLoading ? t('locating') : t('mine')}
@@ -196,7 +197,7 @@ export function LocationPicker({ value, onChange, label: labelProp, birthLocatio
               border: `1px solid ${showBirthHighlight ? 'rgba(184,134,11,0.3)' : 'var(--border-soft)'}`,
               borderRadius: 'var(--r-sm)',
               color: showBirthHighlight ? 'var(--text-gold)' : 'var(--text-muted)',
-              cursor: 'pointer', transition: 'all 0.15s',
+              cursor: 'pointer', transition: interactiveTransition('0.15s'),
               maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}
           >

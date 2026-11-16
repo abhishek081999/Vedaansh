@@ -9,13 +9,23 @@ import { homeIntro } from '@/lib/seo/intro-content.hi'
 import { faqJsonLd } from '@/lib/seo/site'
 import { isAppLocale } from '@/i18n/config'
 
-export default async function Page() {
+// HomeClient reads these to open a saved chart, the birth form or a chart from URL details.
+const WORKSPACE_PARAMS = ['chartId', 'new', 'name'] as const
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const raw = await getLocale()
+  const params = await searchParams
   const { seo, faq } = homeIntro(isAppLocale(raw) ? raw : 'en')
+  // Plain landing visit: server-render the hero so it paints before the workspace bundle loads.
+  const staticHero = WORKSPACE_PARAMS.every((key) => params[key] === undefined)
   return (
     <>
       <JsonLd data={faqJsonLd(faq)} />
-      <HomeClientDynamic />
+      <HomeClientDynamic staticHero={staticHero} />
       <SeoIntro {...seo} faq={faq} compact />
       <SiteFooter />
     </>

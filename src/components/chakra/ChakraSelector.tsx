@@ -7,6 +7,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
@@ -295,7 +296,7 @@ export function ChakraSelector({
               borderRadius: '6px', border: '1px solid var(--border-soft)',
               background: resolvedShowSettings ? 'var(--gold-faint)' : 'transparent',
               color: resolvedShowSettings ? 'var(--gold)' : 'var(--text-muted)',
-              cursor: 'pointer', transition: 'all 0.2s',
+              cursor: 'pointer', transition: interactiveTransition('0.2s'),
               boxShadow: 'var(--shadow-sm)',
               fontFamily: 'var(--font-chart-planets)',
               letterSpacing: '0.04em',
@@ -330,7 +331,7 @@ export function ChakraSelector({
                     padding: '0.35rem 0.75rem', fontSize: '0.75rem',
                     fontFamily: 'var(--font-chart-planets)', letterSpacing: '0.04em',
                     cursor: 'pointer', border: '1px solid', borderRadius: '4px',
-                    transition: 'all 0.15s', display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                    transition: interactiveTransition('0.15s'), display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
                     opacity: locked ? 0.55 : 1,
                     background: active ? 'var(--gold-faint)' : 'transparent',
                     borderColor: active ? 'var(--gold)' : locked ? 'var(--border-soft)' : 'var(--border)',

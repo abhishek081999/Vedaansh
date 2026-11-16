@@ -6,6 +6,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect, useId } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput, ChartSettings, Gender } from '@/types/astrology'
@@ -759,7 +760,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: interactiveTransition('0.2s cubic-bezier(0.4, 0, 0.2, 1)'),
                   padding: 0
                 }}
               >

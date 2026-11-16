@@ -50,41 +50,69 @@ export type TodaySky = {
 // The landing wheel is a shared public snapshot, so it uses one reference place instead of asking for location.
 export const SKY_REFERENCE = { lat: 23.18, lng: 75.78, tz: 'Asia/Kolkata', label: 'Ujjain' }
 
-export function useTodaySky(): { sky: TodaySky | null; failed: boolean } {
-  const [sky, setSky] = useState<TodaySky | null>(null)
-  const [failed, setFailed] = useState(false)
+type TodaySkyResult = { sky: TodaySky | null; failed: boolean }
+
+// One request per page view: the server-rendered hero and the interactive hero that
+// replaces it share the result instead of fetching (and blanking the wheel) twice.
+// Keyed by the reference-place date so a tab left open past midnight fetches the new day.
+let todaySkyDate = ''
+let todaySkyRequest: Promise<TodaySkyResult> | null = null
+let todaySkyResult: TodaySkyResult | null = null
+
+function skyDate(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: SKY_REFERENCE.tz }).format(new Date())
+}
+
+function requestTodaySky(): Promise<TodaySkyResult> {
+  const date = skyDate()
+  if (todaySkyRequest && todaySkyDate === date) return todaySkyRequest
+  todaySkyDate = date
+  todaySkyResult = null
+  const params = new URLSearchParams({
+    date,
+    lat: String(SKY_REFERENCE.lat),
+    lng: String(SKY_REFERENCE.lng),
+    tz: SKY_REFERENCE.tz,
+  })
+
+  todaySkyRequest = fetch(`/api/panchang?${params}`)
+    .then((res) => res.json())
+    .then((json: { success: boolean; data?: SkyPanchang }): TodaySkyResult => {
+      if (!json.success || !json.data) return { sky: null, failed: true }
+      const now = Date.now()
+      const horaIndex = json.data.horaTable.findIndex(
+        (h) => new Date(h.start).getTime() <= now && now < new Date(h.end).getTime(),
+      )
+      return { sky: { panchang: json.data, horaIndex }, failed: false }
+    })
+    .catch((): TodaySkyResult => ({ sky: null, failed: true }))
+    .then((result) => {
+      todaySkyResult = result
+      if (result.failed) todaySkyRequest = null // allow a retry on the next mount
+      return result
+    })
+  return todaySkyRequest
+}
+
+export function useTodaySky(): TodaySkyResult {
+  const [state, setState] = useState<TodaySkyResult>(
+    () =>
+      typeof window !== 'undefined' && todaySkyResult && !todaySkyResult.failed && todaySkyDate === skyDate()
+        ? todaySkyResult
+        : { sky: null, failed: false },
+  )
 
   useEffect(() => {
-    const controller = new AbortController()
-    const date = new Intl.DateTimeFormat('en-CA', { timeZone: SKY_REFERENCE.tz }).format(new Date())
-    const params = new URLSearchParams({
-      date,
-      lat: String(SKY_REFERENCE.lat),
-      lng: String(SKY_REFERENCE.lng),
-      tz: SKY_REFERENCE.tz,
+    let active = true
+    void requestTodaySky().then((result) => {
+      if (active) setState(result)
     })
-
-    fetch(`/api/panchang?${params}`, { signal: controller.signal })
-      .then((res) => res.json())
-      .then((json: { success: boolean; data?: SkyPanchang }) => {
-        if (!json.success || !json.data) {
-          setFailed(true)
-          return
-        }
-        const now = Date.now()
-        const horaIndex = json.data.horaTable.findIndex(
-          (h) => new Date(h.start).getTime() <= now && now < new Date(h.end).getTime(),
-        )
-        setSky({ panchang: json.data, horaIndex })
-      })
-      .catch((err: unknown) => {
-        if (!(err instanceof DOMException && err.name === 'AbortError')) setFailed(true)
-      })
-
-    return () => controller.abort()
+    return () => {
+      active = false
+    }
   }, [])
 
-  return { sky, failed }
+  return state
 }
 
 // ── Geometry (degrees run clockwise from 12 o'clock, Mesha 0° at the top) ──
@@ -587,7 +615,17 @@ export function RashiSkyFigure({ sky, natal = null, accent, source, emptyLabel, 
               </li>
             ))}
           </ul>
-        ) : null}
+        ) : (
+          // Hold the facts row's height while the sky loads so the hero beside it does not jump.
+          <ul className="cosmic-wheel-facts cosmic-wheel-facts--pending" aria-hidden="true">
+            {(['moon', 'sun', 'paksha'] as const).map((id) => (
+              <li key={id}>
+                <span className="cosmic-wheel-fact-label">{t(id)}</span>
+                <span className="cosmic-wheel-fact-value">—</span>
+              </li>
+            ))}
+          </ul>
+        )}
         <p className="cosmic-wheel-source">{sky && source ? source : emptyLabel}</p>
         {natal?.length ? (
           <p className="cosmic-wheel-source">{t('natalNote')}</p>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useEffect, useState } from 'react'
 import { AdminMessage } from '@/components/admin/AdminMessage'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
@@ -326,7 +327,7 @@ function AdminAction({ icon, label, sub, isMobile, onClick, disabled }: {
         border: '1px solid var(--border)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.7 : 1,
-        transition: 'all 0.15s',
+        transition: interactiveTransition('0.15s'),
         textAlign: 'left',
       }}
     >

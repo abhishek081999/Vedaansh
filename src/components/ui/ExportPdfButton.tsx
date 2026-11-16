@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react'
+import { interactiveTransition } from '@/lib/ui/transitions'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput } from '@/types/astrology'
 import { useTranslations } from 'next-intl'
@@ -100,7 +101,7 @@ export function ExportPdfButton({ chart, compact = false, style, label, title }:
           fontWeight:     600,
           fontFamily:     'inherit',
           opacity:        loading ? 0.6 : 1,
-          transition:     'all 0.15s',
+          transition:     interactiveTransition('0.15s'),
           whiteSpace:     'nowrap',
           ...style,
         }}
