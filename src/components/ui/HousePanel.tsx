@@ -23,6 +23,7 @@ import { HouseVisualsOverview, SandhiMeter } from './HouseVisuals'
 import { HouseGuideTab } from './HouseGuideTab'
 import { LagnaGuideTab } from './LagnaGuideTab'
 import { RashiGuideTab } from './RashiGuideTab'
+import { KarakaLensTab } from './KarakaLensTab'
 
 const SIGN_LORDS: Record<number, string> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -113,7 +114,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
   const { hi, lang } = useLang()
   const gname = (id: string) => (hi ? GRAHA_HI[id as keyof typeof GRAHA_HI] : GRAHA_NAMES[id as keyof typeof GRAHA_NAMES]) || id
   const rname = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
-  const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'lagna' | 'rashi'>('analysis')
+  const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'karaka' | 'lagna' | 'rashi'>('analysis')
   const [selectedHouse, setSelectedHouse] = useState<number | null>(null)
   const selectHouse = (n: number) => {
     setSelectedHouse(n)
@@ -299,6 +300,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
           { id: 'analysis' as const, label: t('tabAnalysis') },
           { id: 'progression' as const, label: t('tabProgression') },
           { id: 'guide' as const, label: t('tabGuide') },
+          { id: 'karaka' as const, label: t('tabKaraka') },
           { id: 'lagna' as const, label: t('tabLagna') },
           { id: 'rashi' as const, label: t('tabRashi') },
         ].map((t) => (
@@ -781,6 +783,8 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
         <HouseProgressionPanel chart={chart} />
       ) : activeTab === 'guide' ? (
         <HouseGuideTab chart={chart} />
+      ) : activeTab === 'karaka' ? (
+        <KarakaLensTab chart={chart} />
       ) : activeTab === 'lagna' ? (
         <LagnaGuideTab chart={chart} />
       ) : (
