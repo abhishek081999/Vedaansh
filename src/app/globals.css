@@ -2965,17 +2965,6 @@ select.input {
   transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
-.app-header::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  pointer-events: none;
-  background: var(--header-rule);
-}
-
 @media (min-width: 1024px) {
   .app-header {
     display: grid;

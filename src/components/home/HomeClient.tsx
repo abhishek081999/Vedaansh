@@ -89,6 +89,8 @@ import landingStyles from '@/components/home/LandingSections.module.css'
 import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
 import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } from '@/components/home/MobileDashboardNav'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { useMasonryGrid, masonryGridStyle } from '@/hooks/useMasonryGrid'
+
 import { ChartContextBar, PanelShell } from '@/components/ui/patterns'
 import {
   isFlushPaddingChartTab,
@@ -228,6 +230,9 @@ const DASHBOARD_AV_SELECT_STYLE: React.CSSProperties = {
   fontFamily: 'inherit',
   maxWidth: '100%',
 }
+
+/** Space (px) between cards in the dashboard detail grid. */
+const DASHBOARD_MASONRY_GAP = 12
 
 function DashboardAvViewSelect({
   value,
@@ -682,6 +687,7 @@ function HomeContent() {
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
   const mobileDashContentRef = useRef<HTMLDivElement>(null)
   const analysisPanelRef = useRef<HTMLDivElement>(null)
+  const dashboardMasonryRef = useMasonryGrid<HTMLDivElement>(DASHBOARD_MASONRY_GAP)
   const skipMobileDashScrollRef = useRef(true)
   const skipStrengthScrollRef = useRef(true)
   const prevActiveTabRef = useRef(activeTab)
@@ -2739,15 +2745,17 @@ function HomeContent() {
 
                 {/* BOTTOM: Dashboard Extended Details */}
                 {activeTab === 'dashboard' && (
-                  <div style={{
-                    flex: '1 1 100%',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
-                    gap: '0.6rem',
-                    marginTop: '0.6rem',
-                    order: 3,
-                    alignItems: 'start'
-                  }}>
+                  <div
+                    ref={dashboardMasonryRef}
+                    className="dashboard-masonry-grid"
+                    style={{
+                      ...masonryGridStyle(DASHBOARD_MASONRY_GAP),
+                      flex: '1 1 100%',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
+                      marginTop: '0.75rem',
+                      order: 3,
+                    }}
+                  >
 
                     {/* ── Ashtakavarga ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandAv ? '1 / -1' : undefined }}>
