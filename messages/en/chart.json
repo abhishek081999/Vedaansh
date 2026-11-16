@@ -155,6 +155,9 @@
     "southAria": "South Indian birth chart",
     "circleAria": "Circular birth chart",
     "retro": "R",
+    "combust": "C",
+    "maraka": "M",
+    "badhaka": "B",
     "asc": "AS"
   },
   "tooltip": {

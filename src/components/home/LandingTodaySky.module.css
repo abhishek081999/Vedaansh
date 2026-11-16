@@ -1,7 +1,7 @@
 /* Aaj ka Panchang — open manuscript leaf (no tiles), shares the Dainik Rashifal palette. */
 
 .leaf {
-  --pp-brand: var(--primary-brand, #8c0030);
+  --pp-brand: var(--primary-brand, var(--gold));
   --pp-gold: #a77a3a;
   --pp-line: color-mix(in oklab, var(--pp-brand) 22%, var(--border, #e5ddd0));
   --pp-ink: var(--text-primary);

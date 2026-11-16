@@ -1,7 +1,7 @@
 /* Dainik Rashifal — parchment chakra + manuscript card, built on the site theme tokens. */
 
 .shell {
-  --hz-brand: var(--primary-brand, #8c0030);
+  --hz-brand: var(--primary-brand, var(--gold));
   --hz-gold: var(--gold, #b48600);
   --hz-ink: var(--text-primary);
   --hz-ink-soft: var(--text-secondary);

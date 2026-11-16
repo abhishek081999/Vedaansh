@@ -470,16 +470,16 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       {/* ── Legend ── */}
       <div style={{ padding: '0.28rem 0.7rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {[
-          { code: 'C', label: 'Combust',     bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
-          { code: 'M', label: 'Maraka',      bg: 'rgba(224,123,142,0.12)', color: 'var(--rose)', border: 'rgba(224,123,142,0.35)' },
-          { code: 'B', label: 'Badhaka',     bg: 'rgba(201,132,42,0.12)', color: '#c9842a', border: 'rgba(201,132,42,0.35)' },
-          { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
-          { code: 'P', label: 'Pushkara Navamsha', bg: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
-          { code: 'Y', label: 'Yuddha',      bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
-        ].map(({ code, label, bg, color, border }) => (
-          <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-            <span style={{ fontSize: '0.55rem', background: bg, color, padding: '0 3px', borderRadius: 2, border: `1px solid ${border}`, fontWeight: 700 }}>{code}</span>
-            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{t(`legend.${code}`) || label}</span>
+          { key: 'C', code: hi ? 'अ' : 'C', bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
+          { key: 'M', code: hi ? 'मा' : 'M', bg: 'rgba(224,123,142,0.12)', color: 'var(--rose)', border: 'rgba(224,123,142,0.35)' },
+          { key: 'B', code: hi ? 'बा' : 'B', bg: 'rgba(201,132,42,0.12)', color: '#c9842a', border: 'rgba(201,132,42,0.35)' },
+          { key: 'G', code: hi ? 'ग' : 'G', bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
+          { key: 'P', code: hi ? 'पु' : 'P', bg: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
+          { key: 'Y', code: hi ? 'यु' : 'Y', bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
+        ].map(({ key, code, bg, color, border }) => (
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ fontSize: '0.55rem', background: bg, color, padding: '0 3px', borderRadius: 2, border: `1px solid ${border}`, fontWeight: 700, fontFamily: hi ? 'var(--font-deva)' : undefined }}>{code}</span>
+            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{t(`legend.${key}`)}</span>
           </div>
         ))}
       </div>

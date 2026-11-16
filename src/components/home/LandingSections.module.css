@@ -509,6 +509,43 @@
   border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
+/* Dark theme: graphite card with bronze accents instead of Classic maroon */
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand.ctaBand {
+  --cta-band-bg: var(--surface-1);
+  border: 1px solid var(--border-bright) !important;
+  background:
+    radial-gradient(ellipse 70% 120% at 0% 0%, var(--surface-gold-soft) 0%, transparent 60%),
+    var(--cta-band-bg) !important;
+}
+
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand :global(.landing-premium-cta-kicker) {
+  color: var(--gold) !important;
+  -webkit-text-fill-color: var(--gold);
+}
+
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand h3 {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary);
+}
+
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand p {
+  color: var(--text-secondary) !important;
+  -webkit-text-fill-color: var(--text-secondary);
+  opacity: 1;
+}
+
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand :global(.btn-primary) {
+  color: var(--text-on-gold) !important;
+  background: var(--gold) !important;
+  border-color: var(--gold) !important;
+}
+
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand :global(.btn-secondary),
+:global([data-theme='dark']) .ctaBand.ctaBand.ctaBand :global(.btn-ghost) {
+  color: var(--gold-light) !important;
+  border-color: var(--border-bright) !important;
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 
 @media (max-width: 1023px) {

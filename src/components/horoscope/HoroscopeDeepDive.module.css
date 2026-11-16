@@ -1,7 +1,7 @@
 /* Full Dainik Rashifal extras — same manuscript palette as DailyHoroscope. */
 
 .dive {
-  --dd-brand: var(--primary-brand, #8c0030);
+  --dd-brand: var(--primary-brand, var(--gold));
   --dd-gold: #a77a3a;
   --dd-line: color-mix(in oklab, var(--dd-brand) 22%, var(--border, #e5ddd0));
   --dd-ink: var(--text-primary);
