@@ -2,7 +2,7 @@
    src/app/globals.css
    Design System — Jyotisha Platform
    Themes: [data-theme="dark"] · [data-theme="light"] · [data-theme="classic"]
-   Dark: indigo cosmos · Light: cool parchment · Classic: dewa.guru maroon/cream
+   Dark: graphite + gold · Light: cool parchment · Classic: dewa.guru maroon/cream
    ═══════════════════════════════════════════════════════════════ */
 
 /* Fonts are loaded via next/font/google in layout.tsx — no @import needed */
@@ -70,25 +70,25 @@
   --fw-chart-planet: 500;
 
   /* Core surfaces */
-  --bg-page: #09090f;
-  --surface-0: #0e0e18;
-  --surface-1: #16162a;
-  --surface-2: #1e1e35;
-  --surface-3: #282846;
-  --surface-4: #333358;
+  --bg-page: #0b0b0c;
+  --surface-0: #111113;
+  --surface-1: #18181b;
+  --surface-2: #1f1f23;
+  --surface-3: #27272a;
+  --surface-4: #333338;
 
   /* Gold */
-  --gold: #c9a84c;
-  --gold-light: #e2c97e;
-  --gold-dim: #8a6f2e;
-  --gold-soft: rgba(201, 168, 76, 0.72);
-  --gold-faint: rgba(201, 168, 76, 0.08);
-  --surface-gold-soft: rgba(201, 168, 76, 0.12);
+  --gold: #c9a06e;
+  --gold-light: #dfbb8e;
+  --gold-dim: #8a6a45;
+  --gold-soft: rgba(201, 160, 110, 0.72);
+  --gold-faint: rgba(201, 160, 110, 0.08);
+  --surface-gold-soft: rgba(201, 160, 110, 0.12);
 
   /* Accent (chakra violet) */
-  --accent: #8b7cf6;
-  --accent-dim: #4f3d9c;
-  --accent-glow: rgba(139, 124, 246, 0.25);
+  --accent: #8fb3ff;
+  --accent-dim: #3b5694;
+  --accent-glow: rgba(143, 179, 255, 0.25);
 
   /* Status */
   --rose: #e07b8e;
@@ -100,58 +100,58 @@
   /* Dignity / Placements */
   --dig-retro: #d4788a;
   --dig-exalted: #4ecdc4;
-  --dig-moola: #c9a84c;
-  --dig-own: #e2c97e;
-  --dig-neutral: #c8c0e0;
+  --dig-moola: #c9a06e;
+  --dig-own: #dfbb8e;
+  --dig-neutral: #c8c8d0;
   --dig-debilitate: #e07070;
 
   /* Text */
-  --text-primary: #f0ecff;
-  --text-secondary: #bbb5d8;
-  --text-muted: #7a7498;
-  --text-gold: #e2c97e;
-  --text-on-gold: #0e0e18;
+  --text-primary: #f4f4f5;
+  --text-secondary: #c4c4cc;
+  --text-muted: #8b8b94;
+  --text-gold: #dfbb8e;
+  --text-on-gold: #111113;
 
   /* Borders */
-  --border: rgba(201, 168, 76, 0.14);
-  --border-soft: rgba(201, 168, 76, 0.07);
-  --border-bright: rgba(201, 168, 76, 0.38);
-  --border-accent: rgba(139, 124, 246, 0.3);
+  --border: rgba(201, 160, 110, 0.14);
+  --border-soft: rgba(201, 160, 110, 0.07);
+  --border-bright: rgba(201, 160, 110, 0.38);
+  --border-accent: rgba(143, 179, 255, 0.3);
 
   /* Glows */
-  --glow-gold: 0 0 24px rgba(201, 168, 76, 0.22);
-  --glow-gold-sm: rgba(201, 168, 76, 0.2);
-  --glow-accent: 0 0 24px rgba(139, 124, 246, 0.3);
+  --glow-gold: 0 0 24px rgba(201, 160, 110, 0.22);
+  --glow-gold-sm: rgba(201, 160, 110, 0.2);
+  --glow-accent: 0 0 24px rgba(143, 179, 255, 0.3);
   --shadow-deep: 0 8px 40px rgba(0, 0, 0, 0.55);
   --shadow-card: 0 2px 20px rgba(0, 0, 0, 0.45);
   --shadow-lift: 0 12px 40px rgba(0, 0, 0, 0.6);
 
   /* Ambient orbs (AppFramework) */
-  --orb-1: rgba(139, 124, 246, 0.12);
-  --orb-2: rgba(201, 168, 76, 0.09);
+  --orb-1: rgba(143, 179, 255, 0.12);
+  --orb-2: rgba(201, 160, 110, 0.09);
 
   /* Background gradient */
   --bg-gradient:
-    radial-gradient(ellipse 90% 60% at 50% -5%, rgba(139, 124, 246, 0.13) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(201, 168, 76, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 60% at 50% -5%, rgba(143, 179, 255, 0.13) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(201, 160, 110, 0.07) 0%, transparent 50%),
     var(--bg-page);
 
   /* Header blur bg */
-  --header-bg: rgba(9, 9, 15, 0.88);
+  --header-bg: rgba(11, 11, 12, 0.86);
   --header-text: var(--text-secondary);
   --header-text-muted: var(--text-muted);
   --header-border: var(--border);
-  --header-rule: #c9a84c;
-  --header-divider: #3d3420;
+  --header-rule: #c9a06e;
+  --header-divider: #3a2f24;
 
   /* Scrollbar */
   --scrollbar-size: 3px;
   --scrollbar-size-thin: 2px;
-  --scrollbar-track: #16162a;
-  --scrollbar-thumb: #333358;
+  --scrollbar-track: #18181b;
+  --scrollbar-thumb: #333338;
   /* Chart specific labels */
   --chart-sign-green: #8ee07b;
-  --chart-label-muted: rgba(201, 168, 76, 0.4);
+  --chart-label-muted: rgba(201, 160, 110, 0.4);
 
   /* ── Sarvatobhadra Chakra cell colours (dark) ── */
   --sbc-nak-bg:   rgba(55, 42, 130, 0.72);
@@ -166,13 +166,13 @@
   --sbc-vowel-bg: rgba(18, 70, 88, 0.72);
   --sbc-vowel-vdh:rgba(40, 160, 190, 0.24);
   --sbc-vowel-txt:rgba(130, 220, 230, 0.95);
-  --sbc-cons-bg:  rgba(28, 28, 45, 0.74);
-  --sbc-cons-vdh: rgba(80, 80, 120, 0.24);
-  --sbc-cons-txt: rgba(140, 140, 175, 0.90);
+  --sbc-cons-bg:  rgba(32, 32, 36, 0.74);
+  --sbc-cons-vdh: rgba(110, 110, 120, 0.24);
+  --sbc-cons-txt: rgba(165, 165, 175, 0.90);
   --sbc-center-bg:rgba(120, 88, 15, 0.82);
   --sbc-center-txt:rgba(255, 215, 0, 1.00);
-  --sbc-empty-bg: rgba(15, 15, 25, 0.60);
-  --sbc-grid-bg:  rgba(8, 8, 18, 0.96);
+  --sbc-empty-bg: rgba(16, 16, 18, 0.60);
+  --sbc-grid-bg:  rgba(9, 9, 10, 0.96);
   --sbc-grid-bdr: rgba(100, 80, 200, 0.38);
   --sbc-hov-bdr:  rgba(255, 215, 0, 0.80);
   --sbc-hov-shd:  0 0 14px rgba(255, 215, 0, 0.52);
@@ -185,22 +185,22 @@
   --logo-bg: rgba(192, 108, 45, 0.08);
   --logo-border: rgba(192, 108, 45, 0.4);
   --logo-gradient: linear-gradient(to bottom, var(--surface-1), var(--bg-page));
-  --logo-text-title: #facc15;
-  --logo-text-sub: rgba(250, 204, 21, 0.8);
+  --logo-text-title: #dfbb8e;
+  --logo-text-sub: rgba(201, 160, 110, 0.85);
 
   /* Sri Yantra / mandala page backdrop (see public/vedic-yantra-bg.png) */
   --vedic-yantra-image: url('/vedic-yantra-bg.png');
   /* Vignette for yantra stack — painted only when `body.yantra-backdrop` (home / astrology, non-dark) */
   --vedic-yantra-stack:
-    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(9, 9, 15, 0.04) 0%, rgba(9, 9, 15, 0.28) 48%, rgba(9, 9, 15, 0.52) 100%),
-    linear-gradient(165deg, rgba(9, 9, 15, 0.45) 0%, rgba(14, 14, 24, 0.72) 100%),
+    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(11, 11, 12, 0.04) 0%, rgba(11, 11, 12, 0.28) 48%, rgba(11, 11, 12, 0.52) 100%),
+    linear-gradient(165deg, rgba(11, 11, 12, 0.45) 0%, rgba(17, 17, 19, 0.72) 100%),
     var(--vedic-yantra-image);
 
   /* Section differentiation colors (Dark theme) */
-  --section-gold: #c9a84c;
-  --section-gold-gradient: linear-gradient(135deg, #f5d06e 0%, #c9a84c 100%);
-  --section-violet: #8b7cf6;
-  --section-violet-gradient: linear-gradient(135deg, #c7d2fe 0%, #8b7cf6 100%);
+  --section-gold: #c9a06e;
+  --section-gold-gradient: linear-gradient(135deg, #ecd0ad 0%, #c9a06e 100%);
+  --section-violet: #8fb3ff;
+  --section-violet-gradient: linear-gradient(135deg, #c7d2fe 0%, #8fb3ff 100%);
   --section-teal: #4ecdc4;
   --section-teal-gradient: linear-gradient(135deg, #a7f3d0 0%, #4ecdc4 100%);
   --section-rose: #e07b8e;
@@ -1716,7 +1716,7 @@ select.input {
 
 /* Theme-specific sidenav backdrops & borders — near-opaque so header brand cannot ghost through */
 [data-theme="dark"] .sidenav {
-  background: rgba(14, 14, 24, 0.97) !important;
+  background: rgba(17, 17, 19, 0.97) !important;
   backdrop-filter: blur(20px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
   border-right-color: rgba(201, 168, 76, 0.12) !important;
@@ -1783,7 +1783,7 @@ select.input {
 }
 
 [data-theme="dark"] .sidenav-header {
-  background: rgb(14, 14, 24);
+  background: rgb(17, 17, 19);
 }
 
 [data-theme="light"] .sidenav-header {
@@ -3869,6 +3869,18 @@ select.input {
   color: var(--text-primary) !important;
   background: var(--gold-faint) !important;
   box-shadow: inset 0 -2px 0 var(--gold);
+}
+
+/* Dark: neutral pill — a thin gold underline on a rounded pill reads as a yellow arc */
+[data-theme='dark'] .app-header-nav-link:hover,
+[data-theme='dark'] .app-header-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme='dark'] .app-header-nav-link--active,
+[data-theme='dark'] .app-header-dropdown-trigger.app-header-nav-link--active {
+  background: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .app-header-dropdown:hover .app-header-dropdown-chevron,
@@ -6876,7 +6888,7 @@ select.input {
   gap: var(--space-2);
   padding: var(--space-4);
   text-align: center;
-  background: linear-gradient(180deg, transparent 0%, rgba(9, 9, 15, 0.55) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(11, 11, 12, 0.55) 100%);
   border-radius: inherit;
   z-index: var(--z-base);
 }
@@ -8423,25 +8435,25 @@ select.input {
 
 .cosmic-wheel {
   --cw-line: var(--cw-accent);
-  --cw-disc-1: #2a2352;
-  --cw-disc-2: #15122f;
-  --cw-disc-3: #0a0919;
-  --cw-rim-hi: #ffe9a8;
-  --cw-rim-lo: #8a6f2e;
-  --cw-hub: rgba(13, 12, 32, 0.72);
+  --cw-disc-1: #2e2e33;
+  --cw-disc-2: #1a1a1e;
+  --cw-disc-3: #0c0c0e;
+  --cw-rim-hi: #f0d6b4;
+  --cw-rim-lo: #8a6a45;
+  --cw-hub: rgba(14, 14, 16, 0.72);
   --cw-band: rgba(255, 255, 255, 0.55);
   --cw-star: #ffffff;
   --cw-ink: #ffffff;
-  --cw-ink-soft: #e9dfc0;
-  --cw-ink-muted: #cfc7e8;
-  --cw-on-active: #14112b;
-  --cw-moon-dark: #191733;
+  --cw-ink-soft: #e8d8c4;
+  --cw-ink-muted: #d4d4dc;
+  --cw-on-active: #141416;
+  --cw-moon-dark: #1c1c20;
   --cw-moon-edge: rgba(255, 255, 255, 0.28);
   --cw-moon-lit: #fbf4d9;
   --cw-shukla-fill: rgba(255, 241, 196, 0.22);
   --cw-krishna-fill: rgba(0, 0, 0, 0.42);
-  --cw-shukla-ink: #fff1c4;
-  --cw-shadow: rgba(20, 14, 52, 0.34);
+  --cw-shukla-ink: #f5e2c8;
+  --cw-shadow: rgba(0, 0, 0, 0.4);
   --cw-graha-su: #ffb454;
   --cw-graha-mo: #eef2ff;
   --cw-graha-ma: #ff7a6b;

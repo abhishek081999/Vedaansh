@@ -15,7 +15,7 @@ export default function NotFound() {
       justifyContent: 'center',
       gap: '1.5rem',
       padding: '3rem 1.5rem',
-      background: 'var(--bg-page, #09090f)',
+      background: 'var(--bg-page, #0b0b0c)',
       textAlign: 'center',
     }}>
       <Image src="/veda-icon.png" alt="Vedaansh" width={64} height={64} style={{ opacity: 0.7 }} />
@@ -55,7 +55,7 @@ export default function NotFound() {
         <Link href="/?new=true" style={{
           padding: '0.6rem 1.5rem',
           background: 'var(--gold, #c9a84c)',
-          color: 'var(--text-on-gold, #0e0e18)',
+          color: 'var(--text-on-gold, #111113)',
           borderRadius: 8,
           fontWeight: 600,
           fontSize: '0.9rem',

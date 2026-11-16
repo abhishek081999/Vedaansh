@@ -69,7 +69,7 @@ gtag('config', '${GA_ID}', { page_path: window.location.pathname });
 // ── Prevent theme flash ───────────────────────────────────────
 // <html> ships data-theme="classic" (the default) so first paint never flashes the dark :root tokens.
 // Browser chrome colour per theme — keep in sync with THEME_CHROME in ThemeToggle.tsx.
-const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');t=t==='light'?'light':t==='dark'?'dark':'classic';document.documentElement.setAttribute('data-theme',t);var c={dark:'#09090f',light:'#ffffff',classic:'#8c0030'}[t];var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',c)}catch(e){}})();`
+const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');t=t==='light'?'light':t==='dark'?'dark':'classic';document.documentElement.setAttribute('data-theme',t);var c={dark:'#0b0b0c',light:'#ffffff',classic:'#8c0030'}[t];var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',c)}catch(e){}})();`
 
 const BASE_URL = SITE_URL
 

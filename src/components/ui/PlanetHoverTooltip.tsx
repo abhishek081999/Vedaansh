@@ -152,7 +152,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
         width: TOOLTIP_W,
         maxHeight: '85vh',
         overflowY: 'auto',
-        background: 'linear-gradient(160deg, var(--surface-2, #1e1e35) 0%, var(--surface-1, #16162a) 100%)',
+        background: 'linear-gradient(160deg, var(--surface-2, #1f1f23) 0%, var(--surface-1, #18181b) 100%)',
         border: `1px solid ${col.primary}44`, borderRadius: 14,
         boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 0 40px ${col.glow}`,
         fontFamily: 'var(--font-body, Inter, sans-serif)', fontSize: '0.78rem',
