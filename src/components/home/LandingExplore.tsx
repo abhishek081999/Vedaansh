@@ -128,7 +128,7 @@ export function LandingExplore({ trackLandingCta, withChartGate }: LandingExplor
         ))}
       </div>
 
-      <div className="lj-lanes">
+      <div className="lj-lanes" data-stagger>
         {EXPLORE_GROUPS.map((group, groupIdx) => {
           // The chart lane opens with the Astrology workspace as its featured entry.
           const lead = group.id === 'chart' ? group.sections[0] : null

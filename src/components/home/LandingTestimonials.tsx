@@ -27,9 +27,9 @@ export function LandingTestimonials() {
     <LandingSection as="section" className="landing-section-row landing-section-row--gold">
       <div className="landing-section-row-content">
         <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
-        <div className={styles.testimonials}>
+        <div className={styles.testimonials} data-stagger>
           {TESTIMONIALS.map(({ quote, name, role, city }) => (
-            <figure key={name} className={styles.testimonial}>
+            <figure key={name} className={styles.testimonial} data-spotlight>
               <blockquote>{quote}</blockquote>
               <figcaption>
                 <strong>{name}</strong>

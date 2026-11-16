@@ -3133,7 +3133,7 @@ function HomeContent() {
                     description={tHome('why.description')}
                     theme="gold"
                   />
-                  <div className="landing-premium-pillars">
+                  <div className="landing-premium-pillars" data-stagger>
                     {landingWhyVedaansh.map((item, idx) => {
                       const PillarIcon = item.icon;
                       return (
@@ -3147,7 +3147,7 @@ function HomeContent() {
                       )
                     })}
                   </div>
-                  <div className="landing-trust-bar">
+                  <div className="landing-trust-bar" data-stagger>
                     {landingTrustStats.map((stat) => (
                       <div key={stat.id} className="landing-trust-stat">
                         <span className="landing-trust-stat-value">{stat.value}</span>
@@ -3165,7 +3165,7 @@ function HomeContent() {
                     title={tHome('how.title')}
                     theme="gold"
                   />
-                  <div className="landing-flow-grid landing-flow-grid--animated">
+                  <div className="landing-flow-grid landing-flow-grid--animated" data-stagger>
                     {landingJourney.map((item, idx) => (
                       <article key={item.step} className="landing-premium-pillar landing-flow-step">
                         <span className="landing-flow-step-num">{item.step}</span>

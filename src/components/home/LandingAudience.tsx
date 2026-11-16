@@ -51,11 +51,11 @@ export function LandingAudience({ trackLandingCta, withChartGate }: LandingAudie
   return (
     <div className="landing-section-row-content">
       <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
-      <div className={styles.audience}>
+      <div className={styles.audience} data-stagger>
         {AUDIENCES.map(({ id, icon: Icon, links }) => {
           const labels = t.raw(`${id}.links`) as string[]
           return (
-          <article key={id} className={styles.audienceCard}>
+          <article key={id} className={styles.audienceCard} data-spotlight>
             <Icon size={24} strokeWidth={1.6} aria-hidden />
             <h3>{t(`${id}.title`)}</h3>
             <p>{t(`${id}.text`)}</p>

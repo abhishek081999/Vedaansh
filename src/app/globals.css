@@ -9362,3 +9362,270 @@ html[lang^="hi"][data-theme='dark'] .landing-premium-hero-title {
   border-color: var(--classic-maroon-press);
   color: #ffffff;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Landing scroll motion
+   Sections rise in as they reach the viewport (LandingSection sets
+   data-reveal="pending" → "shown"); their [data-stagger] children,
+   section header and connector lines follow in sequence. Cards glow
+   under the cursor (LandingShell sets --spot-x / --spot-y). Scroll-
+   linked parallax and the progress bar use CSS scroll timelines and
+   are skipped where unsupported. Everything is off for reduced motion.
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.97);
+  }
+}
+
+@keyframes landing-kicker-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.42em;
+  }
+}
+
+@keyframes landing-title-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.55em, 0);
+    clip-path: inset(0 0 100% 0);
+    filter: blur(6px);
+  }
+  to {
+    clip-path: inset(0 0 -20% 0);
+  }
+}
+
+@keyframes landing-unfurl {
+  from {
+    opacity: 0;
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes landing-icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-35deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.12) rotate(6deg);
+  }
+}
+
+@keyframes landing-line-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Section */
+[data-reveal] {
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.8s var(--ease-out);
+}
+
+[data-reveal='pending'] {
+  opacity: 0;
+  transform: translate3d(0, 36px, 0);
+}
+
+[data-reveal='pending'] [data-stagger] > *,
+[data-reveal='pending'] .landing-section-header > *,
+[data-reveal='pending'] .landing-premium-pillar-icon {
+  opacity: 0;
+}
+
+/* Staggered children. `backwards` fill hands transform back to hover styles once done. */
+[data-reveal='shown'] [data-stagger] > * {
+  animation: landing-rise 0.75s var(--ease-out) backwards;
+  animation-delay: calc(180ms + var(--stagger-i, 0) * 90ms);
+}
+
+[data-stagger] > :nth-child(2) { --stagger-i: 1; }
+[data-stagger] > :nth-child(3) { --stagger-i: 2; }
+[data-stagger] > :nth-child(4) { --stagger-i: 3; }
+[data-stagger] > :nth-child(5) { --stagger-i: 4; }
+[data-stagger] > :nth-child(6) { --stagger-i: 5; }
+[data-stagger] > :nth-child(n + 7) { --stagger-i: 6; }
+
+/* Section header: kicker settles, title wipes up out of a blur, filigree unfurls from the centre. */
+[data-reveal='shown'] .landing-section-header .themed-kicker {
+  animation: landing-kicker-in 0.9s var(--ease-out) backwards;
+}
+
+[data-reveal='shown'] .landing-section-header .themed-title {
+  animation: landing-title-in 0.85s var(--ease-out) 0.08s backwards;
+}
+
+[data-reveal='shown'] .landing-section-header .themed-filigree-wrapper {
+  animation: landing-unfurl 1.1s var(--ease-out) 0.22s backwards;
+}
+
+[data-reveal='shown'] .landing-section-header > :nth-child(n + 4) {
+  animation: landing-rise 0.7s var(--ease-out) 0.3s backwards;
+}
+
+[data-reveal='shown'] .landing-premium-pillar-icon {
+  animation: landing-icon-pop 0.7s var(--ease-out) backwards;
+  animation-delay: calc(420ms + var(--stagger-i, 0) * 90ms);
+}
+
+[data-stagger] > :nth-child(2) .landing-premium-pillar-icon { --stagger-i: 1; }
+[data-stagger] > :nth-child(3) .landing-premium-pillar-icon { --stagger-i: 2; }
+
+/* "How it works" connector line draws across behind the steps. */
+.landing-flow-grid--animated::before {
+  transform-origin: left center;
+}
+
+[data-reveal='pending'] .landing-flow-grid--animated::before {
+  transform: scaleX(0);
+}
+
+[data-reveal='shown'] .landing-flow-grid--animated::before {
+  animation: landing-line-draw 1.2s var(--ease-out) 0.45s backwards;
+}
+
+/* Cursor spotlight on cards. Behind the content (z-index -1 inside an isolated card). */
+.landing-shell :is(.landing-premium-pillar, .lj-row, [data-spotlight]) {
+  position: relative;
+  isolation: isolate;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-shell :is(.landing-premium-pillar, .lj-row, [data-spotlight])::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(
+      320px circle at var(--spot-x, 50%) var(--spot-y, 0%),
+      color-mix(in oklab, var(--gold) 16%, transparent),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .landing-shell :is(.landing-premium-pillar, .lj-row, [data-spotlight]):hover::before {
+    opacity: 1;
+  }
+
+  .landing-shell [data-spotlight] {
+    transition:
+      transform 0.35s var(--ease-out),
+      box-shadow 0.35s var(--ease-out),
+      border-color 0.35s ease;
+  }
+
+  .landing-shell [data-spotlight]:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklab, var(--gold) 38%, var(--border));
+    box-shadow: 0 14px 36px color-mix(in oklab, var(--gold) 12%, rgba(15, 23, 42, 0.1));
+  }
+}
+
+/* Scroll-linked: progress bar, mandala parallax, hero eases back as it leaves. */
+@supports (animation-timeline: scroll()) {
+  @keyframes landing-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes landing-mandala-drift {
+    to {
+      translate: 0 34vh;
+      scale: 1.3;
+    }
+  }
+
+  @keyframes landing-hero-recede {
+    to {
+      opacity: 0.35;
+      transform: translate3d(0, -24px, 0) scale(0.965);
+    }
+  }
+
+  /* The app scrolls inside main.main-content, not the window: name that scroller and
+     expose the name document-wide so the progress bar (portalled to <body>) can follow it. */
+  body {
+    timeline-scope: --landing-scroll;
+  }
+
+  .main-content {
+    scroll-timeline: --landing-scroll block;
+  }
+
+  .landing-scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 1700;
+    pointer-events: none;
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--gold-soft, var(--gold)), var(--gold), #e8c873);
+    box-shadow: 0 0 10px color-mix(in oklab, var(--gold) 60%, transparent);
+    animation: landing-progress linear both;
+    animation-timeline: --landing-scroll;
+  }
+
+  .landing-mandala-container {
+    animation: landing-mandala-drift linear both;
+    animation-timeline: --landing-scroll;
+    animation-range: 0 120vh;
+  }
+
+  .landing-premium-hero-carousel-inner {
+    animation: landing-hero-recede linear both;
+    animation-timeline: view();
+    animation-range: exit 10% exit 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal] * {
+    transition: none !important;
+  }
+
+  [data-reveal='pending'],
+  [data-reveal='pending'] * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [data-reveal='shown'] [data-stagger] > *,
+  [data-reveal='shown'] .landing-section-header > *,
+  [data-reveal='shown'] .landing-premium-pillar-icon,
+  [data-reveal='shown'] .landing-flow-grid--animated::before,
+  .landing-scroll-progress,
+  .landing-mandala-container,
+  .landing-premium-hero-carousel-inner {
+    animation: none !important;
+  }
+
+  .landing-scroll-progress {
+    display: none;
+  }
+
+  .landing-shell [data-spotlight]:hover {
+    transform: none;
+  }
+}
