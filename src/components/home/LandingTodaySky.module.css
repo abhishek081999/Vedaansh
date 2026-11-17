@@ -2,13 +2,14 @@
 
 .leaf {
   --pp-brand: var(--primary-brand, var(--gold));
-  --pp-gold: #a77a3a;
+  --pp-gold: var(--gold, #b48600);
   --pp-line: color-mix(in oklab, var(--pp-brand) 22%, var(--border, #e5ddd0));
   --pp-ink: var(--text-primary);
   --pp-soft: var(--text-secondary);
   --pp-muted: var(--text-muted);
-  --pp-good: #2e7d5b;
-  --pp-care: #b3263b;
+  /* Same rules as Dainik Rashifal: auspicious in the theme brand, one warning colour for care. */
+  --pp-good: var(--pp-brand);
+  --pp-care: color-mix(in oklab, #b3263b 82%, var(--pp-ink));
   position: relative;
   margin: 0 0 2rem;
   padding: 1.1rem 0 1.4rem;
@@ -31,11 +32,14 @@
 .leaf::before { top: 4px; }
 .leaf::after { bottom: 4px; }
 
+/* Gold-led like the rest of the landing; light deepens the gold so it also works as text. */
+:global([data-theme='light']) .leaf {
+  --pp-brand: color-mix(in oklab, var(--gold) 75%, var(--text-primary));
+}
+
 :global([data-theme='dark']) .leaf {
-  --pp-brand: #e58aa6;
-  --pp-gold: #d9b273;
-  --pp-good: #6fcf9f;
-  --pp-care: #f07a8a;
+  --pp-brand: var(--gold);
+  --pp-care: color-mix(in oklab, #f07a8a 80%, var(--pp-ink));
 }
 
 /* ── Head ── */
