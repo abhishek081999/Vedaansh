@@ -3149,7 +3149,7 @@ function HomeContent() {
                           <div className="landing-premium-pillar-icon">
                             <PillarIcon size={22} strokeWidth={1.75} />
                           </div>
-                          <h4 className="landing-premium-pillar-title">{item.title}</h4>
+                          <h3 className="landing-premium-pillar-title">{item.title}</h3>
                           <p className="landing-premium-pillar-desc">{item.detail}</p>
                         </article>
                       )
@@ -3177,7 +3177,7 @@ function HomeContent() {
                     {landingJourney.map((item, idx) => (
                       <article key={item.step} className="landing-premium-pillar landing-flow-step">
                         <span className="landing-flow-step-num">{item.step}</span>
-                        <h4 className="landing-premium-pillar-title">{item.title}</h4>
+                        <h3 className="landing-premium-pillar-title">{item.title}</h3>
                         <p className="landing-premium-pillar-desc">{item.text}</p>
                       </article>
                     ))}

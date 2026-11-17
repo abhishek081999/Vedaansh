@@ -230,9 +230,9 @@ export function LandingTodaySky({ sky, failed, onNavigate }: LandingTodaySkyProp
   return (
     <section className={styles.leaf} aria-label={t('ariaLabel')} aria-busy={!p}>
       <header className={styles.head}>
-        <p className={styles.eyebrow}>
+        <h2 className={styles.eyebrow}>
           <span aria-hidden>❖</span> {t('eyebrow')} <span aria-hidden>❖</span>
-        </p>
+        </h2>
         <div className={styles.headMeta}>
           <span className={styles.place}>
             <MapPin size={13} aria-hidden /> {t('place')}

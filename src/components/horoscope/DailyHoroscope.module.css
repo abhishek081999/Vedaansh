@@ -9,20 +9,25 @@
   --hz-paper: var(--surface-1);
   --hz-paper-2: var(--surface-2);
   --hz-line: color-mix(in oklab, var(--hz-brand) 22%, var(--border, #e5ddd0));
-  --hz-good: #2e7d5b;
-  --hz-mixed: #c8691e;
-  --hz-challenging: #b3263b;
-  --hz-excellent: #1f7a62;
+  /* Day quality is one hue that fades with the score, in the theme's own brand colour. */
+  --hz-excellent: var(--hz-brand);
+  --hz-good: color-mix(in oklab, var(--hz-brand) 82%, var(--hz-ink-muted));
+  --hz-mixed: color-mix(in oklab, var(--hz-brand) 45%, var(--hz-ink-muted));
+  --hz-challenging: color-mix(in oklab, var(--hz-ink-soft) 45%, var(--hz-ink-muted));
+  /* The one warning colour, kept for things to avoid (Rahu kalam, varjya, care flags). */
+  --hz-care: color-mix(in oklab, #b3263b 82%, var(--hz-ink));
   position: relative;
   color: var(--hz-ink);
 }
 
+/* The landing is gold-led outside classic; light deepens the gold so it also works as text. */
+:global([data-theme='light']) .shell {
+  --hz-brand: color-mix(in oklab, var(--gold) 75%, var(--text-primary));
+}
+
 :global([data-theme='dark']) .shell {
-  --hz-brand: #e58aa6;
-  --hz-good: #6fcf9f;
-  --hz-excellent: #5fd4b0;
-  --hz-mixed: #f0a463;
-  --hz-challenging: #f07a8a;
+  --hz-brand: var(--gold);
+  --hz-care: color-mix(in oklab, #f07a8a 80%, var(--hz-ink));
 }
 
 .shell [data-tone='excellent'] { --tone: var(--hz-excellent); }
@@ -177,7 +182,7 @@
 }
 
 .strip dd.care {
-  color: var(--hz-challenging);
+  color: var(--hz-care);
 }
 
 @media (max-width: 640px) {
@@ -570,7 +575,7 @@
 }
 
 .shell.shell .labelCare {
-  color: var(--hz-mixed);
+  color: var(--hz-care);
 }
 
 .phala {
@@ -722,7 +727,7 @@
 }
 
 .kv > div + div li::before {
-  color: var(--hz-mixed);
+  color: var(--hz-care);
 }
 
 .shell.shell .upaya {
@@ -770,7 +775,7 @@
 }
 
 .gochara li[data-status='favourable'] .gGlyph { color: var(--hz-good); }
-.gochara li[data-status='unfavourable'] .gGlyph { color: var(--hz-mixed); }
+.gochara li[data-status='unfavourable'] .gGlyph { color: var(--hz-care); }
 
 .shell.shell .method {
   margin: 1.5rem 0 0;
@@ -843,7 +848,7 @@
 
 /* Pictorial rashi marks — antique gold, brand colour when selected. */
 .segIcon {
-  color: #a77a3a;
+  color: var(--hz-gold);
 }
 
 .segActive .segIcon {
@@ -851,13 +856,9 @@
 }
 
 .hubIcon {
-  color: #a77a3a;
+  color: var(--hz-gold);
 }
 
-:global([data-theme='dark']) .segIcon,
-:global([data-theme='dark']) .hubIcon {
-  color: #d9b273;
-}
 
 .shell .segDeva {
   font-size: 13px;
@@ -978,11 +979,11 @@
 }
 
 .bar[data-care] .barTrack {
-  box-shadow: 0 0 0 1.5px var(--hz-challenging);
+  box-shadow: 0 0 0 1.5px var(--hz-care);
 }
 
 .barIcon {
-  color: #a77a3a;
+  color: var(--hz-gold);
 }
 
 .barActive .barIcon,
@@ -990,9 +991,6 @@
   color: var(--hz-brand);
 }
 
-:global([data-theme='dark']) .barIcon {
-  color: #d9b273;
-}
 
 .barName {
   font-family: var(--font-deva, 'Noto Sans Devanagari'), serif;
@@ -1021,7 +1019,7 @@
 }
 
 .noteCare {
-  color: var(--hz-challenging);
+  color: var(--hz-care);
 }
 
 @media (max-width: 640px) {

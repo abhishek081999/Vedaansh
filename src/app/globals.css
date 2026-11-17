@@ -5045,7 +5045,7 @@ select.input {
 
 .landing-hero-carousel-kicker {
   margin: 0 0 0.28rem 0;
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7712,7 +7712,8 @@ select.input {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  /* --text-muted alone is ~4:1 on the cream hero; this mix clears 4.5:1 in every theme. */
+  color: color-mix(in oklab, var(--text-secondary) 60%, var(--text-muted));
 }
 
 .landing-premium-hero-trust-dot {
@@ -7858,6 +7859,25 @@ select.input {
 }
 
 [data-theme="classic"] .landing-shell h4 {
+  color: var(--classic-maroon-deep);
+}
+
+/* Pillar and flow-step titles are h3 for the outline but keep the solid h4 colour, not the h3 gradient. */
+.landing-shell .landing-premium-pillar-title,
+[data-theme='dark'] .landing-shell .landing-premium-pillar-title,
+[data-theme="classic"] .landing-shell .landing-premium-pillar-title {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  color: color-mix(in oklab, var(--primary-brand, var(--accent)) 32%, var(--text-primary) 68%);
+}
+
+[data-theme='dark'] .landing-shell .landing-premium-pillar-title {
+  color: color-mix(in oklab, var(--gold-light) 38%, var(--text-primary) 62%);
+}
+
+[data-theme="classic"] .landing-shell .landing-premium-pillar-title {
   color: var(--classic-maroon-deep);
 }
 
@@ -8244,8 +8264,8 @@ select.input {
   }
 
   .landing-hero-carousel-kicker {
-    font-size: 0.6rem;
-    letter-spacing: 0.14em;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
     margin-bottom: 0.35rem;
   }
 
@@ -8280,9 +8300,14 @@ select.input {
 
   .landing-premium-hero-trust {
     margin-top: 0.75rem;
-    font-size: 0.58rem;
-    letter-spacing: 0.05em;
-    gap: 0.4rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    gap: 0.3rem 0.9rem;
+  }
+
+  /* The row wraps at this width; a dot would dangle at a line end, so spacing separates instead. */
+  .landing-premium-hero-trust-dot {
+    display: none;
   }
 
   .landing-hero-carousel-top {
@@ -8600,11 +8625,11 @@ select.input {
 }
 
 .cosmic-wheel-fact-label {
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: color-mix(in oklab, var(--text-secondary) 60%, var(--text-muted));
 }
 
 .cosmic-wheel-fact-value {
@@ -8615,7 +8640,7 @@ select.input {
 
 .cosmic-wheel-source {
   margin: 0.4rem 0 0;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
