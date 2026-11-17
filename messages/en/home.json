@@ -275,6 +275,32 @@
       }
     }
   },
+  "appGuide": {
+    "kicker": "App Guide",
+    "title": "Learn Vedaansh, screen by screen",
+    "description": "Short, illustrated guides for every part of the app, from your first birth chart to chart settings, dashas, saving charts and plans.",
+    "stats": "{guides} guides · {sections} sections · English and हिंदी",
+    "cta": "Open the App Guide",
+    "read": "Read guide",
+    "items": {
+      "getting-started": {
+        "title": "Getting started",
+        "text": "Make your first birth chart in under a minute."
+      },
+      "workspace": {
+        "title": "Your chart Workspace",
+        "text": "What every button, chart and panel on the main screen does."
+      },
+      "chart-settings": {
+        "title": "Chart settings",
+        "text": "Chart styles, display switches, Lagna source and sizes."
+      },
+      "matching": {
+        "title": "Kundali Milan",
+        "text": "Match two charts and read the 36-point score."
+      }
+    }
+  },
   "install": {
     "title": "Keep Vedaansh on your home screen",
     "text": "Install it from Chrome on Android or Safari on iPhone and iPad. No app store needed.",

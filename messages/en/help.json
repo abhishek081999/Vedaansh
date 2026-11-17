@@ -1,0 +1,1086 @@
+{
+  "meta": {
+    "title": "App Guide — How to use Vedaansh",
+    "description": "Step-by-step App Guide for Vedaansh: the chart Workspace and its settings, dashas, transits, Kundali Milan, saving charts, account settings and plans."
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "help": "App Guide"
+  },
+  "index": {
+    "eyebrow": "App Guide",
+    "title": "Learn Vedaansh, screen by screen",
+    "lede": "Short, illustrated guides for every part of the app, from your first birth chart to chart settings, dashas, saving charts and plans.",
+    "stats": "{guides} guides · {sections} sections · English and हिंदी",
+    "searchLabel": "Search the App Guide",
+    "searchPlaceholder": "Search, e.g. chart style or dasha",
+    "searchEmpty": "No guide matches “{query}”. Try a shorter word.",
+    "jumpTo": "Jump to a section",
+    "featuredEyebrow": "Most used",
+    "featuredTitle": "Master the Workspace",
+    "featuredBody": "The Workspace is where you will spend most of your time. These seven guides walk through every chart, setting, table and panel on it.",
+    "featuredCta": "Start with the overview",
+    "featuredAlt": "The Workspace with a birth chart open.",
+    "stepsCount": "{count} steps",
+    "contactButton": "Contact support",
+    "quickStartTitle": "Quick start in 3 steps",
+    "quickStart": [
+      "Open Workspace, click + New and enter the name, date, time and place of birth.",
+      "Click Calculate Chart. Your D1 (Rashi) and D9 (Navamsha) charts, planets and dashas appear.",
+      "Use the top menus (Astrology, Advanced, Nakshatra, Panchang) to open any reading for that chart."
+    ],
+    "startButton": "Make my first chart",
+    "faqTitle": "Common questions",
+    "faq": [
+      {
+        "q": "Do I need an account?",
+        "a": "No. You can calculate charts, read Panchang and match kundalis without signing in. An account lets you save charts, set a default chart and use paid plans."
+      },
+      {
+        "q": "I do not know my exact birth time. What should I do?",
+        "a": "Enter the closest time you know. The Lagna (ascendant) changes about every two hours, so house-based readings and dashas are the most sensitive to time. Planet signs and the Moon nakshatra are usually still correct."
+      },
+      {
+        "q": "Why does a page ask for birth details again?",
+        "a": "Chart pages read the chart that is open in Workspace. If you open a page directly in a new tab, load your chart first, or sign in so your default chart loads automatically."
+      },
+      {
+        "q": "Some sections show a lock. Why?",
+        "a": "Locked sections are part of the Gold or Platinum plan. Free users see a short preview. See Plans and billing for what each plan includes."
+      },
+      {
+        "q": "Can I use Vedaansh in Hindi?",
+        "a": "Yes. Click the language button (EN / हि) in the header. Your choice is remembered on this device."
+      }
+    ],
+    "contactTitle": "Still stuck?",
+    "contactBody": "Write to our support team and include the page name and what you expected to see."
+  },
+  "categories": {
+    "start": {
+      "title": "Getting started",
+      "desc": "First chart, birth details and finding your way around."
+    },
+    "workspace": {
+      "title": "The Workspace",
+      "desc": "Your main chart screen, part by part: charts, chart settings, planet table, dasha timeline and every panel below."
+    },
+    "chart": {
+      "title": "Your chart",
+      "desc": "Dasha and analysis pages, divisional charts, interpretation and today's reading."
+    },
+    "life": {
+      "title": "Life areas",
+      "desc": "Relationship, career, dosha and kundali matching."
+    },
+    "timing": {
+      "title": "Timing and calendars",
+      "desc": "Transits, Panchang, Muhurta and Nakshatra tools."
+    },
+    "advanced": {
+      "title": "Advanced tools",
+      "desc": "Jaimini, Nadi, Vastu, AstroCartography, SBC, Prashna and numerology."
+    },
+    "account": {
+      "title": "Account, saving and plans",
+      "desc": "My Charts, sharing, client CRM, settings and billing."
+    }
+  },
+  "plan": {
+    "free": "Free",
+    "mixed": "Free · more with Gold",
+    "gold": "Gold",
+    "platinum": "Platinum"
+  },
+  "article": {
+    "back": "← All guides",
+    "eyebrow": "App Guide",
+    "allGuides": "All guides",
+    "onThisPage": "On this page",
+    "notFound": "Guide not found",
+    "figure": "Figure {n}",
+    "openFull": "Open full size",
+    "stepsCount": "{count} steps",
+    "open": "Open in Vedaansh",
+    "steps": "Steps",
+    "tips": "Tips",
+    "prev": "Previous",
+    "next": "Next",
+    "screenshotNote": "Screenshots use a sample chart (15 Jan 1990, 10:30 am, New Delhi). Your screen shows your own chart."
+  },
+  "topics": {
+    "getting-started": {
+      "title": "Getting started",
+      "summary": "What Vedaansh does and how to make your first birth chart in under a minute.",
+      "shots": [
+        "The Workspace with a birth chart open: D1 and D9 charts, the summary strip and planetary details.",
+        "Header controls: language switch, theme switch and Sign in.",
+        "Vedaansh on a phone."
+      ],
+      "sections": [
+        {
+          "heading": "What you can do",
+          "body": "Vedaansh calculates Vedic (sidereal) birth charts with Swiss Ephemeris accuracy. From one chart you can read dashas, divisional charts, yogas, strengths, transits, relationship and career, and daily guidance. Panchang, Muhurta, Kundali Milan, Prashna and numerology are also built in.",
+          "steps": [
+            "Use it free without an account.",
+            "Sign in to save charts and load your own chart automatically.",
+            "Upgrade to Gold or Platinum for full readings, PDF export and the client CRM."
+          ]
+        },
+        {
+          "heading": "Make your first chart",
+          "steps": [
+            "Click Workspace in the header, then + New.",
+            "Enter a name, gender, date, time and place of birth.",
+            "Click Calculate Chart.",
+            "Your chart opens in the Workspace. Every reading in the menus now uses this chart."
+          ]
+        },
+        {
+          "heading": "Language, theme and app",
+          "steps": [
+            "Language: click EN / हि in the header to switch between English and Hindi.",
+            "Theme: click the moon or sun button to cycle Classic, Dark and Light.",
+            "App: open Install App from the menu to add Vedaansh to your phone's home screen."
+          ]
+        }
+      ],
+      "tips": [
+        "Every chart has a share button that copies a free link. Anyone with the link sees the same chart, no login needed."
+      ]
+    },
+    "birth-details": {
+      "title": "Entering birth details",
+      "summary": "How to fill in the birth form correctly, including place, timezone and calculation settings.",
+      "shots": [
+        "The Birth Details panel with name, gender, date, time and place."
+      ],
+      "sections": [
+        {
+          "heading": "Fill in the form",
+          "steps": [
+            "Name / Label: any name. It appears on the chart and in your saved list.",
+            "Gender: M, F or O. Some readings, such as Naamkaran and marriage, use it.",
+            "Date and Time: type or scroll each part. Use AM / PM carefully. Now ↺ fills the current moment.",
+            "Place: start typing a city and pick it from the list. The latitude and longitude appear under the box."
+          ]
+        },
+        {
+          "heading": "When the city is not listed",
+          "steps": [
+            "Click Enter Lat/Lng and type the coordinates (for example 28.6139 and 77.2090, or 28:36 and 77:12).",
+            "Open Timezone and pick the zone, or click Resolve from Coords.",
+            "Use My Location fills in where your device is now. Use it only if you are at the birth place."
+          ]
+        },
+        {
+          "heading": "Advanced settings",
+          "body": "Leave these as they are unless you follow a specific school. The defaults are Lahiri ayanamsha, Whole Sign houses, 7 Chara Karakas and Mean nodes.",
+          "steps": [
+            "Ayanamsha: Lahiri, True Chitra, Raman, True Revati, Usha-Shashi or Yukteshwar.",
+            "House system: Whole Sign, Placidus, Equal House or Bhava Chalita.",
+            "Karaka scheme: 7 Karakas (Parashari) or 8 Karakas (with Rahu).",
+            "Rahu / Ketu: Mean or True nodes."
+          ]
+        }
+      ],
+      "tips": [
+        "Signed-in users can set their own defaults once in Account → Chart preferences.",
+        "To change a chart later, click the pencil (Edit birth details) next to the chart name."
+      ]
+    },
+    "navigation": {
+      "title": "Finding your way around",
+      "summary": "The header menus, the side menu and how pages share the open chart.",
+      "shots": [
+        "The side menu, opened with the ☰ button, with every section listed.",
+        "The Astrology menu in the header."
+      ],
+      "sections": [
+        {
+          "heading": "Header",
+          "steps": [
+            "Workspace: your open chart.",
+            "Today: a personal reading for today.",
+            "My Charts: your saved charts (sign-in needed).",
+            "Astrology: Transit, Core Analysis, Divisional charts, Strength, Relationship, Career, Dosha, Solar Return and Natal Panchang.",
+            "Advanced: Jaimini, Nadi, Astro Vastu, AstroCartography, Sarvatobhadra Chakra, Muhurta, Prashna, Numerology and Kundali Matching.",
+            "Nakshatra and Panchang: star-based tools and the Hindu calendar."
+          ]
+        },
+        {
+          "heading": "Side menu",
+          "steps": [
+            "Click ☰ at the top left to open the full menu.",
+            "Open a section to see its pages. The current page is highlighted.",
+            "At the bottom: Guides, App Guide, CRM / Clients, Install App, About and Pricing."
+          ]
+        },
+        {
+          "heading": "How pages use your chart",
+          "body": "The chart open in the Workspace is shared by every chart page. Change the chart once and Relationship, Career, Transit and the rest follow. If no chart is open, the page shows Open Birth Form."
+        }
+      ],
+      "tips": [
+        "On a phone the header menus move into ☰. Tap a section name to expand it."
+      ]
+    },
+    "account-signup": {
+      "title": "Creating an account and signing in",
+      "summary": "Why you might want an account, how to sign up and what to do if you forget your password.",
+      "shots": [
+        "The sign-up page."
+      ],
+      "sections": [
+        {
+          "heading": "What an account adds",
+          "steps": [
+            "Save charts and Kundali Milan matches (20 each on Free).",
+            "Your default chart loads every time you sign in.",
+            "Notes, hashtags and share links on saved charts.",
+            "Paid plans and billing history."
+          ]
+        },
+        {
+          "heading": "Sign up",
+          "steps": [
+            "Click Sign in at the top right, then create an account.",
+            "Enter your name, email and a password.",
+            "Open the verification email and click the link."
+          ]
+        },
+        {
+          "heading": "Forgot password",
+          "steps": [
+            "On the Sign in page, click Forgot? next to the password box.",
+            "Enter your email and open the reset link we send.",
+            "Choose a new password and sign in."
+          ]
+        }
+      ]
+    },
+    "workspace": {
+      "title": "Workspace overview",
+      "summary": "A map of the main chart screen and what every button at the top does.",
+      "shots": [
+        "The top of the Workspace: chart name, action buttons, summary strip, D1 and D9 charts and the planet table.",
+        "The Workspace on a phone, with the section tabs at the bottom."
+      ],
+      "sections": [
+        {
+          "heading": "How the screen is laid out",
+          "body": "The Workspace opens whenever a chart is loaded. Read it from top to bottom:",
+          "steps": [
+            "Chart header: name, birth date and time, place and Lagna degree, with the action buttons on the right.",
+            "Summary strip: the key facts of the chart on one line.",
+            "Transit Overlay: a switch that puts today's planets on your chart.",
+            "Two charts side by side: D1 (Rashi) on the left and a divisional chart (D9 to start) on the right.",
+            "Planetary Details on the right: the planet table, with Dasha and More tabs.",
+            "Today's Timeline: the running dasha, the houses active now and a short dasha reading.",
+            "Below that: Astronomical Details, Cosmic Weather, strength panels, yogas, doshas, panchang, current transits, divisional charts and remedies."
+          ]
+        },
+        {
+          "heading": "Buttons at the top right",
+          "steps": [
+            "Share icon: copies a free link to this chart. Anyone can open it without logging in.",
+            "PDF (Gold): downloads the full chart report.",
+            "Email (Platinum): sends the report to a client.",
+            "✎ Edit: reopens the birth form so you can correct the time or place. The chart recalculates when you save.",
+            "+ New: starts a fresh chart.",
+            "When signed in you also see + Save (or Update for a saved chart) and a link to My Charts."
+          ]
+        },
+        {
+          "heading": "The summary strip",
+          "body": "One line under the header with the essentials: Age, Lagna sign and degree, Moon sign and nakshatra, Sun sign and degree, AK (Atmakaraka), the running mahadasha, the Natal Panchang of your birth moment, and the Live Panchang of right now. On narrow screens, swipe it sideways to see everything."
+        },
+        {
+          "heading": "On a phone",
+          "steps": [
+            "Only one chart shows at a time. Use the drop-down above it to switch between D1, D9 or any other divisional chart.",
+            "The share, edit and + buttons sit next to the chart name. The ⌄ button opens the rest (save, My Charts).",
+            "A tab bar at the bottom jumps between sections: Dashboard, Planets, Details, Dasha, Today, Strength, Yogas and Insights. Swipe it for more tabs.",
+            "In Today's Timeline, tap Time to show the exact start time of each period."
+          ]
+        }
+      ],
+      "tips": [
+        "Every page in the Astrology and Advanced menus reads the chart open here. Load the right chart first, then explore.",
+        "The pages that follow in this section explain each part in detail."
+      ]
+    },
+    "workspace-charts": {
+      "title": "Reading the charts",
+      "summary": "The D1 and divisional chart cards: picking a varga, selecting houses, Chara Drishti, planet tooltips, symbols and the four chart styles.",
+      "shots": [
+        "Chara Drishti on, with house 10 selected: dashed lines show which signs aspect it.",
+        "The planet tooltip for Jupiter: nakshatra, karaka, significations, house meaning and aspects.",
+        "South Indian style: signs stay fixed, the Lagna box is marked AS.",
+        "Circle Wheel style.",
+        "Sarvatobhadra style: the 9×9 nakshatra grid."
+      ],
+      "sections": [
+        {
+          "heading": "The two chart cards",
+          "body": "The left card is always D1 (Rashi), your birth chart. The right card starts as D9 (Navamsha). Each card has a caption under it that says what that chart is about, for example 'personality, body, overall life' for D1.",
+          "steps": [
+            "Change the right chart with its drop-down. Core charts: D1, Chalit (Bhava Chalit), D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45 and D60.",
+            "Platinum adds the extended set: D5, D6, D8, D81, D108, D144, D150 and variants such as Parivritti, Kasinath, Somanath, Jagannath and Nadi forms. These show (Platinum) in the list.",
+            "Each card has its own ⚙ Settings, so D1 and the varga can use different styles."
+          ]
+        },
+        {
+          "heading": "Select a house and see Chara Drishti",
+          "steps": [
+            "Click any house. The card header shows Selected House n, and the house is highlighted.",
+            "Tick Chara Drishti above the chart to see Jaimini sign aspects. Dashed lines join the selected house to every sign that aspects it.",
+            "Click Clear to remove the selection."
+          ]
+        },
+        {
+          "heading": "Planet tooltips",
+          "body": "Turn on Tooltip in ⚙ Settings, then hover (or tap on a phone) any planet in the chart. The card shows the planet's sign and degree, dignity, retrograde state, nakshatra and pada, its karaka, key significations, what it means in its sign and house, and its aspects (drishti) with the houses they fall on. Tap close to it again to dismiss on a phone."
+        },
+        {
+          "heading": "Symbols on the planets",
+          "steps": [
+            "Two-letter codes: Su Sun, Mo Moon, Ma Mars, Me Mercury, Ju Jupiter, Ve Venus, Sa Saturn, Ra Rahu, Ke Ketu. AS marks the Lagna.",
+            "Small letters after a planet: R retrograde, C combust, M maraka, B badhaka. They match the legend under the planet table.",
+            "Numbers in the North Indian chart are sign numbers (1 = Aries … 12 = Pisces). The top diamond is always house 1."
+          ]
+        },
+        {
+          "heading": "Chart styles",
+          "body": "Switch styles in ⚙ Settings → Style. Your choice is remembered on this device, and on your account when signed in.",
+          "steps": [
+            "North Indian: houses stay fixed, signs rotate. The top diamond is the Lagna.",
+            "South Indian: signs stay fixed, houses rotate. The Lagna box is marked AS with its degree.",
+            "Circle Wheel: 12 equal slices with the ascendant at 9 o'clock.",
+            "Sarvatobhadra: the 9×9 nakshatra grid used for transits and vedha. Its own switches are Tithi, Vara and Legend."
+          ]
+        }
+      ],
+      "tips": [
+        "Highlighted (shaded) boxes are the houses with the Lagna and the selected or active house.",
+        "For a permanent default style, set Chart preferences in Account."
+      ]
+    },
+    "chart-settings": {
+      "title": "Chart settings (⚙) in depth",
+      "summary": "Every control in a chart's Settings panel: style, display switches, Lagna source, house rotation and size sliders.",
+      "shots": [
+        "The Settings panel open on the D1 card."
+      ],
+      "sections": [
+        {
+          "heading": "Open and close",
+          "steps": [
+            "Click ⚙ Settings at the top right of a chart card. The panel opens above the chart.",
+            "Click ⚙ Hide to close it. Changes apply straight away; there is no Save button.",
+            "The D1 card and the varga card each have their own panel."
+          ]
+        },
+        {
+          "heading": "Style",
+          "body": "North Indian, South Indian, Sarvatobhadra or Circle Wheel. See Reading the charts for what each looks like."
+        },
+        {
+          "heading": "Display switches",
+          "steps": [
+            "9 Planets: on shows only the nine grahas. Off also shows Uranus, Neptune and Pluto.",
+            "Degrees: prints each planet's degree next to it.",
+            "Nakshatra: prints the nakshatra abbreviation next to each planet.",
+            "Karaka (paid plans): shows Chara Karaka labels such as AK, AmK and BK.",
+            "Arudha: shows the Arudha padas (AL and the arudhas of the other houses) in the chart. When on, BPHS exceptions switches to the classical exception rules for arudhas.",
+            "Show Natal: appears when Transit Overlay is on. Turn it off to see only the transiting planets.",
+            "Tooltip: turns the hover card for planets on or off.",
+            "Chara Drishti: the same as the tick box above the chart, with a Clear House button.",
+            "Sarvatobhadra style only: Tithi, Vara and Legend."
+          ]
+        },
+        {
+          "heading": "Lagna source and house rotation",
+          "body": "This redraws the chart from a different starting point, without changing the calculation.",
+          "steps": [
+            "Natal: the normal chart from your Lagna.",
+            "Moon: Chandra Lagna, the chart counted from the Moon's sign.",
+            "Sun: Surya Lagna, counted from the Sun's sign.",
+            "AL: counted from the Arudha Lagna.",
+            "House 1–12: makes that house the first house (bhavat bhavam). For example, pick 7 to read the chart from the spouse's point of view, or 10 for career matters."
+          ]
+        },
+        {
+          "heading": "Typography sliders",
+          "steps": [
+            "Chart Size: the size of the whole chart.",
+            "Base Scale: all text in the chart.",
+            "Planets: planet letters only.",
+            "Details: small details such as degrees, nakshatras and sign numbers.",
+            "Arudha: arudha labels."
+          ]
+        },
+        {
+          "heading": "What is remembered",
+          "body": "The chart style is saved on this device, and to your account when you are signed in. The other switches and sliders return to their defaults when you reload. To make Degrees, Nakshatra, Karaka, ayanamsha, house system and nodes your permanent defaults, set them in Account → Chart preferences."
+        }
+      ],
+      "tips": [
+        "Phones start with slightly bigger planets and details so the chart stays readable. Use the sliders if you want it smaller."
+      ]
+    },
+    "transit-overlay": {
+      "title": "Transit Overlay",
+      "summary": "Put the planets of today, or any date, on top of your birth chart.",
+      "shots": [
+        "Transit Overlay on: the date box, transit house chips and Show Natal in Settings."
+      ],
+      "sections": [
+        {
+          "heading": "Turn it on",
+          "steps": [
+            "Click the Transit Overlay switch above the charts.",
+            "Transiting planets appear in a lighter purple next to your birth planets, in both chart cards.",
+            "Natal and Transit under the chips is the colour key."
+          ]
+        },
+        {
+          "heading": "Read the chips",
+          "steps": [
+            "Each chip is one transiting planet and the house it is passing through, counted from your Lagna. ☀ H9 means the Sun is in your 9th house today.",
+            "℞ on a chip means that planet is retrograde now."
+          ]
+        },
+        {
+          "heading": "Change the date",
+          "steps": [
+            "Click the date box and pick any earlier date, up to today, to see the transits for that day.",
+            "The positions are calculated for the current time of day at your birth place.",
+            "In ⚙ Settings, turn off Show Natal to see only the transiting planets."
+          ]
+        }
+      ],
+      "tips": [
+        "Transits work together with the dasha. Check Today's Timeline to see which planet's period is running.",
+        "For a slider through time, Sade Sati and a transit calendar, open Astrology → Transit."
+      ]
+    },
+    "planet-table": {
+      "title": "Planetary Details table",
+      "summary": "Every column, badge and tab of the planet table: wide columns, special lagnas, varga view and the dasha tab.",
+      "shots": [
+        "Wider columns (↔): Dignity and Avastha added.",
+        "▾ More: special lagnas and points such as Bhava, Hora, Ghati, Indu Lagna and Bhrigu Bindu.",
+        "The Dasha tab: dasha system, Tara and Tribhagi mode."
+      ],
+      "sections": [
+        {
+          "heading": "Columns",
+          "steps": [
+            "Body: the planet or point. Lagna and Arudha Lagna (AL) are at the top.",
+            "Deg: degree, minute and second inside the sign.",
+            "Nakshatra: the nakshatra with its pada in brackets. The small word under it (Janma, Sampat, Vipat, Kshema, Pratyari, Sadhana, Naidhana, Mitra, Parama Mitra) is its tara counted from your Moon nakshatra.",
+            "Rashi·D9: the sign, with the Navamsha sign in brackets.",
+            "Click ↔ to show wider columns: Dignity (exalted, own, friend, enemy, debilitated…) and Avastha (the planet's state). Click again for the compact view."
+          ]
+        },
+        {
+          "heading": "Badges",
+          "steps": [
+            "Karaka badges next to the name: AK Atmakaraka, AmK Amatyakaraka, BK Bhratrikaraka, MK Matrikaraka, PK Putrakaraka, GK Gnatikaraka, DK Darakaraka.",
+            "Coloured letters under the name: C Combust, M Maraka, B Badhaka, G Gandanta, P Pushkara Navamsha, Y Yuddha (planetary war). The legend sits at the bottom of the table.",
+            "A red name with ᴿ means the planet is retrograde."
+          ]
+        },
+        {
+          "heading": "More and Varga",
+          "steps": [
+            "▾ More adds the special lagnas and points: Bhava, Hora, Ghati and Vighati Lagna, Varnada, Shri Lagna, Pranapada, Indu Lagna and Bhrigu Bindu. ▴ Less hides them.",
+            "Varga: switch the whole table to another divisional chart, or to Chalit (Bhava Chalit) to see which house each planet falls in by house cusps."
+          ]
+        },
+        {
+          "heading": "Dasha tab",
+          "steps": [
+            "Click Dasha at the top of the panel to swap the table for a full dasha list.",
+            "Choose the system: Vimshottari, Yogini, Chara (K.N. Rao), Chara (Rangacharya FE), Mandook, Sthir, Ashtottari or Kalachakra.",
+            "Tara: counts the tara of each period from the Moon (free) or from another planet or the Lagna (Gold).",
+            "Mode: Standard, or Tribhagi (the Vimshottari cycle split into thirds).",
+            "Click › on a period to open its sub-periods. Click Planets to return to the table."
+          ]
+        }
+      ]
+    },
+    "timeline": {
+      "title": "Today's Timeline, Active Houses and Dasha Insight",
+      "summary": "See which dasha is running, drill into sub-periods, and read which houses are active right now.",
+      "shots": [
+        "Today's Timeline: the mahadasha list on the left, Active Houses and Dasha Insight on the right.",
+        "After clicking Rahu: its antardashas, with ← Back to return."
+      ],
+      "sections": [
+        {
+          "heading": "The running dasha",
+          "steps": [
+            "The first line shows the current chain, for example MD Rahu · Ra/Ju/Ve/Ra (mahadasha / antardasha / pratyantar / sukshma).",
+            "The red Tara badge is the tara of the running period from your Moon.",
+            "The list below gives every mahadasha with its start date. The running one is highlighted and marked with a dot.",
+            "Change the system with the drop-down at the top right of the panel."
+          ]
+        },
+        {
+          "heading": "Drill into sub-periods",
+          "steps": [
+            "Click any period to open its sub-periods (mahadasha → antardasha → pratyantar and deeper).",
+            "The line above the list shows where you are. Click ← Back to go up one level."
+          ]
+        },
+        {
+          "heading": "Active Houses",
+          "body": "This list shows which houses are switched on right now, and why. Each house has its number, its theme and the sign on it.",
+          "steps": [
+            "● Dasha (red): the mahadasha or antardasha lord sits in or rules this house, for example AD Ju (rules).",
+            "● Transit (green): the transiting Moon is passing through this house.",
+            "Prog: the yearly progression (Bhrigu Chakra) has reached this house."
+          ]
+        },
+        {
+          "heading": "Dasha Insight",
+          "steps": [
+            "A short reading of the current mahadasha and antardasha: a title, the tone (favourable, mixed or challenging) and two lines of meaning.",
+            "The coloured bar shows the balance: % favourable, neutral and challenging.",
+            "Details → opens the full Dasha Interpretation page. Gold shows all the bullets, watch notes and the period reading."
+          ]
+        }
+      ]
+    },
+    "workspace-panels": {
+      "title": "Panels below the charts",
+      "summary": "What each panel lower down the Workspace shows: details, cosmic weather, strength, yogas, doshas, panchang, transits and remedies.",
+      "shots": [
+        "Astronomical Details with ▾ More.",
+        "Cosmic Weather: day quality, Tarabala, vaar, nakshatra and tithi for today.",
+        "The strength row: Ashtakavarga, Shadbala, Vimsopaka and Bhava Bala, each with ▾ Full.",
+        "Doshas & Afflictions, with the Shrap desk below.",
+        "Current Transits: Sade Sati status and houses from Lagna and Moon.",
+        "Remedies & Lucky Data."
+      ],
+      "sections": [
+        {
+          "heading": "Astronomical Details",
+          "body": "Birth data and panchang (vara, tithi, nakshatra, yoga, karana, sunrise and sunset), place, coordinates and ayanamsha. ▾ More adds Lagna and signs, the Moon nakshatra's lord, deity, gana, yoni and nadi, special lagnas, and nodes with the Hindu eras (Shaka and Vikram Samvat)."
+        },
+        {
+          "heading": "Cosmic Weather and Daily Suitability",
+          "body": "A daily reading for your chart: whether the day is auspicious, the Tarabala of today's nakshatra from yours, the BCP house of the year, the Anka (numerology) personal day, and the vaar, nakshatra and tithi of today with what each is good for. Daily Suitability rates spiritual, wellness, learning, business, travel and property. Gold adds hora, muhurta windows and caveats."
+        },
+        {
+          "heading": "Strength panels",
+          "steps": [
+            "Ashtakavarga: the Sarvashtakavarga chart with bindus per sign, SAV total, strongest and weakest sign. Pick a planet's BAV from the drop-down.",
+            "Shadbala: strongest and weakest planet and the top five, in rupas (R) and % of the required strength.",
+            "Vimsopaka (16 vargas): how strong each planet is across the divisional charts, out of 20.",
+            "Bhava Bala: strength of each house, with the strongest and weakest marked.",
+            "▾ Full on any panel opens the complete table. ▴ closes it."
+          ]
+        },
+        {
+          "heading": "Yogas, doshas and panchang",
+          "steps": [
+            "Graha Yogas: the yogas found in the chart (Raja, Dhana, parivartana, nabhasa and others) with Strong marked.",
+            "Doshas & Afflictions: Manglik, Pape-samya, Gandanta, Mrityu Bhaga, Graha Yuddha and Combustion, each Clear, Watch or Notable, then the Shrap desk (Pitru, Matru, Sarpa, Guru, Brahmin, Stri) and malefic yogas. Open full reading → goes to Dosha & Upay.",
+            "Natal Panchang: the five limbs at your birth.",
+            "Today's Panchang: today's five limbs, sunrise, sunset, Rahu Kalam, Gulika, Yamaganda and Abhijit, in the chart's timezone."
+          ]
+        },
+        {
+          "heading": "Transits and divisional charts",
+          "steps": [
+            "Current Transits: Sade Sati, Dhaiya or Ashtama Shani status with its end date, then every planet's sign and the house it is in from your Lagna and from your Moon. Hub → opens the Transit section.",
+            "Divisional Charts: quick tabs for D9, D10, D7 and D12 with their meaning.",
+            "Relationship & Career (Gold): short highlights with links to the full pages."
+          ]
+        },
+        {
+          "heading": "Remedies & Lucky Data",
+          "body": "Remedies for your Moon nakshatra (mantra, deity, colour and metal, charity, fasting) and for three planets: the mahadasha lord, the antardasha lord and the weakest planet by Shadbala. Each lists its day, mantra, gemstone and what to give."
+        }
+      ],
+      "tips": [
+        "Start with mantra, charity and routine. Wear a gemstone only after a full chart review."
+      ]
+    },
+    "analysis": {
+      "title": "Dashas, divisional charts and analysis",
+      "summary": "What each page under Astrology → Core Analysis, Divisional Charts and Strength shows.",
+      "shots": [
+        "Astrology sections in the side menu: Transit, Core Analysis and more."
+      ],
+      "sections": [
+        {
+          "heading": "Core Analysis",
+          "steps": [
+            "Astro Details: avakahada chakra, ghatak and basic birth data.",
+            "Planets: one tab per planet, including Moon Kalas and the Sun's 12 Adityas.",
+            "Navamsha (D9): marriage and inner strength.",
+            "Dasha and Dasha Interpretation: periods and what each mahadasha and antardasha means for you.",
+            "House, Yogas and Stellar (KP): house-by-house reading, yoga list and KP cusps.",
+            "Interpretation: the full reading hub (overview, planets, houses, signs, strength, transit, dasha).",
+            "Tattva Prediction and Naamkaran: element-based prediction and classical name letters."
+          ]
+        },
+        {
+          "heading": "Divisional charts",
+          "body": "D3 (siblings), D4 (property), D7 (children), D10 (career), D12 (parents) and D27 (strengths) each have their own page with a chart and reading. Free and Gold include the 16 Shodashavarga charts. Platinum adds the full set of 41."
+        },
+        {
+          "heading": "Strength and analytics",
+          "steps": [
+            "Ashtakavarga: bindu tables and the sarva ashtakavarga chart.",
+            "Shadbala and Bhava Bala: planet and house strength in rupas.",
+            "Vimsopaka: strength across divisional charts."
+          ]
+        }
+      ],
+      "tips": [
+        "Free users see the overview and the first themes of the Interpretation hub. Gold opens every section and the full dasha reading."
+      ]
+    },
+    "today": {
+      "title": "Today's reading",
+      "summary": "A personal day reading from your Moon, running dasha, live transits and today's panchang.",
+      "shots": [
+        "Today's Reading: transit chart, day score, Tara and Chandra Bala, and the summary."
+      ],
+      "sections": [
+        {
+          "heading": "Read your day",
+          "steps": [
+            "Open Today in the header. It uses the chart open in the Workspace.",
+            "The score (out of 100) combines Tara Bala, Chandra Bala and panchang support.",
+            "Read the summary, then What to expect today for time-based windows.",
+            "Use the Dasha, Transits and Houses tabs under the chart for detail."
+          ]
+        },
+        {
+          "heading": "Change place or refresh",
+          "steps": [
+            "Click the place button at the top to read the day for where you are now.",
+            "Click Refresh to update the reading during the day."
+          ]
+        }
+      ],
+      "tips": [
+        "Purple planets on the chart are today's positions. Your birth planets keep their usual colours."
+      ]
+    },
+    "relationship": {
+      "title": "Relationship and marriage",
+      "summary": "Marriage read from the 7th house, its lord, Venus and the Navamsha lagna, with an overall score.",
+      "shots": [
+        "The Relationship and marriage page."
+      ],
+      "sections": [
+        {
+          "heading": "How to use it",
+          "steps": [
+            "Open Astrology → Relationship with your chart loaded.",
+            "Read the headline and the overall score out of 10.",
+            "The chips show the 7th house, 7th lord, Venus and Navamsha lagna at a glance.",
+            "Below the D1 chart, five score cards rate each part of married life.",
+            "Click Match with a partner chart to go to Kundali Milan."
+          ]
+        }
+      ],
+      "tips": [
+        "Free shows the chart and the five scores. Gold shows the full reading and marriage gochar windows."
+      ]
+    },
+    "career": {
+      "title": "Career and profession",
+      "summary": "Career direction from the 10th house, its lord, the Dashamsha (D10) and the professional method.",
+      "shots": [
+        "The Career page: method picker, headline, D1 chart and score cards."
+      ],
+      "sections": [
+        {
+          "heading": "How to use it",
+          "steps": [
+            "Open Astrology → Career with your chart loaded.",
+            "Pick a method (M1 Career reading and others) from the Method drop-down.",
+            "Read the headline and whether the career can be delivered.",
+            "Check the five scores: Status, Authority, Profession, Skill and Gains."
+          ]
+        }
+      ],
+      "tips": [
+        "Free shows the chart, five scores and the professional-method answers. Gold adds the full seven-step reading."
+      ]
+    },
+    "dosha": {
+      "title": "Dosha and Upay",
+      "summary": "Checks your chart for the six Shrap doshas (Pitru, Matru, Sarpa, Guru, Brahmin and Stri / Kanya), with remedies.",
+      "shots": [
+        "The Dosha and Upay page."
+      ],
+      "sections": [
+        {
+          "heading": "How to use it",
+          "steps": [
+            "Open Astrology → Dosha & Upay with your chart loaded.",
+            "The headline says how many strong flags the chart has.",
+            "Each dosha card is marked Strong, Watch or Clear.",
+            "Gold opens the full desk: indicators, effects, remedies and remedy timing."
+          ]
+        }
+      ],
+      "tips": [
+        "Doshas are indicators, not verdicts. Confirm them with the dasha and divisional charts."
+      ]
+    },
+    "matching": {
+      "title": "Kundali Milan (matching)",
+      "summary": "Match two charts with Ashtakoot guna milan, Porutham, dosha checks and a married-life reading.",
+      "shots": [
+        "The Kundali Matching page with forms for both charts."
+      ],
+      "sections": [
+        {
+          "heading": "Match two charts",
+          "steps": [
+            "Open Advanced → Kundali Matching.",
+            "Person 1: click Select from My Charts, or enter the birth details and click Calculate Chart.",
+            "Person 2: do the same for the second person.",
+            "Match Result: the Ashtakoot score out of 36 comes first, then Deep Milan, Porutham, dosha, charts, dasha and panchang."
+          ]
+        },
+        {
+          "heading": "Save and print",
+          "steps": [
+            "Signed-in users can save a match. It appears under My Charts → Kundali Milan.",
+            "Gold adds the full match-making and married-life readings, All Sections and print."
+          ]
+        }
+      ]
+    },
+    "transit": {
+      "title": "Transits (Gochar)",
+      "summary": "See where the planets are now and how they move over your chart.",
+      "shots": [
+        "Live Transit with the time scrubber."
+      ],
+      "sections": [
+        {
+          "heading": "Transit pages",
+          "steps": [
+            "Live Transit: drag the time slider to move planets forward or back.",
+            "Moon Passages: when the Moon enters each sign and nakshatra.",
+            "Cosmic Roadmap: the big transits of the coming years.",
+            "Forecast, Sade Sati, Aspects, Bi-wheel and Calendar: detailed timing (Gold)."
+          ]
+        }
+      ],
+      "tips": [
+        "In the Workspace, Transit Overlay shows today's planets on your own chart without leaving the page."
+      ]
+    },
+    "panchang": {
+      "title": "Panchang and calendar",
+      "summary": "Daily tithi, nakshatra, yoga, karana, vara, Rahu Kaal, choghadiya and festivals for any place.",
+      "shots": [
+        "Daily Panchang.",
+        "Monthly Panchang calendar."
+      ],
+      "sections": [
+        {
+          "heading": "Daily Panchang",
+          "steps": [
+            "Open Panchang → Daily Panchang. No chart is needed.",
+            "Change the date and place at the top.",
+            "Read sunrise, sunset, the five limbs, Rahu Kaal, Gulika, Yamaganda, Abhijit and choghadiya."
+          ]
+        },
+        {
+          "heading": "Monthly calendar",
+          "steps": [
+            "Open Panchang → Monthly Calendar.",
+            "Move between months with the arrows. Click a day to open its full Panchang.",
+            "Special days such as festivals and vrats are marked on the calendar."
+          ]
+        }
+      ],
+      "tips": [
+        "Natal Panchang (under Astrology) shows the panchang of your birth moment instead of today."
+      ]
+    },
+    "muhurta": {
+      "title": "Muhurta finder",
+      "summary": "Find good days and times for a purpose such as marriage, travel, business or property.",
+      "shots": [],
+      "sections": [
+        {
+          "heading": "Find a muhurta",
+          "steps": [
+            "Sign in with a Gold or Platinum plan and open Advanced → Muhurta Finder.",
+            "Pick a purpose, or a quick intent such as Meeting or Travel start.",
+            "Choose the date range (up to 60 days) and the minimum grade, A to D.",
+            "Click Find Muhurta. Each day gets a grade from tithi, nakshatra, yoga, karana, vara and Tara / Chandra Bala."
+          ]
+        },
+        {
+          "heading": "Check the timeline",
+          "steps": [
+            "Open a day to see its timeline: hora, choghadiya, panchaka, lagna, gandanta and more.",
+            "With a chart loaded, your dasha and Ashtakavarga are added to the grade.",
+            "Add the chosen time to your calendar or share the report."
+          ]
+        }
+      ],
+      "tips": [
+        "Free users can still use Nakshatra → Muhurta and Best Days for a simpler star-based check."
+      ]
+    },
+    "nakshatra": {
+      "title": "Nakshatra tools",
+      "summary": "Your birth star in depth: Navtara, Taramandal, best days, remedies, profession and health.",
+      "shots": [
+        "Nakshatra Overview."
+      ],
+      "sections": [
+        {
+          "heading": "Tabs",
+          "steps": [
+            "Overview: your Moon nakshatra, its deity, ruler and nature.",
+            "Navtara and Taramandal: the nine-star cycle from your birth star and the star map of your chart.",
+            "Best Days, Muhurta and Panchaka: favourable days based on your star.",
+            "Planet, Compat and Remedies: nakshatras of each planet, star matching and remedies.",
+            "Profession and Medical: work and health indicators (full reading on Gold)."
+          ]
+        }
+      ]
+    },
+    "advanced": {
+      "title": "Jaimini, Nadi, Vastu, AstroCartography and SBC",
+      "summary": "The advanced systems under the Advanced menu and what each one is for.",
+      "shots": [
+        "Jaimini Astrology.",
+        "Nadi Astrology.",
+        "Astro Vastu.",
+        "AstroCartography.",
+        "Sarvatobhadra Chakra."
+      ],
+      "sections": [
+        {
+          "heading": "What each tool does",
+          "steps": [
+            "Jaimini: chara karakas, arudhas, rashi drishti and Chara dasha.",
+            "Nadi: planet-to-planet links read in the Nadi style.",
+            "Astro Vastu: your chart mapped onto the directions of a home (full analysis on Gold).",
+            "AstroCartography: a world map of planetary lines to see which places suit you.",
+            "Sarvatobhadra Chakra: the 9×9 grid for transits and vedha (full on Gold)."
+          ]
+        }
+      ],
+      "tips": [
+        "All of these read the chart open in the Workspace. Load the right chart first."
+      ]
+    },
+    "prashna": {
+      "title": "Prashna (horary)",
+      "summary": "Answer a question from the chart of the moment it is asked.",
+      "shots": [
+        "The Prashna page."
+      ],
+      "sections": [
+        {
+          "heading": "Ask a question",
+          "steps": [
+            "Open Advanced → Prashna. No birth chart is needed.",
+            "Pick a method: Satpanchasika, Vedic, KP or Kerala.",
+            "Type your question (optional) and check the location.",
+            "Click Capture Moment. The reading uses the current time and place.",
+            "For KP, enter a number from 1 to 249 first."
+          ]
+        },
+        {
+          "heading": "Past questions and history",
+          "steps": [
+            "Use Cast for a past question to set an earlier date and time.",
+            "Reading History keeps your past readings. Use Print for a copy."
+          ]
+        }
+      ],
+      "tips": [
+        "Satpanchasika is free. Vedic, KP and Kerala need Gold."
+      ]
+    },
+    "numerology": {
+      "title": "Vedic numerology",
+      "summary": "Core numbers, Lo Shu grid, name numbers and yearly cycles from a name and date of birth.",
+      "shots": [
+        "The Vedic Numerology page."
+      ],
+      "sections": [
+        {
+          "heading": "Get your numbers",
+          "steps": [
+            "Open Advanced → Vedic Numerology. No chart is needed.",
+            "Enter the full name and date of birth.",
+            "Read the core numbers, grid, arrows and name analysis.",
+            "Use spelling comparison to test name variations."
+          ]
+        }
+      ],
+      "tips": [
+        "Gold adds predictions, remedies, business numerology, a launch-date finder, a year calendar (.ics) and PDF. Platinum can save the result to a client."
+      ]
+    },
+    "my-charts": {
+      "title": "Saving charts and My Charts",
+      "summary": "Save charts, organise them with hashtags and notes, and import or export many at once.",
+      "shots": [],
+      "sections": [
+        {
+          "heading": "Save a chart",
+          "steps": [
+            "Sign in, open a chart in the Workspace and click + Save (or Update for a saved chart).",
+            "Free saves 20 charts, Gold 200 and Platinum unlimited. Kundali Milan matches have their own limit with the same numbers."
+          ]
+        },
+        {
+          "heading": "Find and organise",
+          "steps": [
+            "Open My Charts. Tabs switch between charts, Kundali Milan and Numerology.",
+            "Search by name, place, hashtag or notes. Filters narrow by gender and date.",
+            "# Tags adds hashtags. The notes icon opens Chart Observations (Cmd/Ctrl + Enter saves a note).",
+            "Use Set as Default on a chart card. That chart loads every time you sign in."
+          ]
+        },
+        {
+          "heading": "Import and export",
+          "steps": [
+            "Import XLSX adds many charts from a spreadsheet. Download the Template first to get the right columns.",
+            "Export XLSX downloads your list.",
+            "Platinum: select several charts and click Download ZIP for all their PDFs."
+          ]
+        }
+      ]
+    },
+    "sharing-export": {
+      "title": "Sharing, PDF and email",
+      "summary": "Send a chart to someone as a link, a PDF report or an email.",
+      "shots": [
+        "Chart actions at the top right of the Workspace: share, PDF, email, edit and new."
+      ],
+      "sections": [
+        {
+          "heading": "Share link (free)",
+          "steps": [
+            "Click the share icon next to PDF. A link is copied.",
+            "Anyone who opens it sees the same chart. No login is needed."
+          ]
+        },
+        {
+          "heading": "Public chart page",
+          "steps": [
+            "In My Charts, click 🔗 Share on a saved chart to make it public.",
+            "Open the public page to copy its link. Click again to make it private."
+          ]
+        },
+        {
+          "heading": "PDF and email",
+          "steps": [
+            "PDF (Gold): downloads a full chart report, in English or Hindi to match your language.",
+            "Email (Platinum): sends the report to a client's email address.",
+            "Platinum branding: your business name and logo from Account → Consult branding appear on PDFs and shared charts."
+          ]
+        }
+      ]
+    },
+    "clients": {
+      "title": "Client CRM (Platinum)",
+      "summary": "For astrologers: keep clients, session notes, remedies and follow-ups in one place.",
+      "shots": [],
+      "sections": [
+        {
+          "heading": "Add clients",
+          "steps": [
+            "Open CRM / Clients from the side menu.",
+            "Click + Add Client and enter birth details, or add the chart open in the Workspace.",
+            "Tags help you group clients, for example active or prospect."
+          ]
+        },
+        {
+          "heading": "Work with a client",
+          "steps": [
+            "View Chart opens the client's chart in the Workspace.",
+            "Session Notes keeps a dated log of each consultation.",
+            "Remedies tracks each remedy as Suggested, Started, Completed or Abandoned.",
+            "Cards warn you when a mahadasha or antardasha shift is coming up, so you can follow up."
+          ]
+        }
+      ]
+    },
+    "settings": {
+      "title": "Account settings",
+      "summary": "Profile, branding, your birth details, chart defaults, billing, data export and account deletion.",
+      "shots": [],
+      "sections": [
+        {
+          "heading": "Open settings",
+          "body": "Click your name at the top right and choose Account. Changes to profile, branding and chart defaults are saved with Save changes at the bottom."
+        },
+        {
+          "heading": "Tabs",
+          "steps": [
+            "Profile: the display name used in the app and on exports.",
+            "Consult branding (Platinum): business name and logo URL for PDFs and shared charts.",
+            "My birth details: set or open your own chart.",
+            "Chart preferences: default ayanamsha, chart style, house system, nodes, karaka scheme, and whether to show degrees, nakshatras and karakas on the chart.",
+            "Billing & privacy: plan, renewal, data download and account deletion."
+          ]
+        },
+        {
+          "heading": "Your data",
+          "steps": [
+            "Download JSON exports your profile, saved charts, clients and subscription history.",
+            "Delete account removes everything permanently. Type DELETE and your password to confirm. This cannot be undone."
+          ]
+        }
+      ]
+    },
+    "plans": {
+      "title": "Plans and billing",
+      "summary": "What Free, Gold and Platinum include, how to upgrade and how to cancel.",
+      "shots": [
+        "The Pricing page."
+      ],
+      "sections": [
+        {
+          "heading": "Plans",
+          "steps": [
+            "Free: unlimited chart calculation, 16 divisional charts, Panchang, Kundali Milan, share links and previews of paid readings. 20 saved charts.",
+            "Gold: full readings (interpretation, dasha, relationship, career, dosha, transit forecast), Muhurta, PDF and XLSX export. 200 saved charts.",
+            "Platinum: everything in Gold, plus all 41 divisional charts, email reports, bulk ZIP, client CRM and white-label branding. Unlimited saved charts."
+          ]
+        },
+        {
+          "heading": "Upgrade",
+          "steps": [
+            "Open Pricing, choose Monthly or Yearly, and INR or USD.",
+            "Enter a coupon code if you have one.",
+            "Pay through the secure checkout. The plan starts straight away."
+          ]
+        },
+        {
+          "heading": "Cancel or renew",
+          "steps": [
+            "Open Account → Billing & privacy and click Cancel renewal.",
+            "You keep paid features until the end of the period you paid for, then the account moves to Free. Saved charts are kept.",
+            "Renewing early adds time to your current period. See the Refund policy for refunds."
+          ]
+        }
+      ]
+    }
+  }
+}

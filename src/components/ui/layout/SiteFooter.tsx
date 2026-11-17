@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 // Labels: common.footer.links.<id>
 const FOOTER_LINKS = [
   { href: '/guides', id: 'guides' },
+  { href: '/help', id: 'help' },
   { href: '/search', id: 'search' },
   { href: '/install', id: 'install' },
   { href: '/terms', id: 'terms' },

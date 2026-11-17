@@ -168,6 +168,13 @@ const TOOL_DOCS: SearchDoc[] = [
     type: 'page',
     keywords: ['guides', 'learn', 'blog', 'articles'],
   },
+  {
+    title: 'App Guide',
+    description: 'How to use Vedaansh: charts, dashas, matching, saving, settings and plans.',
+    url: '/help',
+    type: 'page',
+    keywords: ['app guide', 'help', 'how to', 'tutorial', 'faq', 'settings', 'user guide', 'demo'],
+  },
 ]
 
 function guideDocs(locale: AppLocale = 'en'): SearchDoc[] {

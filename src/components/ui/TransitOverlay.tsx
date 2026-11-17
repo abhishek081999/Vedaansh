@@ -164,7 +164,8 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
               background: 'rgba(139,124,246,0.12)', border: '1px solid rgba(139,124,246,0.25)',
               fontFamily: 'var(--font-mono)', color: 'var(--accent)',
             }}>
-              {GRAHA_SYMBOL[g.id]} {g.rashi ? `H${g.rashi}` : g.id}
+              {/* House counted from the natal Lagna (whole sign), not the transit sign number. */}
+              {GRAHA_SYMBOL[g.id]} {g.rashi ? `H${((g.rashi - natalChart.lagnas.ascRashi + 12) % 12) + 1}` : g.id}
               {g.isRetro ? <span style={{ color: 'var(--rose)', marginLeft: 2 }}>℞</span> : ''}
             </span>
           ))}

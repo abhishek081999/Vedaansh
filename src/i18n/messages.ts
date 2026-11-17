@@ -37,6 +37,7 @@ export const NAMESPACES = [
   'account',
   'clients',
   'guides',
+  'help',
   // Saved charts, notes, tags, bulk import, and saved numerology.
   // Also shipped on the root bundle: ChartTagsInput is inside BirthForm.
   'library',
@@ -95,4 +96,22 @@ export async function loadMessages(locale: AppLocale): Promise<Messages> {
 
 export function pickNamespaces(messages: Messages, namespaces: readonly string[]): Messages {
   return Object.fromEntries(namespaces.filter((ns) => ns in messages).map((ns) => [ns, messages[ns]]))
+}
+
+/**
+ * Small pieces of feature namespaces that shared widgets need on every page.
+ * 'sbc.chakra': the Sarvatobhadra chart style, which any chart's settings can switch to.
+ */
+export const ROOT_CLIENT_SUBTREES = ['sbc.chakra'] as const
+
+/** Root bundle plus `extra` namespaces, plus the ROOT_CLIENT_SUBTREES not already covered. */
+export function pickClientMessages(messages: Messages, extra: readonly string[] = []): Messages {
+  const out = pickNamespaces(messages, [...ROOT_CLIENT_NAMESPACES, ...extra])
+  for (const path of ROOT_CLIENT_SUBTREES) {
+    const [ns, key] = path.split('.')
+    const source = messages[ns]
+    if (ns in out || !isPlainObject(source) || !(key in source)) continue
+    out[ns] = { [key]: source[key] }
+  }
+  return out
 }

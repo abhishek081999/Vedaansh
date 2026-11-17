@@ -9325,6 +9325,10 @@ select.input {
 .lang-switcher:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .lang-switcher-label { font-family: var(--font-deva), var(--font-body); }
 .sidenav-footer .lang-switcher { width: 100%; justify-content: center; margin-bottom: 0.6rem; }
+/* The side menu sits on a light surface in Classic, where --header-text is white. */
+.sidenav-footer .lang-switcher { color: var(--text-primary); }
+.sidenav-footer .lang-switcher svg { color: var(--text-gold, var(--gold)); }
+.sidenav-footer .lang-switcher:hover { color: var(--text-gold, var(--gold)); }
 @media (max-width: 480px) {
   .app-header .lang-switcher { padding: 0 0.55rem; }
 }

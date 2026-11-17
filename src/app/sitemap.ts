@@ -3,6 +3,7 @@ import type { MetadataRoute } from 'next'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { GUIDES } from '@/lib/seo/guides'
+import { HELP_TOPICS } from '@/lib/help/topics'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
@@ -44,6 +45,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page('/roadmap', 0.5, 'monthly'),
     page('/pricing', 0.6, 'monthly'),
     page('/guides', 0.85, 'weekly'),
+    page('/help', 0.6, 'monthly'),
+    ...HELP_TOPICS.map((t) => page(`/help/${t.id}`, 0.5, 'monthly')),
     page('/search', 0.5, 'monthly'),
     page('/about', 0.55, 'monthly'),
     page('/support', 0.45, 'monthly'),

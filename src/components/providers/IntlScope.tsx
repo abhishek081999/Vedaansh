@@ -13,12 +13,12 @@
 import type { ReactNode } from 'react'
 import type { AbstractIntlMessages } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
-import { ROOT_CLIENT_NAMESPACES, pickNamespaces, type Namespace } from '@/i18n/messages'
+import { pickClientMessages, type Namespace } from '@/i18n/messages'
 import { IntlProvider } from './IntlProvider'
 
 export async function IntlScope({ namespaces, children }: { namespaces: Namespace[]; children: ReactNode }) {
   const [locale, messages] = await Promise.all([getLocale(), getMessages()])
-  const picked = pickNamespaces(messages as Record<string, unknown>, [...ROOT_CLIENT_NAMESPACES, ...namespaces])
+  const picked = pickClientMessages(messages as Record<string, unknown>, namespaces)
   return (
     <IntlProvider locale={locale} messages={picked as AbstractIntlMessages}>
       {children}

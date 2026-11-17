@@ -1,0 +1,591 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - button "Toggle navigation menu" [ref=e6] [cursor=pointer]
+        - link "Vedaansh ॥ श्री गणेशाय नमः ॥" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9]:
+            - generic [ref=e10]: Vedaansh
+            - generic [ref=e11]: ॥ श्री गणेशाय नमः ॥
+      - navigation "Primary" [ref=e12]:
+        - link "Workspace" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - link "Today" [ref=e15] [cursor=pointer]:
+          - /url: /today
+        - link "My Charts" [ref=e17] [cursor=pointer]:
+          - /url: /my/charts
+        - generic [ref=e19]:
+          - button "Astrology" [ref=e20] [cursor=pointer]
+          - generic:
+            - generic:
+              - generic:
+                - generic: Transit
+                - generic:
+                  - link "Live Transit":
+                    - /url: /transit/scrubber
+                  - link "Forecast":
+                    - /url: /transit/forecast
+                  - link "Moon Passages":
+                    - /url: /transit/moon
+                  - link "Cosmic Roadmap":
+                    - /url: /transit/roadmap
+                  - link "Sade Sati":
+                    - /url: /transit/sade-sati
+                  - link "Aspects":
+                    - /url: /transit/aspects
+                  - link "Bi-wheel":
+                    - /url: /transit/biwheel
+                  - link "Calendar":
+                    - /url: /transit/calendar
+              - generic:
+                - generic: Core Analysis
+                - generic:
+                  - link "Astro Details":
+                    - /url: /
+                  - link "Planets":
+                    - /url: /
+                  - link "Navamsha (D9)":
+                    - /url: /
+                  - link "Dasha":
+                    - /url: /
+                  - link "Dasha Interpretation":
+                    - /url: /
+                  - link "House":
+                    - /url: /
+                  - link "Yogas":
+                    - /url: /
+                  - link "Stellar (KP)":
+                    - /url: /
+                  - link "Interpretation":
+                    - /url: /
+                  - link "Tattva Prediction":
+                    - /url: /
+                  - link "Naamkaran":
+                    - /url: /
+              - generic:
+                - generic: Divisional Chart Analysis
+                - generic:
+                  - link "Chaturthamsha (D4)":
+                    - /url: /
+                  - link "Saptamsha (D7)":
+                    - /url: /
+                  - link "Dashamsha (D10)":
+                    - /url: /
+                  - link "Dwadashamsha (D12)":
+                    - /url: /
+                  - link "Drekkana (D3)":
+                    - /url: /
+                  - link "Nakshatramsha (D27)":
+                    - /url: /
+              - generic:
+                - generic: Strength & Analytics
+                - generic:
+                  - link "Ashtakavarga":
+                    - /url: /
+                  - link "Shadbala":
+                    - /url: /
+                  - link "Bhava Bala":
+                    - /url: /
+                  - link "Vimsopaka":
+                    - /url: /
+              - generic:
+                - generic: Readings
+                - generic:
+                  - link "Relationship":
+                    - /url: /relationship
+                  - link "Career":
+                    - /url: /career
+                  - link "Dosha & Upay":
+                    - /url: /dosha
+                  - link "Solar Return":
+                    - /url: /
+                  - link "Natal Panchang":
+                    - /url: /
+        - generic [ref=e24]:
+          - button "Advanced" [ref=e25] [cursor=pointer]
+          - generic:
+            - generic:
+              - link "Jaimini Astrology":
+                - /url: /jaimini
+              - link "Nadi Astrology":
+                - /url: /nadi
+              - link "Astro Vastu":
+                - /url: /vastu
+              - link "AstroCartography":
+                - /url: /acg
+              - link "Sarvatobhadra Chakra":
+                - /url: /sbc
+              - link "Muhurta Finder":
+                - /url: /muhurta
+              - link "Prashna":
+                - /url: /prashna
+              - link "Vedic Numerology":
+                - /url: /numerology
+              - link "Kundali Matching":
+                - /url: /compare
+        - generic [ref=e29]:
+          - button "Nakshatra" [ref=e30] [cursor=pointer]
+          - generic:
+            - generic:
+              - link "Overview":
+                - /url: /nakshatra/overview
+              - link "Navtara":
+                - /url: /nakshatra/navtara
+              - link "Taramandal":
+                - /url: /nakshatra/taramandal
+              - link "Best Days":
+                - /url: /nakshatra/bestdays
+              - link "Muhurta":
+                - /url: /nakshatra/muhurta
+              - link "Panchaka":
+                - /url: /nakshatra/panchaka
+              - link "Planet":
+                - /url: /nakshatra/planet
+              - link "Compat":
+                - /url: /nakshatra/compat
+              - link "Remedies":
+                - /url: /nakshatra/remedies
+              - link "Profession":
+                - /url: /nakshatra/profession
+              - link "Medical":
+                - /url: /nakshatra/medical
+        - generic [ref=e34]:
+          - button "Panchang" [ref=e35] [cursor=pointer]
+          - generic:
+            - generic:
+              - link "Daily Panchang":
+                - /url: /panchang
+              - link "Monthly Calendar":
+                - /url: /panchang/calendar
+        - link "Pricing" [ref=e39] [cursor=pointer]:
+          - /url: /pricing
+      - generic [ref=e41]:
+        - button "Switch language to हिन्दी" [ref=e42] [cursor=pointer]:
+          - generic [ref=e47]: हि
+        - status "Syncing session" [ref=e50]
+    - generic [ref=e51]:
+      - complementary [ref=e52]:
+        - generic [ref=e54]:
+          - link "Vedaansh ॥ श्री गणेशाय नमः ॥" [ref=e55] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e56]:
+              - generic [ref=e57]: Vedaansh
+              - generic [ref=e58]: ॥ श्री गणेशाय नमः ॥
+          - button "Close menu" [ref=e59] [cursor=pointer]
+        - generic [ref=e64]:
+          - status "Syncing session" [ref=e65]
+          - generic [ref=e66]: Syncing…
+        - navigation [ref=e67]:
+          - link "Workspace" [ref=e68] [cursor=pointer]:
+            - /url: /
+          - link "Today" [ref=e76] [cursor=pointer]:
+            - /url: /today
+          - link "My Charts" [ref=e82] [cursor=pointer]:
+            - /url: /my/charts
+          - button "Astrology" [ref=e87] [cursor=pointer]
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - button "Transit" [ref=e97] [cursor=pointer]
+              - generic:
+                - link "Live Transit" [ref=e101] [cursor=pointer]:
+                  - /url: /transit/scrubber
+                - link "Forecast" [ref=e107] [cursor=pointer]:
+                  - /url: /transit/forecast
+                - link "Moon Passages" [ref=e113] [cursor=pointer]:
+                  - /url: /transit/moon
+                - link "Cosmic Roadmap" [ref=e118] [cursor=pointer]:
+                  - /url: /transit/roadmap
+                - link "Sade Sati" [ref=e125] [cursor=pointer]:
+                  - /url: /transit/sade-sati
+                - link "Aspects" [ref=e131] [cursor=pointer]:
+                  - /url: /transit/aspects
+                - link "Bi-wheel" [ref=e136] [cursor=pointer]:
+                  - /url: /transit/biwheel
+                - link "Calendar" [ref=e145] [cursor=pointer]:
+                  - /url: /transit/calendar
+            - generic [ref=e150]:
+              - button "Core Analysis" [expanded] [ref=e151] [cursor=pointer]
+              - generic [ref=e155]:
+                - link "Astro Details" [ref=e156] [cursor=pointer]:
+                  - /url: /
+                - link "Planets" [ref=e162] [cursor=pointer]:
+                  - /url: /
+                - link "Navamsha (D9)" [ref=e167] [cursor=pointer]:
+                  - /url: /
+                - link "Dasha" [ref=e176] [cursor=pointer]:
+                  - /url: /
+                - link "Dasha Interpretation" [ref=e182] [cursor=pointer]:
+                  - /url: /
+                - link "House" [ref=e187] [cursor=pointer]:
+                  - /url: /
+                - link "Yogas" [ref=e193] [cursor=pointer]:
+                  - /url: /
+                - link "Stellar (KP)" [ref=e198] [cursor=pointer]:
+                  - /url: /
+                - link "Interpretation" [ref=e203] [cursor=pointer]:
+                  - /url: /
+                - link "Tattva Prediction" [ref=e209] [cursor=pointer]:
+                  - /url: /
+                - link "Naamkaran" [ref=e216] [cursor=pointer]:
+                  - /url: /
+            - generic [ref=e221]:
+              - button "Divisional Chart Analysis" [ref=e222] [cursor=pointer]
+              - generic:
+                - link "Chaturthamsha (D4)" [ref=e226] [cursor=pointer]:
+                  - /url: /
+                - link "Saptamsha (D7)" [ref=e233] [cursor=pointer]:
+                  - /url: /
+                - link "Dashamsha (D10)" [ref=e238] [cursor=pointer]:
+                  - /url: /
+                - link "Dwadashamsha (D12)" [ref=e244] [cursor=pointer]:
+                  - /url: /
+                - link "Drekkana (D3)" [ref=e250] [cursor=pointer]:
+                  - /url: /
+                - link "Nakshatramsha (D27)" [ref=e263] [cursor=pointer]:
+                  - /url: /
+            - generic [ref=e270]:
+              - button "Strength & Analytics" [ref=e271] [cursor=pointer]
+              - generic:
+                - link "Ashtakavarga" [ref=e275] [cursor=pointer]:
+                  - /url: /
+                - link "Shadbala" [ref=e280] [cursor=pointer]:
+                  - /url: /
+                - link "Bhava Bala" [ref=e287] [cursor=pointer]:
+                  - /url: /
+                - link "Vimsopaka" [ref=e292] [cursor=pointer]:
+                  - /url: /
+            - link "Relationship" [ref=e297] [cursor=pointer]:
+              - /url: /relationship
+            - link "Career" [ref=e302] [cursor=pointer]:
+              - /url: /career
+            - link "Dosha & Upay" [ref=e308] [cursor=pointer]:
+              - /url: /dosha
+            - link "Solar Return" [ref=e313] [cursor=pointer]:
+              - /url: /
+            - link "Natal Panchang" [ref=e322] [cursor=pointer]:
+              - /url: /
+          - button "Advanced Astrology" [ref=e327] [cursor=pointer]
+          - generic:
+            - link "Jaimini Astrology" [ref=e339] [cursor=pointer]:
+              - /url: /jaimini
+            - link "Nadi Astrology" [ref=e344] [cursor=pointer]:
+              - /url: /nadi
+            - link "Astro Vastu" [ref=e354] [cursor=pointer]:
+              - /url: /vastu
+            - link "AstroCartography" [ref=e360] [cursor=pointer]:
+              - /url: /acg
+            - link "Sarvatobhadra Chakra" [ref=e366] [cursor=pointer]:
+              - /url: /sbc
+            - link "Muhurta Finder" [ref=e373] [cursor=pointer]:
+              - /url: /muhurta
+            - link "Prashna" [ref=e379] [cursor=pointer]:
+              - /url: /prashna
+            - link "Vedic Numerology" [ref=e386] [cursor=pointer]:
+              - /url: /numerology
+            - link "Kundali Matching" [ref=e392] [cursor=pointer]:
+              - /url: /compare
+          - link "Nakshatra" [ref=e400] [cursor=pointer]:
+            - /url: /nakshatra
+          - button "Panchang" [ref=e405] [cursor=pointer]
+          - generic:
+            - link "Daily Panchang" [ref=e416] [cursor=pointer]:
+              - /url: /panchang
+            - link "Monthly Calendar" [ref=e421] [cursor=pointer]:
+              - /url: /panchang/calendar
+          - generic [ref=e426]: Tools
+          - link "Guides" [ref=e427] [cursor=pointer]:
+            - /url: /guides
+          - link "App Guide" [ref=e433] [cursor=pointer]:
+            - /url: /help
+          - link "CRM / Clients" [ref=e439] [cursor=pointer]:
+            - /url: /clients
+          - generic [ref=e446]: Account
+          - link "Install App" [ref=e447] [cursor=pointer]:
+            - /url: /install
+          - link "About" [ref=e453] [cursor=pointer]:
+            - /url: /about
+          - link "Pricing" [ref=e458] [cursor=pointer]:
+            - /url: /pricing
+        - generic [ref=e464]:
+          - button "Switch language to हिन्दी" [ref=e468] [cursor=pointer]:
+            - generic [ref=e473]: हिन्दी
+          - link "+ New Consultation" [ref=e474] [cursor=pointer]:
+            - /url: /?new=true
+      - main [ref=e475]:
+        - generic [ref=e477]:
+          - generic [ref=e479]:
+            - paragraph [ref=e480]: App Guide
+            - heading "Learn Vedaansh, screen by screen" [level=1] [ref=e481]
+            - paragraph [ref=e482]: Short, illustrated guides for every part of the app, from your first birth chart to chart settings, dashas, saving charts and plans.
+            - search [ref=e483]:
+              - generic [ref=e484]: Search the App Guide
+              - searchbox "Search the App Guide" [ref=e485]
+            - paragraph [ref=e486]: 29 guides · 7 sections · English and हिंदी
+          - navigation "Jump to a section" [ref=e488]:
+            - link "Getting started" [ref=e489] [cursor=pointer]:
+              - /url: "#help-start"
+            - link "The Workspace" [ref=e495] [cursor=pointer]:
+              - /url: "#help-workspace"
+            - link "Your chart" [ref=e501] [cursor=pointer]:
+              - /url: "#help-chart"
+            - link "Life areas" [ref=e505] [cursor=pointer]:
+              - /url: "#help-life"
+            - link "Timing and calendars" [ref=e508] [cursor=pointer]:
+              - /url: "#help-timing"
+            - link "Advanced tools" [ref=e511] [cursor=pointer]:
+              - /url: "#help-advanced"
+            - link "Account, saving and plans" [ref=e518] [cursor=pointer]:
+              - /url: "#help-account"
+          - region "Quick start in 3 steps" [ref=e531]:
+            - heading "Quick start in 3 steps" [level=2] [ref=e532]
+            - list [ref=e533]:
+              - listitem [ref=e534]:
+                - generic [aria-hidden] [ref=e535]: "1"
+                - paragraph [ref=e536]: Open Workspace, click + New and enter the name, date, time and place of birth.
+              - listitem [ref=e537]:
+                - generic [aria-hidden] [ref=e538]: "2"
+                - paragraph [ref=e539]: Click Calculate Chart. Your D1 (Rashi) and D9 (Navamsha) charts, planets and dashas appear.
+              - listitem [ref=e540]:
+                - generic [aria-hidden] [ref=e541]: "3"
+                - paragraph [ref=e542]: Use the top menus (Astrology, Advanced, Nakshatra, Panchang) to open any reading for that chart.
+            - link "Make my first chart" [ref=e543] [cursor=pointer]:
+              - /url: /?new=true
+          - region "Master the Workspace" [ref=e546]:
+            - generic [ref=e547]:
+              - paragraph [ref=e548]: Most used
+              - heading "Master the Workspace" [level=2] [ref=e549]
+              - paragraph [ref=e550]: The Workspace is where you will spend most of your time. These seven guides walk through every chart, setting, table and panel on it.
+              - list [ref=e551]:
+                - listitem [ref=e552]:
+                  - link "Workspace overview" [ref=e553] [cursor=pointer]:
+                    - /url: /help/workspace
+                - listitem [ref=e562]:
+                  - link "Reading the charts" [ref=e563] [cursor=pointer]:
+                    - /url: /help/workspace-charts
+                - listitem [ref=e569]:
+                  - link "Chart settings (⚙) in depth" [ref=e570] [cursor=pointer]:
+                    - /url: /help/chart-settings
+                - listitem [ref=e577]:
+                  - link "Transit Overlay" [ref=e578] [cursor=pointer]:
+                    - /url: /help/transit-overlay
+                - listitem [ref=e586]:
+                  - link "Planetary Details table" [ref=e587] [cursor=pointer]:
+                    - /url: /help/planet-table
+                - listitem [ref=e593]:
+                  - link "Today's Timeline, Active Houses and Dasha Insight" [ref=e594] [cursor=pointer]:
+                    - /url: /help/timeline
+                - listitem [ref=e601]:
+                  - link "Panels below the charts" [ref=e602] [cursor=pointer]:
+                    - /url: /help/workspace-panels
+            - link "Start with the overview" [ref=e608] [cursor=pointer]:
+              - /url: /help/workspace
+              - img "The Workspace with a birth chart open." [ref=e609]
+          - region "Getting started" [ref=e610]:
+            - generic [ref=e618]:
+              - heading "Getting started" [level=2] [ref=e619]
+              - paragraph [ref=e620]: First chart, birth details and finding your way around.
+            - generic [ref=e621]:
+              - link "Getting started What Vedaansh does and how to make your first birth chart in under a minute. Free 10 steps" [ref=e622] [cursor=pointer]:
+                - /url: /help/getting-started
+                - heading "Getting started" [level=3] [ref=e629]
+                - paragraph [ref=e630]: What Vedaansh does and how to make your first birth chart in under a minute.
+                - generic [ref=e631]:
+                  - generic [ref=e632]: Free
+                  - generic [ref=e633]: 10 steps
+              - link "Entering birth details How to fill in the birth form correctly, including place, timezone and calculation settings. Free 11 steps" [ref=e636] [cursor=pointer]:
+                - /url: /help/birth-details
+                - heading "Entering birth details" [level=3] [ref=e640]
+                - paragraph [ref=e641]: How to fill in the birth form correctly, including place, timezone and calculation settings.
+                - generic [ref=e642]:
+                  - generic [ref=e643]: Free
+                  - generic [ref=e644]: 11 steps
+              - link "Finding your way around The header menus, the side menu and how pages share the open chart. Free 9 steps" [ref=e647] [cursor=pointer]:
+                - /url: /help/navigation
+                - heading "Finding your way around" [level=3] [ref=e652]
+                - paragraph [ref=e653]: The header menus, the side menu and how pages share the open chart.
+                - generic [ref=e654]:
+                  - generic [ref=e655]: Free
+                  - generic [ref=e656]: 9 steps
+              - link "Creating an account and signing in Why you might want an account, how to sign up and what to do if you forget your password. Free 10 steps" [ref=e659] [cursor=pointer]:
+                - /url: /help/account-signup
+                - heading "Creating an account and signing in" [level=3] [ref=e664]
+                - paragraph [ref=e665]: Why you might want an account, how to sign up and what to do if you forget your password.
+                - generic [ref=e666]:
+                  - generic [ref=e667]: Free
+                  - generic [ref=e668]: 10 steps
+          - region "Your chart" [ref=e671]:
+            - generic [ref=e677]:
+              - heading "Your chart" [level=2] [ref=e678]
+              - paragraph [ref=e679]: Dasha and analysis pages, divisional charts, interpretation and today's reading.
+            - generic [ref=e680]:
+              - link "Dashas, divisional charts and analysis What each page under Astrology → Core Analysis, Divisional Charts and Strength shows. Free · more with Gold 10 steps" [ref=e681] [cursor=pointer]:
+                - /url: /help/analysis
+                - heading "Dashas, divisional charts and analysis" [level=3] [ref=e686]
+                - paragraph [ref=e687]: What each page under Astrology → Core Analysis, Divisional Charts and Strength shows.
+                - generic [ref=e688]:
+                  - generic [ref=e689]: Free · more with Gold
+                  - generic [ref=e690]: 10 steps
+              - link "Today's reading A personal day reading from your Moon, running dasha, live transits and today's panchang. Free · more with Gold 6 steps" [ref=e693] [cursor=pointer]:
+                - /url: /help/today
+                - heading "Today's reading" [level=3] [ref=e698]
+                - paragraph [ref=e699]: A personal day reading from your Moon, running dasha, live transits and today's panchang.
+                - generic [ref=e700]:
+                  - generic [ref=e701]: Free · more with Gold
+                  - generic [ref=e702]: 6 steps
+          - region "Life areas" [ref=e705]:
+            - generic [ref=e710]:
+              - heading "Life areas" [level=2] [ref=e711]
+              - paragraph [ref=e712]: Relationship, career, dosha and kundali matching.
+            - generic [ref=e713]:
+              - link "Relationship and marriage Marriage read from the 7th house, its lord, Venus and the Navamsha lagna, with an overall score. Free · more with Gold 5 steps" [ref=e714] [cursor=pointer]:
+                - /url: /help/relationship
+                - heading "Relationship and marriage" [level=3] [ref=e718]
+                - paragraph [ref=e719]: Marriage read from the 7th house, its lord, Venus and the Navamsha lagna, with an overall score.
+                - generic [ref=e720]:
+                  - generic [ref=e721]: Free · more with Gold
+                  - generic [ref=e722]: 5 steps
+              - link "Career and profession Career direction from the 10th house, its lord, the Dashamsha (D10) and the professional method. Free · more with Gold 4 steps" [ref=e725] [cursor=pointer]:
+                - /url: /help/career
+                - heading "Career and profession" [level=3] [ref=e730]
+                - paragraph [ref=e731]: Career direction from the 10th house, its lord, the Dashamsha (D10) and the professional method.
+                - generic [ref=e732]:
+                  - generic [ref=e733]: Free · more with Gold
+                  - generic [ref=e734]: 4 steps
+              - link "Dosha and Upay Checks your chart for the six Shrap doshas (Pitru, Matru, Sarpa, Guru, Brahmin and Stri / Kanya), with remedies. Free · more with Gold 4 steps" [ref=e737] [cursor=pointer]:
+                - /url: /help/dosha
+                - heading "Dosha and Upay" [level=3] [ref=e741]
+                - paragraph [ref=e742]: Checks your chart for the six Shrap doshas (Pitru, Matru, Sarpa, Guru, Brahmin and Stri / Kanya), with remedies.
+                - generic [ref=e743]:
+                  - generic [ref=e744]: Free · more with Gold
+                  - generic [ref=e745]: 4 steps
+              - link "Kundali Milan (matching) Match two charts with Ashtakoot guna milan, Porutham, dosha checks and a married-life reading. Free · more with Gold 6 steps" [ref=e748] [cursor=pointer]:
+                - /url: /help/matching
+                - heading "Kundali Milan (matching)" [level=3] [ref=e755]
+                - paragraph [ref=e756]: Match two charts with Ashtakoot guna milan, Porutham, dosha checks and a married-life reading.
+                - generic [ref=e757]:
+                  - generic [ref=e758]: Free · more with Gold
+                  - generic [ref=e759]: 6 steps
+          - region "Timing and calendars" [ref=e762]:
+            - generic [ref=e767]:
+              - heading "Timing and calendars" [level=2] [ref=e768]
+              - paragraph [ref=e769]: Transits, Panchang, Muhurta and Nakshatra tools.
+            - generic [ref=e770]:
+              - link "Transits (Gochar) See where the planets are now and how they move over your chart. Free · more with Gold 4 steps" [ref=e771] [cursor=pointer]:
+                - /url: /help/transit
+                - heading "Transits (Gochar)" [level=3] [ref=e779]
+                - paragraph [ref=e780]: See where the planets are now and how they move over your chart.
+                - generic [ref=e781]:
+                  - generic [ref=e782]: Free · more with Gold
+                  - generic [ref=e783]: 4 steps
+              - link "Panchang and calendar Daily tithi, nakshatra, yoga, karana, vara, Rahu Kaal, choghadiya and festivals for any place. Free 6 steps" [ref=e786] [cursor=pointer]:
+                - /url: /help/panchang
+                - heading "Panchang and calendar" [level=3] [ref=e790]
+                - paragraph [ref=e791]: Daily tithi, nakshatra, yoga, karana, vara, Rahu Kaal, choghadiya and festivals for any place.
+                - generic [ref=e792]:
+                  - generic [ref=e793]: Free
+                  - generic [ref=e794]: 6 steps
+              - link "Muhurta finder Find good days and times for a purpose such as marriage, travel, business or property. Gold 7 steps" [ref=e797] [cursor=pointer]:
+                - /url: /help/muhurta
+                - heading "Muhurta finder" [level=3] [ref=e802]
+                - paragraph [ref=e803]: Find good days and times for a purpose such as marriage, travel, business or property.
+                - generic [ref=e804]:
+                  - generic [ref=e805]: Gold
+                  - generic [ref=e806]: 7 steps
+              - 'link "Nakshatra tools Your birth star in depth: Navtara, Taramandal, best days, remedies, profession and health. Free · more with Gold 5 steps" [ref=e809] [cursor=pointer]':
+                - /url: /help/nakshatra
+                - heading "Nakshatra tools" [level=3] [ref=e813]
+                - paragraph [ref=e814]: "Your birth star in depth: Navtara, Taramandal, best days, remedies, profession and health."
+                - generic [ref=e815]:
+                  - generic [ref=e816]: Free · more with Gold
+                  - generic [ref=e817]: 5 steps
+          - region "Advanced tools" [ref=e820]:
+            - generic [ref=e829]:
+              - heading "Advanced tools" [level=2] [ref=e830]
+              - paragraph [ref=e831]: Jaimini, Nadi, Vastu, AstroCartography, SBC, Prashna and numerology.
+            - generic [ref=e832]:
+              - link "Jaimini, Nadi, Vastu, AstroCartography and SBC The advanced systems under the Advanced menu and what each one is for. Free · more with Gold 5 steps" [ref=e833] [cursor=pointer]:
+                - /url: /help/advanced
+                - heading "Jaimini, Nadi, Vastu, AstroCartography and SBC" [level=3] [ref=e842]
+                - paragraph [ref=e843]: The advanced systems under the Advanced menu and what each one is for.
+                - generic [ref=e844]:
+                  - generic [ref=e845]: Free · more with Gold
+                  - generic [ref=e846]: 5 steps
+              - link "Prashna (horary) Answer a question from the chart of the moment it is asked. Free · more with Gold 7 steps" [ref=e849] [cursor=pointer]:
+                - /url: /help/prashna
+                - heading "Prashna (horary)" [level=3] [ref=e855]
+                - paragraph [ref=e856]: Answer a question from the chart of the moment it is asked.
+                - generic [ref=e857]:
+                  - generic [ref=e858]: Free · more with Gold
+                  - generic [ref=e859]: 7 steps
+              - link "Vedic numerology Core numbers, Lo Shu grid, name numbers and yearly cycles from a name and date of birth. Free · more with Gold 4 steps" [ref=e862] [cursor=pointer]:
+                - /url: /help/numerology
+                - heading "Vedic numerology" [level=3] [ref=e867]
+                - paragraph [ref=e868]: Core numbers, Lo Shu grid, name numbers and yearly cycles from a name and date of birth.
+                - generic [ref=e869]:
+                  - generic [ref=e870]: Free · more with Gold
+                  - generic [ref=e871]: 4 steps
+          - region "Account, saving and plans" [ref=e874]:
+            - generic [ref=e889]:
+              - heading "Account, saving and plans" [level=2] [ref=e890]
+              - paragraph [ref=e891]: My Charts, sharing, client CRM, settings and billing.
+            - generic [ref=e892]:
+              - link "Saving charts and My Charts Save charts, organise them with hashtags and notes, and import or export many at once. Free 9 steps" [ref=e893] [cursor=pointer]:
+                - /url: /help/my-charts
+                - heading "Saving charts and My Charts" [level=3] [ref=e897]
+                - paragraph [ref=e898]: Save charts, organise them with hashtags and notes, and import or export many at once.
+                - generic [ref=e899]:
+                  - generic [ref=e900]: Free
+                  - generic [ref=e901]: 9 steps
+              - link "Sharing, PDF and email Send a chart to someone as a link, a PDF report or an email. Free · more with Gold 7 steps" [ref=e904] [cursor=pointer]:
+                - /url: /help/sharing-export
+                - heading "Sharing, PDF and email" [level=3] [ref=e912]
+                - paragraph [ref=e913]: Send a chart to someone as a link, a PDF report or an email.
+                - generic [ref=e914]:
+                  - generic [ref=e915]: Free · more with Gold
+                  - generic [ref=e916]: 7 steps
+              - 'link "Client CRM (Platinum) For astrologers: keep clients, session notes, remedies and follow-ups in one place. Platinum 7 steps" [ref=e919] [cursor=pointer]':
+                - /url: /help/clients
+                - heading "Client CRM (Platinum)" [level=3] [ref=e925]
+                - paragraph [ref=e926]: "For astrologers: keep clients, session notes, remedies and follow-ups in one place."
+                - generic [ref=e927]:
+                  - generic [ref=e928]: Platinum
+                  - generic [ref=e929]: 7 steps
+              - link "Account settings Profile, branding, your birth details, chart defaults, billing, data export and account deletion. Free 7 steps" [ref=e932] [cursor=pointer]:
+                - /url: /help/settings
+                - heading "Account settings" [level=3] [ref=e946]
+                - paragraph [ref=e947]: Profile, branding, your birth details, chart defaults, billing, data export and account deletion.
+                - generic [ref=e948]:
+                  - generic [ref=e949]: Free
+                  - generic [ref=e950]: 7 steps
+              - link "Plans and billing What Free, Gold and Platinum include, how to upgrade and how to cancel. Free 9 steps" [ref=e953] [cursor=pointer]:
+                - /url: /help/plans
+                - heading "Plans and billing" [level=3] [ref=e958]
+                - paragraph [ref=e959]: What Free, Gold and Platinum include, how to upgrade and how to cancel.
+                - generic [ref=e960]:
+                  - generic [ref=e961]: Free
+                  - generic [ref=e962]: 9 steps
+          - region "Common questions" [ref=e965]:
+            - heading "Common questions" [level=2] [ref=e966]
+            - generic [ref=e967]:
+              - group [ref=e968]:
+                - generic "Do I need an account?" [ref=e969] [cursor=pointer]
+              - group [ref=e973]:
+                - generic "I do not know my exact birth time. What should I do?" [ref=e974] [cursor=pointer]
+              - group [ref=e978]:
+                - generic "Why does a page ask for birth details again?" [ref=e979] [cursor=pointer]
+              - group [ref=e983]:
+                - generic "Some sections show a lock. Why?" [ref=e984] [cursor=pointer]
+              - group [ref=e988]:
+                - generic "Can I use Vedaansh in Hindi?" [ref=e989] [cursor=pointer]
+          - generic [ref=e993]:
+            - generic [ref=e1002]:
+              - heading "Still stuck?" [level=2] [ref=e1003]
+              - paragraph [ref=e1004]: Write to our support team and include the page name and what you expected to see.
+            - link "Contact support" [ref=e1005] [cursor=pointer]:
+              - /url: /support
+        - button "Scroll to top":
+          - generic: ↑
+  - button "Open Next.js Dev Tools" [ref=e1013] [cursor=pointer]
