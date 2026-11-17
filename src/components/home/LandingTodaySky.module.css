@@ -54,6 +54,7 @@
   align-items: center;
   gap: 0.55rem;
   margin: 0;
+  font-family: var(--font-body);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -258,7 +259,7 @@
 }
 
 .angaEn {
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;

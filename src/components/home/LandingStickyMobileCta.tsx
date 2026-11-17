@@ -15,33 +15,35 @@ export function LandingStickyMobileCta({ onClick }: LandingStickyMobileCtaProps)
     if (typeof window === 'undefined') return
     const ctaBand = document.getElementById('landing-cta-band')
     if (!ctaBand) return
+    // The hero has its own primary button; don't show a second one on top of it.
+    const hero = document.querySelector<HTMLElement>('.landing-premium-hero')
 
     const media = window.matchMedia('(max-width: 768px)')
-    const updateVisibility = (ctaInView: boolean) => {
-      if (!media.matches) {
-        setVisible(false)
-        return
-      }
-      setVisible(!ctaInView)
+    const inView = new Map<Element, boolean>()
+    const updateVisibility = () => {
+      const anyCtaInView = [...inView].some(([el, shown]) => shown && el.isConnected)
+      setVisible(media.matches && !anyCtaInView)
     }
 
-    const sync = (entries: IntersectionObserverEntry[]) => {
-      const ctaInView = entries.some((e) => e.target === ctaBand && e.isIntersecting)
-      updateVisibility(ctaInView)
+    const isOnScreen = (el: Element) => {
+      const rect = el.getBoundingClientRect()
+      return rect.top < window.innerHeight * 0.8 && rect.bottom > 0
     }
+    inView.set(ctaBand, isOnScreen(ctaBand))
+    if (hero) inView.set(hero, isOnScreen(hero))
+    updateVisibility()
 
-    const rect = ctaBand.getBoundingClientRect()
-    updateVisibility(rect.top < window.innerHeight * 0.8 && rect.bottom > 0)
-
-    const observer = new IntersectionObserver(sync, {
-      threshold: 0.2,
-      rootMargin: '0px 0px -72px 0px',
-    })
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) inView.set(entry.target, entry.isIntersecting)
+        updateVisibility()
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -72px 0px' },
+    )
     observer.observe(ctaBand)
+    if (hero) observer.observe(hero)
 
-    const onResize = () => {
-      if (!media.matches) setVisible(false)
-    }
+    const onResize = () => updateVisibility()
     media.addEventListener('change', onResize)
 
     return () => {
@@ -51,7 +53,7 @@ export function LandingStickyMobileCta({ onClick }: LandingStickyMobileCtaProps)
   }, [])
 
   return (
-    <div className={`landing-sticky-mobile-cta${visible ? ' is-visible' : ''}`} aria-hidden={!visible}>
+    <div className={`landing-sticky-mobile-cta${visible ? ' is-visible' : ''}`} aria-hidden={!visible} inert={!visible}>
       <button
         type="button"
         onClick={onClick}

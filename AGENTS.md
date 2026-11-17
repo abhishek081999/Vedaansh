@@ -4,13 +4,13 @@ Context for coding agents working in this repo. **Trust live code over docs** wh
 
 ## What this is
 
-**Vedaansh** (`jyotish-platform` v2.6.0) is a Vedic astrology (Jyotish) web app: birth charts, dashas, vargas, panchang, muhurta, Kundali Milan, relationship and marriage, career and profession, prashna, Jaimini, Nadi, SBC, astrocartography, client CRM, and admin tools. Calculations use **Swiss Ephemeris** via the `sweph` npm package. Stack pin: Next.js 16.4.2, React 19.2.7, Zod 4.6.7.
+**Vedaansh** (`jyotish-platform` v2.6.0) is a Vedic astrology (Jyotish) web app: birth charts, dashas, vargas, panchang, muhurta, Kundali Milan, relationship and marriage, career and profession, prashna, Jaimini, Nadi, SBC, astrocartography, client CRM, and admin tools. Calculations use **Swiss Ephemeris** via the `sweph` npm package. Stack pin: Next.js 16.4.6, React 19.2.7, Zod 4.6.7.
 
 ## Stack (verify in `package.json`)
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16.4.2 App Router (`src/app/`) |
+| Framework | Next.js 16.4.6 App Router (`src/app/`) |
 | Language | TypeScript 5.4+, Node ≥ 24 |
 | Ephemeris | `sweph` — files in `./ephe` (`EPHE_PATH`) |
 | Database | MongoDB Atlas + Mongoose (`src/lib/db/`) |
