@@ -31,6 +31,7 @@ import {
   Layers,
   LayoutDashboard,
   Library,
+  Compass,
   Moon,
   NotebookText,
   Orbit,
@@ -219,6 +220,7 @@ export const ADVANCED_ASTRO_TABS: NavTab[] = [
 /** Working tools, separate from chart sections. */
 export const TOOL_TABS: NavTab[] = [
   { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides' },
+  { id: 'help', label: 'App Guide', icon: Compass, path: '/help', match: 'prefix' },
   { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
 ]
 

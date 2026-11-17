@@ -72,6 +72,7 @@ const LandingAudience = dynamic(() => import('@/components/home/LandingAudience'
 const LandingTestimonials = dynamic(() => import('@/components/home/LandingTestimonials').then(m => m.LandingTestimonials), { ssr: false })
 const LandingPlans = dynamic(() => import('@/components/home/LandingPlans').then(m => m.LandingPlans), { ssr: false })
 const LandingGuides = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingGuides), { ssr: false })
+const LandingAppGuide = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingAppGuide), { ssr: false })
 const LandingInstallStrip = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingInstallStrip), { ssr: false })
 const DailyHoroscope = dynamic(() => import('@/components/horoscope/DailyHoroscope').then(m => m.DailyHoroscope), { ssr: false })
 
@@ -3127,6 +3128,10 @@ function HomeContent() {
 
               <LandingSection as="section" className="landing-section-row landing-section-row--gold landing-major-sections">
                 <LandingExplore trackLandingCta={trackLandingCta} withChartGate={openSectionWithChartGate} />
+              </LandingSection>
+
+              <LandingSection as="section" id="landing-app-guide" className="landing-section-row landing-section-row--gold">
+                <LandingAppGuide trackLandingCta={trackLandingCta} />
               </LandingSection>
 
               <LandingSection as="section" className="landing-section-row landing-section-row--gold">

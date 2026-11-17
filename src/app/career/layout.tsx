@@ -17,5 +17,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function CareerLayout({ children }: { children: React.ReactNode }) {
-  return <IntlScope namespaces={['careerProfession']}>{children}</IntlScope>
+  return <IntlScope namespaces={['careerProfession', 'relationshipMarriage']}>{children}</IntlScope>
 }

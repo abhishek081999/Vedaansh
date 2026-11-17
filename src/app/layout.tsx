@@ -14,7 +14,7 @@ import { SITE_URL } from '@/lib/seo/site'
 import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import type { AbstractIntlMessages } from 'next-intl'
 import { IntlProvider } from '@/components/providers/IntlProvider'
-import { ROOT_CLIENT_NAMESPACES, pickNamespaces } from '@/i18n/messages'
+import { pickClientMessages } from '@/i18n/messages'
 import { LOCALES, LOCALE_TAGS, OG_LOCALES, PATHNAME_HEADER, isAppLocale, localizePath } from '@/i18n/config'
 
 // ── Fonts (next/font — zero layout shift, self-hosted) ────────
@@ -312,9 +312,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? ''
   const rawLocale = await getLocale()
   const locale = isAppLocale(rawLocale) ? rawLocale : 'en'
-  const clientMessages = pickNamespaces(
+  const clientMessages = pickClientMessages(
     (await getMessages()) as Record<string, unknown>,
-    ROOT_CLIENT_NAMESPACES,
   ) as AbstractIntlMessages
 
   return (
