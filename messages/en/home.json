@@ -341,11 +341,11 @@
   "todaySky": {
     "ariaLabel": "Today's panchang",
     "eyebrow": "Aaj ka Panchang",
-    "signs": "Surya in {sun} · Chandra in {moon}",
+    "signs": "Surya in {sun}, Chandra in {moon}",
     "cityLink": "Panchang for your city",
     "moonPhase": "Moon phase: {tithi}",
-    "calendarLine1": "{masa} · {ritu} ritu",
-    "calendarLine2": "{ayana} · {samvatsara} samvatsara",
+    "calendarLine1": "{masa}, {ritu} ritu",
+    "calendarLine2": "{ayana}, {samvatsara} samvatsara",
     "dayAria": "Day from sunrise to sunset",
     "daylight": "{hours}h {mins}m of daylight",
     "rahuKalam": "Rahu Kalam",
@@ -360,7 +360,7 @@
     },
     "pada": "Pada {pada}",
     "paksha": "{paksha} paksha",
-    "tithiChanges": "{paksha} · changes {time}",
+    "tithiChanges": "{paksha}, changes {time}",
     "bhadra": "Bhadra — avoid new starts",
     "lordDay": "{lord} day",
     "horaNow": "{lord} hora now",
@@ -437,7 +437,7 @@
     ],
     "builtBy": "Built by <b>Abhishek Kumar</b>, Software Engineer.",
     "thanks": "Special thanks to Sameer Bhatnagar sir — the app's functionalities are inspired by his teachings and wisdom.",
-    "cta": "Read full story →"
+    "cta": "Read the full story"
   },
   "wheel": {
     "moon": "Moon",
@@ -470,8 +470,8 @@
     "shuklaName": "Shukla",
     "krishnaName": "Krishna",
     "retro": "R",
-    "source": "Today's sky · {place}, noon IST",
-    "sourcePrashna": "Today's sky · {place}, noon IST · hora live",
+    "source": "Today's sky over {place}, noon IST",
+    "sourcePrashna": "Today's sky over {place}, noon IST, hora live",
     "unavailable": "Live sky unavailable right now",
     "reading": "Reading today's sky…",
     "natalNote": "Inner ring · your planets · nakshatra band · Moon's star",
