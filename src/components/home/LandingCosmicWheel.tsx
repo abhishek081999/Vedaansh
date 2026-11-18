@@ -589,7 +589,7 @@ export function RashiSkyFigure({ sky, natal = null, accent, source, emptyLabel, 
   const sunRashi = sky ? term(wheelRashiName(sky.sunRashi.rashi)) : ''
   const caption = sky
     ? [
-        { id: 'moon', label: t('moon'), value: `${moonRashi} · ${term(sky.nakshatra.name)}` },
+        { id: 'moon', label: t('moon'), value: `${moonRashi}, ${term(sky.nakshatra.name)}` },
         { id: 'sun', label: t('sun'), value: sunRashi },
         { id: 'paksha', label: t('paksha'), value: w.paksha(sky.tithi.paksha) },
       ]
@@ -881,7 +881,7 @@ function captionFor(variant: CosmicWheelVariant, sky: TodaySky | null, w: WheelT
   switch (variant) {
     case 'astrology':
       return [
-        { id: 'moon', label: t('moon'), value: `${term(p.moonRashi.sa)} · ${term(p.nakshatra.name)}` },
+        { id: 'moon', label: t('moon'), value: `${term(p.moonRashi.sa)}, ${term(p.nakshatra.name)}` },
         { id: 'sun', label: t('sun'), value: term(p.sunRashi.sa) },
         { id: 'paksha', label: t('paksha'), value: w.paksha(p.tithi.paksha) },
       ]

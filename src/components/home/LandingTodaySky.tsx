@@ -9,7 +9,7 @@ import { Link } from '@/i18n/navigation'
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { masaHi, samvatsaraHi, termHi, VAAR_HI } from '@/i18n/jyotish'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { GRAHA_NAMES, type GrahaId } from '@/types/astrology'
 import { getVaarMeta } from '@/lib/engine/vaarMeta'
 import { moonLitPath } from '@/lib/panchang/moon-phase'
@@ -222,7 +222,7 @@ export function LandingTodaySky({ sky, failed, onNavigate }: LandingTodaySkyProp
           value: isHi ? VAAR_HI[p.vara.number] ?? p.vara.sanskrit : vaar?.name ?? p.vara.sanskrit,
           note: [vaar ? t('lordDay', { lord: name(vaar.lordName) }) : null, horaLord ? t('horaNow', { lord: horaLord }) : null]
             .filter(Boolean)
-            .join(' · '),
+            .join(', '),
         },
       ]
     : []
@@ -230,9 +230,7 @@ export function LandingTodaySky({ sky, failed, onNavigate }: LandingTodaySkyProp
   return (
     <section className={styles.leaf} aria-label={t('ariaLabel')} aria-busy={!p}>
       <header className={styles.head}>
-        <h2 className={styles.eyebrow}>
-          <span aria-hidden>❖</span> {t('eyebrow')} <span aria-hidden>❖</span>
-        </h2>
+        <h2 className={styles.title}>{t('eyebrow')}</h2>
         <div className={styles.headMeta}>
           <span className={styles.place}>
             <MapPin size={13} aria-hidden /> {t('place')}
@@ -243,7 +241,7 @@ export function LandingTodaySky({ sky, failed, onNavigate }: LandingTodaySkyProp
             </span>
           ) : null}
           <Link href="/panchang" className={styles.link} onClick={onNavigate}>
-            {t('cityLink')} <ArrowRight size={13} strokeWidth={2.25} aria-hidden />
+            {t('cityLink')}
           </Link>
         </div>
       </header>

@@ -341,11 +341,11 @@
   "todaySky": {
     "ariaLabel": "आज का पंचांग",
     "eyebrow": "आज का पंचांग",
-    "signs": "सूर्य {sun} में · चंद्र {moon} में",
+    "signs": "सूर्य {sun} में, चंद्र {moon} में",
     "cityLink": "अपने शहर का पंचांग",
     "moonPhase": "चंद्र कला: {tithi}",
-    "calendarLine1": "{masa} · {ritu} ऋतु",
-    "calendarLine2": "{ayana} · {samvatsara} संवत्सर",
+    "calendarLine1": "{masa}, {ritu} ऋतु",
+    "calendarLine2": "{ayana}, {samvatsara} संवत्सर",
     "dayAria": "सूर्योदय से सूर्यास्त तक का दिन",
     "daylight": "{hours} घं. {mins} मि. का दिनमान",
     "rahuKalam": "राहु काल",
@@ -360,7 +360,7 @@
     },
     "pada": "पद {pada}",
     "paksha": "{paksha} पक्ष",
-    "tithiChanges": "{paksha} · {time} पर परिवर्तन",
+    "tithiChanges": "{paksha}, {time} पर परिवर्तन",
     "bhadra": "भद्रा — नए कार्य आरंभ न करें",
     "lordDay": "{lord} का दिन",
     "horaNow": "अभी {lord} की होरा",
@@ -437,7 +437,7 @@
     ],
     "builtBy": "<b>Abhishek Kumar</b> (सॉफ़्टवेयर इंजीनियर) द्वारा निर्मित।",
     "thanks": "Sameer Bhatnagar सर का विशेष आभार — इस ऐप की सुविधाएँ उनकी शिक्षाओं और ज्ञान से प्रेरित हैं।",
-    "cta": "पूरी कहानी पढ़ें →"
+    "cta": "पूरी कहानी पढ़ें"
   },
   "wheel": {
     "moon": "चंद्र",
@@ -470,8 +470,8 @@
     "shuklaName": "शुक्ल",
     "krishnaName": "कृष्ण",
     "retro": "व",
-    "source": "आज का आकाश · {place}, दोपहर 12 बजे (IST)",
-    "sourcePrashna": "आज का आकाश · {place}, दोपहर 12 बजे (IST) · लाइव होरा",
+    "source": "{place} का आज का आकाश, दोपहर 12 बजे (IST)",
+    "sourcePrashna": "{place} का आज का आकाश, दोपहर 12 बजे (IST), लाइव होरा",
     "unavailable": "अभी लाइव आकाश उपलब्ध नहीं है",
     "reading": "आज का आकाश पढ़ा जा रहा है…",
     "natalNote": "भीतरी वलय · आपके ग्रह · नक्षत्र पट्टी · चंद्र नक्षत्र",

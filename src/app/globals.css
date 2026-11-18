@@ -1,3 +1,12 @@
+/* Hallmark · checked: 2026-11-18 · genre: editorial (inferred)
+ * floor: 1 FAIL (58, structural, printed) · fixed: 26a, 40, 49b, 54, 63, 67, 75, 39b (hero) · structural: printed (3, 44c, 58, 71, 77, 79, 80, 81, 82)
+ * finish-review: in-thread, screenshots at 375 and 1440 · before 10 FAIL 11 REFLEX · after 1 FAIL 10 REFLEX
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · waive 39b · the language switch and Sign in sit in the shared Vedaansh header · that header is compact app chrome on every page of the workspace, 32 to 40px */
+/* Hallmark · dropped "Astrology workspace" slide label above the hero head · 54 names it; the tab row below already names each slide */
+/* Hallmark · dropped "App Guide" label above the guide head · 54 names it; the head already says Learn Vedaansh */
+/* Hallmark · reworded "❖ Aaj ka Panchang ❖" to "Aaj ka Panchang" as a real h2 · 54 and 63 name the ornamented label */
+/* Hallmark · dropped #_r_4_-name, #_r_4_-place · not dropped: BirthForm ids come from React useId and renumber per render, both fields are still there */
 /* ═══════════════════════════════════════════════════════════════
    src/app/globals.css
    Design System — Jyotisha Platform
@@ -429,7 +438,7 @@
   /* Text: charcoal body, maroon semantic emphasis */
   --text-primary: #333333;
   --text-secondary: #4a4a4a;
-  --text-muted: #7a7a7a;
+  --text-muted: #6e6e6e; /* #7a7a7a was 4.29:1 on white; this clears 4.5:1 */
   --text-gold: #8C0030;
   --text-on-gold: #ffffff;
 
@@ -1846,7 +1855,7 @@ select.input {
 
 .sidenav-brand-sub {
   font-family: var(--font-deva);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--logo-text-sub);
   letter-spacing: 0.06em;
@@ -3155,7 +3164,7 @@ select.input {
 .app-header-brand-sub {
   margin-top: 2px;
   font-family: var(--font-deva);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   color: var(--logo-text-sub);
   letter-spacing: 0.04em;
   font-weight: 500;
@@ -3848,6 +3857,17 @@ select.input {
   outline-offset: 2px;
 }
 
+/* The header band can be the same hue as --gold (classic maroon): draw rings in the header's own ink. */
+.app-header :is(a, button):focus-visible {
+  outline: 2px solid var(--header-text);
+  outline-offset: 2px;
+}
+
+/* Dropdown panels sit on their own surface, not the header band: back to the page ring. */
+.app-header .app-header-dropdown-panel :is(a, button):focus-visible {
+  outline-color: var(--gold);
+}
+
 .app-header-nav-link::after,
 .app-header-dropdown-trigger::after {
   content: none;
@@ -3960,10 +3980,8 @@ select.input {
 }
 
 .app-header-menu-group-title {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 0.4rem;
   padding: 0 0.45rem;
@@ -4245,10 +4263,8 @@ select.input {
 
 .landing-section-header .themed-kicker {
   font-family: var(--font-body);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 600;
   margin-bottom: 0.45rem;
 }
 
@@ -4883,16 +4899,15 @@ select.input {
   display: inline-flex;
   align-items: center;
   gap: 0.1rem;
-  min-height: 32px;
-  padding: 0.3rem 0.55rem 0.3rem 0.75rem;
+  min-height: 44px;
+  padding: 0.3rem 0.8rem 0.3rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface-1);
   color: var(--text-secondary);
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
   line-height: 1.2;
   cursor: pointer;
 }
@@ -7680,13 +7695,12 @@ select.input {
 }
 
 .landing-premium-hero-ctas .btn {
-  padding: 0.4rem 0.9rem;
-  font-size: 0.8125rem;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: 0.01em;
   border-radius: 8px;
-  min-height: 0;
+  min-height: 44px;
 }
 
 .landing-premium-hero-primary {
@@ -7706,12 +7720,10 @@ select.input {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.4rem 1.5rem;
   margin-top: 1.25rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 500;
   /* --text-muted alone is ~4:1 on the cream hero; this mix clears 4.5:1 in every theme. */
   color: color-mix(in oklab, var(--text-secondary) 60%, var(--text-muted));
 }
@@ -8084,10 +8096,8 @@ select.input {
 }
 
 .landing-trust-stat-label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--text-muted);
 }
 
@@ -8300,8 +8310,7 @@ select.input {
 
   .landing-premium-hero-trust {
     margin-top: 0.75rem;
-    font-size: 0.6875rem;
-    letter-spacing: 0.04em;
+    font-size: 0.75rem;
     gap: 0.3rem 0.9rem;
   }
 
@@ -8625,10 +8634,8 @@ select.input {
 }
 
 .cosmic-wheel-fact-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: color-mix(in oklab, var(--text-secondary) 60%, var(--text-muted));
 }
 
@@ -8766,6 +8773,7 @@ select.input {
 
 .skip-link {
   position: absolute;
+  white-space: nowrap;
   left: -9999px;
   top: auto;
   width: 1px;
@@ -8960,10 +8968,8 @@ select.input {
   padding: 0.12rem 0.55rem;
   border-radius: 999px;
   background: var(--gold-faint);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--text-gold);
 }
 
@@ -9010,10 +9016,8 @@ select.input {
 }
 
 .lj-lead-kicker {
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--text-gold);
 }
 
@@ -9162,11 +9166,9 @@ select.input {
   border: 1px solid var(--gold);
   background: var(--gold-faint);
   font-family: var(--font-sans, inherit);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
   line-height: 1.4;
-  text-transform: uppercase;
   color: var(--text-gold);
 }
 

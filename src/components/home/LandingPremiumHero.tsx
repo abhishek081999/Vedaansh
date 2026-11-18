@@ -123,7 +123,6 @@ export function LandingPremiumHero({
             <div className="landing-hero-carousel-slide-bg" />
 
             <div className="landing-premium-hero-copy">
-              <p className="landing-hero-carousel-kicker">{t(`slides.${slide.id}.kicker`)}</p>
               <h1 className="landing-premium-hero-title landing-hero-carousel-title">{t(`slides.${slide.id}.title`)}</h1>
               <p className="landing-premium-hero-desc landing-hero-carousel-desc">{t(`slides.${slide.id}.desc`)}</p>
 
@@ -181,9 +180,7 @@ export function LandingPremiumHero({
 
               <div className="landing-premium-hero-trust">
                 <span>{t('trust.ephemeris')}</span>
-                <span className="landing-premium-hero-trust-dot" aria-hidden />
                 <span>{t('trust.ayanamsha')}</span>
-                <span className="landing-premium-hero-trust-dot" aria-hidden />
                 <span>{t('trust.noLogin')}</span>
               </div>
             </div>
@@ -206,7 +203,6 @@ export function LandingPremiumHero({
                 onClick={() => goTo(idx, `hero_tab_${item.id}`)}
                 style={{ ['--tab-accent' as string]: item.accent }}
               >
-                <span className="landing-hero-carousel-tab-dot" style={{ background: item.accent }} />
                 {t(`slides.${item.id}.kicker`)}
               </button>
             ))}

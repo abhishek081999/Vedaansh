@@ -6,7 +6,8 @@
   --pp-line: color-mix(in oklab, var(--pp-brand) 22%, var(--border, #e5ddd0));
   --pp-ink: var(--text-primary);
   --pp-soft: var(--text-secondary);
-  --pp-muted: var(--text-muted);
+  /* --text-muted alone is ~4.3:1 over this leaf's wash; the hero's mix clears 4.5:1 in every theme. */
+  --pp-muted: color-mix(in oklab, var(--text-secondary) 60%, var(--text-muted));
   /* Same rules as Dainik Rashifal: auspicious in the theme brand, one warning colour for care. */
   --pp-good: var(--pp-brand);
   --pp-care: color-mix(in oklab, #b3263b 82%, var(--pp-ink));
@@ -53,22 +54,13 @@
   margin-bottom: 1.1rem;
 }
 
-.leaf.leaf .eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+.leaf.leaf .title {
   margin: 0;
-  font-family: var(--font-body);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
   color: var(--pp-brand);
-}
-
-.eyebrow span {
-  font-size: 0.6rem;
-  color: var(--pp-gold);
 }
 
 .headMeta {
@@ -263,10 +255,8 @@
 }
 
 .angaEn {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--pp-muted);
 }
 

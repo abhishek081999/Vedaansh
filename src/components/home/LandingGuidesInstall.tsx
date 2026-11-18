@@ -46,7 +46,6 @@ export function LandingGuides({ trackLandingCta }: TrackProps) {
       <div className={styles.centerAction}>
         <Link href="/guides" className={styles.textLink} onClick={() => trackLandingCta('guides_all')}>
           {t('seeAll')}
-          <ArrowRight size={14} strokeWidth={2.25} aria-hidden />
         </Link>
       </div>
     </div>
@@ -88,11 +87,10 @@ export function LandingAppGuide({ trackLandingCta }: TrackProps) {
     <div className="landing-section-row-content">
       <header className={guide.hero}>
         <div className={guide.heroText}>
-          <p className={guide.eyebrow}>{t('kicker')}</p>
           <h2 className={guide.heroTitle}>{t('title')}</h2>
           <p className={guide.heroLede}>{t('description')}</p>
           <Link href="/help" className={guide.btnPrimary} onClick={() => trackLandingCta('app_guide_all')}>
-            {t('cta')} <ArrowRight size={16} strokeWidth={2.25} aria-hidden />
+            {t('cta')}
           </Link>
           <p className={guide.heroStats}>
             {t('stats', { guides: HELP_TOPICS.length, sections: HELP_CATEGORIES.length })}
@@ -117,7 +115,7 @@ export function LandingAppGuide({ trackLandingCta }: TrackProps) {
             <strong>{t(`items.${id}.title`)}</strong>
             <p>{t(`items.${id}.text`)}</p>
             <span className={styles.appGuideMore}>
-              {t('read')} <ArrowRight size={14} strokeWidth={2.25} aria-hidden />
+              {t('read')}
             </span>
           </Link>
         ))}
