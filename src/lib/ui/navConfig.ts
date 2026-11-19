@@ -31,6 +31,7 @@ import {
   Layers,
   LayoutDashboard,
   Library,
+  Lightbulb,
   Compass,
   Moon,
   NotebookText,
@@ -222,6 +223,7 @@ export const TOOL_TABS: NavTab[] = [
   { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides' },
   { id: 'help', label: 'App Guide', icon: Compass, path: '/help', match: 'prefix' },
   { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
+  { id: 'feature-requests', label: 'Request a Feature', icon: Lightbulb, path: '/feature-requests' },
 ]
 
 /** App and account links. */

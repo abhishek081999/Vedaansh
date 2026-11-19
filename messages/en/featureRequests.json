@@ -1,0 +1,66 @@
+{
+  "header": {
+    "badge": "Community",
+    "title": "Request a Feature",
+    "subtitle": "Tell us which astrology tool or calculation you want in Vedaansh. Upvote the ideas you like and we build the most requested ones first."
+  },
+  "signIn": {
+    "body": "Sign in to request a feature or vote on one.",
+    "cta": "Sign in"
+  },
+  "form": {
+    "title": "Suggest a new tool",
+    "titleLabel": "What should we add?",
+    "titlePlaceholder": "e.g. Kalachakra Dasha timeline",
+    "categoryLabel": "Area",
+    "descriptionLabel": "Details (optional)",
+    "descriptionPlaceholder": "How would you use it? Which classical text or method should it follow?",
+    "submit": "Submit request",
+    "submitting": "Submitting…",
+    "success": "Thank you. Your request is on the board.",
+    "error": "Could not send your request. Please try again.",
+    "rateLimited": "You have sent several requests already. Please try again later."
+  },
+  "list": {
+    "title": "Requested features",
+    "sortLabel": "Sort",
+    "sortTop": "Most voted",
+    "sortNew": "Newest",
+    "filterLabel": "Status",
+    "filterAll": "All statuses",
+    "loading": "Loading requests…",
+    "empty": "No requests yet. Be the first to suggest one.",
+    "error": "Could not load requests.",
+    "retry": "Try again",
+    "teamReply": "Vedaansh team",
+    "by": "by {name}",
+    "byYou": "by you",
+    "anonymous": "a user",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {total}"
+  },
+  "vote": {
+    "add": "Upvote this request",
+    "remove": "Remove your upvote",
+    "signIn": "Sign in to vote"
+  },
+  "status": {
+    "open": "Open",
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "shipped": "Shipped",
+    "declined": "Declined"
+  },
+  "categories": {
+    "chart": "Birth chart",
+    "dasha": "Dasha",
+    "transit": "Transits",
+    "matching": "Kundali matching",
+    "muhurta": "Muhurta",
+    "panchang": "Panchang",
+    "remedies": "Remedies",
+    "numerology": "Numerology",
+    "other": "Other"
+  }
+}
