@@ -7,6 +7,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   BarChart3,
+  BookMarked,
   BookOpen,
   Brain,
   Briefcase,
@@ -209,6 +210,7 @@ export const PANCHANG_TABS: NavTab[] = [
 export const ADVANCED_ASTRO_TABS: NavTab[] = [
   { id: 'jaimini', label: 'Jaimini Astrology', icon: Zap, path: '/jaimini' },
   { id: 'nadi', label: 'Nadi Astrology', icon: Waypoints, path: '/nadi' },
+  { id: 'lal-kitab', label: 'Lal Kitab', icon: BookMarked, path: '/lal-kitab' },
   { id: 'astro-vastu', label: 'Astro Vastu', icon: Home, path: '/vastu' },
   { id: 'astro-carto', label: 'AstroCartography', icon: Globe, path: '/acg' },
   { id: 'sbc', label: 'Sarvatobhadra Chakra', icon: Layers, path: '/sbc' },
