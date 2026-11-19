@@ -43,6 +43,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - Career and profession (`/career`): score preview on Free; full reading and the professional method on Gold+
 - Today (`/today`), roadmap (`/roadmap`), time scrubber (`/scrubber`), guides (`/guides`)
 - Interpretation hub on the chart workspace and public `/chart/[slug]` (overview teaser on Free; full sections on Gold+)
+- AI prompt export on the chart toolbar: one Markdown prompt for ChatGPT / Claude / Gemini with all calculations and optional topic studies (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality); Free gets data + method, Gold+ adds the hub notes and engine readings
 - Prashna, Jaimini, Nadi (`/nadi`), ACG, Vastu, Nakshatra lab, Numerology, Naamkaran, Tattva
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging

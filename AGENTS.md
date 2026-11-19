@@ -46,8 +46,8 @@ Canonical plan names: `free` | `gold` | `platinum`.
 
 | Plan | Chart saves | Default price (INR) | Notable gates |
 |------|-------------|---------------------|---------------|
-| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser |
-| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows |
+| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser, AI prompt (data + method) |
+| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows, full AI prompt (hub notes + topic engine readings) |
 | Platinum | Unlimited charts and Kundali Milan matches | ₹336/mo · ₹2,888/yr | Email charts, bulk ZIP, client CRM, white-label, full 41 vargas |
 
 Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).
@@ -120,6 +120,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 - `UserPlan`: `'free' | 'gold' | 'platinum'`
 - Main orchestrator: `calculateChart()` in `src/lib/engine/calculator.ts` → `ChartOutput`
 - Interpretation hub: pure `buildInterpretationHub()` in `src/lib/engine/interpretationHub.ts`; UI `InterpretationHub` (Free overview teaser; Gold+ full sections)
+- AI prompt: pure `buildAiPrompt(chart, { plan, lang, topics, hideName })` in `src/lib/engine/aiPrompt.ts`; topic studies in `aiPromptTopics.ts` (keep its engine imports ephemeris-free — it runs in the browser); UI `AiPromptButton` on the chart toolbar. Shadbala is always quoted in rupas vs the BPHS minimum, never as a bare ratio
 
 ### Do not
 

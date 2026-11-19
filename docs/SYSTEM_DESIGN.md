@@ -88,6 +88,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 - 52 App Router pages (home, chart, today, panchang, muhurta, compare, relationship, career, nadi, prashna, jaimini, sbc, acg, vastu, nakshatra, numerology, roadmap, scrubber, guides, clients, account, admin, legal, etc.)
 - Chart workspace panels, chakras, dashboards
 - Interpretation hub (`InterpretationHub` + pure `interpretationHub` builder) — Free overview teaser; Gold+ full sections with viz kit
+- AI prompt (`AiPromptButton`) — builds the prompt in the browser from the loaded `ChartOutput`; the builder module is lazy-loaded when the popup opens; no API route
 - Platinum Client CRM UI
 - Admin: users, charts, revenue, billing, audit, Social Studio
 - Client-side: localStorage (milan history, numerology readings), device location for atlas
@@ -142,6 +143,7 @@ Approximate stages:
 | KP / extras | significators, yogas, gandanta, pushkara, yogi |
 | Output | `ChartOutput` + interpretations |
 | Hub readings | `interpretationHub.ts` — overview / planets / houses / rashis / strength / transit / dasha aggregates for UI |
+| AI prompt | `aiPrompt.ts` (`buildAiPrompt`: chart → Markdown prompt), `aiPromptTopics.ts` (topic studies + `renderReading` for engine output), `aiPromptFormat.ts` (tables, drishti, Shadbala in rupas). Uses only ephemeris-free engines |
 
 Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on Platinum). UI plan teasers (Interpretation hub, Tattva, etc.) use `userPlan` + `planMeetsUiGate`; paid APIs still use `requirePlanGate`.
 
@@ -173,6 +175,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 |--------|---------|
 | Charts | `/chart/[slug]`, calculate, save, public share, notes, relocate, varshaphal, ACG |
 | Interpretation hub | Chart workspace + public share tab — Free: overview tone map + first 3 themes; Gold+: planets, houses, rashis, strength charts, transit, dasha (`InterpretationHub`) |
+| AI prompt | Chart toolbar popup — copy / download a Markdown prompt for any AI; topic chips (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality); Free: data + method; Gold+: hub notes + engine readings |
 | Panchang | `/panchang`, calendar, transit APIs |
 | Muhurta | `/muhurta` + `/api/muhurta/*` (Gold+) |
 | Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+. Saved matches: `/api/milan/save`, `/api/milan/list`, `/api/milan/[id]` (caps 20 / 200 / unlimited) |
