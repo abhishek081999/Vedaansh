@@ -1,7 +1,7 @@
 'use client'
 // Sticky Teva wheel shown on every Lal Kitab view.
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { NorthIndianChakra } from '@/components/chakra/NorthIndianChakra'
@@ -17,26 +17,30 @@ function tevaGrahas(chart: ChartOutput, teva: LkTeva): GrahaData[] {
 export function LalKitabChartRail({
   chart,
   reading,
+  basis,
+  onBasisChange,
   tevaOverride,
-  size = 280,
+  compact = false,
 }: {
   chart: ChartOutput
   reading: LalKitabReading
+  basis: LkChartBasis
+  onBasisChange: (basis: LkChartBasis) => void
   /** Optional Teva (e.g. a correction candidate) instead of the natal Lagna Teva. */
   tevaOverride?: LkTeva
-  size?: number
+  compact?: boolean
 }) {
   const t = useTranslations('lalKitab.panel')
-  const [basis, setBasis] = useState<LkChartBasis>('lagna')
   const teva = tevaOverride ?? (basis === 'lagna' ? reading.teva : reading.chandra)
   const grahas = useMemo(() => tevaGrahas(chart, teva), [chart, teva])
   const locked = Boolean(tevaOverride)
+  const size = compact ? 200 : 248
 
   return (
     <aside className={styles.chartRail} aria-label={t('chartTitle')}>
-      <section className={styles.card}>
-        <div className={styles.cardHead}>
-          <h2 className={styles.cardTitle}>{t('chartTitle')}</h2>
+      <section className={styles.chartCard}>
+        <div className={styles.chartHead}>
+          <span className={styles.chartLabel}>{t('chartTitle')}</span>
           {!locked && (
             <div className={styles.segment} role="radiogroup" aria-label={t('basisLabel')}>
               {(['lagna', 'chandra'] as const).map((b) => (
@@ -46,9 +50,9 @@ export function LalKitabChartRail({
                   role="radio"
                   aria-checked={basis === b}
                   className={basis === b ? `${styles.segBtn} ${styles.segActive}` : styles.segBtn}
-                  onClick={() => setBasis(b)}
+                  onClick={() => onBasisChange(b)}
                 >
-                  {t(`basis.${b}`)}
+                  {t(`basisShort.${b}`)}
                 </button>
               ))}
             </div>
@@ -57,7 +61,7 @@ export function LalKitabChartRail({
         <div className={styles.chartBox}>
           <NorthIndianChakra ascRashi={1} grahas={grahas} size={size} showDegrees={false} />
         </div>
-        <p className={styles.note}>{t('chartNote')}</p>
+        <p className={styles.chartNote}>{t('chartNote')}</p>
       </section>
     </aside>
   )

@@ -39,6 +39,10 @@
       "lagna": "Lagna Teva",
       "chandra": "Chandra Teva"
     },
+    "basisShort": {
+      "lagna": "Lagna",
+      "chandra": "Chandra"
+    },
     "chartTitle": "Lal Kitab Teva",
     "chartNote": "House numbers, not signs: house 1 is read as Aries whatever the rising sign.",
     "planetsTitle": "Planets in the Teva",

@@ -6,7 +6,7 @@
 //  visually (LalKitabGate).
 // ─────────────────────────────────────────────────────────────
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   BookOpen, CalendarRange, ClipboardList, Crosshair, Download, Eye, Grid3x3, Home, LayoutDashboard, Link2,
@@ -15,7 +15,8 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
-import { lkAgeYears, lkYearOfLife, readLalKitab } from '@/lib/engine/lalKitab'
+import { lkAgeYears, lkYearOfLife, readLalKitab, type LkChartBasis } from '@/lib/engine/lalKitab'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { ChartContextBar } from '@/components/ui/patterns/ChartContextBar'
 import { LalKitabChartRail } from '@/components/ui/lalKitab/LalKitabChartRail'
@@ -72,7 +73,10 @@ export interface LalKitabPanelProps {
 export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
   const t = useTranslations('lalKitab.panel')
   const { lang } = useLang()
+  const rootRef = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<LkView>('overview')
+  const [basis, setBasis] = useState<LkChartBasis>('lagna')
+  const [isMobile, setIsMobile] = useState(false)
   const [exporting, setExporting] = useState(false)
   const ageYears = useMemo(() => lkAgeYears(chart.meta?.birthDate ?? ''), [chart.meta?.birthDate])
   const currentYear = useMemo(() => lkYearOfLife(ageYears), [ageYears])
@@ -81,6 +85,19 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
     [chart, lang, ageYears],
   )
   const canExport = planMeetsUiGate(userPlan, 'gold')
+
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    const apply = (width: number) => setIsMobile(width < BREAKPOINTS.lg)
+    apply(el.getBoundingClientRect().width)
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width
+      if (typeof width === 'number') apply(width)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   async function exportPdf() {
     if (!canExport || exporting) return
@@ -109,12 +126,12 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
   }
 
   return (
-    <div className={styles.root}>
+    <div ref={rootRef} className={styles.root}>
       <header className={styles.header}>
         <div className={styles.headerActions}>
           <h1 className={styles.title}>{t('title')}</h1>
           {canExport && (
-            <button type="button" className={styles.segBtn} disabled={exporting} onClick={() => void exportPdf()}>
+            <button type="button" className={styles.exportBtn} disabled={exporting} onClick={() => void exportPdf()}>
               <Download size={14} aria-hidden />
               {exporting ? t('exporting') : t('exportPdf')}
             </button>
@@ -149,7 +166,7 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
       <div className={styles.workspace}>
         <section id={`lk-panel-${view}`} className={styles.content} role="tabpanel" aria-labelledby={`lk-tab-${view}`}>
           {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} currentYear={currentYear} />}
-          {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} />}
+          {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} basis={basis} />}
           {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
           {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
           {view === 'correction' && <LalKitabCorrection chart={chart} reading={reading} userPlan={userPlan} />}
@@ -170,9 +187,14 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
           )}
           {view === 'learn' && <LalKitabLearn />}
         </section>
-        <LalKitabChartRail chart={chart} reading={reading} />
+        <LalKitabChartRail
+          chart={chart}
+          reading={reading}
+          basis={basis}
+          onBasisChange={setBasis}
+          compact={isMobile}
+        />
       </div>
-      <p className={styles.note}>{t('comingNext')}</p>
     </div>
   )
 }
