@@ -62,6 +62,7 @@ import {
   type YuddhaResult,
   type UpagrahaData,
   type Gender,
+  type HouseSystem,
 } from '@/types/astrology'
 import { checkGandanta } from './gandanta'
 import { checkPushkara } from './pushkara'
@@ -595,11 +596,25 @@ export async function calculateChart(
     ashtakavarga: calculateAshtakavarga(grahas, lagnaData),
     yogas: detectYogas(grahas, lagnaData),
     yogiPoint,
-    kp: {
-      significators: calculateKPSignificators(grahas, houses),
-      cusps:         calculateKPCusps(houses),
-      rulingPlanets: calculateRulingPlanets(jd, input.latitude, input.longitude, ayanamshaVal)
-    },
+    kp: (() => {
+      // KP is always read on Placidus cusps, whatever house system the chart uses.
+      let kpHouses = houses
+      let houseSystem: HouseSystem = settings.houseSystem
+      if (settings.houseSystem !== 'placidus') {
+        try {
+          kpHouses = calcHouses(jd, input.latitude, input.longitude, settings.ayanamsha, 'placidus', fixedAsc)
+          houseSystem = 'placidus'
+        } catch {
+          // Placidus is undefined near the poles; keep the chart's own cusps.
+        }
+      }
+      return {
+        significators: calculateKPSignificators(grahas, kpHouses),
+        cusps:         calculateKPCusps(kpHouses),
+        rulingPlanets: calculateRulingPlanets(jd, input.latitude, input.longitude, ayanamshaVal),
+        houseSystem,
+      }
+    })(),
     jaiminiBala: calculateJaiminiBala({ grahas, karakas, lagnas: lagnaData }),
     jaiminiTrinity: calculateJaiminiTrinity({ grahas, karakas, lagnas: lagnaData }),
     interpretation,

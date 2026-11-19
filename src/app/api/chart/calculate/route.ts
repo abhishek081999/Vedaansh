@@ -21,7 +21,7 @@ export const runtime = 'nodejs'
 // ── Input schema ──────────────────────────────────────────────
 
 const SettingsSchema = z.object({
-  ayanamsha:    z.enum(['lahiri','true_chitra','true_revati','true_pushya','raman','usha_shashi','yukteshwar']).default('lahiri'),
+  ayanamsha:    z.enum(['lahiri','true_chitra','true_revati','true_pushya','raman','usha_shashi','yukteshwar','krishnamurti']).default('lahiri'),
   houseSystem:  z.enum(['whole_sign','placidus','equal','bhava_chalita']).default('whole_sign'),
   nodeMode:     z.enum(['mean','true']).default('true'),
   karakaScheme: z.union([z.literal(7), z.literal(8)]).default(7),

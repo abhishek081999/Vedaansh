@@ -18,6 +18,8 @@ import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { ScoreMeter } from '@/components/ui/marriedLifeUi'
 import { CareerMethodPanel } from '@/components/ui/CareerMethodPanel'
+import { CareerChangeSection } from '@/components/ui/CareerChangeSection'
+import { analyzeCareerChange, type TransitPosition } from '@/lib/engine/careerChange'
 import {
   analyzeCareerProfession,
   readCareerTransits,
@@ -32,9 +34,9 @@ import {
 type CareerMode = 'desk' | 'method'
 
 /** A reading block. Several sections are stacked inside one tab. */
-type Section = 'delivery' | 'strength' | 'chain' | 'turns' | 'support' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
+type Section = 'delivery' | 'strength' | 'chain' | 'turns' | 'support' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief' | 'change'
 
-type View = 'overview' | 'promise' | 'houses' | 'yogas' | 'turns' | 'timing' | 'action'
+type View = 'overview' | 'promise' | 'houses' | 'yogas' | 'turns' | 'change' | 'timing' | 'action'
 
 const TONE: Record<CareerTone, string> = {
   supportive: 'var(--teal)',
@@ -385,10 +387,13 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   const tLocked = useTranslations('careerProfession.locked')
   const tBrief = useTranslations('careerProfession.brief')
   const tUi = useTranslations('careerProfession.ui')
+  const tChange = useTranslations('careerProfession.change')
   const { lang } = useLang()
   const full = planMeetsUiGate(userPlan, 'gold')
   const { setActiveTab } = useAppLayout()
   const data = useMemo(() => analyzeCareerProfession(chart, new Date(), lang), [chart, lang])
+  // Free teaser only: stability and the "switch now?" answer. Gold renders the full CareerChangeSection.
+  const changeTeaser = useMemo(() => (full ? null : analyzeCareerChange(chart, new Date(), lang)), [chart, lang, full])
   const careerMethods = useMemo(
     (): { id: CareerMode; code: string; name: string; topic: string }[] => [
       { id: 'desk', code: tMethods('desk.code'), name: tMethods('desk.name'), topic: tMethods('desk.topic') },
@@ -403,6 +408,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
       { id: 'houses', label: tTabs('houses'), hint: tTabs('housesHint'), sections: ['houses', 'planets', 'chain'] },
       { id: 'yogas', label: tTabs('yogas'), hint: tTabs('yogasHint'), sections: ['yogas', 'stars'] },
       { id: 'turns', label: tTabs('turns'), hint: tTabs('turnsHint'), sections: ['turns', 'support'] },
+      { id: 'change', label: tTabs('change'), hint: tTabs('changeHint'), sections: ['change'] },
       { id: 'timing', label: tTabs('timing'), hint: tTabs('timingHint'), sections: ['timing'] },
       { id: 'action', label: tTabs('action'), hint: tTabs('actionHint'), sections: ['remedies', 'brief'] },
     ],
@@ -414,6 +420,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   const has = (section: Section) => activeView.sections.includes(section)
   const [copied, setCopied] = useState(false)
   const [transits, setTransits] = useState<CareerTransitReading | null>(null)
+  const [skyPositions, setSkyPositions] = useState<TransitPosition[]>([])
   const ascRashi = chart.lagnas?.ascRashi
 
   useEffect(() => {
@@ -430,6 +437,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               return [{ id: row.planetId, rashi: row.sign, isRetro: row.isRetro === true }]
             })
           : []
+        setSkyPositions(positions)
         setTransits(readCareerTransits(chart, positions, lang))
       })
       .catch(() => {
@@ -520,6 +528,14 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={firstSentence(d.summary)} />
             ))}
           </div>
+          {changeTeaser && (
+            <article style={{ padding: '0.85rem 0.95rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+              <SectionLabel>{tChange('teaserTitle')}</SectionLabel>
+              <div style={{ fontWeight: 750, fontSize: '0.88rem' }}>{changeTeaser.stability.label}</div>
+              <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{changeTeaser.now.answer}</p>
+              <p style={{ margin: '0.45rem 0 0', fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{tChange('teaserText')}</p>
+            </article>
+          )}
           <PlanGate userPlan={userPlan} required="gold" featureName={tPage('featureName')}>
             <div style={{ minHeight: 112, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>{tLocked('title')}</div>
@@ -865,6 +881,8 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               </div>
             </>
           )}
+
+          {has('change') && <CareerChangeSection chart={chart} lang={lang} transits={skyPositions} />}
 
           {has('timing') && (
             <>

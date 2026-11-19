@@ -120,7 +120,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 - `UserPlan`: `'free' | 'gold' | 'platinum'`
 - Main orchestrator: `calculateChart()` in `src/lib/engine/calculator.ts` → `ChartOutput`
 - Interpretation hub: pure `buildInterpretationHub()` in `src/lib/engine/interpretationHub.ts`; UI `InterpretationHub` (Free overview teaser; Gold+ full sections)
-- AI prompt: pure `buildAiPrompt(chart, { plan, lang, topics, hideName })` in `src/lib/engine/aiPrompt.ts`; topic studies in `aiPromptTopics.ts` (keep its engine imports ephemeris-free — it runs in the browser); UI `AiPromptButton` on the chart toolbar. Shadbala is always quoted in rupas vs the BPHS minimum, never as a bare ratio
+- AI prompt: pure `buildAiPrompt(chart, { plan, lang, topics, hideName, detail })` (`detail: 'short'` = compact few-KB prompt) in `src/lib/engine/aiPrompt.ts`; topic studies in `aiPromptTopics.ts` (keep its engine imports ephemeris-free — it runs in the browser); UI `AiPromptButton` on the chart toolbar. Shadbala is always quoted in rupas vs the BPHS minimum, never as a bare ratio
 
 ### Do not
 

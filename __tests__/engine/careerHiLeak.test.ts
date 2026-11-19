@@ -5,6 +5,8 @@ import type { ChartOutput } from '@/types/astrology'
 import { calculateChart } from '@/lib/engine/calculator'
 import { analyzeCareerProfession, readCareerTransits } from '@/lib/engine/careerProfession'
 import { analyzeCareerMethod } from '@/lib/engine/careerMethod'
+import { analyzeCareerChange } from '@/lib/engine/careerChange'
+import { getSlowTransitSpans } from '@/lib/engine/slowTransitSpans'
 
 function collectStrings(x: unknown, out: string[] = []): string[] {
   if (typeof x === 'string') out.push(x)
@@ -96,6 +98,15 @@ describe('career Hindi leak smoke', () => {
   it('readCareerTransits (lang=hi) avoids English sentence leaks', () => {
     const sky = readCareerTransits(chart, TRANSIT_FIXTURE, 'hi')
     const leaks = findEnglishLeaks(collectStrings(sky))
+    expect(leaks, `English leaks (${leaks.length}):\n${leaks.join('\n---\n')}`).toEqual([])
+  })
+
+  it('analyzeCareerChange (lang=hi) avoids English sentence leaks', () => {
+    const reading = analyzeCareerChange(chart, new Date('2026-01-01'), 'hi', TRANSIT_FIXTURE, getSlowTransitSpans(new Date('2026-01-01'), 12))
+    expect(reading).not.toBeNull()
+    expect(reading!.windows.length).toBeGreaterThan(0)
+    expect(reading!.windows.some(w => w.checks.gochar)).toBe(true)
+    const leaks = findEnglishLeaks(collectStrings(reading).filter(s => !s.startsWith('change-')))
     expect(leaks, `English leaks (${leaks.length}):\n${leaks.join('\n---\n')}`).toEqual([])
   })
 })

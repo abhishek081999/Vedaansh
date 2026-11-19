@@ -14,7 +14,7 @@ const gunzip = promisify(zlib.gunzip)
 
 const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
 const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
-/** Match current + legacy chart cache keys (v15/v18/v19/v20/…). Must stay in sync with chartCacheKey(). */
+/** Match current + legacy chart cache keys (v15/v18/v19/v20/v21/…). Must stay in sync with chartCacheKey(). */
 function isChartCacheKey(key: string): boolean {
   return key.includes(':chart:')
 }
@@ -293,7 +293,7 @@ export const redis = {
 // ── Cache key helpers ─────────────────────────────────────────
 
 /** Bump when ChartOutput calc semantics change (invalidates Redis chart entries). */
-export const CHART_CACHE_VERSION = 20
+export const CHART_CACHE_VERSION = 21
 /** Bump when panchang payload shape / guides change. */
 export const PANCHANG_CACHE_VERSION = 8
 /** Bump when atlas search/reverse payload shape changes. */
@@ -309,6 +309,7 @@ export const CACHE_CLEANUP_PREFIXES = {
     'v17:chart:',
     'v18:chart:',
     'v19:chart:',
+    'v20:chart:',
     `v${CHART_CACHE_VERSION}:chart:`,
   ],
   panchang: [`panchang:`],
@@ -333,6 +334,7 @@ export function chartCacheKey(
   // v20: Parashara/PVR Shodashavarga + extended varga formula corrections
   // (D5/D6/D8/D20/D24/D27/D81/D144 and named variants). Invalidates v19
   // caches that still held pre-fix D20/D24/D27 (and related) signs.
+  // v21: Placidus/Equal/Sripati cusps parsed from sweph data.houses; KP always on Placidus; 249-sub horary
   return `v${CHART_CACHE_VERSION}:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
