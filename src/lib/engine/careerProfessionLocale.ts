@@ -17,7 +17,7 @@ import { LIVELIHOOD_HI, OCCUPANT_PHALA_HI, TENTH_LORD_PHALA_HI } from '@/lib/eng
 import { CP_HI } from '@/lib/engine/locale/careerProfession.hi'
 import { CAREER_EXACT_HI } from '@/lib/engine/locale/careerExact.hi'
 import { polishCareerHindi } from '@/lib/engine/locale/careerHindiPolish'
-import { fill, type EngineLang } from '@/lib/engine/lang'
+import type { EngineLang } from '@/lib/engine/lang'
 import { gName, rName } from '@/lib/engine/divisionalLang'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
 
@@ -217,18 +217,34 @@ function localizeTitle(title: string): string {
   return polishCareerHindi(swapAstroTerms(applyPhrases(applyCareerPatterns(title), CP_HI.titlePhrases)))
 }
 
+const hasDevanagari = (s: string) => /[\u0900-\u097F]/.test(s)
+
 function localizeNote(note: CareerNote): CareerNote {
   const row = CP_HI.yogas[note.id as keyof typeof CP_HI.yogas]
-  if (row && 'detail' in row && typeof row.detail === 'string') {
-    const detail = row.detail.includes('{')
-      ? localizeCareerString(fill(row.detail, { planets: note.detail.match(/[A-Za-z, ]+$/)?.[0] ?? '' }))
-      : localizeCareerString(row.detail)
-    return { ...note, id: localizeCareerId(note.id), title: row.title ?? localizeTitle(note.title), detail }
+  // Engine already emits Hindi at source — keep it. Do not overwrite with
+  // CP_HI templates whose {lord}/{planets} placeholders are never filled.
+  if (hasDevanagari(note.detail)) {
+    return {
+      ...note,
+      id: localizeCareerId(note.id),
+      title: hasDevanagari(note.title)
+        ? note.title
+        : (row && 'title' in row && typeof row.title === 'string' ? row.title : localizeTitle(note.title)),
+      detail: note.detail,
+    }
+  }
+  if (row && 'detail' in row && typeof row.detail === 'string' && !row.detail.includes('{')) {
+    return {
+      ...note,
+      id: localizeCareerId(note.id),
+      title: row.title ?? localizeTitle(note.title),
+      detail: localizeCareerString(row.detail),
+    }
   }
   return {
     ...note,
     id: localizeCareerId(note.id),
-    title: localizeTitle(note.title),
+    title: (row && 'title' in row && typeof row.title === 'string' ? row.title : undefined) ?? localizeTitle(note.title),
     detail: localizeCareerString(note.detail),
   }
 }
@@ -442,9 +458,24 @@ export function localizeCareerProfession(raw: CareerProfessionAnalysis): CareerP
     pratyantarWindow: localizeCareerString(raw.tracker.pratyantarWindow),
     sookshmaWindow: localizeCareerString(raw.tracker.sookshmaWindow),
   }
-  const remedies = raw.remedies.map((r, i) => {
-    const keys = ['visible', 'saturn', 'seat', 'mercury', 'reputation', 'foreign'] as const
-    const key = keys[i]
+  const REMEDY_BY_ID: Record<string, keyof typeof CP_HI.remedies> = {
+    karma: 'visible',
+    'saturn-upaya': 'saturn',
+    'sun-upaya': 'seat',
+    'mercury-upaya': 'mercury',
+    'rahu-10': 'reputation',
+    foreign: 'foreign',
+  }
+  const remedies = raw.remedies.map(r => {
+    // Track remedy already carries trackMeta headline/doThis (localized upstream).
+    if (r.id === 'track' || hasDevanagari(r.detail)) {
+      return {
+        ...r,
+        title: hasDevanagari(r.title) ? r.title : localizeTitle(r.title),
+        detail: r.detail,
+      }
+    }
+    const key = REMEDY_BY_ID[r.id]
     const row = key ? CP_HI.remedies[key] : undefined
     return row
       ? { ...r, title: row.title, detail: row.detail }

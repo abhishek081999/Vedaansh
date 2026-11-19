@@ -7,80 +7,46 @@ import React, { useMemo, useState } from 'react'
 import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
 import { getAcgInterpretation } from '@/lib/engine/astroInterpretation'
-import { grahaName } from '@/i18n/jyotish'
+import { grahaName, nakshatraName } from '@/i18n/jyotish'
 import { useLang } from '@/i18n/useLang'
-import type { GrahaId } from '@/types/astrology'
+import type { GrahaId, UserPlan } from '@/types/astrology'
+import { NAKSHATRA_NAMES } from '@/types/astrology'
+import { scoreLocation } from '@/lib/engine/acgProximity'
+import { dashaWindowsFor, scoreLocationForChart, type AcgChartProfile } from '@/lib/engine/acgChartProfile'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Link } from '@/i18n/navigation'
+import { ACG_COLORS, ACG_GLYPHS, ACG_NAMES } from '@/components/ui/acgPalette'
+import { MAJOR_CITIES } from '@/components/ui/acgCities'
+import { AcgComparePanel } from '@/components/ui/AcgComparePanel'
+import { AcgCouplePanel, type PartnerState } from '@/components/ui/AcgCouplePanel'
+import type { ACGLineData, ACGParan, ACGStarParan, ComparePoint } from '@/components/ui/acgTypes'
 
-// ─── Data ────────────────────────────────────────────────────
+const COLORS = ACG_COLORS
+const GLYPHS = ACG_GLYPHS
+const NAMES = ACG_NAMES
 
-const MAJOR_CITIES = [
-  { id: 'delhi', lat: 28.6139, lng: 77.2090, flag: '🇮🇳' },
-  { id: 'mumbai', lat: 19.0760, lng: 72.8777, flag: '🇮🇳' },
-  { id: 'bengaluru', lat: 12.9716, lng: 77.5946, flag: '🇮🇳' },
-  { id: 'chennai', lat: 13.0827, lng: 80.2707, flag: '🇮🇳' },
-  { id: 'kolkata', lat: 22.5726, lng: 88.3639, flag: '🇮🇳' },
-  { id: 'singapore', lat: 1.3521, lng: 103.8198, flag: '🇸🇬' },
-  { id: 'tokyo', lat: 35.6895, lng: 139.6917, flag: '🇯🇵' },
-  { id: 'sydney', lat: -33.8688, lng: 151.2093, flag: '🇦🇺' },
-  { id: 'melbourne', lat: -37.8136, lng: 144.9631, flag: '🇦🇺' },
-  { id: 'hongKong', lat: 22.3193, lng: 114.1694, flag: '🇭🇰' },
-  { id: 'bangkok', lat: 13.7563, lng: 100.5018, flag: '🇹🇭' },
-  { id: 'kualaLumpur', lat: 3.1390, lng: 101.6869, flag: '🇲🇾' },
-  { id: 'dubai', lat: 25.2048, lng: 55.2708, flag: '🇦🇪' },
-  { id: 'riyadh', lat: 24.7136, lng: 46.6753, flag: '🇸🇦' },
-  { id: 'istanbul', lat: 41.0082, lng: 28.9784, flag: '🇹🇷' },
-  { id: 'johannesburg', lat: -26.2041, lng: 28.0473, flag: '🇿🇦' },
-  { id: 'cairo', lat: 30.0444, lng: 31.2357, flag: '🇪🇬' },
-  { id: 'london', lat: 51.5074, lng: -0.1278, flag: '🇬🇧' },
-  { id: 'paris', lat: 48.8566, lng: 2.3522, flag: '🇫🇷' },
-  { id: 'berlin', lat: 52.5200, lng: 13.4050, flag: '🇩🇪' },
-  { id: 'zurich', lat: 47.3769, lng: 8.5417, flag: '🇨🇭' },
-  { id: 'rome', lat: 41.9028, lng: 12.4964, flag: '🇮🇹' },
-  { id: 'madrid', lat: 40.4168, lng: -3.7038, flag: '🇪🇸' },
-  { id: 'amsterdam', lat: 52.3676, lng: 4.9041, flag: '🇳🇱' },
-  { id: 'newYork', lat: 40.7128, lng: -74.0060, flag: '🇺🇸' },
-  { id: 'losAngeles', lat: 34.0522, lng: -118.2437, flag: '🇺🇸' },
-  { id: 'sanFrancisco', lat: 37.7749, lng: -122.4194, flag: '🇺🇸' },
-  { id: 'chicago', lat: 41.8781, lng: -87.6298, flag: '🇺🇸' },
-  { id: 'toronto', lat: 43.6532, lng: -79.3832, flag: '🇨🇦' },
-  { id: 'vancouver', lat: 49.2827, lng: -123.1207, flag: '🇨🇦' },
-  { id: 'saoPaulo', lat: -23.5505, lng: -46.6333, flag: '🇧🇷' },
-  { id: 'buenosAires', lat: -34.6037, lng: -58.3816, flag: '🇦🇷' },
-  { id: 'mexicoCity', lat: 19.4326, lng: -99.1332, flag: '🇲🇽' },
-]
-
-const COLORS: Record<string, string> = {
-  Su: '#FFD700', Mo: '#B8D4F0', Ma: '#FF4500', Me: '#00E56B',
-  Ju: '#FFA500', Ve: '#FF69B4', Sa: '#9B7FD4', Ra: '#A9A9A9',
-}
-const GLYPHS: Record<string, string> = {
-  Su: '☉', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊',
-}
-const NAMES: Record<string, string> = {
-  Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury',
-  Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu',
-}
-
-// ─── Types ───────────────────────────────────────────────────
-
-interface ACGLineData {
-  grahaId: GrahaId; mcLine: number; icLine: number;
-  zenith: [number, number]; aspects: any[];
-  asCurve: [number, number][][]; dsCurve: [number, number][][];
-}
-interface ACGParan { p1: GrahaId; p2: GrahaId; lat: number; lon: number; type?: string }
 interface Props {
   visiblePlanets: Set<GrahaId>
   parans: ACGParan[]
+  starParans?: ACGStarParan[]
   natalData?: ACGLineData[]
+  profile?: AcgChartProfile | null
+  userPlan?: UserPlan
+  comparePoints?: ComparePoint[]
+  onAddCompare?: (p: ComparePoint) => void
+  onRemoveCompare?: (id: string) => void
+  onFocusPlace?: (p: ComparePoint) => void
+  partner?: PartnerState | null
+  onPartner?: (p: PartnerState | null) => void
   activeTab?: Tab
   onTabChange?: (tab: Tab) => void
   hideTabBar?: boolean
 }
 
-export type ACGAnalysisTab = 'cities' | 'parans' | 'guide'
+export type ACGAnalysisTab = 'cities' | 'parans' | 'compare' | 'couple' | 'guide'
 type Tab = ACGAnalysisTab
 type LifeArea = 'all' | 'career' | 'love' | 'home' | 'identity'
+type CitySort = 'supportive' | 'intensity'
 
 const ANGLE_MAP: Record<LifeArea, string[]> = {
   all:      ['AS', 'MC', 'DS', 'IC'],
@@ -92,8 +58,17 @@ const ANGLE_MAP: Record<LifeArea, string[]> = {
 
 // ─── Main Component ──────────────────────────────────────────
 
-export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, activeTab, onTabChange, hideTabBar = false }: Props) {
-  const { lang } = useLang()
+export function AstroCartographyAnalysis({
+  visiblePlanets, parans, starParans = [], natalData, profile = null, userPlan = 'free',
+  comparePoints = [], onAddCompare, onRemoveCompare, onFocusPlace, partner = null, onPartner,
+  activeTab, onTabChange, hideTabBar = false,
+}: Props) {
+  const { lang, tag } = useLang()
+  const tNature = useTranslations('acg.nature')
+  const tStars = useTranslations('acg.stars')
+  const weighted = planMeetsUiGate(userPlan, 'gold') && !!profile
+  const [citySort, setCitySort] = useState<CitySort>('supportive')
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(tag, { month: 'short', year: 'numeric' })
   const tTabs = useTranslations('acg.analysisTabs')
   const tCities = useTranslations('acg.cities')
   const tNames = useTranslations('acg.cities.names')
@@ -131,43 +106,44 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
     if (!natalData || natalData.length === 0) return []
 
     const results = MAJOR_CITIES.map(city => {
-      let score = 0
-      let closestPlanet: GrahaId | null = null
-      let minOffset = 999
-      let lineType  = 'MC'
-      const activePlanets: { planet: GrahaId; line: string; offset: number }[] = []
-
-      natalData.forEach(p => {
-        if (!visiblePlanets.has(p.grahaId)) return
-        const mcOff = Math.abs(city.lng - p.mcLine)
-        const icOff = Math.abs(city.lng - p.icLine)
-        const off   = Math.min(mcOff, icOff)
-
-        if (off < 1.0)       score += 55
-        else if (off < 2.5)  score += 22
-        else if (off < 5.0)  score += 8
-
-        if (off < 8) activePlanets.push({ planet: p.grahaId, line: mcOff < icOff ? 'MC' : 'IC', offset: off })
-
-        if (off < minOffset) {
-          minOffset = off
-          closestPlanet = p.grahaId
-          lineType = mcOff < icOff ? 'MC' : 'IC'
+      if (weighted && profile) {
+        const w = scoreLocationForChart(city.lat, city.lng, natalData, parans, profile, { grahas: visiblePlanets })
+        const closest = w.hits[0]
+        return {
+          ...city,
+          score: citySort === 'supportive' ? w.net : w.intensity,
+          supportive: w.supportive,
+          challenging: w.challenging,
+          closestPlanet: closest?.grahaId ?? null,
+          lineType: closest?.angle ?? 'MC',
+          minKm: closest?.km ?? Infinity,
+          activePlanets: w.hits.map(h => ({ planet: h.grahaId, line: h.angle, km: h.km, favor: h.favor as number | null })),
+          paranCount: w.parans.length,
+          windows: dashaWindowsFor(w.hits.map(h => h.grahaId), profile, { limit: 3 }),
+          hasHits: w.hits.length + w.parans.length > 0,
         }
-
-        parans.forEach(pa => {
-          if (Math.abs(city.lat - pa.lat) < 1.0)       score += 35
-          else if (Math.abs(city.lat - pa.lat) < 2.5)  score += 12
-        })
-      })
-
-      return { ...city, score, closestPlanet, lineType, minOffset, activePlanets }
+      }
+      const { score, lines, parans: paranHits } = scoreLocation(city.lat, city.lng, natalData, parans, { grahas: visiblePlanets })
+      const closest = lines[0]
+      return {
+        ...city,
+        score,
+        supportive: 0,
+        challenging: 0,
+        closestPlanet: closest?.grahaId ?? null,
+        lineType: closest?.angle ?? 'MC',
+        minKm: closest?.km ?? Infinity,
+        activePlanets: lines.map(h => ({ planet: h.grahaId, line: h.angle, km: h.km, favor: null as number | null })),
+        paranCount: paranHits.length,
+        windows: [] as ReturnType<typeof dashaWindowsFor>,
+        hasHits: score > 0,
+      }
     })
 
-    return results.sort((a, b) => b.score - a.score).filter(c => c.score > 0).slice(0, 8)
-  }, [natalData, parans, visiblePlanets])
+    return results.filter(c => c.hasHits).sort((a, b) => b.score - a.score).slice(0, 8)
+  }, [natalData, parans, visiblePlanets, weighted, profile, citySort])
 
-  const maxScore = topCities[0]?.score || 1
+  const maxScore = Math.max(1, ...topCities.map(c => Math.abs(c.score)))
 
   const activeAngles = ANGLE_MAP[lifeArea]
 
@@ -180,6 +156,8 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
           {([
             ['cities', '🌐'],
             ['parans', '✨'],
+            ['compare', '⚖️'],
+            ['couple', '💞'],
             ['guide',  '📖'],
           ] as [Tab, string][]).map(([id, icon]) => (
             <button
@@ -205,16 +183,33 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
       {tab === 'cities' && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.5, padding: '0 0.25rem' }}>
-            {tCities('intro')}
+            {weighted ? tCities('introWeighted') : tCities('intro')}
           </div>
+
+          {weighted ? (
+            <div style={{ display: 'flex', gap: 4 }}>
+              {(['supportive', 'intensity'] as const).map(k => (
+                <button key={k} onClick={() => setCitySort(k)} style={{
+                  flex: 1, padding: '5px 8px', borderRadius: 8, fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer',
+                  background: citySort === k ? 'var(--gold-faint)' : 'transparent',
+                  border: `1px solid ${citySort === k ? 'var(--gold)' : 'var(--border)'}`,
+                  color: citySort === k ? 'var(--gold)' : 'var(--text-muted)',
+                }}>{tCities(k === 'supportive' ? 'sortSupportive' : 'sortIntensity')}</button>
+              ))}
+            </div>
+          ) : profile ? (
+            <div style={{ padding: '0.6rem 0.75rem', borderRadius: 10, border: '1px dashed var(--gold)', fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              {tCities('goldTeaser')} <Link href="/pricing" style={{ color: 'var(--gold)', fontWeight: 700 }}>{tCities('viewPlans')}</Link>
+            </div>
+          ) : null}
 
           {topCities.length === 0 ? (
             <EmptyState icon="🌍" message={tCities('empty')} />
           ) : (
             topCities.map((c, i) => {
               const expanded = expandedCity === i
-              const barPct   = (c.score / maxScore) * 100
-              const barColor = i === 0 ? 'var(--gold)' : c.closestPlanet ? COLORS[c.closestPlanet] : 'var(--gold)'
+              const barPct   = (Math.abs(c.score) / maxScore) * 100
+              const barColor = c.score < 0 ? '#dc2626' : i === 0 ? 'var(--gold)' : c.closestPlanet ? COLORS[c.closestPlanet] : 'var(--gold)'
 
               return (
                 <div
@@ -250,16 +245,27 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                         <div style={{ fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <span>{c.flag}</span> {tNames(c.id)}
                         </div>
-                        {c.closestPlanet && (
+                        {c.closestPlanet ? (
                           <div style={{ fontSize: '0.62rem', color: COLORS[c.closestPlanet], fontWeight: 700, marginTop: '1px' }}>
                             {GLYPHS[c.closestPlanet]} {planetLabel(c.closestPlanet)} {c.lineType}
-                            {c.minOffset < 20 ? ` ${tCities('offset', { deg: c.minOffset.toFixed(1) })}` : ''}
+                            {Number.isFinite(c.minKm) ? ` ${tCities('offset', { km: Math.round(c.minKm) })}` : ''}
                           </div>
-                        )}
+                        ) : c.paranCount > 0 ? (
+                          <div style={{ fontSize: '0.62rem', color: 'var(--gold)', fontWeight: 700, marginTop: '1px' }}>
+                            {tCities('paranOnly', { n: c.paranCount })}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{ fontSize: '1rem', fontWeight: 900, color: barColor, fontFamily: 'var(--font-mono)' }}>{c.score}</div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '1rem', fontWeight: 900, color: barColor, fontFamily: 'var(--font-mono)' }}>{c.score}</div>
+                        {weighted && (
+                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                            <span style={{ color: '#16a34a' }}>▲{c.supportive}</span> <span style={{ color: '#dc2626' }}>▼{c.challenging}</span>
+                          </div>
+                        )}
+                      </div>
                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>▾</span>
                     </div>
                   </div>
@@ -276,10 +282,35 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                         <div key={ai} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '20px', background: `${COLORS[ap.planet]}12`, border: `1px solid ${COLORS[ap.planet]}25`, fontSize: '0.65rem', fontWeight: 700, color: COLORS[ap.planet] }}>
                           <span>{GLYPHS[ap.planet]}</span>
                           <span>{ap.line}</span>
-                          <span style={{ opacity: 0.7 }}>({ap.offset.toFixed(1)}°)</span>
+                          <span style={{ opacity: 0.7 }}>({tCities('km', { km: Math.round(ap.km) })})</span>
+                          {ap.favor !== null && (
+                            <span style={{ color: ap.favor >= 0.35 ? '#16a34a' : ap.favor <= -0.25 ? '#dc2626' : 'var(--text-muted)' }}>
+                              · {tNature(ap.favor >= 0.35 ? 'benefic' : ap.favor <= -0.25 ? 'malefic' : 'mixed')}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
+                  )}
+                  {expanded && c.windows.length > 0 && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ fontWeight: 800, color: '#7c3aed', marginBottom: 2 }}>{tCities('activeWhen')}</div>
+                      {c.windows.map(w => (
+                        <div key={`${w.lord}-${w.level}-${w.start}`}>
+                          <span style={{ color: COLORS[w.lord] }}>{GLYPHS[w.lord]}</span>{' '}
+                          {w.level === 1 ? tCities('maha', { planet: planetLabel(w.lord) }) : tCities('antar', { planet: planetLabel(w.lord), parent: planetLabel(w.parent ?? '') })}
+                          {' · '}{fmtDate(w.start)} – {fmtDate(w.end)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {expanded && onAddCompare && (
+                    <button
+                      onClick={e => { e.stopPropagation(); onAddCompare({ id: c.id, label: `${c.flag} ${tNames(c.id)}`, lat: c.lat, lng: c.lng }) }}
+                      style={{ marginTop: '0.5rem', padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '0.64rem', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      {tCities('addCompare')}
+                    </button>
                   )}
                 </div>
               )
@@ -309,8 +340,9 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>{planetLabel(p.p1)} × {planetLabel(p.p2)}</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: '1px' }}>{tParans('band', { lat: hemisphere(p.lat, 'lat') })}</div>
                     <div style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 800, fontFamily: 'var(--font-mono)', marginTop: '1px' }}>
-                      {hemisphere(p.lat, 'lat')} · {hemisphere(p.lon, 'lng')}
+                      {p.type ? `${p.type} · ` : ''}{hemisphere(p.lat, 'lat')} · {hemisphere(p.lon, 'lng')}
                     </div>
                   </div>
                   {/* Dual color swatch */}
@@ -331,12 +363,65 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, ac
         </section>
       )}
 
+      {/* ── Yogatara parans ────────────────────────────────── */}
+      {tab === 'parans' && starParans.length > 0 && (
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-primary)', padding: '0 0.25rem' }}>✦ {tStars('title')}</div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.5, padding: '0 0.25rem' }}>{tStars('intro')}</div>
+          {[...starParans].sort((a, b) => Math.abs(a.lat) - Math.abs(b.lat)).slice(0, 12).map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.55rem 0.75rem', borderRadius: 10, border: '1px solid var(--border-soft)', background: 'var(--surface-1)' }}>
+              <span style={{ color: COLORS[s.grahaId], fontSize: '1.1rem' }}>{GLYPHS[s.grahaId]}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>
+                  {tStars(s.meridian === 'graha' ? 'rowGraha' : 'rowStar', {
+                    planet: planetLabel(s.grahaId), a1: s.angle1, a2: s.angle2,
+                    nakshatra: nakshatraName(s.nakshatraIndex, lang, NAKSHATRA_NAMES[s.nakshatraIndex] ?? ''), star: s.star,
+                  })}
+                </div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>{tParans('band', { lat: hemisphere(s.lat, 'lat') })}</div>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* ── Compare Tab ────────────────────────────────────── */}
+      {tab === 'compare' && (
+        <AcgComparePanel
+          points={comparePoints}
+          lines={natalData ?? []}
+          parans={parans}
+          visible={visiblePlanets}
+          profile={profile}
+          userPlan={userPlan}
+          onAdd={p => onAddCompare?.(p)}
+          onRemove={id => onRemoveCompare?.(id)}
+          onFocus={p => onFocusPlace?.(p)}
+        />
+      )}
+
+      {/* ── Couple Tab ─────────────────────────────────────── */}
+      {tab === 'couple' && (
+        <AcgCouplePanel
+          lines={natalData ?? []}
+          parans={parans}
+          visible={visiblePlanets}
+          profile={profile}
+          userPlan={userPlan}
+          partner={partner}
+          extraPlaces={comparePoints}
+          onPartner={p => onPartner?.(p)}
+          onFocus={p => onFocusPlace?.(p)}
+        />
+      )}
+
       {/* ── Guide Tab ──────────────────────────────────────── */}
       {tab === 'guide' && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
           {/* Life-area filter */}
           <div>
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{tGuide('vedicNote')}</p>
             <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>{tGuide('filter')}</div>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
               {([
