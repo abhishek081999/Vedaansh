@@ -17,6 +17,8 @@ import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { lkAgeYears, lkYearOfLife, readLalKitab } from '@/lib/engine/lalKitab'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { ChartContextBar } from '@/components/ui/patterns/ChartContextBar'
+import { LalKitabChartRail } from '@/components/ui/lalKitab/LalKitabChartRail'
 import { LalKitabTeva } from '@/components/ui/lalKitab/LalKitabTeva'
 import { LalKitabLearn } from '@/components/ui/lalKitab/LalKitabLearn'
 import { LalKitabOverview } from '@/components/ui/lalKitab/LalKitabOverview'
@@ -121,6 +123,8 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
         <p className={styles.lede}>{t('lede')}</p>
       </header>
 
+      <ChartContextBar chart={chart} />
+
       <div className={styles.tabs} role="tablist" aria-label={t('viewsLabel')}>
         {VIEWS.map(({ id, icon: Icon }) => (
           <button
@@ -142,29 +146,32 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
         ))}
       </div>
 
-      <section id={`lk-panel-${view}`} role="tabpanel" aria-labelledby={`lk-tab-${view}`}>
-        {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} currentYear={currentYear} />}
-        {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} />}
-        {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
-        {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
-        {view === 'correction' && <LalKitabCorrection chart={chart} reading={reading} userPlan={userPlan} />}
-        {view === 'doshas' && <LalKitabDoshas reading={reading} userPlan={userPlan} />}
-        {view === 'rin' && <LalKitabRin reading={reading} userPlan={userPlan} />}
-        {view === 'upay' && <LalKitabRemedies reading={reading} userPlan={userPlan} />}
-        {view === 'finder' && <LalKitabFinder reading={reading} userPlan={userPlan} />}
-        {view === 'tracker' && <LalKitabTracker chart={chart} reading={reading} userPlan={userPlan} />}
-        {view === 'planets' && <LalKitabPlanets reading={reading} userPlan={userPlan} />}
-        {view === 'houses' && <LalKitabHouses reading={reading} userPlan={userPlan} />}
-        {view === 'drishti' && <LalKitabDrishti reading={reading} userPlan={userPlan} />}
-        {view === 'combos' && <LalKitabCombos reading={reading} userPlan={userPlan} />}
-        {view === 'varshphal' && (
-          <LalKitabVarshphal chart={chart} reading={reading} userPlan={userPlan} currentYear={currentYear} />
-        )}
-        {view === 'timeline' && (
-          <LalKitabTimeline reading={reading} userPlan={userPlan} currentYear={currentYear} />
-        )}
-        {view === 'learn' && <LalKitabLearn />}
-      </section>
+      <div className={styles.workspace}>
+        <section id={`lk-panel-${view}`} className={styles.content} role="tabpanel" aria-labelledby={`lk-tab-${view}`}>
+          {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} currentYear={currentYear} />}
+          {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} />}
+          {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
+          {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
+          {view === 'correction' && <LalKitabCorrection chart={chart} reading={reading} userPlan={userPlan} />}
+          {view === 'doshas' && <LalKitabDoshas reading={reading} userPlan={userPlan} />}
+          {view === 'rin' && <LalKitabRin reading={reading} userPlan={userPlan} />}
+          {view === 'upay' && <LalKitabRemedies reading={reading} userPlan={userPlan} />}
+          {view === 'finder' && <LalKitabFinder reading={reading} userPlan={userPlan} />}
+          {view === 'tracker' && <LalKitabTracker chart={chart} reading={reading} userPlan={userPlan} />}
+          {view === 'planets' && <LalKitabPlanets reading={reading} userPlan={userPlan} />}
+          {view === 'houses' && <LalKitabHouses reading={reading} userPlan={userPlan} />}
+          {view === 'drishti' && <LalKitabDrishti reading={reading} userPlan={userPlan} />}
+          {view === 'combos' && <LalKitabCombos reading={reading} userPlan={userPlan} />}
+          {view === 'varshphal' && (
+            <LalKitabVarshphal chart={chart} reading={reading} userPlan={userPlan} currentYear={currentYear} />
+          )}
+          {view === 'timeline' && (
+            <LalKitabTimeline reading={reading} userPlan={userPlan} currentYear={currentYear} />
+          )}
+          {view === 'learn' && <LalKitabLearn />}
+        </section>
+        <LalKitabChartRail chart={chart} reading={reading} />
+      </div>
       <p className={styles.note}>{t('comingNext')}</p>
     </div>
   )

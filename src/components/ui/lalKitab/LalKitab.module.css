@@ -81,6 +81,41 @@
   align-items: center;
 }
 
+.workspace {
+  display: grid;
+  gap: 0.85rem;
+  align-items: start;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  scroll-margin-top: 3.6rem;
+}
+
+.chartRail {
+  position: sticky;
+  top: 3.4rem;
+  min-width: 0;
+  max-height: calc(100dvh - 7.25rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 1023px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .chartRail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    order: -1;
+  }
+}
+
 .tabs {
   display: flex;
   gap: 0.35rem;
