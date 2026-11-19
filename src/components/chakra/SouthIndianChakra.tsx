@@ -283,14 +283,14 @@ export function SouthIndianChakra({
               x={x + 0.5} y={y + 0.5}
               width={cell - 1} height={cell - 1}
               fill={
-                isHouseHi ? 'rgba(253, 230, 138, 0.14)' :
+                isHouseHi ? 'var(--chart-house-highlight, var(--gold-faint))' :
                 isAspected ? 'var(--gold-faint)' :
                 isHi  ? 'var(--accent-glow)' :
                         'transparent'
               }
-              stroke="var(--gold)"
-              strokeWidth={1.25}
-              strokeOpacity={0.42}
+              stroke="var(--chart-grid-stroke, var(--gold))"
+              strokeWidth={1.2}
+              strokeOpacity={1}
             />
 
             {/* Sign number — top-left */}

@@ -11,7 +11,7 @@
    src/app/globals.css
    Design System — Jyotisha Platform
    Themes: [data-theme="dark"] · [data-theme="light"] · [data-theme="classic"]
-   Dark: graphite + gold · Light: cool parchment · Classic: dewa.guru maroon/cream
+   Dark: warm charcoal + copper · Light: cool parchment · Classic: dewa.guru maroon/cream
    ═══════════════════════════════════════════════════════════════ */
 
 /* Fonts are loaded via next/font/google in layout.tsx — no @import needed */
@@ -78,26 +78,26 @@
   --font-chart-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
   --fw-chart-planet: 500;
 
-  /* Core surfaces */
-  --bg-page: #0b0b0c;
-  --surface-0: #111113;
-  --surface-1: #18181b;
-  --surface-2: #1f1f23;
-  --surface-3: #27272a;
-  --surface-4: #333338;
+  /* Core surfaces — warm charcoal (not cool zinc) */
+  --bg-page: #121212;
+  --surface-0: #161616;
+  --surface-1: #1a1a1a;
+  --surface-2: #1e1e1e;
+  --surface-3: #262626;
+  --surface-4: #2e2e2e;
 
-  /* Gold */
-  --gold: #c9a06e;
-  --gold-light: #dfbb8e;
-  --gold-dim: #8a6a45;
-  --gold-soft: rgba(201, 160, 110, 0.72);
-  --gold-faint: rgba(201, 160, 110, 0.08);
-  --surface-gold-soft: rgba(201, 160, 110, 0.12);
+  /* Brand accent: Chani-sampled soft orange + peach secondary (token name stays --gold) */
+  --gold: #ef8845;
+  --gold-light: #f5cba7;
+  --gold-dim: #c45a28;
+  --gold-soft: rgba(239, 136, 69, 0.74);
+  --gold-faint: rgba(239, 136, 69, 0.12);
+  --surface-gold-soft: rgba(239, 136, 69, 0.16);
 
-  /* Accent (chakra violet) */
+  /* Accent (cool secondary for data / links — kept distinct from orange) */
   --accent: #8fb3ff;
   --accent-dim: #3b5694;
-  --accent-glow: rgba(143, 179, 255, 0.25);
+  --accent-glow: rgba(143, 179, 255, 0.22);
 
   /* Status */
   --rose: #e07b8e;
@@ -109,58 +109,60 @@
   /* Dignity / Placements */
   --dig-retro: #d4788a;
   --dig-exalted: #4ecdc4;
-  --dig-moola: #c9a06e;
-  --dig-own: #dfbb8e;
-  --dig-neutral: #c8c8d0;
+  --dig-moola: #ef8845;
+  --dig-own: #f5cba7;
+  --dig-neutral: #c4c4c4;
   --dig-debilitate: #e07070;
 
   /* Text */
-  --text-primary: #f4f4f5;
-  --text-secondary: #c4c4cc;
-  --text-muted: #8b8b94;
-  --text-gold: #dfbb8e;
-  --text-on-gold: #111113;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #a0a0a0;
+  --text-gold: #f5cba7;
+  --text-on-gold: #ffffff;
 
-  /* Borders */
-  --border: rgba(201, 160, 110, 0.14);
-  --border-soft: rgba(201, 160, 110, 0.07);
-  --border-bright: rgba(201, 160, 110, 0.38);
-  --border-accent: rgba(143, 179, 255, 0.3);
+  /* Borders — soft white lift + orange on interactive */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --border-bright: rgba(239, 136, 69, 0.45);
+  --border-accent: rgba(143, 179, 255, 0.28);
 
   /* Glows */
-  --glow-gold: 0 0 24px rgba(201, 160, 110, 0.22);
-  --glow-gold-sm: rgba(201, 160, 110, 0.2);
-  --glow-accent: 0 0 24px rgba(143, 179, 255, 0.3);
+  --glow-gold: 0 0 32px rgba(239, 136, 69, 0.32);
+  --glow-gold-sm: rgba(239, 136, 69, 0.24);
+  --glow-accent: 0 0 24px rgba(143, 179, 255, 0.28);
   --shadow-deep: 0 8px 40px rgba(0, 0, 0, 0.55);
   --shadow-card: 0 2px 20px rgba(0, 0, 0, 0.45);
   --shadow-lift: 0 12px 40px rgba(0, 0, 0, 0.6);
 
-  /* Ambient orbs (AppFramework) */
-  --orb-1: rgba(143, 179, 255, 0.12);
-  --orb-2: rgba(201, 160, 110, 0.09);
+  /* Ambient orbs — warm bronze bloom behind key UI */
+  --orb-1: rgba(239, 136, 69, 0.18);
+  --orb-2: rgba(96, 66, 46, 0.35);
 
-  /* Background gradient */
+  /* Background gradient — bronze radial wash like Chani hero glow */
   --bg-gradient:
-    radial-gradient(ellipse 90% 60% at 50% -5%, rgba(143, 179, 255, 0.13) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(201, 160, 110, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgba(96, 66, 46, 0.45) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 40% at 90% 100%, rgba(239, 136, 69, 0.14) 0%, transparent 52%),
     var(--bg-page);
 
   /* Header blur bg */
-  --header-bg: rgba(11, 11, 12, 0.86);
+  --header-bg: rgba(18, 18, 18, 0.88);
   --header-text: var(--text-secondary);
   --header-text-muted: var(--text-muted);
   --header-border: var(--border);
-  --header-rule: #c9a06e;
-  --header-divider: #3a2f24;
+  --header-rule: #ef8845;
+  --header-divider: #3a2a22;
 
   /* Scrollbar */
   --scrollbar-size: 3px;
   --scrollbar-size-thin: 2px;
-  --scrollbar-track: #18181b;
-  --scrollbar-thumb: #333338;
-  /* Chart specific labels */
-  --chart-sign-green: #8ee07b;
-  --chart-label-muted: rgba(201, 160, 110, 0.4);
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #2e2e2e;
+  /* Chart specific labels — warm copper signs (not lime) on dark */
+  --chart-sign-green: #c4a574;
+  --chart-label-muted: rgba(239, 136, 69, 0.45);
+  --chart-house-highlight: rgba(239, 136, 69, 0.16);
+  --chart-grid-stroke: rgba(239, 136, 69, 0.48);
 
   /* ── Sarvatobhadra Chakra cell colours (dark) ── */
   --sbc-nak-bg:   rgba(55, 42, 130, 0.72);
@@ -191,23 +193,23 @@
   --sbc-center-bdr:rgba(255, 215, 0, 0.45);
 
   /* Branding accents (Theme-aware) */
-  --logo-bg: rgba(192, 108, 45, 0.08);
-  --logo-border: rgba(192, 108, 45, 0.4);
+  --logo-bg: rgba(239, 136, 69, 0.08);
+  --logo-border: rgba(239, 136, 69, 0.40);
   --logo-gradient: linear-gradient(to bottom, var(--surface-1), var(--bg-page));
-  --logo-text-title: #dfbb8e;
-  --logo-text-sub: rgba(201, 160, 110, 0.85);
+  --logo-text-title: #f5cba7;
+  --logo-text-sub: rgba(239, 136, 69, 0.88);
 
   /* Sri Yantra / mandala page backdrop (see public/vedic-yantra-bg.png) */
   --vedic-yantra-image: url('/vedic-yantra-bg.png');
   /* Vignette for yantra stack — painted only when `body.yantra-backdrop` (home / astrology, non-dark) */
   --vedic-yantra-stack:
-    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(11, 11, 12, 0.04) 0%, rgba(11, 11, 12, 0.28) 48%, rgba(11, 11, 12, 0.52) 100%),
-    linear-gradient(165deg, rgba(11, 11, 12, 0.45) 0%, rgba(17, 17, 19, 0.72) 100%),
+    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(18, 18, 18, 0.04) 0%, rgba(18, 18, 18, 0.28) 48%, rgba(18, 18, 18, 0.52) 100%),
+    linear-gradient(165deg, rgba(18, 18, 18, 0.45) 0%, rgba(26, 26, 26, 0.72) 100%),
     var(--vedic-yantra-image);
 
   /* Section differentiation colors (Dark theme) */
-  --section-gold: #c9a06e;
-  --section-gold-gradient: linear-gradient(135deg, #ecd0ad 0%, #c9a06e 100%);
+  --section-gold: #ef8845;
+  --section-gold-gradient: linear-gradient(135deg, #f5cba7 0%, #ef8845 100%);
   --section-violet: #8fb3ff;
   --section-violet-gradient: linear-gradient(135deg, #c7d2fe 0%, #8fb3ff 100%);
   --section-teal: #4ecdc4;
@@ -318,6 +320,8 @@
   /* Chart specific labels */
   --chart-sign-green: #15803d;
   --chart-label-muted: rgba(15, 23, 42, 0.35);
+  --chart-house-highlight: rgba(180, 134, 0, 0.12);
+  --chart-grid-stroke: rgba(180, 134, 0, 0.40);
 
   /* ── Sarvatobhadra Chakra cell colours (light) ── */
   --sbc-nak-bg:   rgba(99, 80, 200, 0.12);
@@ -470,6 +474,8 @@
   /* Chart specific labels */
   --chart-sign-green: #2d5a27;
   --chart-label-muted: rgba(51, 51, 51, 0.4);
+  --chart-house-highlight: rgba(140, 0, 48, 0.10);
+  --chart-grid-stroke: rgba(140, 0, 48, 0.35);
 
   /* ── Sarvatobhadra Chakra cell colours (classic) ── */
   --sbc-nak-bg:   rgba(74, 63, 140, 0.12);
@@ -922,6 +928,16 @@ code,
   box-shadow: 0 6px 28px rgba(201, 168, 76, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+[data-theme="dark"] .btn-primary {
+  background: #ef8845;
+  box-shadow: 0 2px 18px rgba(239, 136, 69, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: #f29556;
+  box-shadow: 0 6px 28px rgba(239, 136, 69, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
 [data-theme="classic"] .btn-primary {
   background: linear-gradient(135deg, #6b0025 0%, var(--gold) 55%, #a81848 100%);
   box-shadow: 0 2px 12px rgba(140, 0, 48, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -1214,7 +1230,7 @@ select.input {
 
 [data-theme='dark'] .about-name-highlight {
   color: var(--gold-light);
-  background: rgba(201, 168, 76, 0.16);
+  background: rgba(239, 136, 69, 0.16);
 }
 
 /* Account page — quick option tiles */
@@ -1725,11 +1741,11 @@ select.input {
 
 /* Theme-specific sidenav backdrops & borders — near-opaque so header brand cannot ghost through */
 [data-theme="dark"] .sidenav {
-  background: rgba(17, 17, 19, 0.97) !important;
+  background: rgba(18, 18, 18, 0.97) !important;
   backdrop-filter: blur(20px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
-  border-right-color: rgba(201, 168, 76, 0.12) !important;
-  --sidenav-link-active-bg: linear-gradient(90deg, rgba(201, 168, 76, 0.12) 0%, rgba(201, 168, 76, 0.02) 100%);
+  border-right-color: rgba(239, 136, 69, 0.16) !important;
+  --sidenav-link-active-bg: linear-gradient(90deg, rgba(239, 136, 69, 0.16) 0%, rgba(239, 136, 69, 0.02) 100%);
 }
 
 [data-theme="light"] .sidenav {
@@ -2919,6 +2935,10 @@ select.input {
   background: linear-gradient(135deg, #9d7c35 0%, var(--gold) 60%, #e2c97e 100%);
   color: var(--text-on-gold);
   border-color: transparent;
+}
+
+[data-theme="dark"] .chart-mobile-action-btn--primary {
+  background: #ef8845;
 }
 
 [data-theme="classic"] .chart-mobile-action-btn--primary {
@@ -6105,19 +6125,19 @@ select.input {
 
 [data-theme="dark"] .landing-hero-cta-row {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
-  border: 1px solid rgba(201, 168, 76, 0.18);
+  border: 1px solid rgba(239, 136, 69, 0.20);
 }
 
 [data-theme="dark"] .landing-hero-secondary-btn {
-  background: linear-gradient(180deg, #2a2940, #232338);
-  border-color: rgba(201, 168, 76, 0.16);
-  color: #d8d2ee;
+  background: linear-gradient(180deg, #262626, #1e1e1e);
+  border-color: rgba(239, 136, 69, 0.18);
+  color: #e8e8e8;
 }
 
 [data-theme="dark"] .landing-hero-sub-btn {
   background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(201, 168, 76, 0.16);
-  color: #d8d2ee;
+  border-color: rgba(239, 136, 69, 0.18);
+  color: #e8e8e8;
 }
 
 .landing-compare-list.is-muted {
@@ -8664,7 +8684,7 @@ select.input {
 /* ── Dark mode premium pass ─────────────────────────────────── */
 
 [data-theme='dark'] .landing-shell {
-  --landing-glow: radial-gradient(ellipse 70% 50% at 75% 8%, rgba(201, 168, 76, 0.09) 0%, transparent 55%);
+  --landing-glow: radial-gradient(ellipse 70% 50% at 75% 8%, rgba(96, 66, 46, 0.55) 0%, transparent 58%);
 }
 
 [data-theme='dark'] .landing-premium-hero::before {
@@ -8677,15 +8697,16 @@ select.input {
 }
 
 [data-theme='dark'] .landing-premium-hero-title {
-  background: linear-gradient(135deg, #f7f3ff 0%, #e2c97e 55%, #f0ecff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: #ffffff;
+  color: #ffffff;
 }
 
 [data-theme='dark'] .landing-premium-hero-accent {
-  -webkit-text-fill-color: #e2c97e;
-  color: #e2c97e;
+  -webkit-text-fill-color: #ef8845;
+  color: #ef8845;
 }
 
 [data-theme='dark'] .landing-mandala-container {
@@ -8693,7 +8714,7 @@ select.input {
 }
 
 [data-theme='dark'] .landing-mandala-svg {
-  color: rgba(201, 168, 76, 0.35);
+  color: rgba(239, 136, 69, 0.38);
 }
 
 [data-theme='dark'] .landing-ambient-orb {
@@ -8701,7 +8722,7 @@ select.input {
 }
 
 [data-theme='dark'] .landing-premium-card {
-  background: color-mix(in oklab, var(--surface-2) 78%, rgba(201, 168, 76, 0.03)) !important;
+  background: color-mix(in oklab, var(--surface-2) 78%, rgba(239, 136, 69, 0.04)) !important;
   border-color: color-mix(in oklab, var(--gold) 14%, var(--border)) !important;
 }
 
@@ -8710,11 +8731,11 @@ select.input {
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.3),
     0 16px 40px rgba(0, 0, 0, 0.35),
-    0 0 24px rgba(201, 168, 76, 0.08) !important;
+    0 0 24px rgba(239, 136, 69, 0.12) !important;
 }
 
 [data-theme='dark'] .landing-premium-pillar {
-  background: color-mix(in oklab, var(--surface-2) 75%, rgba(201, 168, 76, 0.02));
+  background: color-mix(in oklab, var(--surface-2) 75%, rgba(239, 136, 69, 0.03));
   border-color: color-mix(in oklab, var(--gold) 12%, var(--border));
 }
 
@@ -8722,7 +8743,7 @@ select.input {
   border-color: var(--border-bright);
   box-shadow:
     0 10px 32px rgba(0, 0, 0, 0.35),
-    0 0 20px rgba(201, 168, 76, 0.06);
+    0 0 20px rgba(239, 136, 69, 0.10);
 }
 
 [data-theme='dark'] .landing-trust-bar {
@@ -8732,20 +8753,21 @@ select.input {
 
 [data-theme='dark'] .landing-premium-cta {
   background:
-    radial-gradient(ellipse 70% 55% at 85% 15%, rgba(201, 168, 76, 0.14), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(139, 124, 246, 0.08), transparent 50%),
+    radial-gradient(ellipse 70% 55% at 85% 15%, rgba(239, 136, 69, 0.18), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(96, 66, 46, 0.28), transparent 50%),
     color-mix(in oklab, var(--surface-2) 82%, transparent) !important;
   border-color: color-mix(in oklab, var(--gold) 32%, var(--border)) !important;
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 60px rgba(201, 168, 76, 0.06) !important;
+    0 0 60px rgba(239, 136, 69, 0.10) !important;
 }
 
 [data-theme='dark'] .landing-premium-cta-title {
-  background: linear-gradient(115deg, #f7f3ff 0%, #e2c97e 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: #ffffff;
+  color: #ffffff;
 }
 
 [data-theme='dark'] .landing-section-row--gold {

@@ -18,7 +18,7 @@ const NEXT_THEME: Record<ThemeType, { label: string; Icon: typeof Sun }> = {
 
 /** Browser chrome colour per theme — keep in sync with themeScript in app/layout.tsx. */
 const THEME_CHROME: Record<ThemeType, string> = {
-  dark: '#0b0b0c',
+  dark: '#121212',
   light: '#ffffff',
   classic: '#8c0030',
 }

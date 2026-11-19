@@ -75,7 +75,7 @@ export function VedaanshLoader({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'var(--bg-page, #0b0b0c)',
+          background: 'var(--bg-page, #121212)',
           zIndex: 9999,
         }}
       >

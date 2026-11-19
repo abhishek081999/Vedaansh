@@ -15,7 +15,7 @@ export default function NotFound() {
       justifyContent: 'center',
       gap: '1.5rem',
       padding: '3rem 1.5rem',
-      background: 'var(--bg-page, #0b0b0c)',
+      background: 'var(--bg-page, #121212)',
       textAlign: 'center',
     }}>
       <Image src="/veda-icon.png" alt="Vedaansh" width={64} height={64} style={{ opacity: 0.7 }} />
@@ -68,7 +68,7 @@ export default function NotFound() {
           padding: '0.6rem 1.5rem',
           background: 'transparent',
           color: 'var(--text-secondary, #bbb5d8)',
-          border: '1px solid var(--border, rgba(201,168,76,0.14))',
+          border: '1px solid var(--border, rgba(232,139,84,0.14))',
           borderRadius: 8,
           fontWeight: 500,
           fontSize: '0.9rem',
