@@ -99,6 +99,13 @@ const TOOL_DOCS: SearchDoc[] = [
     keywords: ['nadi', 'bhrigu nandi nadi', 'planetary positions', 'dasha'],
   },
   {
+    title: 'Lal Kitab',
+    description: 'Lal Kitab Teva, remedies, Varshphal, debts and the 43-day tracker.',
+    url: '/lal-kitab',
+    type: 'tool',
+    keywords: ['lal kitab', 'teva', 'pakka ghar', 'varshphal', 'lal kitab remedies', 'rin'],
+  },
+  {
     title: 'Prashna (Horary)',
     description: 'Krishneeyam Kerala Prashna for yes/no and timing questions.',
     url: '/prashna',

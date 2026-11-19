@@ -215,9 +215,17 @@ const TERMS_HI: Record<string, string> = {
   Ayanamsha: 'अयनांश', 'Sade Sati': 'साढ़े साती', Manglik: 'मांगलिक', Dosha: 'दोष', Upay: 'उपाय', Remedy: 'उपाय',
   Ashtakavarga: 'अष्टकवर्ग', Shadbala: 'षड्बल', Atmakaraka: 'आत्मकारक', Amatyakaraka: 'अमात्यकारक',
   Darakaraka: 'दारकारक', Arudha: 'आरूढ़', 'Arudha Lagna': 'आरूढ़ लग्न', Upapada: 'उपपद',
-  Varshaphal: 'वर्षफल', Prashna: 'प्रश्न', 'Kundali Milan': 'कुंडली मिलान', Ashtakoot: 'अष्टकूट', Guna: 'गुण',
+  Varshaphal: 'वर्षफल', Varshphal: 'वर्षफल', Masphal: 'मासफल', Dinphal: 'दिनफल',
+  Dhokha: 'धोखा', 'Dhokha Grah': 'धोखा ग्रह',
+  Prashna: 'प्रश्न', 'Kundali Milan': 'कुंडली मिलान', Ashtakoot: 'अष्टकूट', Guna: 'गुण',
   Varna: 'वर्ण', Vashya: 'वश्य', Tara: 'तारा', Yoni: 'योनि', 'Graha Maitri': 'ग्रह मैत्री',
   Gana: 'गण', Bhakoot: 'भकूट', Nadi: 'नाड़ी', Deva: 'देव', Manushya: 'मनुष्य', Rakshasa: 'राक्षस',
+  // Lal Kitab
+  'Lal Kitab': 'लाल किताब', Teva: 'टेवा', 'Chandra Teva': 'चंद्र टेवा', 'Pakka Ghar': 'पक्का घर',
+  Uchcha: 'उच्च', Neech: 'नीच', Takkar: 'टक्कर', Bunyad: 'बुनियाद', 'Soya Ghar': 'सोया घर',
+  'Soya Grah': 'सोया ग्रह', 'Kayam Grah': 'कायम ग्रह', 'Dharmi Grah': 'धर्मी ग्रह', 'Masnui Grah': 'मसनूई ग्रह',
+  Rin: 'ऋण', 'Pitri Rin': 'पितृ ऋण', Parhez: 'परहेज़', Nishaniyan: 'निशानियाँ', 'Andhi Teva': 'अंधी टेवा',
+  'Nabalig Teva': 'नाबालिग टेवा', 'Mangal Nek': 'मंगल नेक', 'Mangal Badh': 'मंगल बद',
 }
 
 const TERMS_HI_LOWER: Record<string, string> = Object.fromEntries(

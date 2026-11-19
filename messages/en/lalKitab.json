@@ -1,0 +1,546 @@
+{
+  "breadcrumb": {
+    "home": "Home",
+    "feature": "Lal Kitab"
+  },
+  "page": {
+    "loader": "Reading your Lal Kitab chart…",
+    "chartRequiredTitle": "Lal Kitab needs a birth chart",
+    "chartRequiredDescription": "Enter birth details to see your Lal Kitab Teva, its permanent houses, aspects and the rules behind each finding."
+  },
+  "panel": {
+    "title": "Lal Kitab",
+    "lede": "Your birth chart read by Lal Kitab rules. Planets keep their houses, house 1 is always counted as Aries, and every finding shows the facts that produced it.",
+    "viewsLabel": "Lal Kitab views",
+    "views": {
+      "overview": "Overview",
+      "teva": "Teva",
+      "predictions": "Predictions",
+      "nishaniyan": "Signs in life",
+      "doshas": "Doshas",
+      "rin": "Rin (debts)",
+      "upay": "Remedies",
+      "finder": "Remedy finder",
+      "planets": "Planets",
+      "houses": "Houses",
+      "drishti": "Drishti",
+      "combos": "Combinations",
+      "varshphal": "Varshphal",
+      "timeline": "Timeline",
+      "tracker": "Tracker",
+      "correction": "Teva check",
+      "learn": "Learn"
+    },
+    "exportPdf": "Export Lal Kitab PDF",
+    "exporting": "Preparing…",
+    "exportFail": "Export failed. Try again.",
+    "basisLabel": "Chart basis",
+    "basis": {
+      "lagna": "Lagna Teva",
+      "chandra": "Chandra Teva"
+    },
+    "basisShort": {
+      "lagna": "Lagna",
+      "chandra": "Chandra"
+    },
+    "chartTitle": "Lal Kitab Teva",
+    "chartNote": "House numbers, not signs: house 1 is read as Aries whatever the rising sign.",
+    "planetsTitle": "Planets in the Teva",
+    "cols": {
+      "planet": "Planet",
+      "house": "House",
+      "status": "Status"
+    },
+    "houseValue": "House {house}",
+    "badges": {
+      "pakka": "Pakka ghar",
+      "uchcha": "Exalted",
+      "neech": "Debilitated",
+      "retro": "Retrograde",
+      "kayam": "Kayam",
+      "dharmi": "Dharmi",
+      "sleeping": "Asleep"
+    },
+    "findingsTitle": "Findings",
+    "findingsLede": "Strongest first. Open a finding to see why it applies.",
+    "findingsEmpty": "No foundation rule applies to this chart.",
+    "why": "Why",
+    "effect": {
+      "good": "Good",
+      "bad": "Hard",
+      "mixed": "Mixed",
+      "info": "Note"
+    },
+    "aspectsTitle": "Aspects (drishti)",
+    "aspectsEmpty": "No planet aspects another planet in this chart.",
+    "aspectRow": "{from} (house {fromHouse}) → {to} (house {toHouse})",
+    "kind": {
+      "full": "Full · 100%",
+      "half": "Half · 50%",
+      "quarter": "Quarter · 25%"
+    },
+    "relation": {
+      "friend": "Friend",
+      "enemy": "Enemy",
+      "neutral": "Neutral"
+    },
+    "takkarTitle": "Takkar (collision)",
+    "takkarEmpty": "No planet strikes another by takkar.",
+    "comingNext": "Lal Kitab is complete for this release. Teva correction from life signs is in the Teva check tab.",
+    "gateFeature": "The full Lal Kitab reading",
+    "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
+  },
+  "varshphal": {
+    "title": "Varshphal (yearly chart)",
+    "lede": "Each year of life remaps the birth houses by the 120-year table. The Sun marks the month chart; Mars marks the day chart.",
+    "yearLabel": "Year of life",
+    "yearValue": "Year {year}",
+    "ageHint": "About age {age} (completed years).",
+    "cycle": "Cycle planet",
+    "cycleDetail": "{planet} · year {yearInSpan} of {spanYears} · next {next}",
+    "dhokha": "Dhokha this year",
+    "dhokhaNone": "None flagged",
+    "dhokhaNote": "Planets that look settled in the birth Teva but face pressure in this year’s chart.",
+    "chartTitle": "Year chart",
+    "planetsTitle": "Planets this year",
+    "natalCol": "Birth house",
+    "natalHouse": "Birth house {house}",
+    "monthTitle": "Masphal (month)",
+    "monthLabel": "Month from birth anniversary",
+    "monthValue": "Month {month}",
+    "dayTitle": "Dinphal (day)",
+    "dayLabel": "Day of the month",
+    "dayValue": "Day {day}",
+    "summaryTitle": "This year’s summary",
+    "summaryLede": "Free shows the current year. Gold unlocks every year, month and day chart.",
+    "teaser": "Slide through all 120 years, open the month and day charts, and see which planets turn deceptive this year."
+  },
+  "timeline": {
+    "title": "Life timeline",
+    "lede": "Years 1–120: the 35-year cycle planet, maturity ages, and a soft tint for harder or easier Varshphal years.",
+    "cycleLane": "Cycle",
+    "maturityLane": "Maturity",
+    "toneLane": "Year tone",
+    "aria": "Lal Kitab life timeline from year 1 to 120",
+    "tone": {
+      "good": "Easier",
+      "mixed": "Mixed",
+      "hard": "Harder"
+    },
+    "maturity": "{planet} matures",
+    "now": "Current year of life: {year}",
+    "teaser": "The full 1–120 timeline with cycle planets and maturity ages is part of the Gold reading."
+  },
+  "learn": {
+    "housesTitle": "The twelve houses",
+    "housesLede": "What each house means in Lal Kitab, which planets signify it, and how it links to other houses.",
+    "karakas": "Karaka",
+    "aspectsTo": "Aspects",
+    "aspectedFrom": "Aspected from",
+    "takkarTo": "Takkar on",
+    "bunyad": "Foundation",
+    "none": "None",
+    "houseShort": "H{house}",
+    "planetsTitle": "The nine planets",
+    "relatives": "Relatives",
+    "body": "Body",
+    "colour": "Colour",
+    "items": "Items",
+    "metal": "Metal",
+    "day": "Day",
+    "pakkaGhar": "Pakka ghar",
+    "uchcha": "Exalted in",
+    "neech": "Debilitated in",
+    "pending": "Editions differ; set after the edition check",
+    "friendshipTitle": "Friends and enemies",
+    "friendshipLede": "The Lal Kitab table. It is not always mutual: read each row as how that planet sees the others.",
+    "friends": "Friends",
+    "enemies": "Enemies",
+    "rulesTitle": "How aspects work",
+    "rulesLede": "Lal Kitab aspects run one way, forward from the lower house, and their strength comes from the pair of houses.",
+    "takkarRule": "Takkar: a planet strikes whatever sits eight houses ahead of it (1 strikes 8, 2 strikes 9, and so on). It hurts when the two are enemies.",
+    "bunyadRule": "Bunyad: the ninth house from any house is its foundation. A weak foundation weakens the house built on it.",
+    "timeTitle": "Time: Varshphal and the 35-year cycle",
+    "timeLede": "Year of life is completed age plus one. The 120-row table remaps birth houses each year. The first column repeats every twelve years.",
+    "firstCol": "First-column cycle",
+    "cycleTitle": "35-year cycle (years each)",
+    "maturityTitle": "Planet maturity ages",
+    "masphalRule": "Masphal turns the year chart so the Sun sits in the month house; Dinphal turns the month chart so Mars sits in the day house. Both follow common commentary practice.",
+    "remedyNote": "Lal Kitab remedies are traditional practices. They are not medical, legal or financial advice.",
+    "statesTitle": "Decoded states",
+    "states": {
+      "soyaGhar": {
+        "name": "Soya ghar (sleeping house)",
+        "rule": "an empty house that no planet looks at. It stays quiet until its waking planet is strengthened."
+      },
+      "soyaGrah": {
+        "name": "Soya grah (sleeping planet)",
+        "rule": "every house it looks at is empty, so it has no one to act on. Planets in houses with no forward aspect are not counted."
+      },
+      "kayam": {
+        "name": "Kayam grah (established)",
+        "rule": "no enemy sits with it, looks at it or strikes it, so it gives its own result in full."
+      },
+      "dharmi": {
+        "name": "Dharmi grah (pious)",
+        "rule": "Rahu in 4, Ketu in 11, Saturn in 11, and any planet sitting with Jupiter and Saturn together. It does no harm."
+      },
+      "andhi": {
+        "name": "Andhi Teva (blind chart)",
+        "rule": "house 10 holds planets that are enemies of each other."
+      },
+      "ratandh": {
+        "name": "Ratandh Teva (night-blind)",
+        "rule": "the Sun in house 4 and Saturn in house 7."
+      },
+      "nabalig": {
+        "name": "Nabalig Teva (minor chart)",
+        "rule": "houses 1, 4, 7 and 10 all empty; results settle after about age 12."
+      },
+      "dharmiTeva": {
+        "name": "Dharmi Teva (pious chart)",
+        "rule": "Jupiter and Saturn in the same house."
+      },
+      "kismat": {
+        "name": "Kismat ka grah (planet of destiny)",
+        "rule": "an exalted planet first, then a planet in its permanent house, then the first planet in houses 9, 10 or 11."
+      }
+    },
+    "wakerTitle": "Planet that wakes each house",
+    "houseCol": "House",
+    "wakerCol": "Waking planet",
+    "commentaryNote": "The waking table, the blind and night-blind conditions and the destiny method follow common commentary; they will be checked against the 1952 text.",
+    "masnuiTitle": "Masnui (artificial) planets",
+    "masnuiLede": "Two planets in one house that together behave like a third.",
+    "pairCol": "Together",
+    "becomesCol": "Acts as",
+    "masnuiKind": {
+      "plain": "{planet}",
+      "nek": "Good {planet}",
+      "bad": "Hard {planet}",
+      "likeRahu": "{planet}, like Rahu",
+      "likeKetu": "{planet}, like Ketu",
+      "uchcha": "Strong {planet}",
+      "neech": "Weak {planet}"
+    },
+    "commentaryStar": "* Follows common commentary."
+  },
+  "overview": {
+    "chartType": "Chart type",
+    "types": {
+      "andhi": "Andhi (blind)",
+      "ratandh": "Ratandh (night-blind)",
+      "nabalig": "Nabalig (minor)",
+      "dharmi": "Dharmi (pious)",
+      "ordinary": "Ordinary"
+    },
+    "kismat": "Planet of destiny",
+    "kismatMethod": {
+      "uchcha": "Exalted in the Teva",
+      "pakka": "In its permanent house",
+      "fortuneHouse": "First planet in houses 9–11"
+    },
+    "sleepingPlanets": "Sleeping planets",
+    "sleepingHouses": "Sleeping houses",
+    "kayam": "Kayam planets",
+    "dharmi": "Dharmi planets",
+    "none": "None",
+    "chartTypeTitle": "What kind of chart this is",
+    "topTitle": "Strongest findings",
+    "topLede": "The five rules that weigh most in this chart. Open one to see why.",
+    "allTitle": "All findings ({count})",
+    "doshasRin": "Hard doshas and debts",
+    "cycle": "Cycle planet",
+    "yearOfLife": "Year of life {year}"
+  },
+  "planets": {
+    "title": "Planets",
+    "lede": "Each planet's house, state, what it stands for, who it looks at, and the rules that apply to it.",
+    "relatives": "Relatives",
+    "body": "Body",
+    "looksAt": "Looks at",
+    "lookedBy": "Looked at by",
+    "takkarBy": "Takkar from",
+    "none": "None",
+    "noFindings": "No rule applies to this planet alone.",
+    "side": {
+      "good": "Good side",
+      "hard": "Hard side",
+      "mixed": "Both sides"
+    }
+  },
+  "houses": {
+    "title": "Houses",
+    "lede": "Each house: who sits there, who looks at it, whether it is asleep and which planet wakes it.",
+    "sleeping": "Asleep",
+    "awake": "Awake",
+    "empty": "Empty",
+    "occupants": "Planets",
+    "aspectedFrom": "Looked at from",
+    "takkarTo": "Takkar on",
+    "bunyad": "Foundation",
+    "waker": "Woken by",
+    "none": "None",
+    "houseShort": "H{house}"
+  },
+  "drishti": {
+    "title": "Drishti and takkar",
+    "lede": "Lal Kitab aspects run forward only. Rows look at columns; colour shows friend or enemy.",
+    "matrixCaption": "Aspect strength, row planet looking at column planet",
+    "fromTo": "From / to"
+  },
+  "combos": {
+    "masnuiTitle": "Masnui (artificial) planets",
+    "masnuiLede": "Pairs in one house that behave like a third planet.",
+    "masnuiEmpty": "No masnui planet forms in this chart.",
+    "pairsTitle": "Planets together",
+    "pairsLede": "What each pair sharing a house does. Pairs that form a masnui planet are read above.",
+    "pairsEmpty": "No two planets share a house.",
+    "becomes": "Acts as {planet}",
+    "commentary": "commentary"
+  },
+  "predictions": {
+    "areasTitle": "By life area",
+    "areasLede": "Each area is read from the planets in its houses and from its karaka planets.",
+    "areas": {
+      "wealth": "Wealth",
+      "career": "Career",
+      "marriage": "Marriage",
+      "children": "Children",
+      "health": "Health",
+      "property": "Home and property",
+      "education": "Education",
+      "travel": "Travel and abroad",
+      "siblings": "Siblings",
+      "parents": "Parents",
+      "enemies": "Enemies and disputes",
+      "longevity": "Longevity and health care",
+      "spiritual": "Spiritual life"
+    },
+    "tone": {
+      "strong": "Supported",
+      "mixed": "Mixed",
+      "weak": "Needs care",
+      "quiet": "Quiet"
+    },
+    "quietText": "No planet sits in this area's houses, and its karakas are not placed, so it follows the rest of the chart.",
+    "role": {
+      "inHouse": "in this area's house",
+      "karaka": "karaka"
+    },
+    "side": {
+      "good": "good side",
+      "hard": "hard side",
+      "mixed": "both sides"
+    },
+    "phalTitle": "Planet by planet",
+    "phalLede": "Each planet's reading in its house. The side shown is the one the chart's state points to.",
+    "planetInHouse": "{planet} in house {house}",
+    "reason": {
+      "dharmi": "It is dharmi, so it does no harm",
+      "uchcha": "It is exalted here",
+      "pakka": "It is in its permanent house",
+      "neech": "It is debilitated here",
+      "enemyWith": "An enemy shares its house",
+      "enemyAspect": "An enemy aspects it",
+      "enemyTakkar": "An enemy strikes it by takkar",
+      "safe": "No enemy harms it"
+    },
+    "asleep": "It is asleep, so it gives this result only once woken",
+    "maturity": "Its results ripen from about age {age}",
+    "otherGood": "When strengthened",
+    "otherHard": "If it is harmed",
+    "source": "These readings restate each planet's karakas in each house in our own words. They will be checked against the 1952 edition."
+  },
+  "nishaniyan": {
+    "resultTitle": "What your signs confirm",
+    "resultLede": "Tick the signs below that you see in your life. Each planet's signs are compared with what the chart says.",
+    "clear": "Clear ticks",
+    "planet": "Planet",
+    "chart": "Chart says",
+    "signs": "Signs",
+    "verdict": "Verdict",
+    "side": {
+      "good": "Good",
+      "hard": "Hard",
+      "mixed": "Mixed"
+    },
+    "status": {
+      "confirmed": "Confirmed hard",
+      "signsOnly": "Signs, chart good",
+      "chartOnly": "Chart hard, no signs",
+      "clear": "Clear"
+    },
+    "signsOnlyHint": "Signs without a hard reading can mean the birth time is off, or that the planet is hard in the current year's chart (Varshphal comes in a later update).",
+    "listTitle": "Signs in life",
+    "listLede": "Lal Kitab reads these everyday signs as a planet turning hard. Tick only what has happened to you or your home.",
+    "privacy": "Your ticks are kept only in this browser."
+  },
+  "doshas": {
+    "title": "Doshas the Lal Kitab way",
+    "lede": "Lal Kitab judges a dosha by the state of the planet behind it, so the same placement can be a dosha in one chart and harmless in another.",
+    "none": "No Lal Kitab dosha is formed in this chart.",
+    "remedyNext": "Remedies for each dosha are in the Remedies tab."
+  },
+  "rin": {
+    "title": "Rin (karmic debts)",
+    "lede": "A rin is a debt carried from the family's past, shown by set planets in set houses. Lal Kitab clears it together: the whole family joins one remedy on one day.",
+    "none": "No karmic debt is shown in this chart.",
+    "because": "Because of {list}",
+    "planetInHouse": "{planet} in house {house}",
+    "teaser": "What it comes from, its signs and the family remedy are part of the full reading.",
+    "origin": "Comes from",
+    "who": "Who takes part",
+    "remedy": "Family remedy",
+    "signs": "Signs it is active",
+    "howTitle": "How it is cleared",
+    "how": "every blood relative gives an equal share, the shares are put together on one day, and the remedy is done once, in daylight.",
+    "clearTitle": "Debts not shown in this chart",
+    "trigger": "{planets} in houses {houses}",
+    "names": {
+      "pitri": "Pitri Rin (ancestral)",
+      "matri": "Matri Rin (mother)",
+      "stri": "Stri Rin (wife)",
+      "bhai": "Bhai Rin (brother or friend)",
+      "behan": "Behan Rin (sister or daughter)",
+      "zalim": "Zalim Rin (oppressor)",
+      "ajanma": "Ajanma Rin (the unborn)",
+      "daivik": "Daivik Rin (divine)",
+      "swa": "Swa Rin (oneself)"
+    }
+  },
+  "upay": {
+    "topTitle": "Remedies that matter most",
+    "topLede": "One remedy for each planet that needs help, most needed first. Do one per planet at a time.",
+    "print": "Print checklist",
+    "markDone": "Mark as done",
+    "noneNeeded": "No planet in this chart needs a remedy right now.",
+    "notNeeded": "Left alone because they already give good results: {list}.",
+    "kind": {
+      "worship": "Prayer",
+      "serve": "Service",
+      "keep": "Keep",
+      "habit": "Habit",
+      "donate": "Give",
+      "flow": "Flowing water",
+      "feed": "Feed"
+    },
+    "once": "Once",
+    "days": "{n} days",
+    "weekday": {
+      "0": "Sundays",
+      "1": "Mondays",
+      "2": "Tuesdays",
+      "3": "Wednesdays",
+      "4": "Thursdays",
+      "5": "Fridays",
+      "6": "Saturdays"
+    },
+    "cost": {
+      "none": "No cost",
+      "low": "Low cost",
+      "medium": "Some cost"
+    },
+    "blocked": {
+      "strengthensHarmer": "Not now: strengthening {planet} would add to the harm it does to {victim}.",
+      "releasesKismat": "Not now: {planet} is your planet of destiny, and this gives its things away."
+    },
+    "rulesTitle": "Rules every remedy follows",
+    "rules": {
+      "daylight": "Start between sunrise and sunset.",
+      "days": "Keep it up for the stated days in a row (usually 43).",
+      "restart": "If you miss a day, start the count again.",
+      "onePerPlanet": "Do one remedy per planet at a time.",
+      "onlyHard": "Only treat a planet that is hard or mixed; leave a good planet alone.",
+      "self": "Do it yourself. Family remedies for debts are done by the whole family together.",
+      "eclipse": "Do not start on an eclipse day.",
+      "quiet": "Do it quietly, without show.",
+      "noHarm": "Never use a remedy to harm anyone."
+    },
+    "safety": "Lal Kitab remedies are traditional practices. They are not medical, legal or financial advice; for health, money or legal trouble, see a qualified professional as well.",
+    "byPlanetTitle": "Planet by planet",
+    "byPlanetLede": "Every remedy that suits each planet in its house, what to avoid, and any remedy the conflict check holds back.",
+    "forDosha": "Also treated for a dosha",
+    "doThis": "Do this",
+    "alternatives": "Or instead",
+    "blockedTitle": "Held back",
+    "parhez": "Avoid (parhez)",
+    "wakeTitle": "Waking sleeping houses",
+    "wakeLede": "A sleeping house stays quiet until its waking planet is strengthened.",
+    "wakeRow": "House {house}, woken by {planet}",
+    "wakeSkip": "Skipped: the waking planet is hard in this chart.",
+    "rinNote": "Family remedies for karmic debts are in the Rin tab."
+  },
+  "finder": {
+    "title": "Remedy finder",
+    "lede": "Pick a problem. The finder looks at the planets behind it in your chart and gives their remedies.",
+    "pick": "Problem",
+    "problems": {
+      "marriageDelay": "Marriage delay",
+      "children": "Children",
+      "job": "Job",
+      "business": "Business",
+      "debt": "Debt",
+      "health": "Health",
+      "court": "Court case",
+      "abroad": "Going abroad",
+      "study": "Studies",
+      "family": "Family quarrels",
+      "property": "House and property",
+      "sleep": "Sleep and worry"
+    },
+    "behind": "Planets behind this in your chart: {list}",
+    "supported": "Your chart supports this area; no remedy is needed. Keep the general rules and prohibitions.",
+    "teaser": "The planets behind this problem in your chart, and their remedies, are part of the full reading.",
+    "safety": "For health, money or legal trouble, see a qualified professional as well."
+  },
+  "tracker": {
+    "title": "43-day remedy tracker",
+    "lede": "Start one recommended remedy, tick each day in order. If you miss a day, restart from day 1.",
+    "activeTitle": "In progress",
+    "noneActive": "No remedy is running for this chart.",
+    "startTitle": "Start a remedy",
+    "startLede": "Pick one of the top remedies for this chart. Only one active remedy per planet.",
+    "noStarters": "No remedy is needed for this chart.",
+    "start": "Start 43 days",
+    "restart": "Restart",
+    "abandon": "Stop",
+    "dayProgress": "Day {done} of {total}",
+    "daysLabel": "Days",
+    "dayN": "Day {n}",
+    "rules": "Start in daylight. Do not start on a Saturday night or during an eclipse. Keep going for the full stretch; a miss means start again.",
+    "teaser": "Saved 43-day progress for your remedies is part of Gold.",
+    "loadFail": "Could not load trackers.",
+    "startFail": "Could not start the remedy.",
+    "updateFail": "Could not update the day."
+  },
+  "correction": {
+    "title": "Teva check from life signs",
+    "lede": "Tick the signs you see in life. The engine shifts the Lagna by up to two hours and ranks which rising sign best matches those signs — without changing planet positions.",
+    "teaser": "Scoring a ±2 hour Lagna window from your Nishaniyan ticks is part of Gold.",
+    "signsTitle": "Signs you see",
+    "signsLede": "Same list as Nishaniyan. Ticks are saved in this browser and shared with that tab.",
+    "clear": "Clear ticks",
+    "needMore": "Tick at least two signs so the check has enough to work with.",
+    "resultTitle": "Lagna candidates",
+    "resultLede": "Each row is a rising sign reachable within about ±2 hours of the recorded birth time.",
+    "suggest": "Best match: {best} ({hours}). Recorded Lagna is {current}. Re-check the birth time toward that window, then rebuild the chart.",
+    "currentBest": "The recorded Lagna already matches the signs best in this window.",
+    "colOffset": "Time shift",
+    "colLagna": "Lagna",
+    "colScore": "Score",
+    "colMatched": "Signs matched",
+    "colMissed": "Still good",
+    "hoursSame": "Recorded time",
+    "hoursLater": "+{h} h",
+    "hoursEarlier": "−{h} h",
+    "current": "current",
+    "best": "best",
+    "hintsTitle": "Placement hints",
+    "hintsLede": "For planets the signs flag as hard, houses that often weaken them on their own (debilitation first).",
+    "hintHouses": "Suspect houses {houses}",
+    "hintMove": "best candidate moves house {from} → {to}",
+    "disclaimer": "This is a decoding aid, not a guarantee. Hospital records and family timing still come first. Remedies and predictions stay traditional guidance, not medical or legal advice.",
+    "natalNote": "Current Teva uses Lagna {lagna}."
+  }
+}

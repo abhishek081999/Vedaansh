@@ -12,10 +12,11 @@
 ```
 User ──< Chart ──> ChartCache
   │
-  ├──< KundaliMilan   (saved match; own save cap)
-  ├──< Client          (Platinum CRM; userId = consultant)
-  ├──< Subscription    (billing lifecycle)
-  └──< AdminAuditLog   (adminId)
+  ├──< KundaliMilan      (saved match; own save cap)
+  ├──< LalKitabRemedy    (43-day upay tracker; Gold+)
+  ├──< Client            (Platinum CRM; userId = consultant)
+  ├──< Subscription      (billing lifecycle)
+  └──< AdminAuditLog     (adminId)
 
 BillingConfig          (singleton key: "default")
 ```
@@ -86,6 +87,27 @@ A saved match. Birth details for both people are stored; the charts are recalcul
 **Indexes:** `{ userId, createdAt:-1 }`
 
 Deleted with the user account. Counted on its own save cap (20 / 200 / unlimited), separate from natal charts.
+
+---
+
+### LalKitabRemedy
+
+43-day Lal Kitab remedy progress (Gold+). One active remedy per planet per `chartKey`.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| userId | ObjectId → User | Required |
+| chartId | ObjectId → Chart \| null | When the natal chart is saved |
+| chartKey | string | Birth meta fingerprint for unsaved charts |
+| upayId | string | Catalogue id (e.g. `Su.water`) |
+| planet | string | Graha code |
+| startedAt | Date | |
+| days | boolean[] | Length = planned days (usually 43) |
+| status | `active` \| `completed` \| `abandoned` | |
+
+**Indexes:** `{ userId, chartKey, status }`; `{ userId, chartId }`
+
+Model: `src/lib/db/models/LalKitabRemedy.ts`.
 
 ---
 

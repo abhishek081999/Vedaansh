@@ -23,6 +23,7 @@ export const NAMESPACES = [
   'auth',
   'jaimini',
   'nadi',
+  'lalKitab',
   'prashna',
   'vastu',
   'acg',

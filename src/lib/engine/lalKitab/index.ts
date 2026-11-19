@@ -1,0 +1,70 @@
+// ─────────────────────────────────────────────────────────────
+//  src/lib/engine/lalKitab/index.ts
+//  Public Lal Kitab engine API. Pure; safe in the browser.
+// ─────────────────────────────────────────────────────────────
+
+export * from './types'
+export { buildTeva, houseOfRashi } from './chart'
+export type { LkTeva } from './chart'
+export { LK_PAKKA_GHAR, LK_UCHCHA, LK_NEECH, LK_HOUSE_KARAKA, LK_NODE_DIGNITY_PENDING, lkDignity } from './pakkaGhar'
+export type { LkDignity } from './pakkaGhar'
+export { LK_FRIENDS, LK_ENEMIES, lkRelation, lkMutualClash } from './friendship'
+export { LK_HOUSE_ASPECTS, LK_ASPECT_PERCENT, lkAspectsFromHouse, lkBunyadHouse, lkPlanetAspects, lkTakkarHouse, lkTakkars } from './drishti'
+export type { LkHouseAspectRule, LkPlanetAspect, LkTakkar } from './drishti'
+export { LK_GRAHA_KARAKA, LK_HOUSE_MEANING, lkGrahaKaraka, lkHouseMeaning } from './karakas'
+export type { LkGrahaKaraka, LkHouseMeaning } from './karakas'
+export { evalCondition } from './conditions'
+export type { LkCondition, LkEval, LkTrailStep } from './conditions'
+export { lkFacts, lkFactsFromTeva } from './facts'
+export type { LkFacts } from './facts'
+export { evaluateRules } from './evaluate'
+export type { LkMatch } from './evaluate'
+export { LK_FOUNDATION_RULES, LK_FOUNDATION_TEXT, LK_GRAHA_AREAS } from './catalogue/foundation'
+export type { LkRule, LkRuleText } from './catalogue/types'
+export { LK_HOUSE_WAKER, LK_STATE_EDITION, lkStates } from './states'
+export type { LkChartType, LkKismatMethod, LkStates } from './states'
+export { LK_MASNUI, lkMasnuiFormed } from './masnui'
+export type { LkMasnuiDef, LkMasnuiFormed, LkMasnuiKind } from './masnui'
+export { LK_PAIRS, LK_PAIR_EFFECT, lkConjunctions } from './conjunctions'
+export type { LkConjunction } from './conjunctions'
+export { LK_STATE_RULES, LK_STATE_TEXT } from './catalogue/states'
+export { LK_COMBINATION_TEXT, LK_MASNUI_RULES, LK_PAIR_RULES } from './catalogue/combinations'
+export { lkChartKey } from './chartKey'
+export {
+  LK_CORRECTION_EDITION, LK_CORRECTION_OFFSETS_H, LK_LAGNA_DEG_PER_HOUR,
+  buildTevaWithLagna, lkSignedFromTicks, lkSuspectHouses, lkTevaCorrection,
+} from './tevaCorrection'
+export type {
+  LkCorrectionCandidate, LkPlacementHint, LkSignedPlanet, LkTevaCorrection,
+} from './tevaCorrection'
+export {
+  LK_CYCLE, LK_CYCLE_LENGTH, LK_MATURITY_AGE,
+  lkAgeYears, lkCycleAt, lkYearOfLife,
+} from './age'
+export type { LkCycleAt, LkCycleSpan } from './age'
+export { LK_VARSH_FIRST_COL, LK_VARSHPHAL_TABLE } from './data/varshphalTable'
+export {
+  LK_DHOKHA_EDITION, LK_MASPHAL_EDITION, LK_VARSH_EDITION,
+  lkDhokha, lkDinphal, lkMasphal, lkRotateToHouse, lkTimeline,
+  lkVarshphal, lkVarshphalForAge, lkVarshphalTeva, lkVarshRow, lkVarshShift,
+} from './varshphal'
+export type { LkTimelineYear, LkVarshphal } from './varshphal'
+export { LK_PHAL, LK_PHAL_EDITION } from './catalogue/phal'
+export type { LkPhalRow } from './catalogue/phal'
+export { LK_LIFE_AREAS, LK_LIFE_AREA_ORDER, lkAreaReadings, lkPhalReadings, lkPhalSide, lkPhalText } from './phal'
+export type { LkAreaReading, LkAreaTone, LkLifeArea, LkPhalReading, LkPhalReason, LkPhalSide } from './phal'
+export { LK_NISHANIYAN, LK_NISHANI_EDITION } from './catalogue/nishaniyan'
+export type { LkNishani } from './catalogue/nishaniyan'
+export { lkCheckNishaniyan, lkNishaniyan } from './nishaniyan'
+export type { LkNishaniCheck, LkNishaniStatus } from './nishaniyan'
+export { LK_DOSHA_IDS, LK_DOSHA_RULES, LK_DOSHA_TEXT } from './catalogue/doshas'
+export type { LkDoshaId } from './catalogue/doshas'
+export { LK_RIN, LK_RIN_DETAIL, LK_RIN_IDS, LK_RIN_RULES, LK_RIN_TEXT } from './catalogue/rin'
+export type { LkRinDef, LkRinDetail, LkRinId } from './catalogue/rin'
+export { lkRinDetail } from './rinDetail'
+export { LK_PARHEZ, LK_PLANET_DAY, LK_PROBLEMS, LK_UPAY, LK_UPAY_EDITION, LK_UPAY_RULES } from './catalogue/upay'
+export type { LkParhez, LkProblemId, LkUpay, LkUpayCost, LkUpayKind } from './catalogue/upay'
+export { lkFindRemedies, lkParhezFor, lkRemedyPlan, lkUpayFor } from './remedies'
+export type { LkConflictReason, LkPlanetRemedies, LkProblemResult, LkRemedyChoice, LkRemedyPlan } from './remedies'
+export { LK_ALL_RULES, LK_ALL_TEXT, LK_ALL_TEXT_HI, describeLkStep, lkGrahaName, readLalKitab } from './read'
+export type { LalKitabReading, LkFinding, LkHouseView, LkPlanetView, ReadLalKitabOptions } from './read'

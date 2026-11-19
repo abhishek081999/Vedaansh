@@ -68,6 +68,8 @@ interface Branding {
 export interface ChartHtmlExtras {
   gocharChapterHtml?: string
   rashiChapterHtml?: string
+  /** Optional Lal Kitab summary chapter (Platinum email / full dossier). */
+  lalKitabChapterHtml?: string
 }
 
 // ── Colors & Theme — Traditional Vedic Kundali ───────────────
@@ -1240,6 +1242,7 @@ export function generateChartHTML(
   const rashiChapterHtml = extras?.rashiChapterHtml?.trim()
     ? extras.rashiChapterHtml
     : `<p style="font-size:12px;color:#666">Rashi chapter unavailable in this export.</p>`
+  const lalKitabChapterHtml = extras?.lalKitabChapterHtml?.trim() ?? ''
 
   const { meta } = chart
   const brandName = branding?.brandName || 'VEDAANSH'
@@ -2094,6 +2097,9 @@ ${buildAllDashasPages(chart, lang)}
   ${PageFooter(24, meta.name)}
 </div>
 
+${lalKitabChapterHtml ? `<!-- LAL KITAB -->
+${lalKitabChapterHtml}
+` : ''}
 <!-- PAGE 25: SYNTHESIS -->
 <div class="page">
   ${SectionHeader('21', 'Samahara', 'Life Synthesis & Guidance')}

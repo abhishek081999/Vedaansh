@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { ACG_SEO, ABOUT_FAQ, ABOUT_SEO, COMPARE_SEO, HOME_FAQ, HOME_SEO, JAIMINI_SEO, MUHURTA_SEO, NADI_SEO, NAKSHATRA_SEO, NUMEROLOGY_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, PRASHNA_SEO, PRICING_FAQ, ROADMAP_SEO, SBC_SEO, SUPPORT_SEO, VASTU_SEO } from './intro-content'
+import { ACG_SEO, ABOUT_FAQ, ABOUT_SEO, COMPARE_SEO, HOME_FAQ, HOME_SEO, JAIMINI_SEO, LAL_KITAB_SEO, MUHURTA_SEO, NADI_SEO, NAKSHATRA_SEO, NUMEROLOGY_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO, PRASHNA_SEO, PRICING_FAQ, ROADMAP_SEO, SBC_SEO, SUPPORT_SEO, VASTU_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -307,6 +307,32 @@ export const NADI_SEO_HI: SeoIntroProps = {
 
 export function nadiIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? NADI_SEO_HI : NADI_SEO
+}
+
+export const LAL_KITAB_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'लाल किताब — Vedaansh',
+  h1: 'लाल किताब — टेवा, उपाय, वर्षफल और ऋण',
+  paragraphs: [
+    'लाल किताब की रीति से अपनी जन्म कुंडली पढ़ें: भाव 1 को मेष मानकर टेवा, पक्का घर, सोए ग्रह, दोष, ऋण, 108 ग्रह-भाव फल, और 43 दिन के ट्रैकर वाले पारंपरिक उपाय।',
+    'वर्षफल 120 वर्ष की भाव-सारिणी और 35 वर्ष के चक्र से बनता है। हर फल के साथ उसके तथ्य दिखते हैं। उपाय पारंपरिक प्रथाएँ हैं, चिकित्सा या क़ानूनी सलाह नहीं।',
+  ],
+  h2: 'इस खंड में क्या दिखता है',
+  bullets: [
+    { label: 'टेवा और स्थितियाँ', desc: 'स्थिर-मेष कुंडली, कायम, धर्मी, सोए भाव, मसनूई युति' },
+    { label: 'फलादेश', desc: 'ग्रह-भाव पठन, जीवन क्षेत्र, निशानियाँ' },
+    { label: 'उपाय', desc: 'क्रमित उपाय, परहेज़, समस्या खोज, और सहेजा 43 दिन ट्रैकर (गोल्ड)' },
+    { label: 'समय', desc: 'वर्षफल, मासफल/दिनफल, और 1–120 जीवन समयरेखा' },
+  ],
+  relatedLinks: [
+    guideLink('what-is-lal-kitab', 'लाल किताब क्या है?'),
+    guideLink('free-vedic-birth-chart-kundali', 'कुंडली क्या है?'),
+    { href: '/nadi', label: 'नाड़ी ज्योतिष' },
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function lalKitabIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? LAL_KITAB_SEO_HI : LAL_KITAB_SEO
 }
 
 export const PRASHNA_SEO_HI: SeoIntroProps = {

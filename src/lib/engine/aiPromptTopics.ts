@@ -47,8 +47,9 @@ import { getLagnaSpiritualProfile } from '@/lib/engine/lagnaSpirituality'
 import { getLagnaCharacterProfile } from '@/lib/engine/lagnaCharacter'
 import { buildLagnaCheatSheet } from '@/lib/engine/lagnaCheatSheet'
 import { getNakshatraTeaching } from '@/lib/engine/nakshatraTeaching'
+import { lkAgeYears, lkCycleAt, lkYearOfLife, readLalKitab } from '@/lib/engine/lalKitab'
 
-export const AI_TOPICS = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality'] as const
+export const AI_TOPICS = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality', 'lalKitab'] as const
 export type AiTopic = (typeof AI_TOPICS)[number]
 
 interface EngineReading {
@@ -305,6 +306,70 @@ const TOPICS: Record<AiTopic, TopicDef> = {
       { title: 'Lagna spiritual profile', run: (c, l) => getLagnaSpiritualProfile(c.lagnas.ascRashi, l) },
     ],
   },
+  lalKitab: {
+    title: 'Lal Kitab',
+    houses: [1, 4, 7, 10, 2, 8, 11, 12],
+    karakas: ['Ju', 'Sa', 'Ma', 'Ra', 'Ke'],
+    vargas: ['D1'],
+    method: [
+      'Build the Lal Kitab Teva: keep each planet in its house from the Lagna, then drop signs so house 1 is always Aries.',
+      'Note pakka ghar (permanent house), uchcha/neech by house, sleeping houses and planets, kayam and dharmi states.',
+      'Read aspects one way forward (full 1→7 / 4→10, half 3→9 / 3→11 / 5→9, quarter 2→6 / 6→12) and takkar (8th ahead).',
+      'Check doshas (grahan, Mangal badh, Manglik, Guru chandal) and rin (karmic debts) from the Teva facts.',
+      'Year of life = completed age + 1. Find the 35-year cycle planet and the Varshphal house remap for that year.',
+      'Give remedies only for planets that need them (hard or mixed). One remedy per planet; respect prohibitions. Remedies are traditional practices, not medical or legal advice.',
+    ],
+    questions: [
+      'What does my Lal Kitab Teva say about the strongest good and hard placements?',
+      'Which debts or doshas show in this chart, and what traditional remedies fit?',
+      'What does this year of life (Varshphal) highlight?',
+    ],
+    extra: lalKitabData,
+  },
+}
+
+function lalKitabData(chart: ChartOutput): string {
+  const age = lkAgeYears(chart.meta?.birthDate ?? '')
+  const year = lkYearOfLife(age)
+  const cycle = lkCycleAt(year)
+  const r = readLalKitab(chart, { lang: 'en', ageYears: age })
+  const houses = LK_HOUSES_INLINE(r)
+  const findings = r.findings.slice(0, 10).map((f) => `- [${f.effect}] ${f.label}: ${f.text}`).join('\n')
+  const remedies = r.remedies.top.slice(0, 5).map((c) => `- ${c.planet}: ${c.upay.text}`).join('\n')
+  const doshaRin = r.findings
+    .filter((f) => f.id.startsWith('dosha.') || f.id.startsWith('rin.'))
+    .slice(0, 8)
+    .map((f) => `- ${f.label}: ${f.text}`)
+    .join('\n')
+  return [
+    '**Lal Kitab Teva (house 1 = Aries)**',
+    '',
+    houses,
+    '',
+    `**States:** chart types ${r.states.chartTypes.join(', ') || 'ordinary'}; kayam ${r.states.kayam.join(', ') || 'none'}; dharmi ${r.states.dharmi.join(', ') || 'none'}; sleeping planets ${r.states.sleepingPlanets.join(', ') || 'none'}`,
+    `**Year of life ${year}** (age ${age}): cycle planet ${cycle.planet} (year ${cycle.yearInSpan} of ${cycle.spanYears}, next ${cycle.next})`,
+    '',
+    '**Top findings**',
+    findings || '- none',
+    '',
+    '**Doshas and debts**',
+    doshaRin || '- none flagged',
+    '',
+    '**Top remedies (traditional; not medical or legal advice)**',
+    remedies || '- none needed',
+  ].join('\n')
+}
+
+function LK_HOUSES_INLINE(r: ReturnType<typeof readLalKitab>): string {
+  return table(
+    ['Planet', 'House', 'Dignity', 'State'],
+    r.planets.map((p) => [
+      gname(p.id),
+      p.house,
+      p.dignities.join(', ') || '—',
+      [p.kayam ? 'kayam' : '', p.dharmi ? 'dharmi' : '', p.sleeping ? 'asleep' : ''].filter(Boolean).join(', ') || '—',
+    ]),
+  )
 }
 
 // ── chart helpers ────────────────────────────────────────────

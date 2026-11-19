@@ -137,6 +137,28 @@ export const NADI_SEO: SeoIntroProps = {
   ],
 }
 
+export const LAL_KITAB_SEO: SeoIntroProps = {
+  ariaLabel: 'Lal Kitab — Vedaansh',
+  h1: 'Lal Kitab — Teva, Remedies, Varshphal & Debts',
+  paragraphs: [
+    'Read your birth chart the Lal Kitab way: the Teva with house 1 as Aries, pakka ghar, sleeping planets, doshas, rin (debts), 108 planet-house readings, and traditional remedies with a 43-day tracker.',
+    'Varshphal uses the 120-year house-shift table and the 35-year cycle. Every finding shows the facts that produced it. Remedies are traditional practices, not medical or legal advice.',
+  ],
+  h2: 'What this section shows',
+  bullets: [
+    { label: 'Teva and states', desc: 'Fixed-Aries chart, kayam, dharmi, sleeping houses, masnui combinations' },
+    { label: 'Predictions', desc: 'Planet-in-house readings, life areas, Nishaniyan signs in life' },
+    { label: 'Remedies', desc: 'Ranked upay, prohibitions, problem finder, and a saved 43-day tracker (Gold)' },
+    { label: 'Time', desc: 'Varshphal year chart, masphal/dinphal, and a 1–120 life timeline' },
+  ],
+  relatedLinks: [
+    guideLink('what-is-lal-kitab', 'What is Lal Kitab?'),
+    guideLink('free-vedic-birth-chart-kundali', 'What is a Kundali?'),
+    { href: '/nadi', label: 'Nadi Astrology' },
+    { href: '/guides', label: 'All guides' },
+  ],
+}
+
 export const JAIMINI_SEO: SeoIntroProps = {
   ariaLabel: 'Jaimini Astrology — Vedaansh',
   h1: 'Jaimini Jyotish — Chara Karakas, Chara Dasha & Arudha Padas',
