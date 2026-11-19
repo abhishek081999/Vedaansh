@@ -6,8 +6,8 @@ import React from 'react'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import {
-  LK_ENEMIES, LK_FRIENDS, LK_GRAHAS, LK_HOUSE_ASPECTS, LK_HOUSE_KARAKA, LK_HOUSE_WAKER, LK_HOUSES, LK_MASNUI, LK_NEECH,
-  LK_NODE_DIGNITY_PENDING, LK_PAKKA_GHAR, LK_UCHCHA,
+  LK_CYCLE, LK_ENEMIES, LK_FRIENDS, LK_GRAHAS, LK_HOUSE_ASPECTS, LK_HOUSE_KARAKA, LK_HOUSE_WAKER, LK_HOUSES,
+  LK_MASNUI, LK_MATURITY_AGE, LK_NEECH, LK_NODE_DIGNITY_PENDING, LK_PAKKA_GHAR, LK_UCHCHA, LK_VARSH_FIRST_COL,
   lkAspectsFromHouse, lkBunyadHouse, lkGrahaKaraka, lkGrahaName, lkHouseMeaning, lkTakkarHouse,
   type LkGraha, type LkHouse,
 } from '@/lib/engine/lalKitab'
@@ -153,6 +153,20 @@ export function LalKitabLearn() {
           </table>
         </div>
         <p className={styles.note}>{t('commentaryStar')}</p>
+      </section>
+
+      <section className={styles.card} aria-labelledby="lk-time-learn-title">
+        <h2 id="lk-time-learn-title" className={styles.cardTitle}>{t('timeTitle')}</h2>
+        <p className={styles.note}>{t('timeLede')}</p>
+        <dl className={styles.facts}>
+          <dt>{t('firstCol')}</dt>
+          <dd className={styles.num}>{LK_VARSH_FIRST_COL.join(', ')}</dd>
+          <dt>{t('cycleTitle')}</dt>
+          <dd>{LK_CYCLE.map((s) => `${name(s.planet)} ${s.years}`).join(' · ')}</dd>
+          <dt>{t('maturityTitle')}</dt>
+          <dd>{LK_GRAHAS.map((p) => `${name(p)} ${LK_MATURITY_AGE[p]}`).join(' · ')}</dd>
+        </dl>
+        <p className={styles.note}>{t('masphalRule')}</p>
       </section>
 
       <p className={styles.note}>{t('remedyNote')}</p>

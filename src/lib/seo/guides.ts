@@ -851,6 +851,57 @@ export const GUIDES: Guide[] = [
       },
     ],
   },
+  {
+    slug: 'what-is-lal-kitab',
+    title: 'What Is Lal Kitab? Teva, Remedies & Varshphal',
+    description:
+      'Lal Kitab reads the birth chart with house 1 as Aries, its own aspects and friendships, karmic debts, and house-based remedies. See how Vedaansh builds the Teva and Varshphal.',
+    keywords: [
+      'lal kitab',
+      'lal kitab kundli',
+      'teva',
+      'pakka ghar',
+      'lal kitab remedies',
+      'varshphal lal kitab',
+    ],
+    publishedAt: '2026-11-20',
+    updatedAt: '2026-11-20',
+    toolCta: { href: '/lal-kitab', label: 'Open Lal Kitab on your chart' },
+    relatedSlugs: [
+      'free-vedic-birth-chart-kundali',
+      'mangal-dosha-explained',
+      'what-is-lagna-ascendant',
+    ],
+    intro: [
+      'Lal Kitab (the “Red Book”) is a North Indian system that keeps each planet in its house from the Lagna, then drops the signs so house 1 is always read as Aries. Friendship, aspects, exaltation and remedies differ from standard Parashari tables.',
+      'Vedaansh builds that Teva on the same Swiss Ephemeris chart as the rest of the app, then layers sleeping planets, doshas, rin (debts), Varshphal, and traditional remedies written in our own words.',
+    ],
+    sections: [
+      {
+        heading: 'Teva, pakka ghar and aspects',
+        paragraphs: [
+          'The Teva is whole-sign from the Lagna with fixed Aries as house 1. Pakka ghar are permanent houses for each planet. Aspects run forward only (full, half, quarter) with takkar on the eighth house ahead.',
+        ],
+      },
+      {
+        heading: 'Remedies and Varshphal',
+        paragraphs: [
+          'Remedies are ranked for planets that need them, with prohibitions and a conflict check. Year of life is completed age plus one; the 120-year table remaps houses for the annual chart, and the 35-year cycle names the ruling planet.',
+          'Remedies are traditional practices, not medical, legal or financial advice.',
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'Is Lal Kitab the same as a normal Kundali?',
+        a: 'It starts from the same birth chart, but houses are read without signs (house 1 = Aries), and many rules, friendships and remedies are specific to Lal Kitab.',
+      },
+      {
+        q: 'Can I track a 43-day remedy on Vedaansh?',
+        a: 'Yes on Gold: open Lal Kitab → Tracker, start a recommended upay, and tick consecutive days. A missed day means restart.',
+      },
+    ],
+  },
 ]
 
 export function getGuide(slug: string): Guide | undefined {

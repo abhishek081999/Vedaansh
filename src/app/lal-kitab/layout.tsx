@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'
+import { SeoIntro } from '@/components/seo/SeoIntro'
+import { lalKitabIntro } from '@/lib/seo/intro-content.hi'
 import { localizeMetadata, pageLocale, withHindiOgImage } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
@@ -36,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LalKitabLayout({ children }: { children: React.ReactNode }) {
+  const locale = await pageLocale()
   const t = await getTranslations('lalKitab')
   const jsonLd = breadcrumbJsonLd([
     { name: t('breadcrumb.home'), path: '/' },
@@ -45,6 +48,7 @@ export default async function LalKitabLayout({ children }: { children: React.Rea
     <>
       <JsonLd data={jsonLd} />
       <IntlScope namespaces={['lalKitab']}>{children}</IntlScope>
+      <SeoIntro {...lalKitabIntro(locale)} />
     </>
   )
 }

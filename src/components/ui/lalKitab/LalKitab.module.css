@@ -27,6 +27,56 @@
 
 .note { font-size: 0.8rem; color: var(--text-muted); }
 
+.sliderLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.slider {
+  width: 100%;
+  margin: 0.35rem 0 0.15rem;
+  accent-color: var(--gold);
+}
+
+.dayGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.5rem 0;
+}
+
+.dayCell {
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.dayCell:hover:not(:disabled) { border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.dayDone {
+  color: var(--text-gold);
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
+  background: color-mix(in srgb, var(--gold) 14%, var(--surface-1));
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .tabs {
   display: flex;
   gap: 0.35rem;

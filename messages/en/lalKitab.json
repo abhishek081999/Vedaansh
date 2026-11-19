@@ -25,8 +25,14 @@
       "houses": "Houses",
       "drishti": "Drishti",
       "combos": "Combinations",
+      "varshphal": "Varshphal",
+      "timeline": "Timeline",
+      "tracker": "Tracker",
       "learn": "Learn"
     },
+    "exportPdf": "Export Lal Kitab PDF",
+    "exporting": "Preparing…",
+    "exportFail": "Export failed. Try again.",
     "basisLabel": "Chart basis",
     "basis": {
       "lagna": "Lagna Teva",
@@ -75,9 +81,50 @@
     },
     "takkarTitle": "Takkar (collision)",
     "takkarEmpty": "No planet strikes another by takkar.",
-    "comingNext": "Coming next: Varshphal (the yearly chart), the 35-year cycle and a life timeline.",
+    "comingNext": "Coming next: Teva correction from life signs.",
     "gateFeature": "The full Lal Kitab reading",
     "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
+  },
+  "varshphal": {
+    "title": "Varshphal (yearly chart)",
+    "lede": "Each year of life remaps the birth houses by the 120-year table. The Sun marks the month chart; Mars marks the day chart.",
+    "yearLabel": "Year of life",
+    "yearValue": "Year {year}",
+    "ageHint": "About age {age} (completed years).",
+    "cycle": "Cycle planet",
+    "cycleDetail": "{planet} · year {yearInSpan} of {spanYears} · next {next}",
+    "dhokha": "Dhokha this year",
+    "dhokhaNone": "None flagged",
+    "dhokhaNote": "Planets that look settled in the birth Teva but face pressure in this year’s chart.",
+    "chartTitle": "Year chart",
+    "planetsTitle": "Planets this year",
+    "natalCol": "Birth house",
+    "natalHouse": "Birth house {house}",
+    "monthTitle": "Masphal (month)",
+    "monthLabel": "Month from birth anniversary",
+    "monthValue": "Month {month}",
+    "dayTitle": "Dinphal (day)",
+    "dayLabel": "Day of the month",
+    "dayValue": "Day {day}",
+    "summaryTitle": "This year’s summary",
+    "summaryLede": "Free shows the current year. Gold unlocks every year, month and day chart.",
+    "teaser": "Slide through all 120 years, open the month and day charts, and see which planets turn deceptive this year."
+  },
+  "timeline": {
+    "title": "Life timeline",
+    "lede": "Years 1–120: the 35-year cycle planet, maturity ages, and a soft tint for harder or easier Varshphal years.",
+    "cycleLane": "Cycle",
+    "maturityLane": "Maturity",
+    "toneLane": "Year tone",
+    "aria": "Lal Kitab life timeline from year 1 to 120",
+    "tone": {
+      "good": "Easier",
+      "mixed": "Mixed",
+      "hard": "Harder"
+    },
+    "maturity": "{planet} matures",
+    "now": "Current year of life: {year}",
+    "teaser": "The full 1–120 timeline with cycle planets and maturity ages is part of the Gold reading."
   },
   "learn": {
     "housesTitle": "The twelve houses",
@@ -108,6 +155,12 @@
     "rulesLede": "Lal Kitab aspects run one way, forward from the lower house, and their strength comes from the pair of houses.",
     "takkarRule": "Takkar: a planet strikes whatever sits eight houses ahead of it (1 strikes 8, 2 strikes 9, and so on). It hurts when the two are enemies.",
     "bunyadRule": "Bunyad: the ninth house from any house is its foundation. A weak foundation weakens the house built on it.",
+    "timeTitle": "Time: Varshphal and the 35-year cycle",
+    "timeLede": "Year of life is completed age plus one. The 120-row table remaps birth houses each year. The first column repeats every twelve years.",
+    "firstCol": "First-column cycle",
+    "cycleTitle": "35-year cycle (years each)",
+    "maturityTitle": "Planet maturity ages",
+    "masphalRule": "Masphal turns the year chart so the Sun sits in the month house; Dinphal turns the month chart so Mars sits in the day house. Both follow common commentary practice.",
     "remedyNote": "Lal Kitab remedies are traditional practices. They are not medical, legal or financial advice.",
     "statesTitle": "Decoded states",
     "states": {
@@ -191,7 +244,9 @@
     "topTitle": "Strongest findings",
     "topLede": "The five rules that weigh most in this chart. Open one to see why.",
     "allTitle": "All findings ({count})",
-    "doshasRin": "Hard doshas and debts"
+    "doshasRin": "Hard doshas and debts",
+    "cycle": "Cycle planet",
+    "yearOfLife": "Year of life {year}"
   },
   "planets": {
     "title": "Planets",
@@ -433,5 +488,25 @@
     "supported": "Your chart supports this area; no remedy is needed. Keep the general rules and prohibitions.",
     "teaser": "The planets behind this problem in your chart, and their remedies, are part of the full reading.",
     "safety": "For health, money or legal trouble, see a qualified professional as well."
+  },
+  "tracker": {
+    "title": "43-day remedy tracker",
+    "lede": "Start one recommended remedy, tick each day in order. If you miss a day, restart from day 1.",
+    "activeTitle": "In progress",
+    "noneActive": "No remedy is running for this chart.",
+    "startTitle": "Start a remedy",
+    "startLede": "Pick one of the top remedies for this chart. Only one active remedy per planet.",
+    "noStarters": "No remedy is needed for this chart.",
+    "start": "Start 43 days",
+    "restart": "Restart",
+    "abandon": "Stop",
+    "dayProgress": "Day {done} of {total}",
+    "daysLabel": "Days",
+    "dayN": "Day {n}",
+    "rules": "Start in daylight. Do not start on a Saturday night or during an eclipse. Keep going for the full stretch; a miss means start again.",
+    "teaser": "Saved 43-day progress for your remedies is part of Gold.",
+    "loadFail": "Could not load trackers.",
+    "startFail": "Could not start the remedy.",
+    "updateFail": "Could not update the day."
   }
 }

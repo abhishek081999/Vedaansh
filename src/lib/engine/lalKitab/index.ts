@@ -29,7 +29,19 @@ export { LK_PAIRS, LK_PAIR_EFFECT, lkConjunctions } from './conjunctions'
 export type { LkConjunction } from './conjunctions'
 export { LK_STATE_RULES, LK_STATE_TEXT } from './catalogue/states'
 export { LK_COMBINATION_TEXT, LK_MASNUI_RULES, LK_PAIR_RULES } from './catalogue/combinations'
-export { LK_MATURITY_AGE } from './age'
+export { lkChartKey } from './chartKey'
+export {
+  LK_CYCLE, LK_CYCLE_LENGTH, LK_MATURITY_AGE,
+  lkAgeYears, lkCycleAt, lkYearOfLife,
+} from './age'
+export type { LkCycleAt, LkCycleSpan } from './age'
+export { LK_VARSH_FIRST_COL, LK_VARSHPHAL_TABLE } from './data/varshphalTable'
+export {
+  LK_DHOKHA_EDITION, LK_MASPHAL_EDITION, LK_VARSH_EDITION,
+  lkDhokha, lkDinphal, lkMasphal, lkRotateToHouse, lkTimeline,
+  lkVarshphal, lkVarshphalForAge, lkVarshphalTeva, lkVarshRow, lkVarshShift,
+} from './varshphal'
+export type { LkTimelineYear, LkVarshphal } from './varshphal'
 export { LK_PHAL, LK_PHAL_EDITION } from './catalogue/phal'
 export type { LkPhalRow } from './catalogue/phal'
 export { LK_LIFE_AREAS, LK_LIFE_AREA_ORDER, lkAreaReadings, lkPhalReadings, lkPhalSide, lkPhalText } from './phal'

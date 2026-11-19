@@ -1,18 +1,22 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/LalKitabPanel.tsx
-//  Lal Kitab section: Overview, Teva, Predictions, Nishaniyan, Doshas, Rin, Upay, Finder, Planets,
-//  Houses, Drishti, Combinations and Learn. The engine runs in the browser on the
-//  chart already loaded; Gold views are gated visually (LalKitabGate).
+//  Lal Kitab section: Overview through Tracker. The engine runs in
+//  the browser on the chart already loaded; Gold views are gated
+//  visually (LalKitabGate).
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { BookOpen, Eye, Grid3x3, Home, LayoutDashboard, Link2, ListChecks, Orbit, ScrollText, Search, ShieldAlert, Sparkles, Users } from 'lucide-react'
+import {
+  BookOpen, CalendarRange, ClipboardList, Download, Eye, Grid3x3, Home, LayoutDashboard, Link2,
+  ListChecks, Orbit, ScrollText, Search, ShieldAlert, Sparkles, Users, History,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
-import { readLalKitab } from '@/lib/engine/lalKitab'
+import { lkAgeYears, lkYearOfLife, readLalKitab } from '@/lib/engine/lalKitab'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { LalKitabTeva } from '@/components/ui/lalKitab/LalKitabTeva'
 import { LalKitabLearn } from '@/components/ui/lalKitab/LalKitabLearn'
 import { LalKitabOverview } from '@/components/ui/lalKitab/LalKitabOverview'
@@ -26,9 +30,15 @@ import { LalKitabDoshas } from '@/components/ui/lalKitab/LalKitabDoshas'
 import { LalKitabRin } from '@/components/ui/lalKitab/LalKitabRin'
 import { LalKitabRemedies } from '@/components/ui/lalKitab/LalKitabRemedies'
 import { LalKitabFinder } from '@/components/ui/lalKitab/LalKitabFinder'
+import { LalKitabVarshphal } from '@/components/ui/lalKitab/LalKitabVarshphal'
+import { LalKitabTimeline } from '@/components/ui/lalKitab/LalKitabTimeline'
+import { LalKitabTracker } from '@/components/ui/lalKitab/LalKitabTracker'
 import styles from './lalKitab/LalKitab.module.css'
 
-type LkView = 'overview' | 'teva' | 'predictions' | 'nishaniyan' | 'doshas' | 'rin' | 'upay' | 'finder' | 'planets' | 'houses' | 'drishti' | 'combos' | 'learn'
+type LkView =
+  | 'overview' | 'teva' | 'predictions' | 'nishaniyan' | 'doshas' | 'rin'
+  | 'upay' | 'finder' | 'planets' | 'houses' | 'drishti' | 'combos'
+  | 'varshphal' | 'timeline' | 'tracker' | 'learn'
 
 const VIEWS: { id: LkView; icon: LucideIcon }[] = [
   { id: 'overview', icon: LayoutDashboard },
@@ -39,10 +49,13 @@ const VIEWS: { id: LkView; icon: LucideIcon }[] = [
   { id: 'rin', icon: Users },
   { id: 'upay', icon: Sparkles },
   { id: 'finder', icon: Search },
+  { id: 'tracker', icon: ClipboardList },
   { id: 'planets', icon: Orbit },
   { id: 'houses', icon: Home },
   { id: 'drishti', icon: Eye },
   { id: 'combos', icon: Link2 },
+  { id: 'varshphal', icon: CalendarRange },
+  { id: 'timeline', icon: History },
   { id: 'learn', icon: BookOpen },
 ]
 
@@ -56,12 +69,53 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
   const t = useTranslations('lalKitab.panel')
   const { lang } = useLang()
   const [view, setView] = useState<LkView>('overview')
-  const reading = useMemo(() => readLalKitab(chart, { lang }), [chart, lang])
+  const [exporting, setExporting] = useState(false)
+  const ageYears = useMemo(() => lkAgeYears(chart.meta?.birthDate ?? ''), [chart.meta?.birthDate])
+  const currentYear = useMemo(() => lkYearOfLife(ageYears), [ageYears])
+  const reading = useMemo(
+    () => readLalKitab(chart, { lang, ageYears }),
+    [chart, lang, ageYears],
+  )
+  const canExport = planMeetsUiGate(userPlan, 'gold')
+
+  async function exportPdf() {
+    if (!canExport || exporting) return
+    setExporting(true)
+    try {
+      const res = await fetch('/api/lal-kitab/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meta: chart.meta }),
+      })
+      if (!res.ok) {
+        window.alert(t('exportFail'))
+        return
+      }
+      const html = await res.text()
+      const w = window.open('', '_blank')
+      if (w) {
+        w.document.write(html)
+        w.document.close()
+      }
+    } catch {
+      window.alert(t('exportFail'))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <h1 className={styles.title}>{t('title')}</h1>
+        <div className={styles.headerActions}>
+          <h1 className={styles.title}>{t('title')}</h1>
+          {canExport && (
+            <button type="button" className={styles.segBtn} disabled={exporting} onClick={() => void exportPdf()}>
+              <Download size={14} aria-hidden />
+              {exporting ? t('exporting') : t('exportPdf')}
+            </button>
+          )}
+        </div>
         <p className={styles.lede}>{t('lede')}</p>
       </header>
 
@@ -87,7 +141,7 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
       </div>
 
       <section id={`lk-panel-${view}`} role="tabpanel" aria-labelledby={`lk-tab-${view}`}>
-        {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} />}
+        {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} currentYear={currentYear} />}
         {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} />}
         {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
         {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
@@ -95,10 +149,17 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
         {view === 'rin' && <LalKitabRin reading={reading} userPlan={userPlan} />}
         {view === 'upay' && <LalKitabRemedies reading={reading} userPlan={userPlan} />}
         {view === 'finder' && <LalKitabFinder reading={reading} userPlan={userPlan} />}
+        {view === 'tracker' && <LalKitabTracker chart={chart} reading={reading} userPlan={userPlan} />}
         {view === 'planets' && <LalKitabPlanets reading={reading} userPlan={userPlan} />}
         {view === 'houses' && <LalKitabHouses reading={reading} userPlan={userPlan} />}
         {view === 'drishti' && <LalKitabDrishti reading={reading} userPlan={userPlan} />}
         {view === 'combos' && <LalKitabCombos reading={reading} userPlan={userPlan} />}
+        {view === 'varshphal' && (
+          <LalKitabVarshphal chart={chart} reading={reading} userPlan={userPlan} currentYear={currentYear} />
+        )}
+        {view === 'timeline' && (
+          <LalKitabTimeline reading={reading} userPlan={userPlan} currentYear={currentYear} />
+        )}
         {view === 'learn' && <LalKitabLearn />}
       </section>
       <p className={styles.note}>{t('comingNext')}</p>

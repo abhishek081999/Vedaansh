@@ -93,9 +93,11 @@ export async function POST(req: NextRequest) {
     // 1. Generate the HTML dossier (gochar chapter is Node-only / sweph)
     const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
     const { buildRashiChapterHtml } = await import('@/lib/pdf/rashiChapter')
+    const { buildLalKitabChapterHtml } = await import('@/lib/pdf/lalKitabHtml')
     const htmlContent = generateChartHTML(resolvedChart, branding as any, {
       gocharChapterHtml: buildGocharChapterHtml(resolvedChart, lang),
       rashiChapterHtml: buildRashiChapterHtml(resolvedChart, lang),
+      lalKitabChapterHtml: buildLalKitabChapterHtml(resolvedChart, lang),
     }, lang)
 
     // 2. Send the email

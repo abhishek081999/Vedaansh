@@ -112,9 +112,11 @@ export async function POST(req: NextRequest) {
           // Generate HTML dossier (gochar chapter is Node-only / sweph)
           const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
           const { buildRashiChapterHtml } = await import('@/lib/pdf/rashiChapter')
+          const { buildLalKitabChapterHtml } = await import('@/lib/pdf/lalKitabHtml')
           const html = generateChartHTML(chartData, branding as any, {
             gocharChapterHtml: buildGocharChapterHtml(chartData, lang),
             rashiChapterHtml: buildRashiChapterHtml(chartData, lang),
+            lalKitabChapterHtml: buildLalKitabChapterHtml(chartData, lang),
           }, lang)
           
           // Add to ZIP (escaped filename)

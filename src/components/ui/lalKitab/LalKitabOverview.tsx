@@ -6,14 +6,20 @@ import React from 'react'
 import { useTranslations } from 'next-intl'
 import type { UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
-import { lkGrahaName, type LalKitabReading } from '@/lib/engine/lalKitab'
+import { lkCycleAt, lkGrahaName, type LalKitabReading } from '@/lib/engine/lalKitab'
 import { LalKitabFindings } from './LalKitabFindings'
 import { LalKitabGate } from './LalKitabGate'
 import styles from './LalKitab.module.css'
 
 const TOP = 5
 
-export function LalKitabOverview({ reading, userPlan }: { reading: LalKitabReading; userPlan: UserPlan }) {
+export function LalKitabOverview({
+  reading, userPlan, currentYear,
+}: {
+  reading: LalKitabReading
+  userPlan: UserPlan
+  currentYear: number
+}) {
   const t = useTranslations('lalKitab.overview')
   const { lang } = useLang()
   const { states } = reading
@@ -21,6 +27,7 @@ export function LalKitabOverview({ reading, userPlan }: { reading: LalKitabReadi
   const list = (ids: readonly Parameters<typeof lkGrahaName>[0][]) => (ids.length ? ids.map(name).join(', ') : t('none'))
   const typeFindings = reading.findings.filter((f) => f.id.startsWith('teva.'))
   const doshaRin = reading.findings.filter((f) => (f.id.startsWith('dosha.') && f.effect === 'bad') || f.id.startsWith('rin.'))
+  const cyclePlanet = lkCycleAt(currentYear).planet
 
   return (
     <div className={styles.stack}>
@@ -30,6 +37,11 @@ export function LalKitabOverview({ reading, userPlan }: { reading: LalKitabReadi
           <span className={styles.statValue}>
             {states.chartTypes.length ? states.chartTypes.map((c) => t(`types.${c}`)).join(', ') : t('types.ordinary')}
           </span>
+        </div>
+        <div className={styles.stat}>
+          <span className={styles.statLabel}>{t('cycle')}</span>
+          <span className={styles.statValue}>{name(cyclePlanet)}</span>
+          <span className={styles.statHint}>{t('yearOfLife', { year: currentYear })}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>{t('kismat')}</span>

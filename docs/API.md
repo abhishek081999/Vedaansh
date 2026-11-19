@@ -28,7 +28,7 @@
 | Prefix in `src/proxy.ts` | Effect |
 |----------------------|--------|
 | `PROTECTED_API` | Whole-segment prefixes in `src/lib/security/proxyRules.ts`. Includes `/api/chart/save`, `/api/chart/template`, `/api/user`, `/api/muhurta`, `/api/clients`, and payment checkout/verify |
-| `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx` |
+| `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`, `/api/lal-kitab` |
 | `GOLD_API` `/api/muhurta` | Muhurta timeline and report |
 | Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) `/api/marriage/gochar-windows`, `/api/numerology/premium`, `/api/numerology/calendar` (session + `requirePlanGate('gold')`) and `/api/numerology/save-to-client` (`requirePlanGate('platinum')`) in the handler |
 
@@ -136,6 +136,20 @@ Default list prices (INR): `src/lib/subscription/pricing.ts` — may be overridd
 | POST | `/api/muhurta/report` | yes | **gold** | Report |
 
 Also gated in `src/proxy.ts` for `/muhurta` and `/api/muhurta`.
+
+---
+
+## Lal Kitab (Gold+)
+
+| Method | Path | Auth | Plan | Notes |
+|--------|------|------|------|-------|
+| GET | `/api/lal-kitab/remedies?chartKey=` | yes | **gold** | List trackers for a chart key |
+| POST | `/api/lal-kitab/remedies` | yes | **gold** | Start a 43-day remedy (`upayId`, `chartKey`) |
+| PATCH | `/api/lal-kitab/remedies/[id]` | yes | **gold** | `tick` / `untick` / `restart` / `abandon` |
+| DELETE | `/api/lal-kitab/remedies/[id]` | yes | **gold** | Remove tracker |
+| POST | `/api/lal-kitab/export` | yes | **gold** | Printable HTML report |
+
+Also gated in `src/proxy.ts` (`PROTECTED_API` + `GOLD_API` for `/api/lal-kitab`). Chart PDF/email includes an optional Lal Kitab chapter via `buildLalKitabChapterHtml`.
 
 ---
 

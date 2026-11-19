@@ -22,7 +22,7 @@ interface Props {
 }
 
 // Mirrors AI_TOPICS in aiPromptTopics (kept here so the engines load only when the popup opens).
-const TOPICS: AiTopic[] = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality']
+const TOPICS: AiTopic[] = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality', 'lalKitab']
 
 const AI_LINKS = [
   { name: 'Claude', href: 'https://claude.ai/new' },

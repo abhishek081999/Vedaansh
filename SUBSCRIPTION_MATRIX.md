@@ -19,7 +19,10 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Save Kundali Milan | 20 | 200 | Unlimited | `src/app/api/milan/save/route.ts` — separate cap, same numbers as chart saves. List and delete: `/api/milan/list`, `/api/milan/[id]`. Session is in the handler; these paths are not in `src/proxy.ts` `PROTECTED_API` |
 | Public chart share links | Yes | Yes | Yes | `src/app/api/chart/public/route.ts`, `src/app/api/chart/toggle-public/route.ts` |
 | Chart library search | Yes | Yes | Yes | `src/app/api/chart/search/route.ts` |
-| Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `src/proxy.ts` (`/api/chart/export`) — includes Gochar Phala chapter |
+| Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `src/proxy.ts` (`/api/chart/export`) — includes Gochar Phala and Lal Kitab chapters |
+| Lal Kitab (Teva, Learn, Nishaniyan, current-year Varshphal summary, 1 remedy) | Yes | Full reading | Full reading | UI: `LalKitabPanel` / `/lal-kitab` (`planMeetsUiGate`, Gold+ for gated tabs) |
+| Lal Kitab PDF export | No | Yes | Yes | `POST /api/lal-kitab/export` — `requirePlanGate('gold')`, `src/proxy.ts` |
+| Lal Kitab 43-day remedy tracker | No | Yes (saved) | Yes | `GET/POST /api/lal-kitab/remedies`, `PATCH/DELETE /api/lal-kitab/remedies/[id]` — Gold+ |
 | Export chart (XLSX) | No | Yes | Yes | `src/app/api/chart/export-xlsx/route.ts` (`requirePlanGate`), `src/proxy.ts` |
 | Marriage gochar windows | No | Yes | Yes | `GET /api/marriage/gochar-windows` — `requirePlanGate('gold')`. Not listed in `src/proxy.ts` `GOLD_API` |
 | Numerology predictions, remedies, advanced tools, PDF | No | Yes | Yes | `POST /api/numerology/premium` — `requirePlanGate('gold')`. Core numbers, grids, arrows, name depth, spelling comparison and Katapayadi stay free |

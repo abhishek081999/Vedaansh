@@ -660,7 +660,8 @@
       "health": "Health",
       "education": "Education",
       "children": "Children",
-      "spirituality": "Spirituality"
+      "spirituality": "Spirituality",
+      "lalKitab": "Lal Kitab"
     }
   },
   "actions": {
