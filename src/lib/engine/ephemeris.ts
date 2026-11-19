@@ -44,6 +44,7 @@ const AYANAMSHA_IDS: Record<AyanamshaMode, number> = {
   raman:       C.SE_SIDM_RAMAN,
   usha_shashi: C.SE_SIDM_USHASHASHI,
   yukteshwar:  C.SE_SIDM_YUKTESHWAR,
+  krishnamurti: C.SE_SIDM_KRISHNAMURTI,
 }
 
 export const FLAGS_TROPICAL = C.SEFLG_SWIEPH | C.SEFLG_SPEED

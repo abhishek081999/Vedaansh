@@ -84,6 +84,7 @@ export type AyanamshaMode =
   | 'raman'
   | 'usha_shashi'
   | 'yukteshwar'
+  | 'krishnamurti'
 
 export const AYANAMSHA_NAMES: Record<AyanamshaMode, string> = {
   lahiri:       'Lahiri (Chitrapaksha)',
@@ -93,6 +94,7 @@ export const AYANAMSHA_NAMES: Record<AyanamshaMode, string> = {
   raman:        'Raman',
   usha_shashi:  'Usha-Shashi',
   yukteshwar:   'Yukteshwar',
+  krishnamurti: 'Krishnamurti (KP)',
 }
 
 // ── House Systems ────────────────────────────────────────────
@@ -483,6 +485,8 @@ export interface ChartOutput {
     significators: KPSignificatorResult
     cusps:         KPCuspalInterlink[]
     rulingPlanets: KPRulingPlanets
+    /** House system the KP cusps were cast in (Placidus unless it failed at high latitude). */
+    houseSystem?:  HouseSystem
   }
   yogiPoint:    YogiPointResult  // Yogi/Sahayogi/Avayogi points for prosperity analysis
   varshaphal?: {

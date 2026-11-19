@@ -8,6 +8,38 @@ import sweph from 'sweph'
 import { getAyanamsha, toSidereal, signOf, degreeInSign } from '@/lib/engine/ephemeris'
 import type { AyanamshaMode, GrahaId, HouseSystem, Rashi } from '@/types/astrology'
 
+// ── KP horary: house frame for a chosen ascendant ────────────
+
+const angDiff = (a: number, b: number) => ((a - b + 540) % 360) - 180
+
+/**
+ * Houses for the ARMC at which the tropical ascendant equals `targetAsc`
+ * (KP horary numbers fix cusp 1 and rotate the other cusps with it).
+ */
+function housesForAscendant(jd: number, lat: number, code: string, targetAsc: number): unknown {
+  const nut = sweph.calc_ut(jd, sweph.constants.SE_ECL_NUT, 0) as any
+  const eps: number = nut?.data?.[0] ?? 23.4367
+  const ascAt = (armc: number): number => {
+    const h = sweph.houses_armc(((armc % 360) + 360) % 360, lat, eps, code) as any
+    return h.data?.points?.[0] ?? h.data?.houses?.[0] ?? 0
+  }
+  // The ascendant rises monotonically with ARMC: scan, then bisect the crossing.
+  let lo = 0
+  let prev = angDiff(ascAt(0), targetAsc)
+  for (let a = 2; a <= 360; a += 2) {
+    const cur = angDiff(ascAt(a), targetAsc)
+    if (prev <= 0 && cur >= 0 && cur - prev < 180) { lo = a - 2; break }
+    prev = cur
+  }
+  let hi = lo + 2
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2
+    if (angDiff(ascAt(mid), targetAsc) < 0) lo = mid
+    else hi = mid
+  }
+  return sweph.houses_armc(((hi % 360) + 360) % 360, lat, eps, code)
+}
+
 // ── House system codes for sweph ─────────────────────────────
 const HOUSE_SYSTEM_CODES: Record<HouseSystem, string> = {
   whole_sign:    'W',  // Whole Sign
@@ -57,24 +89,23 @@ export function calcHouses(
   const ayanamsha = getAyanamsha(jd, mode)
   const code = HOUSE_SYSTEM_CODES[system]
 
-  // If fixedSiderealAsc is provided, we need to find the tropical equivalent 
-  // for sweph to calculate other cusps relative to it.
-  // Note: For true KP, the MC and other cusps are still time-dependent, 
-  // but the Ascendant is fixed by the number.
-  let activeJd = jd
-  // If we wanted to shift time to match that Ascendant, we'd need an iterative search.
-  // For now, we'll just calculate standard houses and override the Ascendant.
-  
-  // sweph.houses returns { ascendant, mc, cusps: [0, csp1, csp2, ... csp12] }
-  const r = sweph.houses(jd, lat, lng, code) as any
+  // sweph.houses returns { data: { houses: [h1..h12], points: [asc, mc, ...] } }.
+  // KP horary (fixedSiderealAsc): rotate the whole house frame so cusp 1 sits on
+  // the chosen degree — search the ARMC whose ascendant equals it.
+  const r = (fixedSiderealAsc !== undefined
+    ? housesForAscendant(jd, lat, code, ((fixedSiderealAsc + ayanamsha) % 360 + 360) % 360)
+    : sweph.houses(jd, lat, lng, code)) as any
   if (r.error) throw new Error(`houses error: ${r.error}`)
 
-  // Cusps: sweph returns 13-element array [0, h1, h2, ... h12]
-  const rawCusps: number[] = r.data?.cusps ?? r.cusps ?? []
-  // Slice to get [h1...h12] (1-indexed in sweph → 0-indexed here)
-  const cuspsTropical = rawCusps.slice(1, 13)
+  // Newer sweph: data.houses is 0-indexed [h1..h12]; older builds: cusps[1..12].
+  const cuspsTropical: number[] = Array.isArray(r.data?.houses)
+    ? r.data.houses.slice(0, 12)
+    : (r.data?.cusps ?? r.cusps ?? []).slice(1, 13)
+  if (cuspsTropical.length !== 12 || cuspsTropical.some((c: number) => !Number.isFinite(c))) {
+    throw new Error(`houses error: no cusps for system ${system}`)
+  }
 
-  const ascTropical = r.data?.points?.[0] ?? r.ascendant ?? rawCusps[1]
+  const ascTropical = r.data?.points?.[0] ?? r.ascendant ?? cuspsTropical[0]
   const mcTropical  = r.data?.points?.[1] ?? r.mc ?? 0
 
   const ascSidereal = fixedSiderealAsc !== undefined ? fixedSiderealAsc : toSidereal(ascTropical, ayanamsha)

@@ -24,7 +24,7 @@ const QuerySchema = z.object({
   tz:   z.string().default('Asia/Kolkata'),
   ayanamsha: z.enum([
     'lahiri','true_chitra','true_revati','true_pushya',
-    'raman','usha_shashi','yukteshwar'
+    'raman','usha_shashi','yukteshwar','krishnamurti'
   ]).default('lahiri'),
   birthNak: z.preprocess(
     (v) => (v === '' || v === undefined || v === null ? undefined : v),

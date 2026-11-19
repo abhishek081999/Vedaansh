@@ -1234,6 +1234,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 <option value="true_revati">{t('ay.true_revati')}</option>
                 <option value="usha_shashi">{t('ay.usha_shashi')}</option>
                 <option value="yukteshwar">{t('ay.yukteshwar')}</option>
+                <option value="krishnamurti">{t('ay.krishnamurti')}</option>
               </select>
             </div>
             <div>

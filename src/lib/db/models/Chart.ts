@@ -107,7 +107,7 @@ export interface IChartCache extends Document {
 const ChartCacheSchema = new Schema<IChartCache>({
   chartId:   { type: Schema.Types.ObjectId, ref: 'Chart', required: true, index: true },
   ayanamsha: { type: String, required: true },
-  version:   { type: Number, default: 20 },
+  version:   { type: Number, default: 21 },
   data:      { type: Schema.Types.Mixed, required: true },
   expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
 }, {

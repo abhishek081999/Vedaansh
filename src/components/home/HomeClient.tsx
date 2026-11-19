@@ -743,8 +743,7 @@ function HomeContent() {
     (activeTab === 'dashboard' && mobileDashTab === 'strengths') ||
     isStrengthAnalyticsTabActive
   )
-  // KP has its own mobile bottom bar (with Dashboard link); avoid stacking two bars.
-  const showMainDashBottomNav = isMobile && !!chart && activeTab !== 'kp-stellar'
+  const showMainDashBottomNav = isMobile && !!chart
   const strengthSubNavStacked = showMainDashBottomNav && showStrengthSubNav
   const highlightedDashTab: MobileDashTab | null =
     activeTab === 'dashboard' ? mobileDashTab : null
@@ -1974,7 +1973,7 @@ function HomeContent() {
                 ) : activeTab === 'naamkaran' ? (
                   <NaamkaranPanel chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'kp-stellar' ? (
-                  <KPStellarPanel chart={chart} />
+                  <KPStellarPanel chart={chart} userPlan={userPlan} />
                 ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}
