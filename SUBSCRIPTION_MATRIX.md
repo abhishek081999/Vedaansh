@@ -34,6 +34,9 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Client CRM item ops (GET/PATCH/POST/DELETE) | No | No | Yes | `src/app/api/clients/[id]/route.ts` |
 | White-label brand fields | No | No | Yes | `src/app/api/user/me/route.ts`, `src/app/api/chart/public/route.ts`, export/email branding |
 | Muhurta pages/APIs | No | Yes | Yes | `src/proxy.ts` (`/muhurta`, `/api/muhurta`) |
+| Astrocartography map, lines, parans, yogatara parans, overlays, compare (raw activation score) | Yes | Yes | Yes | `src/app/api/chart/astrocartography/route.ts` (public, rate limited) |
+| Astrocartography read through the chart (functional nature, dasha timing, relocated chart, solar return per place, couples) | Teaser | Yes | Yes | UI only: `src/lib/engine/acgChartProfile.ts` runs on the chart the user already holds; `AcgPlaceDrawer`, `AstroCartographyAnalysis`, `AcgCouplePanel` (`PlanGate`) |
+| Astrocartography transit windows over a place | No | Yes | Yes | `src/app/api/chart/acg-transits/route.ts` (`requirePlanGate('gold')`), `src/proxy.ts` (`GOLD_API`) |
 | Vimshottari MD/AD full interpretation (“More”) | Teaser only | Yes | Yes | UI: `DashaInterpretationPanel` (`userPlan` / Gold+) |
 | Interpretation hub (overview, planets, houses, rashis, strength, transit, dasha) | Overview tone map + first 3 themes (also on public `/chart/[slug]`) | Yes | Yes | UI: `InterpretationHub` (`userPlan` / Gold+) |
 | AI prompt export (copy chart as a prompt for ChatGPT / Claude / Gemini; topic studies incl. personality, career, marriage, love, wealth, health, education, children, spirituality) | All calculations, aspects, Shadbala, dashas, rule-based overview, and each topic's method + extracted data | + Interpretation hub notes and Vedaansh engine readings per topic (career, marriage, love, personality, D4 wealth, spirituality) | Yes | UI: `AiPromptButton` → pure `buildAiPrompt()` in `src/lib/engine/aiPrompt.ts` (plan passed in; client-side, no API) |

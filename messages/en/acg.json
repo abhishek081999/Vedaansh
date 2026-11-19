@@ -24,12 +24,16 @@
     "map": "Map",
     "cities": "Cities",
     "cross": "Cross",
-    "guide": "Guide"
+    "guide": "Guide",
+    "compare": "Compare",
+    "couple": "Couple"
   },
   "analysisTabs": {
     "cities": "Top Cities",
     "parans": "Crossings",
-    "guide": "Guide"
+    "guide": "Guide",
+    "compare": "Compare",
+    "couple": "Couple"
   },
   "themes": {
     "all": "All",
@@ -46,7 +50,8 @@
     "Ju": "Growth & Wisdom",
     "Ve": "Love & Beauty",
     "Sa": "Discipline & Legacy",
-    "Ra": "Transformation"
+    "Ra": "Transformation",
+    "Ke": "Detachment & Insight"
   },
   "coords": {
     "latitude": "Latitude",
@@ -72,7 +77,7 @@
     "descendant": "Descendant",
     "flyToBirth": "⊕ Fly to Birth Location",
     "rising": "{rashi} Rising",
-    "nearest": "{planet} {line} · {dist}° away",
+    "nearest": "{planet} {line} · {km} km away",
     "loading": "Calculating Planetary Vectors…",
     "birth": "Birth",
     "selected": "Selected",
@@ -85,12 +90,24 @@
     "legendMc": "MC · Career",
     "legendIc": "IC · Home",
     "legendAs": "AS · Identity",
-    "legendDs": "DS · Relations"
+    "legendDs": "DS · Relations",
+    "nearbyTitle": "Other lines in orb",
+    "noneInOrb": "No line within 800 km; this place is fairly neutral.",
+    "km": "{km} km",
+    "transitDs": "⟳ {planet} DS (Transit)",
+    "paranTooltip": "{p1} {a1} × {p2} {a2} crossing",
+    "transitHint": "Today's planets drawn in your natal frame (cyclocartography), so lines move with the planets.",
+    "dashaFocus": "Dasha lords",
+    "dashaFocusTitle": "Show only your current Mahadasha and Antardasha lords",
+    "mdShort": "MD",
+    "adShort": "AD",
+    "transitIc": "⟳ {planet} IC (Transit)",
+    "partnerLine": "{name}: {planet} {line}"
   },
   "cities": {
-    "intro": "Cities scored by proximity to your natal planetary lines and paran latitudes.",
+    "intro": "Cities scored by distance to your natal MC, IC, AS and DS lines (800 km orb) and paran latitude bands.",
     "empty": "Activate planetary layers to discover your top resonance cities.",
-    "offset": "· {deg}° offset",
+    "offset": "· {km} km",
     "names": {
       "delhi": "Delhi",
       "mumbai": "Mumbai",
@@ -125,7 +142,18 @@
       "saoPaulo": "Sao Paulo",
       "buenosAires": "Buenos Aires",
       "mexicoCity": "Mexico City"
-    }
+    },
+    "km": "{km} km",
+    "paranOnly": "{n} paran band(s)",
+    "introWeighted": "Ranked through your chart: lines of yogakaraka and functional benefics count for you, difficult lords against, and current dasha lords count more.",
+    "sortSupportive": "Most supportive",
+    "sortIntensity": "Most active",
+    "goldTeaser": "Gold ranks cities through your chart, separating supportive places from intense ones, and shows when each switches on in your dashas.",
+    "viewPlans": "View plans",
+    "activeWhen": "Switches on in",
+    "maha": "{planet} Mahadasha",
+    "antar": "{planet} Antardasha in {parent} MD",
+    "addCompare": "＋ Add to compare"
   },
   "parans": {
     "intro": "Parans are latitudinal bands where two planetary lines cross — zones of intensified combined energy.",
@@ -147,7 +175,8 @@
       "Sa-Ju": "Structure meets growth — serious long-term ambitions with practical wisdom.",
       "Sa-Me": "Precision meets thought — analytical depth; excellent for research and engineering.",
       "Ra-Ju": "Transformation meets opportunity — unconventional paths to great success."
-    }
+    },
+    "band": "Active along the {lat} latitude band"
   },
   "guide": {
     "filter": "Filter by life area",
@@ -178,6 +207,97 @@
         "label": "Home",
         "desc": "Domestic environment and ancestral roots."
       }
-    }
+    },
+    "vedicNote": "Lines are read the Vedic way: functional nature by lagna, dig bala on the angles, Parashari drishti, and Vimshottari timing. Astrocartography itself is a modern technique; no classical text maps lines on the globe."
+  },
+  "layers": {
+    "title": "Overlays",
+    "heatmap": "Heatmap",
+    "aspects": "Vedic drishti lines (Mars, Jupiter, Saturn)",
+    "localSpace": "Local space from birth place",
+    "paranBands": "Paran latitude bands",
+    "stars": "Nakshatra star parans",
+    "partner": "Partner lines",
+    "localSpaceTooltip": "{planet} local space direction",
+    "bandTooltip": "{p1} × {p2} paran latitude",
+    "starParanGraha": "{planet} {a1} while {nakshatra} ({star}) is {a2}",
+    "starParanStar": "{nakshatra} ({star}) {a1} while {planet} is {a2}",
+    "drishtiTooltip": "{planet} {n, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} drishti on the 10th bhava (MC)"
+  },
+  "nature": {
+    "yogakaraka": "Yogakaraka",
+    "benefic": "Supportive",
+    "mixed": "Mixed",
+    "malefic": "Challenging"
+  },
+  "drawer": {
+    "close": "Close",
+    "loading": "Calculating…",
+    "retry": "Try again",
+    "relocatedTitle": "Relocated chart",
+    "vargaLagnas": "Navamsha (D9) lagna {d9} · Dashamsha (D10) lagna {d10}",
+    "houseShift": "Natal house {from}, here house {to}",
+    "house": "H{h}",
+    "houseShiftShort": "H{from}→H{to}",
+    "kendra": "In kendras here: {list}",
+    "leftKendra": "leave kendras: {list}",
+    "dashaTitle": "When these lines switch on (Vimshottari)",
+    "maha": "{planet} Mahadasha",
+    "antar": "{planet} Antardasha in {parent} MD",
+    "mahaNow": "Running MD",
+    "antarNow": "Running AD",
+    "transitTitle": "Transits over this place (next 3 years)",
+    "transitButton": "Find Jupiter, Saturn, Rahu, Ketu and Mars passes",
+    "transitNone": "No slow-planet line passes within 250 km in the next 3 years.",
+    "peak": "peak {date}",
+    "srTitle": "Solar return here",
+    "srButton": "Cast this year's Varshaphal for this place",
+    "srResult": "Varsha lagna {lagna} · Muntha in {muntha} · Sun in house {house}",
+    "goldTeaser": "Gold reads these lines through your chart: yogakaraka and functional benefics, dasha timing, the relocated chart, transits and a solar return for this place.",
+    "viewPlans": "View plans",
+    "addCompare": "＋ Add to compare",
+    "added": "Added to compare",
+    "digFull": "Full dig bala",
+    "digNone": "No dig bala",
+    "digFullHint": "This graha has full directional strength on this angle (BPHS dig bala).",
+    "digNoneHint": "This graha has no directional strength on this angle (BPHS dig bala)."
+  },
+  "compare": {
+    "intro": "Shortlist up to three places and see them side by side.",
+    "introGold": "Shortlist up to three places. Scores are read through your chart: supportive minus challenging, with dasha timing.",
+    "full": "Shortlist full ({n} places)",
+    "searchPlaceholder": "Add any city…",
+    "empty": "Add places here, or use \"Add to compare\" on the map or in Top Cities.",
+    "showOnMap": "Show on map",
+    "remove": "Remove",
+    "noLines": "No line in orb",
+    "km": "{km} km",
+    "parans": "{n} paran band(s)",
+    "nextDasha": "Next: {planet} period from {date}"
+  },
+  "couple": {
+    "intro": "Add a second chart to overlay their lines (purple, dotted) and find places that work for both of you.",
+    "partnerLoaded": "Overlaying {name}",
+    "clear": "Remove",
+    "fromSaved": "Saved chart",
+    "enterDetails": "Enter details",
+    "pickChart": "Pick a saved chart…",
+    "name": "Name",
+    "date": "Birth date",
+    "time": "Birth time",
+    "place": "Birth place",
+    "loading": "Calculating…",
+    "addPartner": "Add partner",
+    "error": "Could not calculate that chart. Check the details and try again.",
+    "empty": "No reference city has a line for either of you. Add places in Compare.",
+    "you": "You {score}",
+    "them": "{name} {score}",
+    "gateFeature": "Couples astrocartography"
+  },
+  "stars": {
+    "title": "Nakshatra star parans",
+    "intro": "Where a graha meets the yogatara (junction star) of a nakshatra on the angles. Read them as the nakshatra's quality colouring that latitude.",
+    "rowGraha": "{planet} {a1} · {nakshatra} ({star}) {a2}",
+    "rowStar": "{nakshatra} ({star}) {a1} · {planet} {a2}"
   }
 }

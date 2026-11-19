@@ -22,6 +22,7 @@ const PROTECTED_API = [
   '/api/chart/toggle-public',
   '/api/chart/send-email',
   '/api/chart/template',
+  '/api/chart/acg-transits',
   '/api/user',
   '/api/muhurta',
   '/api/research',
@@ -32,7 +33,7 @@ const PROTECTED_API = [
 ]
 
 const GOLD_ROUTES = ['/muhurta']
-const GOLD_API = ['/api/muhurta', '/api/chart/export', '/api/chart/export-xlsx']
+const GOLD_API = ['/api/muhurta', '/api/chart/export', '/api/chart/export-xlsx', '/api/chart/acg-transits']
 
 const PLATINUM_ROUTES = ['/research']
 const PLATINUM_API = ['/api/research']

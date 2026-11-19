@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+// Loaded with the route, not only with the lazily imported map, so dev reloads keep it.
+import 'leaflet/dist/leaflet.css'
 import { getTranslations } from 'next-intl/server'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { IntlScope } from '@/components/providers/IntlScope'

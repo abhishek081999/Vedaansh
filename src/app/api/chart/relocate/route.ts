@@ -30,7 +30,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
+      // Tropical; the client subtracts the chart's ayanamsha.
       relocatedAsc: houseData.ascendant,
+      relocatedMc: houseData.mc,
       relocatedCusps: houseData.cusps
     })
 

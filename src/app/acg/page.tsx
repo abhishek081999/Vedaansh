@@ -1,12 +1,19 @@
 'use client'
+// @refresh reset — remount the Leaflet map on Fast Refresh instead of reattaching it.
 
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { useSession } from 'next-auth/react'
 import { useChart } from '@/components/providers/ChartProvider'
+import type { GrahaId, UserPlan } from '@/types/astrology'
+import { buildAcgChartProfile } from '@/lib/engine/acgChartProfile'
+import type { ACGDataBundle, ACGLineData, ACGNatalInfo, ACGParan, ACGStarParan, ComparePoint } from '@/components/ui/acgTypes'
+import type { PartnerState } from '@/components/ui/AcgCouplePanel'
+import { COMPARE_MAX } from '@/components/ui/AcgComparePanel'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
-import { Globe, Map, Sparkles, BookOpen } from 'lucide-react'
+import { Globe, Map, Sparkles, BookOpen, Scale, HeartHandshake } from 'lucide-react'
 import type { ACGAnalysisTab } from '@/components/ui/AstroCartographyAnalysis'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 
@@ -20,9 +27,32 @@ export default function ACGPage() {
   const tStats = useTranslations('acg.stats')
   const tMobile = useTranslations('acg.mobileTabs')
   const { chart } = useChart()
-  const [selectedPlanets, setSelectedPlanets] = useState<Set<any>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
-  const [activeParans, setActiveParans] = useState<any[]>([])
-  const [natalData, setNatalData] = useState<any[]>([])
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as { plan?: string } | undefined)?.plan ?? 'free') as UserPlan
+  const [selectedPlanets, setSelectedPlanets] = useState<Set<GrahaId>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
+  const [activeParans, setActiveParans] = useState<ACGParan[]>([])
+  const [starParans, setStarParans] = useState<ACGStarParan[]>([])
+  const [natalData, setNatalData] = useState<ACGLineData[]>([])
+  const [comparePoints, setComparePoints] = useState<ComparePoint[]>([])
+  const [focusPoint, setFocusPoint] = useState<ComparePoint | null>(null)
+  const [partner, setPartner] = useState<PartnerState | null>(null)
+
+  const profile = useMemo(() => (chart ? buildAcgChartProfile(chart) : null), [chart])
+  const natalInfo = useMemo<ACGNatalInfo | null>(() => chart ? {
+    name: chart.meta.name,
+    birthDate: chart.meta.birthDate,
+    ayanamsha: chart.meta.ayanamshaValue,
+    ascRashi: chart.lagnas.ascRashi,
+    sunSidereal: chart.grahas.find(g => g.id === 'Su')?.totalDegree,
+    settings: chart.meta.settings,
+    gender: chart.meta.gender,
+    grahas: chart.grahas.filter(g => ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'].includes(g.id)).map(g => ({ id: g.id, totalDegree: g.totalDegree })),
+  } : null, [chart])
+
+  const addCompare = useCallback((p: ComparePoint) => {
+    setComparePoints(prev => prev.some(x => x.id === p.id) || prev.length >= COMPARE_MAX ? prev : [...prev, p])
+  }, [])
+  const removeCompare = useCallback((id: string) => setComparePoints(prev => prev.filter(p => p.id !== id)), [])
   const [isMobile, setIsMobile] = useState(false)
   const [mobileView, setMobileView] = useState<MobileView>('map')
 
@@ -38,25 +68,32 @@ export default function ACGPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [mobileView, isMobile])
 
-  const handlePlanetsChange = useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
-    setSelectedPlanets(planets)
-    setActiveParans(parans)
-    if (rawNatal) setNatalData(rawNatal)
+  const handleDataChange = useCallback((d: ACGDataBundle) => {
+    setSelectedPlanets(d.visible)
+    setActiveParans(d.parans)
+    setStarParans(d.starParans)
+    setNatalData(d.natal)
+  }, [])
+  const focusPlace = useCallback((p: ComparePoint) => {
+    setFocusPoint({ ...p })
+    setMobileView('map')
   }, [])
 
   const mobileTabs = [
     { id: 'map' as const, icon: Map, label: tMobile('map') },
     { id: 'cities' as const, icon: Globe, label: tMobile('cities') },
     { id: 'parans' as const, icon: Sparkles, label: tMobile('cross') },
+    { id: 'compare' as const, icon: Scale, label: tMobile('compare') },
+    { id: 'couple' as const, icon: HeartHandshake, label: tMobile('couple') },
     { id: 'guide' as const, icon: BookOpen, label: tMobile('guide') },
   ]
 
   const analysisTab: ACGAnalysisTab =
-    mobileView === 'cities' || mobileView === 'parans' || mobileView === 'guide'
+    mobileView !== 'map'
       ? mobileView
       : 'cities'
 
-  if (!chart) {
+  if (!chart || !natalInfo) {
     return (
       <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: isMobile ? '2rem 1rem' : '4rem 2rem', minHeight: '80vh' }}>
         <div className="card glass-glow" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: isMobile ? '2rem' : '3.5rem', position: 'relative', overflow: 'hidden' }}>
@@ -158,7 +195,13 @@ export default function ACGPage() {
             <AstroCartographyMap 
               jd={chart.meta.julianDay} 
               birthCoords={[chart.meta.latitude, chart.meta.longitude]} 
-              onVisiblePlanetsChange={handlePlanetsChange}
+              natal={natalInfo}
+              profile={profile}
+              userPlan={userPlan}
+              partner={partner}
+              focusPoint={focusPoint}
+              onDataChange={handleDataChange}
+              onAddCompare={addCompare}
             />
           </div>
         )}
@@ -184,7 +227,16 @@ export default function ACGPage() {
             <AstroCartographyAnalysis 
               visiblePlanets={selectedPlanets} 
               parans={activeParans}
+              starParans={starParans}
               natalData={natalData}
+              profile={profile}
+              userPlan={userPlan}
+              comparePoints={comparePoints}
+              onAddCompare={addCompare}
+              onRemoveCompare={removeCompare}
+              onFocusPlace={focusPlace}
+              partner={partner}
+              onPartner={setPartner}
               activeTab={isMobile ? analysisTab : undefined}
               onTabChange={isMobile ? (tab) => setMobileView(tab) : undefined}
               hideTabBar={isMobile}
