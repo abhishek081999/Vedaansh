@@ -90,6 +90,8 @@
   cursor: pointer;
 }
 .dayCell:hover:not(:disabled) { border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.dayToday { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 25%, transparent); }
+.dayMissed { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, var(--border)); }
 .dayDone {
   color: var(--text-gold);
   border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
@@ -591,3 +593,5 @@ fieldset.mini legend { padding: 0 0.2rem; }
   .printArea { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; background: none; }
   .noPrint { display: none; }
 }
+
+.gate { min-height: 8.5rem; }

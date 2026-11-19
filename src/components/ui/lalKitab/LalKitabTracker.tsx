@@ -1,6 +1,7 @@
 'use client'
-// 43-day remedy tracker (Gold+). Start from a recommended upay, tick
-// consecutive days; a miss forces restart.
+// 43-day remedy tracker (Gold+). Start from a recommended upay and tick
+// each calendar day; only today can be ticked, and a missed day forces
+// a restart. The server works out "today" and enforces the same rule.
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
@@ -18,6 +19,18 @@ interface TrackerRow {
   days: boolean[]
   status: 'active' | 'completed' | 'abandoned'
   chartKey: string
+  todayIndex: number
+  missed: boolean
+  over: boolean
+  canTick: boolean
+}
+
+function browserTimeZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    return undefined
+  }
 }
 
 export function LalKitabTracker({
@@ -60,7 +73,7 @@ export function LalKitabTracker({
       const res = await fetch('/api/lal-kitab/remedies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chartKey, upayId }),
+        body: JSON.stringify({ chartKey, upayId, timeZone: browserTimeZone() }),
       })
       const data = await res.json()
       if (!data.success) {
@@ -98,7 +111,7 @@ export function LalKitabTracker({
     }
   }
 
-  const active = rows.filter((r) => r.status === 'active')
+  const active = rows.filter((r) => r.status === 'active' || r.status === 'completed')
   const starters = reading.remedies.top.slice(0, 5)
 
   const full = (
@@ -122,20 +135,29 @@ export function LalKitabTracker({
                 {lkGrahaName(r.planet as Parameters<typeof lkGrahaName>[0], lang)} · {t('dayProgress', { done, total: r.days.length })}
               </h4>
               <p className={styles.miniText}>{upayText}</p>
+              {r.status === 'completed' ? <p className={styles.note}>{t('completed')}</p>
+                : r.missed ? <p className={styles.empty} role="alert">{t('missed')}</p>
+                  : <p className={styles.note}>{r.days[r.todayIndex] ? t('todayDone') : t('todayOpen', { n: r.todayIndex + 1 })}</p>}
               <div className={styles.dayGrid} role="group" aria-label={t('daysLabel')}>
-                {r.days.map((ok, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={ok ? `${styles.dayCell} ${styles.dayDone}` : styles.dayCell}
-                    disabled={busy}
-                    aria-pressed={ok}
-                    aria-label={t('dayN', { n: i + 1 })}
-                    onClick={() => void patch(r._id, { action: ok ? 'untick' : 'tick', dayIndex: i })}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {r.days.map((ok, i) => {
+                  const isToday = i === r.todayIndex && !r.over
+                  const lost = !ok && i < r.todayIndex
+                  const cls = [styles.dayCell, ok ? styles.dayDone : '', isToday ? styles.dayToday : '', lost ? styles.dayMissed : ''].filter(Boolean).join(' ')
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      className={cls}
+                      disabled={busy || !isToday || r.missed}
+                      aria-pressed={ok}
+                      aria-current={isToday ? 'date' : undefined}
+                      aria-label={t(lost ? 'dayMissedN' : 'dayN', { n: i + 1 })}
+                      onClick={() => void patch(r._id, { action: ok ? 'untick' : 'tick', dayIndex: i })}
+                    >
+                      {i + 1}
+                    </button>
+                  )
+                })}
               </div>
               <div className={styles.cardHead}>
                 <button type="button" className={styles.segBtn} disabled={busy} onClick={() => void patch(r._id, { action: 'restart' })}>

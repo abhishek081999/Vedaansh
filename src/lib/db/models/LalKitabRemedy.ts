@@ -19,6 +19,8 @@ export interface ILalKitabRemedy extends Document {
   upayId: string
   planet: string
   startedAt: Date
+  /** IANA time zone that fixes where each calendar day starts. */
+  timeZone: string
   /** Length = planned days (usually 43). true = day done. */
   days: boolean[]
   status: LalKitabRemedyStatus
@@ -33,6 +35,7 @@ const LalKitabRemedySchema = new Schema<ILalKitabRemedy>({
   upayId:   { type: String, required: true, trim: true, maxlength: 64 },
   planet:   { type: String, required: true, trim: true, maxlength: 8 },
   startedAt:{ type: Date, required: true, default: () => new Date() },
+  timeZone: { type: String, trim: true, maxlength: 64, default: 'UTC' },
   days:     { type: [Boolean], required: true, default: () => Array.from({ length: 43 }, () => false) },
   status:   { type: String, enum: ['active', 'completed', 'abandoned'], default: 'active' },
 }, { timestamps: true })

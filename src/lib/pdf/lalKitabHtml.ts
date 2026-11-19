@@ -51,8 +51,8 @@ export function generateLalKitabHTML(
   const printBtn = hi ? t!.print : 'Print / Save PDF'
   const h1 = hi ? t!.h1 : 'Lal Kitab Report'
   const metaLine = hi
-    ? `${esc(brand)} · ${esc(name)} · ${chart.meta.birthDate} · ${t!.yearOfLife} ${year} · ${t!.cycle} ${esc(lkGrahaName(cycle.planet, lang))}`
-    : `${esc(brand)} · ${esc(name)} · ${chart.meta.birthDate} · Year of life ${year} · Cycle ${esc(lkGrahaName(cycle.planet, lang))}`
+    ? `${esc(brand)} · ${esc(name)} · ${esc(chart.meta.birthDate)} · ${t!.yearOfLife} ${year} · ${t!.cycle} ${esc(lkGrahaName(cycle.planet, lang))}`
+    : `${esc(brand)} · ${esc(name)} · ${esc(chart.meta.birthDate)} · Year of life ${year} · Cycle ${esc(lkGrahaName(cycle.planet, lang))}`
 
   return `<!DOCTYPE html>
 <html lang="${hi ? 'hi' : 'en'}">
