@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import type { UserPlan } from '@/types/astrology'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import styles from './LalKitab.module.css'
 
 export function useGold(userPlan: UserPlan): boolean {
   return planMeetsUiGate(userPlan, 'gold')
@@ -16,5 +17,10 @@ export function useGold(userPlan: UserPlan): boolean {
 export function LalKitabGate({ userPlan, full, teaser }: { userPlan: UserPlan; full: React.ReactNode; teaser: React.ReactNode }) {
   const t = useTranslations('lalKitab.panel')
   if (planMeetsUiGate(userPlan, 'gold')) return <>{full}</>
-  return <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>{teaser}</PlanGate>
+  // min-height keeps the lock label and button clear of a one-line teaser.
+  return (
+    <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')} className={`plan-gate ${styles.gate}`}>
+      {teaser}
+    </PlanGate>
+  )
 }

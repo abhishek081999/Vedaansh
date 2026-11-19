@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { useChart } from '@/components/providers/ChartProvider'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 
 export function ChartRequiredPrompt({ title, description }: Props) {
   const { openBirthForm } = useChart()
+  const t = useTranslations('common.actions')
 
   return (
     <div style={{
@@ -27,7 +29,7 @@ export function ChartRequiredPrompt({ title, description }: Props) {
         {description}
       </p>
       <button type="button" onClick={openBirthForm} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
-        Open Birth Form
+        {t('openBirthForm')}
       </button>
     </div>
   )

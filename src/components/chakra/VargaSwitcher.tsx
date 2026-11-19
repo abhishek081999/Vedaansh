@@ -115,9 +115,9 @@ function Pill({ meta, plan, state, onClick }: {
         padding:'0.26rem 0.65rem', fontSize:'0.82rem',
         fontFamily:'var(--font-mono)', cursor:'pointer',
         border:'1px solid', borderRadius:'4px', transition:interactiveTransition('0.12s'),
-        background: !unlocked?'transparent':state==='primary'?'var(--gold-faint)':state==='secondary'?'var(--surface-gold-soft)':'transparent',
-        borderColor: !unlocked?'var(--border-soft)':state==='primary'?'var(--gold)':state==='secondary'?'var(--gold-light)':'var(--border)',
-        color: !unlocked?'var(--text-muted)':state==='primary'?'var(--gold)':state==='secondary'?'var(--gold-light)':'var(--text-muted)',
+        background: !unlocked?'transparent':state==='primary'?'var(--gold-faint)':state==='secondary'?'var(--accent-glow)':'transparent',
+        borderColor: !unlocked?'var(--border-soft)':state==='primary'?'var(--gold)':state==='secondary'?'var(--accent)':'var(--border)',
+        color: !unlocked?'var(--text-muted)':state==='primary'?'var(--gold)':state==='secondary'?'var(--accent)':'var(--text-muted)',
         opacity: unlocked?1:0.5, display:'inline-flex', alignItems:'center', gap:'0.2rem',
       }}>
       {!unlocked && <span style={{fontSize:'0.6rem'}}>&#x1F512;</span>}
@@ -130,11 +130,11 @@ function UpgradeNudge({ plan }: { plan: UserPlan }) {
   return null
 }
 
-function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'primary' | 'secondary' }) {
-  const isPrimary = accent === 'primary'
+function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }) {
+  const isGold = accent === 'gold'
   return (
     <div style={{ display:'flex', alignItems:'center', gap:'0.4rem', minWidth: 0, overflow: 'hidden' }}>
-      <span style={{ fontFamily:'var(--font-mono)', fontSize:'0.78rem', fontWeight:700, color:isPrimary?'var(--gold)':'var(--gold-light)', flexShrink: 0 }}>
+      <span style={{ fontFamily:'var(--font-mono)', fontSize:'0.78rem', fontWeight:700, color:isGold?'var(--gold)':'var(--accent)', flexShrink: 0 }}>
         {meta.name}
       </span>
       <span style={{ fontSize:'0.78rem', color:'var(--text-muted)', fontStyle:'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -335,13 +335,12 @@ export function VargaSwitcher({
           const { raw: vArudhas, bphs: vArudhasBphs } = buildArudhaBundle(varAscRashi, grahas)
 
           return (
-            <div key={idx} className="fade-up varga-chart-panel" style={{
-              padding: '0.55rem 0.6rem 0.65rem',
-              background: 'var(--surface-2)',
-              border: `1px solid ${idx === 0 ? 'var(--border-bright)' : 'var(--border)'}`,
-              borderRadius: 'var(--r-md)',
-              boxShadow: 'var(--shadow-card)',
-              display: 'flex', flexDirection: 'column',
+            <div key={idx} className="fade-up" style={{
+              padding: '0.4rem 0.5rem 0.5rem',
+              background: 'var(--surface-1)',
+              border: `1px solid ${idx===0 ? 'rgba(201,168,76,0.3)' : 'var(--border-soft)'}`,
+              borderRadius: 'var(--r-sm)',
+              display: 'flex', flexDirection: 'column'
             }}>
               {/* Chart header row — label OR select, never both (avoids overlap) */}
               <div style={{
@@ -349,8 +348,8 @@ export function VargaSwitcher({
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 gap: '0.5rem',
-                marginBottom: '0.35rem',
-                paddingBottom: '0.35rem',
+                marginBottom: '0.3rem',
+                paddingBottom: '0.3rem',
                 borderBottom: '1px solid var(--border-soft)',
                 minWidth: 0,
               }}>
@@ -365,8 +364,8 @@ export function VargaSwitcher({
                     style={{
                       ...selectStyleBase,
                       flex: 1,
-                      borderColor: idx === 0 ? 'var(--border-bright)' : 'color-mix(in oklab, var(--gold-light) 55%, var(--border))',
-                      color: idx === 0 ? 'var(--gold)' : 'var(--gold-light)',
+                      borderColor: idx === 0 ? 'rgba(201,168,76,0.45)' : 'var(--accent)',
+                      color: idx === 0 ? 'var(--gold)' : 'var(--accent)',
                       fontWeight: 700,
                       fontFamily: 'var(--font-mono)',
                     }}
@@ -374,7 +373,7 @@ export function VargaSwitcher({
                     <VargaOptions available={available} plan={userPlan} vargas={vargas} short={isMobile} />
                   </select>
                 ) : (
-                  <ChartLabel meta={meta} accent="primary" />
+                  <ChartLabel meta={meta} accent="gold" />
                 )}
 
                 <SettingsBtn

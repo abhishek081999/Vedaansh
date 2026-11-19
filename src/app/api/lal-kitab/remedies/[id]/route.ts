@@ -11,6 +11,8 @@ import connectDB from '@/lib/db/mongodb'
 import { LalKitabRemedy } from '@/lib/db/models/LalKitabRemedy'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requirePlanGate } from '@/lib/security/planAccess'
+import { lkTrackerState } from '@/lib/engine/lalKitab/trackerDays'
+import { toTrackerClient } from '@/lib/lalKitab/trackerSerialize'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -61,23 +63,23 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
     if (parsed.data.action === 'tick' || parsed.data.action === 'untick') {
       const i = parsed.data.dayIndex
-      if (i >= remedy.days.length) {
-        return NextResponse.json({ success: false, error: 'Day out of range' }, { status: 400 })
+      if (remedy.status !== 'active' && !(remedy.status === 'completed' && parsed.data.action === 'untick')) {
+        return NextResponse.json({ success: false, error: 'This remedy is not running.' }, { status: 409 })
       }
-      // Missed day before this one → force restart (Lal Kitab 43-day rule).
-      if (parsed.data.action === 'tick') {
-        const missed = remedy.days.slice(0, i).some((d) => !d)
-        if (missed && i > 0) {
-          return NextResponse.json({
-            success: false,
-            error: 'A day was missed. Restart the remedy from day 1.',
-            mustRestart: true,
-          }, { status: 409 })
-        }
-        remedy.days[i] = true
-      } else {
-        remedy.days[i] = false
+      // Days follow the calendar in the tracker's time zone: only today
+      // can be ticked or unticked, and a missed earlier day breaks the run.
+      const state = lkTrackerState(remedy.days, remedy.startedAt, new Date(), remedy.timeZone || 'UTC')
+      if (state.missed) {
+        return NextResponse.json({
+          success: false,
+          error: 'A day was missed. Restart the remedy from day 1.',
+          mustRestart: true,
+        }, { status: 409 })
       }
+      if (state.over || i !== state.todayIndex) {
+        return NextResponse.json({ success: false, error: 'Only today can be marked.' }, { status: 400 })
+      }
+      remedy.days[i] = parsed.data.action === 'tick'
       if (remedy.days.every(Boolean)) remedy.status = 'completed'
       else if (remedy.status === 'completed') remedy.status = 'active'
       remedy.markModified('days')
@@ -91,18 +93,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     }
 
     await remedy.save()
-    return NextResponse.json({
-      success: true,
-      remedy: {
-        _id: remedy._id.toString(),
-        upayId: remedy.upayId,
-        planet: remedy.planet,
-        startedAt: remedy.startedAt,
-        days: remedy.days,
-        status: remedy.status,
-        chartKey: remedy.chartKey,
-      },
-    })
+    return NextResponse.json({ success: true, remedy: toTrackerClient(remedy) })
   } catch (err) {
     console.error('[lal-kitab/remedies/patch]', err)
     return NextResponse.json({ success: false, error: 'Failed to update remedy' }, { status: 500 })

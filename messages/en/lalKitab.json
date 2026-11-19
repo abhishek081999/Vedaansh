@@ -496,7 +496,7 @@
   },
   "tracker": {
     "title": "43-day remedy tracker",
-    "lede": "Start one recommended remedy, tick each day in order. If you miss a day, restart from day 1.",
+    "lede": "Start one recommended remedy and tick it off each day. Only today's box can be ticked; if you miss a day, restart from day 1.",
     "activeTitle": "In progress",
     "noneActive": "No remedy is running for this chart.",
     "startTitle": "Start a remedy",
@@ -512,7 +512,12 @@
     "teaser": "Saved 43-day progress for your remedies is part of Gold.",
     "loadFail": "Could not load trackers.",
     "startFail": "Could not start the remedy.",
-    "updateFail": "Could not update the day."
+    "updateFail": "Could not update the day.",
+    "todayOpen": "Today is day {n}. Tick it once you have done the remedy.",
+    "todayDone": "Today is done. Come back tomorrow.",
+    "missed": "A day was missed, so this run is broken. Restart to begin again from day 1.",
+    "completed": "All days done. This remedy is complete.",
+    "dayMissedN": "Day {n}, missed"
   },
   "correction": {
     "title": "Teva check from life signs",

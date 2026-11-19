@@ -971,6 +971,8 @@ function HomeContent() {
             }
           }
         })
+        // Network blips (offline, dev server restarting) — keep the cached/default state.
+        .catch(() => {})
         .finally(() => setFetchingDefault(false))
     }
   }, [status])
@@ -984,6 +986,7 @@ function HomeContent() {
         .then(json => {
             if (json.success) setTodayPanchang(json.data)
         })
+        .catch(() => {})
     }
   }, [chart, activeTab, todayPanchang])
 

@@ -12,6 +12,8 @@ import { LalKitabRemedy } from '@/lib/db/models/LalKitabRemedy'
 import { LK_UPAY } from '@/lib/engine/lalKitab/catalogue/upay'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requirePlanGate } from '@/lib/security/planAccess'
+import { lkIsTimeZone } from '@/lib/engine/lalKitab/trackerDays'
+import { toTrackerClient } from '@/lib/lalKitab/trackerSerialize'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,6 +22,8 @@ const StartSchema = z.object({
   chartKey: z.string().trim().min(3).max(120),
   chartId: z.string().trim().optional(),
   upayId: z.string().trim().min(2).max(64),
+  /** The user's IANA time zone; fixes where each tracker day starts. */
+  timeZone: z.string().trim().max(64).optional(),
 })
 
 export async function GET(req: NextRequest) {
@@ -46,7 +50,8 @@ export async function GET(req: NextRequest) {
       .limit(40)
       .lean()
 
-    return NextResponse.json({ success: true, remedies })
+    const now = new Date()
+    return NextResponse.json({ success: true, remedies: remedies.map((r) => toTrackerClient(r, now)) })
   } catch (err) {
     console.error('[lal-kitab/remedies/list]', err)
     return NextResponse.json({ success: false, error: 'Failed to load remedies' }, { status: 500 })
@@ -103,22 +108,12 @@ export async function POST(req: NextRequest) {
       upayId: upay.id,
       planet: upay.planet,
       startedAt: new Date(),
+      timeZone: parsed.data.timeZone && lkIsTimeZone(parsed.data.timeZone) ? parsed.data.timeZone : 'UTC',
       days: Array.from({ length: daysCount }, () => false),
       status: 'active',
     })
 
-    return NextResponse.json({
-      success: true,
-      remedy: {
-        _id: remedy._id.toString(),
-        upayId: remedy.upayId,
-        planet: remedy.planet,
-        startedAt: remedy.startedAt,
-        days: remedy.days,
-        status: remedy.status,
-        chartKey: remedy.chartKey,
-      },
-    })
+    return NextResponse.json({ success: true, remedy: toTrackerClient(remedy) })
   } catch (err) {
     console.error('[lal-kitab/remedies/start]', err)
     return NextResponse.json({ success: false, error: 'Failed to start remedy' }, { status: 500 })

@@ -66,5 +66,7 @@ export { LK_PARHEZ, LK_PLANET_DAY, LK_PROBLEMS, LK_UPAY, LK_UPAY_EDITION, LK_UPA
 export type { LkParhez, LkProblemId, LkUpay, LkUpayCost, LkUpayKind } from './catalogue/upay'
 export { lkFindRemedies, lkParhezFor, lkRemedyPlan, lkUpayFor } from './remedies'
 export type { LkConflictReason, LkPlanetRemedies, LkProblemResult, LkRemedyChoice, LkRemedyPlan } from './remedies'
+export { lkCalendarDate, lkIsTimeZone, lkTrackerDayIndex, lkTrackerState } from './trackerDays'
+export type { LkTrackerState } from './trackerDays'
 export { LK_ALL_RULES, LK_ALL_TEXT, LK_ALL_TEXT_HI, describeLkStep, lkGrahaName, readLalKitab } from './read'
 export type { LalKitabReading, LkFinding, LkHouseView, LkPlanetView, ReadLalKitabOptions } from './read'

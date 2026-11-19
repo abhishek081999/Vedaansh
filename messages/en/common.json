@@ -52,7 +52,8 @@
     "edit": "Edit",
     "delete": "Delete",
     "search": "Search",
-    "submit": "Submit"
+    "submit": "Submit",
+    "openBirthForm": "Open Birth Form"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

@@ -11,7 +11,7 @@
    src/app/globals.css
    Design System — Jyotisha Platform
    Themes: [data-theme="dark"] · [data-theme="light"] · [data-theme="classic"]
-   Dark: warm charcoal + copper · Light: cool parchment · Classic: dewa.guru maroon/cream
+   Dark: warm charcoal + copper · Light: plum & gold (lilac mist) · Classic: dewa.guru maroon/cream
    ═══════════════════════════════════════════════════════════════ */
 
 /* Fonts are loaded via next/font/google in layout.tsx — no @import needed */
@@ -161,8 +161,6 @@
   /* Chart specific labels — warm copper signs (not lime) on dark */
   --chart-sign-green: #c4a574;
   --chart-label-muted: rgba(239, 136, 69, 0.45);
-  --chart-house-highlight: rgba(239, 136, 69, 0.16);
-  --chart-grid-stroke: rgba(239, 136, 69, 0.48);
 
   /* ── Sarvatobhadra Chakra cell colours (dark) ── */
   --sbc-nak-bg:   rgba(55, 42, 130, 0.72);
@@ -225,7 +223,8 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  /* Clean, modern typography weights for better legibility */
+  /* Plum & Gold — lilac-mist surfaces (no cream), aubergine ink-brand,
+     antique-gold secondary. Every text token clears WCAG AA (4.5:1) on surface-1/2. */
   --font-smooth-mac: antialiased;
   --font-smooth-moz: grayscale;
   --fw-base: 400;
@@ -234,141 +233,138 @@
   --fw-medium: 500;
   --fw-bold: 600;
 
-  /* Surfaces: Warm parchment — premium spiritual aesthetic */
-  --bg-page: #faf7f2;
-  --surface-0: #faf7f2;
-  --surface-1: #fffdf9;
-  --surface-2: #f5f0e8;
-  --surface-3: #ebe4d8;
-  --surface-4: #d9d0c0;
+  /* Surfaces: cool lilac-mist ramp */
+  --bg-page: #f7f4f8;
+  --surface-0: #f7f4f8;
+  --surface-1: #ffffff;
+  --surface-2: #f2edf4;
+  --surface-3: #e7dfeb;
+  --surface-4: #d5c8dc;
 
-  /* Primary Accent: Professional minimal indigo */
-  --primary-brand: #4f46e5; /* indigo-600 */
-  --header-bg: rgba(255, 255, 255, 0.85);
-  --header-text: #0f172a;
-  --header-text-muted: #64748b;
-  --header-border: #e2e8f0;
-  --header-rule: #b48600;
-  --header-divider: #e2e8f0;
+  --primary-brand: #5a1e4e;
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --header-text: #1f1320;
+  --header-text-muted: #5a4a5c;
+  --header-border: #ebe3ee;
+  --header-rule: #5a1e4e;
+  --header-divider: #ebe3ee;
 
-  /* Gold: Refined modern bronze */
-  --gold: #b48600;
-  --gold-light: #d97706;  /* amber-600 */
-  --gold-dim: #92400e;
-  --gold-soft: rgba(180, 134, 0, 0.65);
-  --gold-faint: rgba(217, 119, 6, 0.08);
-  --surface-gold-soft: rgba(180, 134, 0, 0.08);
+  /* Brand (token name stays --gold): aubergine plum */
+  --gold: #5a1e4e;
+  --gold-light: #7a3a6c;
+  --gold-dim: #3f1236;
+  --gold-soft: rgba(90, 30, 78, 0.66);
+  --gold-faint: rgba(90, 30, 78, 0.07);
+  --surface-gold-soft: rgba(90, 30, 78, 0.05);
 
-  /* Secondary Accents */
-  --accent: #6366f1;
-  --accent-dim: #4f46e5;
-  --accent-glow: rgba(99, 102, 241, 0.15);
+  /* Secondary accent: antique gold (#8a5a10 is the text-safe shade) */
+  --accent: #8a5a10;
+  --accent-dim: #6e470b;
+  --accent-glow: rgba(200, 145, 58, 0.18);
+  --accent-bright: #c8913a;
 
   /* Status */
-  --rose: #e11d48;
-  --rose-soft: rgba(225, 29, 72, 0.72);
-  --teal: #0d9488;
-  --teal-soft: rgba(13, 148, 136, 0.72);
-  --amber: #d97706;
+  --rose: #be123c;
+  --rose-soft: rgba(190, 18, 60, 0.72);
+  --teal: #0f766e;
+  --teal-soft: rgba(15, 118, 110, 0.72);
+  --amber: #a15c07;
 
   /* Dignity */
-  --dig-retro: #e11d48;
-  --dig-exalted: #0d9488;
-  --dig-moola: #b48600;
-  --dig-own: #4f46e5;
-  --dig-neutral: #64748b;
-  --dig-debilitate: #94a3b8;
+  --dig-retro: #be123c;
+  --dig-exalted: #0f766e;
+  --dig-moola: #a15c07;
+  --dig-own: #5a1e4e;
+  --dig-neutral: #6b5c6e;
+  --dig-debilitate: #94879a;
 
-  /* Text: Clean high-contrast slate */
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --text-gold: #b48600;
-  /* Dark ink on gold fills: cream text measured 2.96:1 on #b48600 (fails AA). */
-  --text-on-gold: #1c1606;
+  /* Text: plum-black ink */
+  --text-primary: #1f1320;
+  --text-secondary: #4a3a4c;
+  --text-muted: #6b5c6e;
+  --text-gold: #5a1e4e;
+  --text-on-gold: #ffffff; /* 12:1 on #5a1e4e */
 
-  /* Borders: Soft slate edges */
-  --border: #e2e8f0;
-  --border-soft: #f1f5f9;
-  --border-bright: #cbd5e1;
-  --border-accent: rgba(99, 102, 241, 0.25);
+  /* Borders: lilac hairlines */
+  --border: #e6dee9;
+  --border-soft: #efe9f1;
+  --border-bright: #cfc1d5;
+  --border-accent: rgba(200, 145, 58, 0.34);
 
-  /* Shadows */
-  --glow-gold: 0 0 20px rgba(217, 119, 6, 0.12);
-  --glow-gold-sm: rgba(217, 119, 6, 0.14);
-  --glow-accent: 0 0 20px rgba(99, 102, 241, 0.14);
-  --shadow-deep: 0 10px 40px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.03);
-  --shadow-lift: 0 12px 30px rgba(0, 0, 0, 0.08);
+  /* Shadows — plum-tinted, soft */
+  --glow-gold: 0 0 20px rgba(90, 30, 78, 0.14);
+  --glow-gold-sm: rgba(90, 30, 78, 0.14);
+  --glow-accent: 0 0 20px rgba(200, 145, 58, 0.16);
+  --shadow-deep: 0 10px 40px rgba(45, 15, 40, 0.08);
+  --shadow-card: 0 1px 2px rgba(45, 15, 40, 0.05), 0 4px 16px rgba(45, 15, 40, 0.04);
+  --shadow-lift: 0 12px 32px rgba(45, 15, 40, 0.12);
 
   /* Ambient orbs (AppFramework) */
-  --orb-1: rgba(99, 102, 241, 0.08);
-  --orb-2: rgba(180, 134, 0, 0.07);
+  --orb-1: rgba(122, 58, 108, 0.07);
+  --orb-2: rgba(200, 145, 58, 0.05);
 
-  /* Background gradient: Subtly cool and minimal */
+  /* Background gradient: faint plum dusk at top */
   --bg-gradient:
-    radial-gradient(circle at 50% -20%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(122, 58, 108, 0.06) 0%, transparent 60%),
     var(--bg-page);
 
   --vedic-yantra-stack:
-    radial-gradient(ellipse 120% 82% at 50% 42%, rgba(255, 253, 248, 0.06) 0%, rgba(248, 250, 252, 0.45) 52%, rgba(248, 250, 252, 0.82) 100%),
-    linear-gradient(165deg, rgba(253, 251, 245, 0.36) 0%, rgba(248, 250, 252, 0.82) 100%),
+    radial-gradient(ellipse 120% 82% at 50% 42%, rgba(255, 255, 255, 0.08) 0%, rgba(247, 244, 248, 0.5) 52%, rgba(247, 244, 248, 0.86) 100%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.4) 0%, rgba(247, 244, 248, 0.86) 100%),
     var(--vedic-yantra-image);
 
-  --scrollbar-track: #f8fafc;
-  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-track: #f2edf4;
+  --scrollbar-thumb: #cfc1d5;
   /* Chart specific labels */
   --chart-sign-green: #15803d;
-  --chart-label-muted: rgba(15, 23, 42, 0.35);
-  --chart-house-highlight: rgba(180, 134, 0, 0.12);
-  --chart-grid-stroke: rgba(180, 134, 0, 0.40);
+  --chart-label-muted: rgba(31, 19, 32, 0.42);
 
   /* ── Sarvatobhadra Chakra cell colours (light) ── */
-  --sbc-nak-bg:   rgba(99, 80, 200, 0.12);
-  --sbc-nak-vdh:  rgba(99, 80, 200, 0.22);
-  --sbc-nak-txt:  #312e81;
-  --sbc-rashi-bg: rgba(180, 120, 10, 0.10);
-  --sbc-rashi-vdh:rgba(180, 120, 10, 0.22);
-  --sbc-rashi-txt:#78350f;
-  --sbc-vara-bg:  rgba(109, 40, 217, 0.10);
-  --sbc-vara-vdh: rgba(109, 40, 217, 0.20);
-  --sbc-vara-txt: #4c1d95;
-  --sbc-vowel-bg: rgba(13, 148, 136, 0.08);
-  --sbc-vowel-vdh:rgba(13, 148, 136, 0.18);
-  --sbc-vowel-txt:#0f766e;
-  --sbc-cons-bg:  rgba(100, 116, 139, 0.08);
-  --sbc-cons-vdh: rgba(100, 116, 139, 0.18);
-  --sbc-cons-txt: #475569;
-  --sbc-center-bg:rgba(180, 134, 0, 0.14);
-  --sbc-center-txt:#78350f;
-  --sbc-empty-bg: rgba(241, 245, 249, 0.80);
-  --sbc-grid-bg:  rgba(248, 250, 252, 0.98);
-  --sbc-grid-bdr: rgba(99, 80, 200, 0.25);
-  --sbc-hov-bdr:  rgba(180, 134, 0, 0.80);
-  --sbc-hov-shd:  0 0 12px rgba(180, 134, 0, 0.30);
-  --sbc-act-bdr:  rgba(225, 29, 72, 0.60);
-  --sbc-act-shd:  0 0 8px rgba(225, 29, 72, 0.20);
-  --sbc-vdh-bdr:  rgba(180, 134, 0, 0.22);
-  --sbc-center-bdr:rgba(180, 134, 0, 0.50);
+  --sbc-nak-bg:   rgba(90, 30, 78, 0.08);
+  --sbc-nak-vdh:  rgba(90, 30, 78, 0.18);
+  --sbc-nak-txt:  #5a1e4e;
+  --sbc-rashi-bg: rgba(200, 145, 58, 0.12);
+  --sbc-rashi-vdh:rgba(200, 145, 58, 0.26);
+  --sbc-rashi-txt:#6e470b;
+  --sbc-vara-bg:  rgba(29, 78, 216, 0.07);
+  --sbc-vara-vdh: rgba(29, 78, 216, 0.16);
+  --sbc-vara-txt: #1e40af;
+  --sbc-vowel-bg: rgba(15, 118, 110, 0.08);
+  --sbc-vowel-vdh:rgba(15, 118, 110, 0.18);
+  --sbc-vowel-txt:#0f625b;
+  --sbc-cons-bg:  rgba(107, 92, 110, 0.07);
+  --sbc-cons-vdh: rgba(107, 92, 110, 0.16);
+  --sbc-cons-txt: #4a3a4c;
+  --sbc-center-bg:rgba(90, 30, 78, 0.12);
+  --sbc-center-txt:#5a1e4e;
+  --sbc-empty-bg: rgba(242, 237, 244, 0.8);
+  --sbc-grid-bg:  rgba(255, 255, 255, 0.98);
+  --sbc-grid-bdr: rgba(107, 92, 110, 0.22);
+  --sbc-hov-bdr:  rgba(90, 30, 78, 0.8);
+  --sbc-hov-shd:  0 0 12px rgba(90, 30, 78, 0.24);
+  --sbc-act-bdr:  rgba(190, 18, 60, 0.6);
+  --sbc-act-shd:  0 0 8px rgba(190, 18, 60, 0.2);
+  --sbc-vdh-bdr:  rgba(90, 30, 78, 0.22);
+  --sbc-center-bdr:rgba(90, 30, 78, 0.5);
 
-  /* Branding accents (Theme-aware - Light) */
-  --logo-bg: #FDF4C1;
-  --logo-border: #C06C2D;
-  --logo-gradient: linear-gradient(to bottom, #FDF4C1, #FCF5E5);
-  --logo-text-title: #8b4513;
-  --logo-text-sub: #C06C2D;
+  /* Branding accents */
+  --logo-bg: #f4ecf3;
+  --logo-border: #c8913a;
+  --logo-gradient: linear-gradient(to bottom, #f4ecf3, #f7f4f8);
+  --logo-text-title: #2a0f25;
+  --logo-text-sub: #8a5a10;
 
-  /* Section differentiation colors (Light theme) */
-  --section-gold: #b48600;
-  --section-gold-gradient: linear-gradient(135deg, #d97706 0%, #b48600 100%);
-  --section-violet: #4f46e5;
-  --section-violet-gradient: linear-gradient(135deg, #6366f1 0%, #3730a3 100%);
-  --section-teal: #0d9488;
-  --section-teal-gradient: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
-  --section-rose: #e11d48;
-  --section-rose-gradient: linear-gradient(135deg, #fb7185 0%, #9f1239 100%);
-  --section-bronze: #4f46e5;
-  --section-bronze-gradient: linear-gradient(135deg, #818cf8 0%, #4338ca 100%);
+  /* Section differentiation colors */
+  --section-gold: #5a1e4e;
+  --section-gold-gradient: linear-gradient(135deg, #7a3a6c 0%, #3f1236 100%);
+  --section-violet: #6d28d9;
+  --section-violet-gradient: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%);
+  --section-teal: #0f766e;
+  --section-teal-gradient: linear-gradient(135deg, #14958b 0%, #0f625b 100%);
+  --section-rose: #be123c;
+  --section-rose-gradient: linear-gradient(135deg, #e2456b 0%, #8f0f2e 100%);
+  --section-bronze: #8a5a10;
+  --section-bronze-gradient: linear-gradient(135deg, #d9a54a 0%, #8a5a10 100%);
 }
 
 /* ── Classic theme tokens (deva.guru–inspired) ─────────────────
@@ -474,8 +470,6 @@
   /* Chart specific labels */
   --chart-sign-green: #2d5a27;
   --chart-label-muted: rgba(51, 51, 51, 0.4);
-  --chart-house-highlight: rgba(140, 0, 48, 0.10);
-  --chart-grid-stroke: rgba(140, 0, 48, 0.35);
 
   /* ── Sarvatobhadra Chakra cell colours (classic) ── */
   --sbc-nak-bg:   rgba(74, 63, 140, 0.12);
@@ -938,6 +932,17 @@ code,
   box-shadow: 0 6px 28px rgba(239, 136, 69, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .chart-mobile-action-btn--primary {
+  background: linear-gradient(135deg, #7a3a6c 0%, #5a1e4e 55%, #3f1236 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 12px rgba(90, 30, 78, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="light"] .btn-primary:hover {
+  box-shadow: 0 6px 22px rgba(90, 30, 78, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 [data-theme="classic"] .btn-primary {
   background: linear-gradient(135deg, #6b0025 0%, var(--gold) 55%, #a81848 100%);
   box-shadow: 0 2px 12px rgba(140, 0, 48, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -1168,9 +1173,9 @@ select.input {
 }
 
 [data-theme="light"] .badge-gold {
-  background: rgba(180, 134, 0, 0.12);
-  color: #b48600;
-  border-color: rgba(180, 134, 0, 0.3);
+  background: rgba(90, 30, 78, 0.09);
+  color: #3f1236;
+  border-color: rgba(90, 30, 78, 0.26);
 }
 
 [data-theme="classic"] .badge-gold {
@@ -1494,7 +1499,7 @@ select.input {
 }
 
 [data-theme="light"] ::selection {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(122, 58, 108, 0.22);
 }
 
 /* ── Focus visible ──────────────────────────────────────────── */
@@ -1752,8 +1757,8 @@ select.input {
   background: rgba(255, 255, 255, 0.97) !important;
   backdrop-filter: blur(20px) saturate(1.5) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
-  border-right-color: rgba(99, 102, 241, 0.08) !important;
-  --sidenav-link-active-bg: linear-gradient(90deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.01) 100%);
+  border-right-color: #ebe3ee !important;
+  --sidenav-link-active-bg: linear-gradient(90deg, rgba(90, 30, 78, 0.09) 0%, rgba(90, 30, 78, 0.01) 100%);
 }
 
 [data-theme="classic"] .sidenav {
@@ -1775,7 +1780,7 @@ select.input {
 }
 
 [data-theme="light"] .sidenav.open {
-  box-shadow: 6px 0 30px rgba(99, 102, 241, 0.04);
+  box-shadow: 6px 0 30px rgba(45, 15, 40, 0.08);
 }
 
 [data-theme="classic"] .sidenav.open {
@@ -4749,7 +4754,7 @@ select.input {
 
 .landing-hero-primary-btn {
   min-width: 220px;
-  box-shadow: 0 8px 24px rgba(180, 134, 0, 0.25);
+  box-shadow: 0 8px 24px var(--glow-gold-sm);
 }
 
 .landing-hero-secondary-btn {
@@ -6933,6 +6938,10 @@ select.input {
   background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 245, 0.88) 100%);
 }
 
+[data-theme='light'] .plan-gate__overlay {
+  background: linear-gradient(180deg, transparent 0%, rgba(244, 246, 251, 0.9) 100%);
+}
+
 .plan-gate__label {
   display: inline-flex;
   align-items: center;
@@ -8542,19 +8551,22 @@ select.input {
 }
 
 [data-theme='light'] .cosmic-wheel {
-  --cw-line: color-mix(in oklab, var(--cw-accent) 72%, #3a2408);
-  --cw-disc-1: #fffaf0;
-  --cw-disc-2: #fbf1dc;
-  --cw-disc-3: #f0dfba;
-  --cw-rim-hi: #e9c46a;
-  --cw-rim-lo: #8a6400;
-  --cw-hub: rgba(255, 252, 244, 0.86);
-  --cw-ink: #2a1c08;
-  --cw-ink-soft: #4a3714;
-  --cw-ink-muted: #6b5a3a;
-  --cw-shukla-fill: rgba(217, 165, 40, 0.28);
-  --cw-shukla-ink: #7a5500;
-  --cw-shadow: rgba(120, 85, 20, 0.26);
+  --cw-band: rgba(63, 18, 54, 0.34);
+  --cw-star: #b07a1f;
+  --cw-moon-edge: rgba(45, 15, 40, 0.4);
+  --cw-line: color-mix(in oklab, var(--cw-accent) 72%, #1f1320);
+  --cw-disc-1: #ffffff;
+  --cw-disc-2: #f6f1f7;
+  --cw-disc-3: #ece2ef;
+  --cw-rim-hi: #e3c48a;
+  --cw-rim-lo: #3f1236;
+  --cw-hub: rgba(255, 255, 255, 0.88);
+  --cw-ink: #1f1320;
+  --cw-ink-soft: #3d2c40;
+  --cw-ink-muted: #6b5c6e;
+  --cw-shukla-fill: rgba(234, 179, 8, 0.26);
+  --cw-shukla-ink: #854d0e;
+  --cw-shadow: rgba(60, 20, 55, 0.22);
 }
 
 [data-theme='classic'] .cosmic-wheel {
@@ -9685,4 +9697,308 @@ html[lang^="hi"][data-theme='dark'] .landing-premium-hero-title {
   .landing-shell [data-spotlight]:hover {
     transform: none;
   }
+}
+
+/* ═══ Light header — Plum & Gold ═════════════════════════════════
+   Frosted white bar with a plum→gold hairline, serif wordmark,
+   quiet ink nav with a gold dot under the active item, plum pill CTA. */
+[data-theme="light"] .app-header {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: saturate(1.4) blur(16px) !important;
+  -webkit-backdrop-filter: saturate(1.4) blur(16px) !important;
+  border-bottom: 1px solid var(--header-border) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 6px 24px rgba(45, 15, 40, 0.05);
+}
+
+[data-theme="light"] .app-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(90, 30, 78, 0.55) 25%, #c8913a 50%, rgba(90, 30, 78, 0.55) 75%, transparent 100%);
+}
+
+[data-theme="light"] .app-header-brand-logo {
+  box-shadow: 0 1px 3px rgba(45, 15, 40, 0.16), 0 0 0 1.5px rgba(200, 145, 58, 0.55);
+}
+
+[data-theme="light"] .app-header-brand-text .logo-title-header {
+  color: var(--logo-text-title);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+[data-theme="light"] .app-header-brand:hover .logo-title-header {
+  color: var(--gold) !important;
+}
+
+[data-theme="light"] .app-header-brand-sub {
+  color: var(--logo-text-sub);
+  opacity: 1;
+}
+
+/* Ghost icon buttons */
+[data-theme="light"] .app-header-toggler,
+[data-theme="light"] .app-header .theme-toggle-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--header-text-muted) !important;
+}
+
+[data-theme="light"] .app-header-toggler:hover,
+[data-theme="light"] .app-header .theme-toggle-btn:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--gold) !important;
+  box-shadow: none;
+}
+
+/* Nav — ink text, soft lilac hover, plum text + gold dot when active */
+[data-theme="light"] .app-header-nav-link,
+[data-theme="light"] .app-header-dropdown-trigger {
+  color: var(--header-text-muted) !important;
+  font-weight: 500;
+  font-size: 0.82rem;
+  letter-spacing: 0.005em;
+}
+
+[data-theme="light"] .app-header-nav-link:hover,
+[data-theme="light"] .app-header-dropdown-trigger:hover {
+  color: var(--gold) !important;
+  background: var(--surface-2) !important;
+}
+
+[data-theme="light"] .app-header-nav-link--active,
+[data-theme="light"] .app-header-dropdown-trigger.app-header-nav-link--active {
+  color: var(--gold) !important;
+  font-weight: 600;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+[data-theme="light"] .app-header-nav > .app-header-nav-link--active::after,
+[data-theme="light"] .app-header-dropdown-trigger.app-header-nav-link--active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 999px;
+  background: #c8913a;
+  box-shadow: 0 0 0 2px rgba(200, 145, 58, 0.18);
+}
+
+/* Dropdown panels */
+[data-theme="light"] .app-header-dropdown-panel {
+  border-color: var(--border) !important;
+  box-shadow: 0 18px 48px rgba(45, 15, 40, 0.12), 0 2px 6px rgba(45, 15, 40, 0.05) !important;
+}
+
+/* Divider before the right cluster */
+[data-theme="light"] .app-header-right::before {
+  background: var(--border);
+}
+
+/* Profile pill */
+[data-theme="light"] .app-header-profile-btn {
+  background: var(--surface-1);
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(45, 15, 40, 0.04);
+}
+
+[data-theme="light"] .app-header-profile-btn:hover,
+[data-theme="light"] .app-header-profile-btn[aria-expanded='true'] {
+  background: var(--surface-1);
+  border-color: rgba(200, 145, 58, 0.6);
+}
+
+[data-theme="light"] .app-header-avatar {
+  background: linear-gradient(135deg, #7a3a6c 0%, #3f1236 100%);
+  border-color: transparent;
+  color: #f6dfae;
+}
+
+/* Sign in — plum pill like the primary CTA */
+[data-theme="light"] .app-header-signin {
+  background: var(--gold);
+  color: #ffffff;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(63, 18, 54, 0.3), 0 6px 16px rgba(90, 30, 78, 0.22);
+}
+
+[data-theme="light"] .app-header-signin:hover {
+  background: var(--gold-dim);
+  box-shadow: 0 0 0 2px rgba(200, 145, 58, 0.45), 0 6px 16px rgba(90, 30, 78, 0.24);
+  filter: none;
+}
+
+/* ═══ Modern header (all themes) ═════════════════════════════════
+   Taller bar, nav grouped in one rounded track centred between the
+   brand and the actions, active page shown as a raised chip, and
+   every right-hand control the same 36px pill height. Colours come
+   from the --hdr-* tokens below so each theme only sets tokens. */
+.app-header {
+  --hdr-track-bg: var(--surface-2);
+  --hdr-track-border: var(--border-soft);
+  --hdr-link: var(--header-text-muted);
+  --hdr-link-hover: var(--text-primary);
+  --hdr-link-hover-bg: rgba(0, 0, 0, 0.04);
+  --hdr-chip-bg: var(--surface-1);
+  --hdr-chip-text: var(--gold);
+  --hdr-chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --hdr-ctrl-bg: var(--surface-2);
+  --hdr-ctrl-border: var(--border-soft);
+  --hdr-ctrl-text: var(--header-text-muted);
+}
+
+[data-theme="dark"] .app-header {
+  --hdr-track-bg: rgba(255, 255, 255, 0.035);
+  --hdr-track-border: rgba(255, 255, 255, 0.07);
+  --hdr-link-hover-bg: rgba(255, 255, 255, 0.05);
+  --hdr-chip-bg: rgba(255, 255, 255, 0.1);
+  --hdr-chip-text: var(--text-primary);
+  --hdr-chip-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --hdr-ctrl-bg: rgba(255, 255, 255, 0.04);
+  --hdr-ctrl-border: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .app-header {
+  --hdr-track-bg: #f5f0f7;
+  --hdr-track-border: #ece4ef;
+  --hdr-link-hover: var(--gold);
+  --hdr-link-hover-bg: rgba(90, 30, 78, 0.05);
+  --hdr-chip-bg: #ffffff;
+  --hdr-chip-text: var(--gold);
+  --hdr-chip-shadow: 0 1px 2px rgba(45, 15, 40, 0.1), 0 0 0 1px rgba(90, 30, 78, 0.08);
+  --hdr-ctrl-bg: #ffffff;
+  --hdr-ctrl-border: var(--border);
+}
+
+[data-theme="classic"] .app-header {
+  --hdr-track-bg: rgba(0, 0, 0, 0.16);
+  --hdr-track-border: rgba(255, 255, 255, 0.1);
+  --hdr-link: rgba(255, 255, 255, 0.88);
+  --hdr-link-hover: #ffffff;
+  --hdr-link-hover-bg: rgba(255, 255, 255, 0.1);
+  --hdr-chip-bg: #ffffff;
+  --hdr-chip-text: var(--primary-brand);
+  --hdr-chip-shadow: 0 1px 3px rgba(40, 0, 12, 0.3);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --app-header-height: 64px;
+  }
+
+  .app-header {
+    column-gap: 1.5rem;
+    padding: 0 1.5rem;
+  }
+
+  html:root .app-header .app-header-nav {
+    justify-self: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--hdr-track-bg);
+    border: 1px solid var(--hdr-track-border);
+    min-width: 0;
+  }
+}
+
+html:root .app-header .app-header-nav-link,
+html:root .app-header .app-header-dropdown-trigger {
+  color: var(--hdr-link) !important;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  box-shadow: none !important;
+}
+
+html:root .app-header .app-header-nav-link:hover:not(.app-header-nav-link--active),
+html:root .app-header .app-header-dropdown-trigger:hover:not(.app-header-nav-link--active) {
+  color: var(--hdr-link-hover) !important;
+  background: var(--hdr-link-hover-bg) !important;
+}
+
+html:root .app-header .app-header-nav > .app-header-nav-link--active,
+html:root .app-header .app-header-dropdown-trigger.app-header-nav-link--active {
+  color: var(--hdr-chip-text) !important;
+  background: var(--hdr-chip-bg) !important;
+  box-shadow: var(--hdr-chip-shadow) !important;
+  font-weight: 600;
+}
+
+html:root .app-header .app-header-nav > .app-header-nav-link--active::after,
+html:root .app-header .app-header-dropdown-trigger.app-header-nav-link--active::after {
+  content: none;
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  html:root .app-header .app-header-nav-link,
+  html:root .app-header .app-header-dropdown-trigger {
+    padding: 0.48rem 0.6rem;
+    font-size: 0.78rem;
+  }
+}
+
+/* Right cluster: one 36px pill height for every control */
+html:root .app-header .app-header-right {
+  gap: 0.5rem;
+}
+
+html:root .app-header .app-header-toggler,
+html:root .app-header .theme-toggle-btn,
+html:root .app-header .lang-switcher {
+  height: 36px;
+  min-width: 36px;
+  border-radius: 999px;
+}
+
+html:root .app-header .app-header-toggler {
+  width: 36px;
+}
+
+html:root .app-header .lang-switcher {
+  padding: 0 0.8rem;
+}
+
+html:root:not([data-theme="classic"]) .app-header .lang-switcher,
+html:root:not([data-theme="classic"]) .app-header .theme-toggle-btn {
+  background: var(--hdr-ctrl-bg) !important;
+  border: 1px solid var(--hdr-ctrl-border) !important;
+  color: var(--hdr-ctrl-text) !important;
+}
+
+html:root:not([data-theme="classic"]) .app-header .lang-switcher:hover,
+html:root:not([data-theme="classic"]) .app-header .theme-toggle-btn:hover {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+  box-shadow: none;
+}
+
+html:root .app-header .app-header-signin {
+  height: 36px;
+  padding: 0 1.05rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Brand: slightly larger mark, tighter wordmark */
+html:root .app-header .app-header-brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+html:root .app-header .app-header-brand-text .logo-title-header {
+  font-size: 1.15rem;
+  letter-spacing: -0.005em;
 }
