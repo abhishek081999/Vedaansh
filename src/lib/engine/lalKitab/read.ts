@@ -15,6 +15,7 @@ import { LK_STATE_RULES, LK_STATE_TEXT } from './catalogue/states'
 import { lkConjunctions, type LkConjunction } from './conjunctions'
 import { lkMasnuiFormed, type LkMasnuiDef } from './masnui'
 import { LK_HOUSE_WAKER, type LkStates } from './states'
+import { lkAreaReadings, lkPhalReadings, type LkAreaReading, type LkPhalReading } from './phal'
 import { buildTeva, type LkTeva } from './chart'
 import { LK_FOUNDATION_RULES, LK_FOUNDATION_TEXT } from './catalogue/foundation'
 import type { LkRule, LkRuleText } from './catalogue/types'
@@ -86,6 +87,10 @@ export interface LalKitabReading {
   states: LkStates
   conjunctions: (LkConjunction & { label: string; text: string })[]
   masnui: { def: LkMasnuiDef; house: LkHouse; label: string; text: string }[]
+  /** One planet-in-house reading per planet, with the side that applies. */
+  phal: LkPhalReading[]
+  /** Life areas built from the readings. */
+  areas: LkAreaReading[]
 }
 
 export interface ReadLalKitabOptions {
@@ -249,6 +254,7 @@ export function readLalKitab(chart: ChartOutput, opts: ReadLalKitabOptions = {})
   const chandra = buildTeva(chart, 'chandra')
   const facts = lkFactsFromTeva(teva, opts.ageYears)
   const findings = evaluateRules(LK_ALL_RULES, facts).map((m) => toFinding(m.rule, m.trail, facts, lang))
+  const phal = lkPhalReadings(facts, lang)
   const withText = (key: string, house: LkHouse) => {
     const t = ruleText(key, lang)
     return { label: t.label, text: fill(t.text, { house }) }
@@ -265,5 +271,7 @@ export function readLalKitab(chart: ChartOutput, opts: ReadLalKitabOptions = {})
     states: facts.states,
     conjunctions: lkConjunctions(teva).map((c) => ({ ...c, ...withText(`pair.${c.id}`, c.house) })),
     masnui: lkMasnuiFormed(teva).map((m) => ({ ...m, ...withText(`masnui.${m.def.id}`, m.house) })),
+    phal,
+    areas: lkAreaReadings(phal),
   }
 }

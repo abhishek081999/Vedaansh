@@ -344,3 +344,48 @@
 .matrix tbody th { text-align: left; }
 .matrix td { color: var(--text-muted); }
 .matrix td.rel_friend, .matrix td.rel_enemy { font-weight: 700; }
+
+.toneTag {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.tone_strong .toneTag, .side_good { color: var(--teal); }
+.tone_weak .toneTag, .side_hard { color: var(--rose); }
+.side_mixed { color: var(--amber); }
+.side_good, .side_hard, .side_mixed { font-weight: 650; }
+
+.voices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.voices li { display: flex; flex-direction: column; gap: 0.15rem; }
+.voiceHead { font-size: 0.74rem; font-weight: 600; color: var(--text-muted); }
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 32px;
+  padding: 0.2rem 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.check input { margin-top: 0.2rem; width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--gold); }
+
+fieldset.mini { margin: 0; min-width: 0; }
+fieldset.mini legend { padding: 0 0.2rem; }
+
+.status_confirmed { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, var(--border)); }
+.status_signsOnly { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); }
+.status_chartOnly { color: var(--text-secondary); }
+.status_clear { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 45%, var(--border)); }

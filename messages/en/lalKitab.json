@@ -15,6 +15,8 @@
     "views": {
       "overview": "Overview",
       "teva": "Teva",
+      "predictions": "Predictions",
+      "nishaniyan": "Signs in life",
       "planets": "Planets",
       "houses": "Houses",
       "drishti": "Drishti",
@@ -69,7 +71,7 @@
     },
     "takkarTitle": "Takkar (collision)",
     "takkarEmpty": "No planet strikes another by takkar.",
-    "comingNext": "Coming next: the 108 house readings, signs in life, doshas, debts, remedies and Varshphal.",
+    "comingNext": "Coming next: doshas, debts (rin), remedies and Varshphal.",
     "gateFeature": "The full Lal Kitab reading",
     "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
   },
@@ -195,7 +197,12 @@
     "lookedBy": "Looked at by",
     "takkarBy": "Takkar from",
     "none": "None",
-    "noFindings": "No rule applies to this planet alone."
+    "noFindings": "No rule applies to this planet alone.",
+    "side": {
+      "good": "Good side",
+      "hard": "Hard side",
+      "mixed": "Both sides"
+    }
   },
   "houses": {
     "title": "Houses",
@@ -226,5 +233,82 @@
     "pairsEmpty": "No two planets share a house.",
     "becomes": "Acts as {planet}",
     "commentary": "commentary"
+  },
+  "predictions": {
+    "areasTitle": "By life area",
+    "areasLede": "Each area is read from the planets in its houses and from its karaka planets.",
+    "areas": {
+      "wealth": "Wealth",
+      "career": "Career",
+      "marriage": "Marriage",
+      "children": "Children",
+      "health": "Health",
+      "property": "Home and property",
+      "education": "Education",
+      "travel": "Travel and abroad",
+      "siblings": "Siblings",
+      "parents": "Parents",
+      "enemies": "Enemies and disputes",
+      "longevity": "Longevity and health care",
+      "spiritual": "Spiritual life"
+    },
+    "tone": {
+      "strong": "Supported",
+      "mixed": "Mixed",
+      "weak": "Needs care",
+      "quiet": "Quiet"
+    },
+    "quietText": "No planet sits in this area's houses, and its karakas are not placed, so it follows the rest of the chart.",
+    "role": {
+      "inHouse": "in this area's house",
+      "karaka": "karaka"
+    },
+    "side": {
+      "good": "good side",
+      "hard": "hard side",
+      "mixed": "both sides"
+    },
+    "phalTitle": "Planet by planet",
+    "phalLede": "Each planet's reading in its house. The side shown is the one the chart's state points to.",
+    "planetInHouse": "{planet} in house {house}",
+    "reason": {
+      "dharmi": "It is dharmi, so it does no harm",
+      "uchcha": "It is exalted here",
+      "pakka": "It is in its permanent house",
+      "neech": "It is debilitated here",
+      "enemyWith": "An enemy shares its house",
+      "enemyAspect": "An enemy aspects it",
+      "enemyTakkar": "An enemy strikes it by takkar",
+      "safe": "No enemy harms it"
+    },
+    "asleep": "It is asleep, so it gives this result only once woken",
+    "maturity": "Its results ripen from about age {age}",
+    "otherGood": "When strengthened",
+    "otherHard": "If it is harmed",
+    "source": "These readings restate each planet's karakas in each house in our own words. They will be checked against the 1952 edition."
+  },
+  "nishaniyan": {
+    "resultTitle": "What your signs confirm",
+    "resultLede": "Tick the signs below that you see in your life. Each planet's signs are compared with what the chart says.",
+    "clear": "Clear ticks",
+    "planet": "Planet",
+    "chart": "Chart says",
+    "signs": "Signs",
+    "verdict": "Verdict",
+    "side": {
+      "good": "Good",
+      "hard": "Hard",
+      "mixed": "Mixed"
+    },
+    "status": {
+      "confirmed": "Confirmed hard",
+      "signsOnly": "Signs, chart good",
+      "chartOnly": "Chart hard, no signs",
+      "clear": "Clear"
+    },
+    "signsOnlyHint": "Signs without a hard reading can mean the birth time is off, or that the planet is hard in the current year's chart (Varshphal comes in a later update).",
+    "listTitle": "Signs in life",
+    "listLede": "Lal Kitab reads these everyday signs as a planet turning hard. Tick only what has happened to you or your home.",
+    "privacy": "Your ticks are kept only in this browser."
   }
 }

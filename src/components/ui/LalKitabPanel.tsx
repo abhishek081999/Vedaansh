@@ -1,14 +1,14 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/LalKitabPanel.tsx
-//  Lal Kitab section: Overview, Teva, Planets, Houses, Drishti,
-//  Combinations and Learn. The engine runs in the browser on the
+//  Lal Kitab section: Overview, Teva, Predictions, Nishaniyan, Planets,
+//  Houses, Drishti, Combinations and Learn. The engine runs in the browser on the
 //  chart already loaded; Gold views are gated visually (LalKitabGate).
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { BookOpen, Eye, Grid3x3, Home, LayoutDashboard, Link2, Orbit } from 'lucide-react'
+import { BookOpen, Eye, Grid3x3, Home, LayoutDashboard, Link2, ListChecks, Orbit, ScrollText } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
@@ -20,13 +20,17 @@ import { LalKitabPlanets } from '@/components/ui/lalKitab/LalKitabPlanets'
 import { LalKitabHouses } from '@/components/ui/lalKitab/LalKitabHouses'
 import { LalKitabDrishti } from '@/components/ui/lalKitab/LalKitabDrishti'
 import { LalKitabCombos } from '@/components/ui/lalKitab/LalKitabCombos'
+import { LalKitabPredictions } from '@/components/ui/lalKitab/LalKitabPredictions'
+import { LalKitabNishaniyan } from '@/components/ui/lalKitab/LalKitabNishaniyan'
 import styles from './lalKitab/LalKitab.module.css'
 
-type LkView = 'overview' | 'teva' | 'planets' | 'houses' | 'drishti' | 'combos' | 'learn'
+type LkView = 'overview' | 'teva' | 'predictions' | 'nishaniyan' | 'planets' | 'houses' | 'drishti' | 'combos' | 'learn'
 
 const VIEWS: { id: LkView; icon: LucideIcon }[] = [
   { id: 'overview', icon: LayoutDashboard },
   { id: 'teva', icon: Grid3x3 },
+  { id: 'predictions', icon: ScrollText },
+  { id: 'nishaniyan', icon: ListChecks },
   { id: 'planets', icon: Orbit },
   { id: 'houses', icon: Home },
   { id: 'drishti', icon: Eye },
@@ -77,6 +81,8 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
       <section id={`lk-panel-${view}`} role="tabpanel" aria-labelledby={`lk-tab-${view}`}>
         {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} />}
         {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} />}
+        {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
+        {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
         {view === 'planets' && <LalKitabPlanets reading={reading} userPlan={userPlan} />}
         {view === 'houses' && <LalKitabHouses reading={reading} userPlan={userPlan} />}
         {view === 'drishti' && <LalKitabDrishti reading={reading} userPlan={userPlan} />}

@@ -16,7 +16,7 @@ function collect(x: unknown, path: string, out: [string, string][] = []): [strin
 }
 
 const CODE = /^(Su|Mo|Ma|Me|Ju|Ve|Sa|Ra|Ke)$/
-const ID_PATH = /\.(id|planet|from|to|kind|relation|effect|basis|op|areas\[\d+\]|dignities\[\d+\]|occupants\[\d+\]|karakas\[\d+\]|others\[\d+\]|lang)$/
+const ID_PATH = /\.(id|planet|from|to|a|b|kind|relation|effect|basis|op|area|tone|side|role|waker|areas\[\d+\]|reasons\[\d+\]|dignities\[\d+\]|occupants\[\d+\]|karakas\[\d+\]|others\[\d+\]|lang)$/
 
 function englishLeaks(value: unknown): string[] {
   return collect(value, 'root')
@@ -44,7 +44,15 @@ describe('Lal Kitab reading in Hindi', () => {
     for (const chart of charts) {
       const r = readLalKitab(chart, { lang: 'hi' })
       expect(r.findings.length).toBeGreaterThan(0)
-      expect(englishLeaks({ findings: r.findings.map(({ trail: _trail, ...f }) => f), houses: r.houses, planets: r.planets })).toEqual([])
+      expect(englishLeaks({
+        findings: r.findings.map(({ trail: _trail, ...f }) => f),
+        houses: r.houses,
+        planets: r.planets,
+        conjunctions: r.conjunctions,
+        masnui: r.masnui.map(({ label, text }) => ({ label, text })),
+        phal: r.phal,
+        areas: r.areas,
+      })).toEqual([])
     }
   })
 

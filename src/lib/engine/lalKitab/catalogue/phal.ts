@@ -1,0 +1,145 @@
+// ─────────────────────────────────────────────────────────────
+//  src/lib/engine/lalKitab/catalogue/phal.ts
+//  The 108 planet-in-house readings (9 planets × 12 houses). Each has
+//  a good side and a hard side; the engine picks the side from the
+//  planet's state in the chart (see phal.ts). Written in our own words
+//  from each planet's karakas and each house's Lal Kitab meaning.
+//  Edition: commentary, until checked line by line against 1952.
+//  Hindi: locale/lalKitabPhal.hi.ts (same shape).
+// ─────────────────────────────────────────────────────────────
+
+import type { LkEdition, LkGraha } from '../types'
+
+/** [good, hard] for houses 1–12, in order. */
+export type LkPhalRow = readonly (readonly [string, string])[]
+
+export const LK_PHAL_EDITION: LkEdition = 'commentary'
+
+export const LK_PHAL: Record<LkGraha, LkPhalRow> = {
+  Su: [
+    ['You rise by your own effort, with favour from the state and a strong body.', 'Pride clashes with authority, and the father\'s health and your early standing suffer.'],
+    ['Earned wealth, a respected family name and firm, truthful speech.', 'Disputes with in-laws and over family property; harsh words cost money.'],
+    ['Courage and help from siblings; you win by your own push.', 'Rivalry with brothers and rash moves on short journeys.'],
+    ['Comfort at home, inherited land and a caring mother.', 'Friction between the parents and little peace at home despite position.'],
+    ['Bright children and success in study; your ideas earn respect.', 'Worry about the children\'s health; pride gets in the way of learning.'],
+    ['You beat opponents; good for government service and the maternal side.', 'Health dips and quarrels with the maternal family or at work.'],
+    ['Standing through marriage and partners when the rest of the chart supports it.', 'Clashes with the spouse and with authority; partnerships turn sour.'],
+    ['Long life and honesty, with protection in sudden trouble.', 'Hidden health problems and losses through the state or theft.'],
+    ['Fortune, a generous nature and support from the father\'s line.', 'Luck comes late, with differences with the father or elders over beliefs.'],
+    ['Rank and power at work, often a high post or a government link.', 'The career rises and falls with superiors, and the father\'s standing is shaken.'],
+    ['Steady income, gains through people in power and a long, upright life.', 'Income slips away through bad company or careless habits.'],
+    ['Restful sleep, gains abroad and spending on good causes.', 'Low moods, wasted money and trouble with the state over dues.'],
+  ],
+  Mo: [
+    ['A calm, kind nature, the mother\'s blessing and steady health.', 'Moods that swing, and a mother who worries.'],
+    ['Family wealth, a sweet voice and help from the mother\'s side.', 'Money tied up in family matters, and spending driven by feelings.'],
+    ['A warm bond with siblings and gains from short travel.', 'A restless mind: many plans and little follow-through.'],
+    ['Peace of mind, a happy home and a steady flow of milk and money.', 'Worry about the mother\'s health and about the home.'],
+    ['Loving children, a creative mind and gains from learning.', 'Anxiety about the children and scattered study.'],
+    ['Quick recovery from illness; serving others brings respect.', 'Emotional strain, ailments of the body fluids, and debts.'],
+    ['A caring spouse and good partnerships.', 'The mother and the spouse pull apart; relationships keep changing.'],
+    ['Long life and help in a crisis from the women of the family.', 'Fear, worry and strain on the mother\'s side.'],
+    ['Faith, pilgrimages and luck through the mother\'s line.', 'Doubts and wandering without purpose.'],
+    ['Public trust and work linked to water, food or care.', 'An unsteady career and frequent changes of job.'],
+    ['Income from many sources and helpful friends.', 'Gains come and go, and feelings mix with money among friends.'],
+    ['Restful sleep and peace in later life.', 'Sleepless nights, hidden worries and spending on the mother.'],
+  ],
+  Ma: [
+    ['A strong body, courage and the will to protect others.', 'Anger, injuries and quarrels.'],
+    ['Wealth through land and effort, and a family that stands firm.', 'Harsh speech and disputes over money in the family.'],
+    ['Bravery, and brothers and friends who stand by you; effort pays.', 'Rivalry with brothers and needless risks.'],
+    ['Property and vehicles earned through effort.', 'Heat at home, quarrels on the mother\'s side and danger around fire.'],
+    ['Bold children and success in competition.', 'Stress around the children and hasty decisions.'],
+    ['Victory over enemies and good health through activity.', 'Cuts, injuries and legal fights.'],
+    ['An energetic spouse and drive in partnerships.', 'Arguments in marriage and broken partnerships.'],
+    ['Strength in a crisis and gains from inheritance.', 'Accidents, blood disorders and sudden loss.'],
+    ['Courage in faith and help from elder brothers.', 'Conflict with elders and the father over beliefs.'],
+    ['Command, land and rank won through courage.', 'Fights with seniors and strain at work.'],
+    ['Income through land, machines or brothers.', 'Gains lost in disputes.'],
+    ['Gains abroad and protection at night.', 'Money spent on disputes, hospitals or the law.'],
+  ],
+  Me: [
+    ['A quick wit, a youthful look and skill with words.', 'Restless nerves and promises not kept.'],
+    ['Wealth through trade and speech.', 'Losses through careless words or bad deals.'],
+    ['Good writing and communication, and helpful siblings.', 'Misunderstandings with siblings and neighbours.'],
+    ['Education and a comfortable home.', 'Unrest at home and frequent moves.'],
+    ['Clever children and success in study and speculation.', 'Losses in speculation and worry about daughters.'],
+    ['You win disputes with your wits; good for accounts.', 'Skin or nerve trouble and quarrels with the maternal side.'],
+    ['Success in trade and partnership.', 'Arguments with the spouse and partners over terms.'],
+    ['Research and insight into hidden matters.', 'Nervous strain and losses through papers and documents.'],
+    ['Learning, travel and respect from teachers.', 'Doubts about faith and plans that fall through.'],
+    ['Success in business and in work with words.', 'Changes at work brought on by others\' talk.'],
+    ['Income from trade and from friends.', 'Friends who mislead you about money.'],
+    ['Gains from abroad and quiet study.', 'Wasteful spending and trouble through a sister\'s or daughter\'s affairs.'],
+  ],
+  Ju: [
+    ['Wisdom, respect and good health.', 'Overconfidence, and trouble with weight or the liver.'],
+    ['Family wealth and honour at the place of worship.', 'Wealth gets stuck and elders fall ill.'],
+    ['Wise siblings and gains through effort.', 'Good advice ignored and strain with siblings.'],
+    ['A happy home, a caring mother, land and learning.', 'Comfort without peace, and disputes over the elders\' land.'],
+    ['Good children and success in learning.', 'Delay or worry around children.'],
+    ['Protection from enemies and help in illness.', 'Debts and illness despite good intentions.'],
+    ['A wise, well-placed spouse.', 'A delayed or cool marriage.'],
+    ['Long life and protection through faith.', 'Breathing or liver trouble and the loss of elders.'],
+    ['Strong fortune, faith and the support of the father and teachers.', 'Fortune held back by pride.'],
+    ['Respect at work as long as you stay honest.', 'Learning does not turn into standing; ignoring elders costs you.'],
+    ['Income and gains through elders and teachers.', 'Gains that depend on others and slip away.'],
+    ['Spiritual peace and generous giving.', 'Spending on elders and pilgrimages beyond your means.'],
+  ],
+  Ve: [
+    ['Charm, good looks and comfort.', 'Overindulgence and strain on reproductive health.'],
+    ['Wealth through the spouse and through the arts.', 'Spending on luxuries and friction with in-laws.'],
+    ['Artistic siblings and pleasant journeys.', 'Distraction and love affairs.'],
+    ['A beautiful home and vehicles.', 'Comfort bought at the cost of peace with the mother.'],
+    ['Romance, art and happy children.', 'Love affairs that bring trouble.'],
+    ['Earnings through service, art or beauty.', 'The spouse\'s health and married comfort suffer.'],
+    ['A loving spouse and good partners.', 'Too much indulgence weakens the marriage.'],
+    ['Gains through the spouse\'s family.', 'Reproductive or urinary trouble, and secret relationships.'],
+    ['Fortune grows after marriage.', 'Faith and pleasure pull against each other.'],
+    ['A career in the arts, beauty or luxury goods.', 'Work affected by matters of the heart.'],
+    ['Income through the spouse and through women.', 'Gains spent on comfort.'],
+    ['Restful nights and a devoted spouse.', 'Spending on pleasure, and hidden expenses.'],
+  ],
+  Sa: [
+    ['Discipline and a long life with a steady rise.', 'A slow, hard start; laziness and drink make it worse.'],
+    ['Wealth through property and hard work.', 'Family wealth gets stuck, and words turn harsh.'],
+    ['Long life, endurance and help from workers.', 'Delays in effort and distance from siblings.'],
+    ['Property and land, often late in life.', 'Coldness at home and worry about the mother.'],
+    ['Disciplined children and practical learning.', 'Delays around children.'],
+    ['Victory over enemies through patience.', 'Long illness or debts.'],
+    ['A steady marriage and gains in business.', 'A delayed or cold marriage.'],
+    ['Long life and gains from inheritance.', 'Lasting trouble if you drink or eat meat.'],
+    ['Fortune through patience and faith.', 'Luck comes late, and the father\'s line struggles.'],
+    ['A rise through hard work; this is Saturn\'s own field.', 'The career falls if you cut corners or cheat.'],
+    ['Steady income and a long life.', 'Slow gains and illness among elders.'],
+    ['Gains abroad and a peaceful old age.', 'Money spent on the law or on hospitals.'],
+  ],
+  Ra: [
+    ['Bold, unusual success.', 'Confusion, sudden health scares and false blame.'],
+    ['Sudden wealth.', 'Family quarrels and money lost to deceit.'],
+    ['Fearless and successful in bold moves.', 'Rash risks and trouble with neighbours.'],
+    ['Unusual gains in property.', 'Unrest at home and worry about the mother.'],
+    ['Clever children and gains from speculation.', 'Worry about children and losses in gambling.'],
+    ['You overcome enemies and illness.', 'Hidden enemies and unusual illnesses.'],
+    ['Gains through partners or foreign contacts.', 'Deceit in marriage or partnership.'],
+    ['Gains from hidden sources.', 'Sudden accidents and trouble with in-laws.'],
+    ['Unusual fortune and travel abroad.', 'Doubts about faith and trouble with elders.'],
+    ['A sudden rise at work.', 'Sudden falls and scandal.'],
+    ['Large gains through networks of people.', 'Gains made the wrong way end in loss.'],
+    ['Gains abroad and good sleep when the mind is calm.', 'Sleeplessness, fear and wasteful spending.'],
+  ],
+  Ke: [
+    ['Many journeys and a calm, detached manner.', 'Joint pain and restlessness.'],
+    ['Gains through travel.', 'Family rifts and lost savings.'],
+    ['Courage, and help from sons and nephews.', 'Losses through siblings.'],
+    ['Peace through detachment.', 'Changes of home and worry about the mother.'],
+    ['Sons do well, and spiritual learning grows.', 'Worry about sons.'],
+    ['Protection from enemies and support from the maternal side.', 'Trouble with the feet or joints.'],
+    ['A spiritually minded spouse.', 'Distance in the marriage.'],
+    ['Insight into hidden things.', 'Sudden losses and urinary trouble.'],
+    ['Fortune through travel and through sons.', 'Distance from the father or from teachers.'],
+    ['Work that involves travel.', 'Frequent changes of job.'],
+    ['Gains through sons and through travel.', 'Gains that rise and fall.'],
+    ['Spiritual progress and peaceful sleep.', 'Spending on travel and on sons.'],
+  ],
+}

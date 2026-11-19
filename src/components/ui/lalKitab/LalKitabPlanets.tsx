@@ -19,6 +19,7 @@ function PlanetCard({ p, reading }: { p: LkPlanetView; reading: LalKitabReading 
   const tp = useTranslations('lalKitab.panel')
   const { lang } = useLang()
   const name = (id: LkPlanetView['id']) => lkGrahaName(id, lang)
+  const phal = reading.phal.find((r) => r.planet === p.id)
   const findings = reading.findings.filter((f) => f.planet === p.id && !f.id.startsWith('pair.') && !f.id.startsWith('masnui.'))
   return (
     <article className={styles.mini} aria-labelledby={`lk-p-${p.id}`}>
@@ -27,6 +28,12 @@ function PlanetCard({ p, reading }: { p: LkPlanetView; reading: LalKitabReading 
       </h3>
       <LalKitabStateBadges planet={p} />
       <p className={styles.miniText}>{p.karaka.nature}</p>
+      {phal && (
+        <p className={styles.miniText}>
+          <span className={styles[`side_${phal.side}`]}>{t(`side.${phal.side}`)}:</span>{' '}
+          {phal.side === 'hard' ? phal.hard : phal.good}
+        </p>
+      )}
       <dl className={styles.facts}>
         <dt>{t('relatives')}</dt><dd>{p.karaka.relatives}</dd>
         <dt>{t('body')}</dt><dd>{p.karaka.body}</dd>
