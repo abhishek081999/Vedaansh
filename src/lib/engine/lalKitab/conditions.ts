@@ -9,6 +9,7 @@
 import type { LkFacts } from './facts'
 import { lkRelation } from './friendship'
 import { LK_NEECH, LK_PAKKA_GHAR, LK_UCHCHA } from './pakkaGhar'
+import type { LkChartType } from './states'
 import type { LkAspectKind, LkGraha, LkHouse } from './types'
 
 export type LkCondition =
@@ -26,6 +27,11 @@ export type LkCondition =
   | { op: 'enemyWith'; planet: LkGraha }
   | { op: 'friendWith'; planet: LkGraha }
   | { op: 'ageAtLeast'; years: number }
+  | { op: 'sleeping'; planet: LkGraha }
+  | { op: 'houseSleeping'; house: LkHouse }
+  | { op: 'kayam'; planet: LkGraha }
+  | { op: 'dharmi'; planet: LkGraha }
+  | { op: 'chartType'; type: LkChartType }
   | { op: 'all'; of: readonly LkCondition[] }
   | { op: 'any'; of: readonly LkCondition[] }
   | { op: 'not'; cond: LkCondition }
@@ -39,6 +45,7 @@ export interface LkTrailStep {
   others?: LkGraha[]
   kind?: LkAspectKind
   years?: number
+  chartType?: LkChartType
   negated?: boolean
 }
 
@@ -99,6 +106,16 @@ export function evalCondition(cond: LkCondition, f: LkFacts): LkEval {
     }
     case 'ageAtLeast':
       return leaf(f.ageYears !== undefined && f.ageYears >= cond.years, { op: cond.op, years: cond.years })
+    case 'sleeping':
+      return leaf(f.states.sleepingPlanets.includes(cond.planet), { op: cond.op, planet: cond.planet, house: house[cond.planet] })
+    case 'houseSleeping':
+      return leaf(f.states.sleepingHouses.some((s) => s.house === cond.house), { op: cond.op, house: cond.house })
+    case 'kayam':
+      return leaf(f.states.kayam.includes(cond.planet), { op: cond.op, planet: cond.planet, house: house[cond.planet] })
+    case 'dharmi':
+      return leaf(f.states.dharmi.includes(cond.planet), { op: cond.op, planet: cond.planet, house: house[cond.planet] })
+    case 'chartType':
+      return leaf(f.states.chartTypes.includes(cond.type), { op: cond.op, chartType: cond.type })
     case 'all': {
       const trail: LkTrailStep[] = []
       for (const c of cond.of) {
@@ -133,5 +150,6 @@ function negatedSteps(cond: LkCondition): LkTrailStep[] {
   if (cond.op === 'with') step.others = [cond.other]
   if (cond.op === 'aspects') { step.planet = cond.to; step.others = [cond.from] }
   if (cond.op === 'ageAtLeast') step.years = cond.years
+  if (cond.op === 'chartType') step.chartType = cond.type
   return [step]
 }

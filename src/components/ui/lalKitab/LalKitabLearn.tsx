@@ -6,7 +6,7 @@ import React from 'react'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import {
-  LK_ENEMIES, LK_FRIENDS, LK_GRAHAS, LK_HOUSE_ASPECTS, LK_HOUSE_KARAKA, LK_HOUSES, LK_NEECH,
+  LK_ENEMIES, LK_FRIENDS, LK_GRAHAS, LK_HOUSE_ASPECTS, LK_HOUSE_KARAKA, LK_HOUSE_WAKER, LK_HOUSES, LK_MASNUI, LK_NEECH,
   LK_NODE_DIGNITY_PENDING, LK_PAKKA_GHAR, LK_UCHCHA,
   lkAspectsFromHouse, lkBunyadHouse, lkGrahaKaraka, lkGrahaName, lkHouseMeaning, lkTakkarHouse,
   type LkGraha, type LkHouse,
@@ -115,6 +115,44 @@ export function LalKitabLearn() {
         </ul>
         <p className={styles.miniText}>{t('takkarRule')}</p>
         <p className={styles.miniText}>{t('bunyadRule')}</p>
+      </section>
+
+      <section className={styles.card} aria-labelledby="lk-states-title">
+        <h2 id="lk-states-title" className={styles.cardTitle}>{t('statesTitle')}</h2>
+        <ul className={styles.list}>
+          {(['soyaGhar', 'soyaGrah', 'kayam', 'dharmi', 'andhi', 'ratandh', 'nabalig', 'dharmiTeva', 'kismat'] as const).map((k) => (
+            <li key={k} className={styles.listRow}><span><strong>{t(`states.${k}.name`)}</strong> — {t(`states.${k}.rule`)}</span></li>
+          ))}
+        </ul>
+        <h3 className={styles.subTitle}>{t('wakerTitle')}</h3>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead><tr><th scope="col">{t('houseCol')}</th><th scope="col">{t('wakerCol')}</th></tr></thead>
+            <tbody>
+              {LK_HOUSES.map((h) => <tr key={h}><td className={styles.num}>{h}</td><td>{name(LK_HOUSE_WAKER[h])}</td></tr>)}
+            </tbody>
+          </table>
+        </div>
+        <p className={styles.note}>{t('commentaryNote')}</p>
+      </section>
+
+      <section className={styles.card} aria-labelledby="lk-masnui-learn-title">
+        <h2 id="lk-masnui-learn-title" className={styles.cardTitle}>{t('masnuiTitle')}</h2>
+        <p className={styles.note}>{t('masnuiLede')}</p>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead><tr><th scope="col">{t('pairCol')}</th><th scope="col">{t('becomesCol')}</th></tr></thead>
+            <tbody>
+              {LK_MASNUI.map((m) => (
+                <tr key={m.id}>
+                  <td>{name(m.pair[0])} + {name(m.pair[1])}</td>
+                  <td>{t(`masnuiKind.${m.kind}`, { planet: name(m.becomes) })}{m.edition === 'commentary' ? ' *' : ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className={styles.note}>{t('commentaryStar')}</p>
       </section>
 
       <p className={styles.note}>{t('remedyNote')}</p>

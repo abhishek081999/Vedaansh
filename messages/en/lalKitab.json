@@ -1,5 +1,8 @@
 {
-  "breadcrumb": { "home": "Home", "feature": "Lal Kitab" },
+  "breadcrumb": {
+    "home": "Home",
+    "feature": "Lal Kitab"
+  },
   "page": {
     "loader": "Reading your Lal Kitab chart…",
     "chartRequiredTitle": "Lal Kitab needs a birth chart",
@@ -9,28 +12,66 @@
     "title": "Lal Kitab",
     "lede": "Your birth chart read by Lal Kitab rules. Planets keep their houses, house 1 is always counted as Aries, and every finding shows the facts that produced it.",
     "viewsLabel": "Lal Kitab views",
-    "views": { "teva": "Teva", "learn": "Learn" },
+    "views": {
+      "overview": "Overview",
+      "teva": "Teva",
+      "planets": "Planets",
+      "houses": "Houses",
+      "drishti": "Drishti",
+      "combos": "Combinations",
+      "learn": "Learn"
+    },
     "basisLabel": "Chart basis",
-    "basis": { "lagna": "Lagna Teva", "chandra": "Chandra Teva" },
+    "basis": {
+      "lagna": "Lagna Teva",
+      "chandra": "Chandra Teva"
+    },
     "chartTitle": "Lal Kitab Teva",
     "chartNote": "House numbers, not signs: house 1 is read as Aries whatever the rising sign.",
     "planetsTitle": "Planets in the Teva",
-    "cols": { "planet": "Planet", "house": "House", "status": "Status" },
+    "cols": {
+      "planet": "Planet",
+      "house": "House",
+      "status": "Status"
+    },
     "houseValue": "House {house}",
-    "badges": { "pakka": "Pakka ghar", "uchcha": "Exalted", "neech": "Debilitated", "retro": "Retrograde" },
+    "badges": {
+      "pakka": "Pakka ghar",
+      "uchcha": "Exalted",
+      "neech": "Debilitated",
+      "retro": "Retrograde",
+      "kayam": "Kayam",
+      "dharmi": "Dharmi",
+      "sleeping": "Asleep"
+    },
     "findingsTitle": "Findings",
     "findingsLede": "Strongest first. Open a finding to see why it applies.",
     "findingsEmpty": "No foundation rule applies to this chart.",
     "why": "Why",
-    "effect": { "good": "Good", "bad": "Hard", "mixed": "Mixed", "info": "Note" },
+    "effect": {
+      "good": "Good",
+      "bad": "Hard",
+      "mixed": "Mixed",
+      "info": "Note"
+    },
     "aspectsTitle": "Aspects (drishti)",
     "aspectsEmpty": "No planet aspects another planet in this chart.",
     "aspectRow": "{from} (house {fromHouse}) → {to} (house {toHouse})",
-    "kind": { "full": "Full · 100%", "half": "Half · 50%", "quarter": "Quarter · 25%" },
-    "relation": { "friend": "Friend", "enemy": "Enemy", "neutral": "Neutral" },
+    "kind": {
+      "full": "Full · 100%",
+      "half": "Half · 50%",
+      "quarter": "Quarter · 25%"
+    },
+    "relation": {
+      "friend": "Friend",
+      "enemy": "Enemy",
+      "neutral": "Neutral"
+    },
     "takkarTitle": "Takkar (collision)",
     "takkarEmpty": "No planet strikes another by takkar.",
-    "comingNext": "Coming next: sleeping houses and planets, masnui planets, the 108 house readings, debts, remedies and Varshphal."
+    "comingNext": "Coming next: the 108 house readings, signs in life, doshas, debts, remedies and Varshphal.",
+    "gateFeature": "The full Lal Kitab reading",
+    "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
   },
   "learn": {
     "housesTitle": "The twelve houses",
@@ -61,6 +102,129 @@
     "rulesLede": "Lal Kitab aspects run one way, forward from the lower house, and their strength comes from the pair of houses.",
     "takkarRule": "Takkar: a planet strikes whatever sits eight houses ahead of it (1 strikes 8, 2 strikes 9, and so on). It hurts when the two are enemies.",
     "bunyadRule": "Bunyad: the ninth house from any house is its foundation. A weak foundation weakens the house built on it.",
-    "remedyNote": "Lal Kitab remedies are traditional practices. They are not medical, legal or financial advice."
+    "remedyNote": "Lal Kitab remedies are traditional practices. They are not medical, legal or financial advice.",
+    "statesTitle": "Decoded states",
+    "states": {
+      "soyaGhar": {
+        "name": "Soya ghar (sleeping house)",
+        "rule": "an empty house that no planet looks at. It stays quiet until its waking planet is strengthened."
+      },
+      "soyaGrah": {
+        "name": "Soya grah (sleeping planet)",
+        "rule": "every house it looks at is empty, so it has no one to act on. Planets in houses with no forward aspect are not counted."
+      },
+      "kayam": {
+        "name": "Kayam grah (established)",
+        "rule": "no enemy sits with it, looks at it or strikes it, so it gives its own result in full."
+      },
+      "dharmi": {
+        "name": "Dharmi grah (pious)",
+        "rule": "Rahu in 4, Ketu in 11, Saturn in 11, and any planet sitting with Jupiter and Saturn together. It does no harm."
+      },
+      "andhi": {
+        "name": "Andhi Teva (blind chart)",
+        "rule": "house 10 holds planets that are enemies of each other."
+      },
+      "ratandh": {
+        "name": "Ratandh Teva (night-blind)",
+        "rule": "the Sun in house 4 and Saturn in house 7."
+      },
+      "nabalig": {
+        "name": "Nabalig Teva (minor chart)",
+        "rule": "houses 1, 4, 7 and 10 all empty; results settle after about age 12."
+      },
+      "dharmiTeva": {
+        "name": "Dharmi Teva (pious chart)",
+        "rule": "Jupiter and Saturn in the same house."
+      },
+      "kismat": {
+        "name": "Kismat ka grah (planet of destiny)",
+        "rule": "an exalted planet first, then a planet in its permanent house, then the first planet in houses 9, 10 or 11."
+      }
+    },
+    "wakerTitle": "Planet that wakes each house",
+    "houseCol": "House",
+    "wakerCol": "Waking planet",
+    "commentaryNote": "The waking table, the blind and night-blind conditions and the destiny method follow common commentary; they will be checked against the 1952 text.",
+    "masnuiTitle": "Masnui (artificial) planets",
+    "masnuiLede": "Two planets in one house that together behave like a third.",
+    "pairCol": "Together",
+    "becomesCol": "Acts as",
+    "masnuiKind": {
+      "plain": "{planet}",
+      "nek": "Good {planet}",
+      "bad": "Hard {planet}",
+      "likeRahu": "{planet}, like Rahu",
+      "likeKetu": "{planet}, like Ketu",
+      "uchcha": "Strong {planet}",
+      "neech": "Weak {planet}"
+    },
+    "commentaryStar": "* Follows common commentary."
+  },
+  "overview": {
+    "chartType": "Chart type",
+    "types": {
+      "andhi": "Andhi (blind)",
+      "ratandh": "Ratandh (night-blind)",
+      "nabalig": "Nabalig (minor)",
+      "dharmi": "Dharmi (pious)",
+      "ordinary": "Ordinary"
+    },
+    "kismat": "Planet of destiny",
+    "kismatMethod": {
+      "uchcha": "Exalted in the Teva",
+      "pakka": "In its permanent house",
+      "fortuneHouse": "First planet in houses 9–11"
+    },
+    "sleepingPlanets": "Sleeping planets",
+    "sleepingHouses": "Sleeping houses",
+    "kayam": "Kayam planets",
+    "dharmi": "Dharmi planets",
+    "none": "None",
+    "chartTypeTitle": "What kind of chart this is",
+    "topTitle": "Strongest findings",
+    "topLede": "The five rules that weigh most in this chart. Open one to see why.",
+    "allTitle": "All findings ({count})"
+  },
+  "planets": {
+    "title": "Planets",
+    "lede": "Each planet's house, state, what it stands for, who it looks at, and the rules that apply to it.",
+    "relatives": "Relatives",
+    "body": "Body",
+    "looksAt": "Looks at",
+    "lookedBy": "Looked at by",
+    "takkarBy": "Takkar from",
+    "none": "None",
+    "noFindings": "No rule applies to this planet alone."
+  },
+  "houses": {
+    "title": "Houses",
+    "lede": "Each house: who sits there, who looks at it, whether it is asleep and which planet wakes it.",
+    "sleeping": "Asleep",
+    "awake": "Awake",
+    "empty": "Empty",
+    "occupants": "Planets",
+    "aspectedFrom": "Looked at from",
+    "takkarTo": "Takkar on",
+    "bunyad": "Foundation",
+    "waker": "Woken by",
+    "none": "None",
+    "houseShort": "H{house}"
+  },
+  "drishti": {
+    "title": "Drishti and takkar",
+    "lede": "Lal Kitab aspects run forward only. Rows look at columns; colour shows friend or enemy.",
+    "matrixCaption": "Aspect strength, row planet looking at column planet",
+    "fromTo": "From / to"
+  },
+  "combos": {
+    "masnuiTitle": "Masnui (artificial) planets",
+    "masnuiLede": "Pairs in one house that behave like a third planet.",
+    "masnuiEmpty": "No masnui planet forms in this chart.",
+    "pairsTitle": "Planets together",
+    "pairsLede": "What each pair sharing a house does. Pairs that form a masnui planet are read above.",
+    "pairsEmpty": "No two planets share a house.",
+    "becomes": "Acts as {planet}",
+    "commentary": "commentary"
   }
 }

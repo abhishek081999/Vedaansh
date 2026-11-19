@@ -294,3 +294,53 @@
 }
 .facts dt { color: var(--text-muted); font-weight: 600; }
 .facts dd { margin: 0; color: var(--text-secondary); }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.subTitle {
+  margin: 0.3rem 0 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.rowText { padding-bottom: 0.65rem; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 0.6rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+}
+
+.statLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.statValue { font-size: 0.95rem; font-weight: 650; color: var(--text-primary); }
+.statHint { font-size: 0.74rem; color: var(--text-muted); }
+
+.matrix th, .matrix td { text-align: center; padding: 0.35rem 0.3rem; font-variant-numeric: tabular-nums; }
+.matrix tbody th { text-align: left; }
+.matrix td { color: var(--text-muted); }
+.matrix td.rel_friend, .matrix td.rel_enemy { font-weight: 700; }

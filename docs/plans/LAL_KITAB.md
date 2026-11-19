@@ -1,8 +1,12 @@
 # Lal Kitab — advanced, complete section plan
 
-Status: **approved plan** (2026-11-19). Phase 0 and Phase 1 done; Phase 2 next.
+Status: **approved plan** (2026-11-19). Phases 0–2 done; Phase 3 next.
 
-Phase 1 notes: Rahu/Ketu exaltation houses are left empty (`LK_NODE_DIGNITY_PENDING`) until the edition check in Phase 2; gupt and achanak-chot pairs also move to Phase 2.
+Open research items (need the 1952 text before they are set):
+- Rahu/Ketu exaltation and debilitation houses (`LK_NODE_DIGNITY_PENDING`); the common Ketu table puts house 6 as both pakka ghar and neech.
+- Gupt (hidden) and achanak-chot (sudden blow) house pairs.
+- Dhokha grah moves to Phase 6, since it is read from the Varshphal chart.
+- Rules tagged `edition: 'commentary'` (waking-planet table, andhi/ratandh conditions, kismat method, four masnui readings) to be confirmed or replaced.
 
 ## Context
 
