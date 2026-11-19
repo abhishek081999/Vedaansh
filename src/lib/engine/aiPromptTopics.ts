@@ -327,7 +327,7 @@ const ROLE_NAMES: Record<string, string> = {
   AK: 'Atmakaraka', AmK: 'Amatyakaraka', DK: 'Darakaraka', PK: 'Pitrikaraka', PiK: 'Putrikaraka', MK: 'Matrikaraka', BK: 'Bhratrikaraka', GK: 'Gnatikaraka',
 }
 
-function houseTable(chart: ChartOutput, houses: number[]): string {
+function houseTable(chart: ChartOutput, houses: number[], compact = false): string {
   const asc = chart.lagnas.ascRashi
   const sav = chart.ashtakavarga?.sav
   const rows = houses.map((h) => {
@@ -349,11 +349,8 @@ function houseTable(chart: ChartOutput, houses: number[]): string {
       sav?.[sign - 1] ?? '—',
     ]
   })
-  return [
-    table(['House', 'Sign', 'Lord', 'Lord placed (house, sign, dignity)', 'Lord Shadbala (rupas)', 'Lord aspected by', 'Occupants', 'House aspected by', 'SAV'], rows),
-    '',
-    `_${DRISHTI_NOTE}_`,
-  ].join('\n')
+  const t = table(['House', 'Sign', 'Lord', 'Lord placed (house, sign, dignity)', 'Lord Shadbala (rupas)', 'Lord aspected by', 'Occupants', 'House aspected by', 'SAV'], rows)
+  return compact ? t : [t, '', `_${DRISHTI_NOTE}_`].join('\n')
 }
 
 function karakaTable(chart: ChartOutput, ids: GrahaId[], roles: string[] = []): string {
@@ -433,7 +430,7 @@ function topicLinks(chart: ChartOutput, def: TopicDef): Map<GrahaId, string[]> {
   return links
 }
 
-function activationTable(chart: ChartOutput, def: TopicDef, now: number): string {
+function activationTable(chart: ChartOutput, def: TopicDef, now: number, limit = 24): string {
   const vim = chart.dashas?.vimshottari
   if (!vim?.length) return ''
   const links = topicLinks(chart, def)
@@ -462,7 +459,7 @@ function activationTable(chart: ChartOutput, def: TopicDef, now: number): string
   return [
     '**Dasha activation (Vimshottari antardashas in the next 12 years whose lords are linked to this topic)**',
     '',
-    table(['Period (MD–AD)', 'Start', 'End', 'Why it is linked', 'Link strength'], rows.slice(0, 24)),
+    table(['Period (MD–AD)', 'Start', 'End', 'Why it is linked', 'Link strength'], rows.slice(0, limit)),
   ].join('\n')
 }
 
@@ -637,6 +634,8 @@ export interface TopicOptions {
   plan: UserPlan
   lang: EngineLang
   now: number
+  /** Compact study: method, key houses, significators, mind data, top dasha periods. No engine readings. */
+  short?: boolean
 }
 
 export function topicTitle(topic: AiTopic): string {
@@ -646,6 +645,23 @@ export function topicTitle(topic: AiTopic): string {
 export function buildTopicStudy(chart: ChartOutput, topic: AiTopic, opts: TopicOptions): string {
   const def = TOPICS[topic]
   if (!chart.lagnas?.ascRashi) return ''
+  if (opts.short) {
+    const short: string[] = [
+      `## Focus: ${def.title}`,
+      '',
+      ...def.method.map((m, i) => `${i + 1}. ${m}`),
+      '',
+      houseTable(chart, def.houses, true),
+      '',
+      karakaTable(chart, def.karakas, def.charaKarakas),
+    ]
+    const extra = def.extra?.(chart)
+    if (extra) short.push('', extra)
+    const activation = activationTable(chart, def, opts.now, 8)
+    if (activation) short.push('', activation)
+    short.push('', `Questions: ${def.questions.slice(0, 3).join(' / ')}`)
+    return short.join('\n')
+  }
   const out: string[] = [
     `## Focus study: ${def.title}`,
     '',

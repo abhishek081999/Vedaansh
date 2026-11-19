@@ -116,4 +116,21 @@ describe('buildAiPrompt', () => {
     expect(p).toContain('do not diagnose mental health conditions')
     expect(p).not.toMatch(/undefined|NaN|\[object Object\]/)
   })
+
+  it('short prompt keeps the essentials in a few KB and drops long sections and readings', () => {
+    const full = buildAiPrompt(chart, { plan: 'gold', now: NOW, topics: ['personality'] })
+    const short = buildAiPrompt(chart, { plan: 'gold', now: NOW, topics: ['personality'], detail: 'short' })
+    expect(short.length).toBeLessThan(15_000)
+    expect(short.length * 5).toBeLessThan(full.length)
+    expect(short).toContain('**Lagna:**')
+    expect(short).toContain('**Current Vimshottari')
+    expect(short).toContain('| H | Sign | Lord → house | Lord aspected by |')
+    expect(short).toContain('## Focus: Personality and mind')
+    expect(short).toContain('### Mind and temperament data')
+    expect(short).not.toContain('### Vedaansh reading:')
+    expect(short).not.toContain('Detailed interpretation notes')
+    expect(short).not.toMatch(/undefined|NaN|\[object Object\]/)
+    // Rahu/Ketu are always retrograde: not flagged.
+    expect(short.split('\n').find((l) => l.startsWith('| Rahu |'))).not.toMatch(/\| R \|$/)
+  })
 })

@@ -5,6 +5,9 @@
 //  Gemini…). The AI gets our computed data plus the method used, so it
 //  interprets instead of recalculating (LLMs are bad at ephemeris maths).
 //
+//  Two lengths: 'full' (default) and 'short' (a few KB for AI chats with
+//  small paste limits).
+//
 //  Pure: no React / DB / Redis. Works on a ChartOutput that went through
 //  JSON (dates as strings) as well as a fresh one.
 // ─────────────────────────────────────────────────────────────
@@ -46,6 +49,7 @@ import {
   signOfHouse,
   DRISHTI_NOTE,
   SHADBALA_NOTE,
+  shadbalaRupas,
 } from '@/lib/engine/aiPromptFormat'
 
 export interface AiPromptOptions {
@@ -56,6 +60,116 @@ export interface AiPromptOptions {
   hideName?: boolean
   /** Focus studies to add (career, marriage…). Empty = general reading. */
   topics?: AiTopic[]
+  /**
+   * 'full' (default): every calculation and reading (~100–250 KB).
+   * 'short': the essentials in a few KB, for AI chats with small paste or context limits.
+   */
+  detail?: 'full' | 'short'
+}
+
+// ── short prompt ─────────────────────────────────────────────
+// Same guardrails, only what an AI needs to read the chart: positions, houses
+// with lords and aspects, Shadbala in rupas, D9/D10, running dashas, key yogas.
+
+function shortInstructions(lang: EngineLang, topics: AiTopic[]): string {
+  return [
+    '# Vedic birth chart (Jyotish) — short data for AI analysis',
+    '',
+    'You are an experienced Vedic astrologer. This chart was calculated by Vedaansh (Swiss Ephemeris, sidereal zodiac, whole-sign houses from the Lagna). Use these numbers as given and do not recalculate. Cite the placement, aspect, strength or dasha behind every point, and say how confident you are. Quote Shadbala in rupas against the minimum. Astrology is reflective, not certain: no medical, legal or financial instructions, no death predictions.',
+    lang === 'hi' ? '**Answer in Hindi (Devanagari).**' : 'Answer in clear English with short glosses for Sanskrit terms.',
+    topics.length
+      ? `**Focus:** ${topics.map(topicTitle).join(', ')}. Follow each focus method below step by step, then give timing and practical guidance.`
+      : 'Wait for my question. If none, give a short overview of the chart and the current dasha.',
+  ].join('\n')
+}
+
+const FLAG_SHORT = (g: GrahaData): string =>
+  [
+    g.isRetro && g.id !== 'Ra' && g.id !== 'Ke' ? 'R' : null,
+    g.isCombust ? 'combust' : null,
+    g.gandanta?.isGandanta ? 'gandanta' : null,
+    g.yuddha?.isWarring ? 'war' : null,
+    g.id === 'Mo' && g.isWaxingMoon != null ? (g.isWaxingMoon ? 'waxing' : 'waning') : null,
+  ].filter(Boolean).join(', ')
+
+function shortChart(chart: ChartOutput, hideName: boolean, now: number): string {
+  const m = chart.meta
+  const asc = chart.lagnas.ascRashi
+  const grahas = chart.grahas.filter((g) => CLASSICAL.includes(g.id))
+  const out: string[] = [
+    '## Chart',
+    '',
+    `${hideName ? 'Native' : m.name}, ${m.gender}, born ${m.birthDate} ${m.birthTime} (${m.timezone}), ${m.birthPlace}. Ayanamsha ${m.settings?.ayanamsha ?? 'lahiri'} ${dms(m.ayanamshaValue)}.`,
+    `**Lagna:** ${RASHI_NAMES[asc]} ${dms(chart.lagnas.ascDegreeInRashi)}, lord ${gname(RASHI_LORD[asc])}.`,
+    '',
+    table(['Planet', 'Sign', 'House', 'Nakshatra', 'Dignity', 'Shadbala', 'Karaka', 'Notes'], grahas.map((g) => [
+      gname(g.id),
+      `${RASHI_NAMES[g.rashi]} ${dms(g.degree)}`,
+      houseFrom(asc, g.rashi),
+      `${g.nakshatraName} ${g.pada}`,
+      g.dignity,
+      shadbalaRupas(chart.shadbala?.planets?.[g.id]).replace(' rupas', ''),
+      g.charaKaraka ?? '',
+      FLAG_SHORT(g),
+    ])),
+    '',
+    '_Shadbala column: total rupas "of" the planet\'s minimum rupas (% of minimum; 100%+ = strong enough). Aspects: all planets 7th; Mars 4/8, Jupiter 5/9, Saturn 3/10, Rahu/Ketu 5/9._',
+    '',
+  ]
+  const ids = (gs: GrahaData[]) => gs.map((g) => g.id).join(', ') || '—'
+  const rows: unknown[][] = []
+  for (let h = 1; h <= 12; h++) {
+    const sign = signOfHouse(asc, h)
+    const lord = RASHI_LORD[sign]
+    const lg = chart.grahas.find((g) => g.id === lord)
+    rows.push([
+      h,
+      RASHI_NAMES[sign],
+      `${lord} → H${lg ? houseFrom(asc, lg.rashi) : '—'}`,
+      lg ? ids(aspectersOf(chart.grahas, lg.rashi, lord)) : '—',
+      ids(grahas.filter((g) => g.rashi === sign)),
+      ids(aspectersOf(chart.grahas, sign)),
+      chart.ashtakavarga?.sav?.[sign - 1] ?? '—',
+    ])
+  }
+  out.push(table(['H', 'Sign', 'Lord → house', 'Lord aspected by', 'In house', 'Aspected by', 'SAV'], rows))
+
+  const vline = (k: string) => {
+    const vg = chart.vargas?.[k]
+    const vl = chart.vargaLagnas?.[k] as Rashi | undefined
+    if (!vg?.length || !vl) return null
+    return `**${k}** Lagna ${RASHI_NAMES[vl]}: ${vg.filter((g) => CLASSICAL.includes(g.id)).map((g) => `${g.id} ${RASHI_NAMES[g.rashi].slice(0, 3)}${g.dignity && g.dignity !== 'neutral' ? ` (${g.dignity})` : ''}`).join(', ')}`
+  }
+  const vlines = ['D9', 'D10'].map(vline).filter(Boolean) as string[]
+  if (vlines.length) out.push('', ...vlines.map((l) => `- ${l}`))
+
+  const vim = chart.dashas?.vimshottari
+  if (vim?.length) {
+    const path = getDashaPathAt(vim, now)
+    out.push('', `**Current Vimshottari (${day(now)}):** ${path.length ? dashaPath(path.slice(0, 3)) : '—'}`)
+    out.push(`**Mahadashas:** ${vim.map((n) => `${n.lord} ${day(n.start).slice(0, 4)}–${day(n.end).slice(0, 4)}`).join(', ')}`)
+    const md = path[0]
+    if (md?.children?.length) out.push(`**Antardashas in ${gname(md.lord)} MD:** ${md.children.map((n) => `${n.lord} ${day(n.start).slice(0, 7)}`).join(', ')}`)
+  }
+
+  const k = chart.karakas
+  const a = chart.arudhas
+  if (k || a) {
+    out.push('', [
+      k ? `**Karakas:** AK ${k.AK}, AmK ${k.AmK}, DK ${k.DK}` : null,
+      a?.AL ? `AL ${RASHI_NAMES[a.AL]} (H${houseFrom(asc, a.AL)})` : null,
+      a?.A12 ? `UL ${RASHI_NAMES[a.A12]} (H${houseFrom(asc, a.A12)})` : null,
+    ].filter(Boolean).join(' · '))
+  }
+
+  const yogas = (chart.yogas ?? []).filter((y) => y.strength !== 'weak')
+  if (yogas.length) {
+    const seen = new Set<string>()
+    const names = yogas.filter((y) => !seen.has(y.name) && seen.add(y.name)).slice(0, 15).map((y) => `${y.name} (${y.strength}; ${y.planets.join('/')})`)
+    out.push('', `**Main yogas:** ${names.join('; ')}`)
+  }
+  if (chart.interpretation?.headline) out.push('', `**Vedaansh summary:** ${chart.interpretation.headline}`)
+  return out.join('\n')
 }
 
 // ── sections ─────────────────────────────────────────────────
@@ -441,6 +555,14 @@ export function buildAiPrompt(chart: ChartOutput, opts: AiPromptOptions = {}): s
   const lang = opts.lang ?? 'en'
   const now = opts.now ?? Date.now()
   const topics = AI_TOPICS.filter((t) => opts.topics?.includes(t))
+  if (opts.detail === 'short') {
+    return [
+      shortInstructions(lang, topics),
+      shortChart(chart, !!opts.hideName, now),
+      ...topics.map((t) => buildTopicStudy(chart, t, { plan, lang, now, short: true })),
+      '_Short version from Vedaansh. Ask for the full prompt if you need every varga, dasha system and reading._',
+    ].filter((p) => p && p.trim()).join('\n\n') + '\n'
+  }
   const parts = [
     instructions(lang, topics),
     birthDetails(chart, !!opts.hideName),

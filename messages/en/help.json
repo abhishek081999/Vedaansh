@@ -1000,7 +1000,7 @@
           "heading": "AI prompt (ask any AI about a chart)",
           "steps": [
             "Click ✦ AI prompt next to PDF. Personality and mind is ticked by default; tick more topics such as career, love life, marriage, wealth, health, education, children or spirituality.",
-            "Click Copy prompt (or Download .md), open ChatGPT, Claude or Gemini, paste it, then ask your question.",
+            "Click Copy prompt (or Download .md), open ChatGPT, Claude or Gemini, paste it, then ask your question. If the AI says the message is too long, switch Prompt length to Short and copy again.",
             "The prompt carries every calculation (planets, houses, aspects, Shadbala in rupas, vargas, dashas, yogas) and tells the AI to use these numbers rather than recalculate.",
             "Free: calculations and each topic's method. Gold and Platinum: our full readings are added too.",
             "Tick Leave out the name before sharing. Birth date, time and place stay in the prompt and go to the AI service you paste it into."

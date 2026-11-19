@@ -39,6 +39,7 @@ export function AiPromptButton({ chart, compact = false }: Props) {
   const [hideName, setHideName] = useState(false)
   const [copied, setCopied] = useState(false)
   const [topics, setTopics] = useState<AiTopic[]>(['personality'])
+  const [detail, setDetail] = useState<'full' | 'short'>('full')
   const [build, setBuild] = useState<Builder | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -63,8 +64,8 @@ export function AiPromptButton({ chart, compact = false }: Props) {
   }, [open, build])
 
   const prompt = useMemo(
-    () => (open && build ? build(chart, { plan, lang: locale === 'hi' ? 'hi' : 'en', hideName, topics }) : ''),
-    [open, build, chart, plan, locale, hideName, topics],
+    () => (open && build ? build(chart, { plan, lang: locale === 'hi' ? 'hi' : 'en', hideName, topics, detail }) : ''),
+    [open, build, chart, plan, locale, hideName, topics, detail],
   )
 
   function toggleTopic(t: AiTopic) {
@@ -109,7 +110,7 @@ export function AiPromptButton({ chart, compact = false }: Props) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    const suffix = topics.length ? `-${topics.join('-')}` : ''
+    const suffix = `${detail === 'short' ? '-short' : ''}${topics.length ? `-${topics.join('-')}` : ''}`
     a.download = `${(hideName ? 'chart' : chart.meta.name).replace(/[^a-z0-9]+/gi, '_') || 'chart'}-ai-prompt${suffix}.md`
     a.click()
     setTimeout(() => URL.revokeObjectURL(url), 5000)
@@ -152,6 +153,39 @@ export function AiPromptButton({ chart, compact = false }: Props) {
       {plan === 'free' && (
         <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('freeNote')}</p>
       )}
+      <div role="radiogroup" aria-label={t('lengthLabel')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('lengthLabel')}</div>
+        <div style={{ display: 'flex', border: '1px solid var(--border, #ddd)', borderRadius: 999, padding: 2, gap: 2 }}>
+          {(['short', 'full'] as const).map((d) => {
+            const on = detail === d
+            return (
+              <button
+                key={d}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => setDetail(d)}
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  borderRadius: 999,
+                  border: `1px solid ${on ? 'var(--gold)' : 'transparent'}`,
+                  background: on ? 'var(--gold-faint, rgba(201,162,39,0.18))' : 'transparent',
+                  color: on ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontSize: '0.72rem',
+                  fontWeight: on ? 600 : 500,
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  transition: interactiveTransition('0.15s'),
+                }}
+              >
+                {t(d === 'short' ? 'lengthShort' : 'lengthFull')}
+              </button>
+            )
+          })}
+        </div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t(detail === 'short' ? 'lengthShortHint' : 'lengthFullHint')}</div>
+      </div>
       <div role="group" aria-label={t('topicsLabel')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('topicsLabel')}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
