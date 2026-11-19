@@ -9,7 +9,7 @@
 import React, { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  BookOpen, CalendarRange, ClipboardList, Download, Eye, Grid3x3, Home, LayoutDashboard, Link2,
+  BookOpen, CalendarRange, ClipboardList, Crosshair, Download, Eye, Grid3x3, Home, LayoutDashboard, Link2,
   ListChecks, Orbit, ScrollText, Search, ShieldAlert, Sparkles, Users, History,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -33,18 +33,20 @@ import { LalKitabFinder } from '@/components/ui/lalKitab/LalKitabFinder'
 import { LalKitabVarshphal } from '@/components/ui/lalKitab/LalKitabVarshphal'
 import { LalKitabTimeline } from '@/components/ui/lalKitab/LalKitabTimeline'
 import { LalKitabTracker } from '@/components/ui/lalKitab/LalKitabTracker'
+import { LalKitabCorrection } from '@/components/ui/lalKitab/LalKitabCorrection'
 import styles from './lalKitab/LalKitab.module.css'
 
 type LkView =
   | 'overview' | 'teva' | 'predictions' | 'nishaniyan' | 'doshas' | 'rin'
   | 'upay' | 'finder' | 'planets' | 'houses' | 'drishti' | 'combos'
-  | 'varshphal' | 'timeline' | 'tracker' | 'learn'
+  | 'varshphal' | 'timeline' | 'tracker' | 'correction' | 'learn'
 
 const VIEWS: { id: LkView; icon: LucideIcon }[] = [
   { id: 'overview', icon: LayoutDashboard },
   { id: 'teva', icon: Grid3x3 },
   { id: 'predictions', icon: ScrollText },
   { id: 'nishaniyan', icon: ListChecks },
+  { id: 'correction', icon: Crosshair },
   { id: 'doshas', icon: ShieldAlert },
   { id: 'rin', icon: Users },
   { id: 'upay', icon: Sparkles },
@@ -145,6 +147,7 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
         {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} />}
         {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
         {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
+        {view === 'correction' && <LalKitabCorrection chart={chart} reading={reading} userPlan={userPlan} />}
         {view === 'doshas' && <LalKitabDoshas reading={reading} userPlan={userPlan} />}
         {view === 'rin' && <LalKitabRin reading={reading} userPlan={userPlan} />}
         {view === 'upay' && <LalKitabRemedies reading={reading} userPlan={userPlan} />}

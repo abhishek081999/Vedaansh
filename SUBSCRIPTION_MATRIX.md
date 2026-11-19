@@ -20,7 +20,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Public chart share links | Yes | Yes | Yes | `src/app/api/chart/public/route.ts`, `src/app/api/chart/toggle-public/route.ts` |
 | Chart library search | Yes | Yes | Yes | `src/app/api/chart/search/route.ts` |
 | Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `src/proxy.ts` (`/api/chart/export`) — includes Gochar Phala and Lal Kitab chapters |
-| Lal Kitab (Teva, Learn, Nishaniyan, current-year Varshphal summary, 1 remedy) | Yes | Full reading | Full reading | UI: `LalKitabPanel` / `/lal-kitab` (`planMeetsUiGate`, Gold+ for gated tabs) |
+| Lal Kitab (Teva, Learn, Nishaniyan, current-year Varshphal summary, 1 remedy) | Yes | Full reading + Teva check | Full reading + Teva check | UI: `LalKitabPanel` / `/lal-kitab` (`planMeetsUiGate`, Gold+ for gated tabs; Teva correction Gold) |
 | Lal Kitab PDF export | No | Yes | Yes | `POST /api/lal-kitab/export` — `requirePlanGate('gold')`, `src/proxy.ts` |
 | Lal Kitab 43-day remedy tracker | No | Yes (saved) | Yes | `GET/POST /api/lal-kitab/remedies`, `PATCH/DELETE /api/lal-kitab/remedies/[id]` — Gold+ |
 | Export chart (XLSX) | No | Yes | Yes | `src/app/api/chart/export-xlsx/route.ts` (`requirePlanGate`), `src/proxy.ts` |

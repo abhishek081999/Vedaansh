@@ -1,6 +1,6 @@
 # Lal Kitab — advanced, complete section plan
 
-Status: **approved plan** (2026-11-19). Phases 0–7 done; Phase 8 (Teva correction) next.
+Status: **approved plan** (2026-11-19). Phases 0–8 done — full section shipped.
 
 Open research items (need the 1952 text before they are set):
 - Rahu/Ketu exaltation and debilitation houses (`LK_NODE_DIGNITY_PENDING`); the common Ketu table puts house 6 as both pakka ghar and neech.

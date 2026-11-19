@@ -70,6 +70,10 @@
   background: color-mix(in srgb, var(--gold) 14%, var(--surface-1));
 }
 
+.rowCurrent td {
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+}
+
 .headerActions {
   display: flex;
   flex-wrap: wrap;

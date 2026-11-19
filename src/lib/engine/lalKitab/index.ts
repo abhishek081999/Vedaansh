@@ -31,6 +31,13 @@ export { LK_STATE_RULES, LK_STATE_TEXT } from './catalogue/states'
 export { LK_COMBINATION_TEXT, LK_MASNUI_RULES, LK_PAIR_RULES } from './catalogue/combinations'
 export { lkChartKey } from './chartKey'
 export {
+  LK_CORRECTION_EDITION, LK_CORRECTION_OFFSETS_H, LK_LAGNA_DEG_PER_HOUR,
+  buildTevaWithLagna, lkSignedFromTicks, lkSuspectHouses, lkTevaCorrection,
+} from './tevaCorrection'
+export type {
+  LkCorrectionCandidate, LkPlacementHint, LkSignedPlanet, LkTevaCorrection,
+} from './tevaCorrection'
+export {
   LK_CYCLE, LK_CYCLE_LENGTH, LK_MATURITY_AGE,
   lkAgeYears, lkCycleAt, lkYearOfLife,
 } from './age'

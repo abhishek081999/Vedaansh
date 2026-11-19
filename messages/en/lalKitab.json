@@ -28,6 +28,7 @@
       "varshphal": "Varshphal",
       "timeline": "Timeline",
       "tracker": "Tracker",
+      "correction": "Teva check",
       "learn": "Learn"
     },
     "exportPdf": "Export Lal Kitab PDF",
@@ -81,7 +82,7 @@
     },
     "takkarTitle": "Takkar (collision)",
     "takkarEmpty": "No planet strikes another by takkar.",
-    "comingNext": "Coming next: Teva correction from life signs.",
+    "comingNext": "Lal Kitab is complete for this release. Teva correction from life signs is in the Teva check tab.",
     "gateFeature": "The full Lal Kitab reading",
     "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
   },
@@ -508,5 +509,34 @@
     "loadFail": "Could not load trackers.",
     "startFail": "Could not start the remedy.",
     "updateFail": "Could not update the day."
+  },
+  "correction": {
+    "title": "Teva check from life signs",
+    "lede": "Tick the signs you see in life. The engine shifts the Lagna by up to two hours and ranks which rising sign best matches those signs — without changing planet positions.",
+    "teaser": "Scoring a ±2 hour Lagna window from your Nishaniyan ticks is part of Gold.",
+    "signsTitle": "Signs you see",
+    "signsLede": "Same list as Nishaniyan. Ticks are saved in this browser and shared with that tab.",
+    "clear": "Clear ticks",
+    "needMore": "Tick at least two signs so the check has enough to work with.",
+    "resultTitle": "Lagna candidates",
+    "resultLede": "Each row is a rising sign reachable within about ±2 hours of the recorded birth time.",
+    "suggest": "Best match: {best} ({hours}). Recorded Lagna is {current}. Re-check the birth time toward that window, then rebuild the chart.",
+    "currentBest": "The recorded Lagna already matches the signs best in this window.",
+    "colOffset": "Time shift",
+    "colLagna": "Lagna",
+    "colScore": "Score",
+    "colMatched": "Signs matched",
+    "colMissed": "Still good",
+    "hoursSame": "Recorded time",
+    "hoursLater": "+{h} h",
+    "hoursEarlier": "−{h} h",
+    "current": "current",
+    "best": "best",
+    "hintsTitle": "Placement hints",
+    "hintsLede": "For planets the signs flag as hard, houses that often weaken them on their own (debilitation first).",
+    "hintHouses": "Suspect houses {houses}",
+    "hintMove": "best candidate moves house {from} → {to}",
+    "disclaimer": "This is a decoding aid, not a guarantee. Hospital records and family timing still come first. Remedies and predictions stay traditional guidance, not medical or legal advice.",
+    "natalNote": "Current Teva uses Lagna {lagna}."
   }
 }
