@@ -65,7 +65,8 @@
     "install": "Install App",
     "about": "About",
     "pricing": "Pricing",
-    "nakshatra": "Nakshatra"
+    "nakshatra": "Nakshatra",
+    "feature-requests": "Request a Feature"
   },
   "groups": {
     "transit": "Transit",

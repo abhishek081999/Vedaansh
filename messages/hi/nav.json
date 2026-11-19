@@ -65,7 +65,8 @@
     "install": "ऐप इंस्टॉल करें",
     "about": "हमारे बारे में",
     "pricing": "योजनाएँ एवं मूल्य",
-    "nakshatra": "नक्षत्र"
+    "nakshatra": "नक्षत्र",
+    "feature-requests": "सुविधा का अनुरोध"
   },
   "groups": {
     "transit": "गोचर",

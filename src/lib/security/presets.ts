@@ -121,6 +121,17 @@ export const routeSecurityPresets = {
       message: 'You have sent several requests already. Our team will reply by email.',
     },
   }),
+  featureRequest: (): RouteSecurityOptions => ({
+    requireSameOrigin: true,
+    maxBodyBytes: AUTH_JSON_BODY_BYTES,
+    rateLimit: {
+      bucket: 'feature-request',
+      limit: abuseLimits.featureRequestPerHour,
+      windowSeconds: RATE_LIMIT_WINDOWS.hour,
+      message: 'You have sent several requests already. Please try again later.',
+    },
+  }),
+  featureVote: () => write('feature-vote', abuseLimits.featureVotePerMinute),
 } as const
 
 export async function guardRoute(

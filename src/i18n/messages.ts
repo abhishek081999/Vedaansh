@@ -38,6 +38,7 @@ export const NAMESPACES = [
   'clients',
   'guides',
   'help',
+  'featureRequests',
   // Saved charts, notes, tags, bulk import, and saved numerology.
   // Also shipped on the root bundle: ChartTagsInput is inside BirthForm.
   'library',
