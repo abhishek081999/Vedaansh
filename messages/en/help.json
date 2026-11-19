@@ -285,6 +285,7 @@
           "steps": [
             "Share icon: copies a free link to this chart. Anyone can open it without logging in.",
             "PDF (Gold): downloads the full chart report.",
+            "✦ AI prompt: copies the whole chart as a prompt for ChatGPT, Claude or Gemini. Pick focus topics such as personality, career or marriage first.",
             "Email (Platinum): sends the report to a client.",
             "✎ Edit: reopens the birth form so you can correct the time or place. The chart recalculates when you save.",
             "+ New: starts a fresh chart.",
@@ -993,6 +994,16 @@
             "PDF (Gold): downloads a full chart report, in English or Hindi to match your language.",
             "Email (Platinum): sends the report to a client's email address.",
             "Platinum branding: your business name and logo from Account → Consult branding appear on PDFs and shared charts."
+          ]
+        },
+        {
+          "heading": "AI prompt (ask any AI about a chart)",
+          "steps": [
+            "Click ✦ AI prompt next to PDF. Personality and mind is ticked by default; tick more topics such as career, love life, marriage, wealth, health, education, children or spirituality.",
+            "Click Copy prompt (or Download .md), open ChatGPT, Claude or Gemini, paste it, then ask your question.",
+            "The prompt carries every calculation (planets, houses, aspects, Shadbala in rupas, vargas, dashas, yogas) and tells the AI to use these numbers rather than recalculate.",
+            "Free: calculations and each topic's method. Gold and Platinum: our full readings are added too.",
+            "Tick Leave out the name before sharing. Birth date, time and place stay in the prompt and go to the AI service you paste it into."
           ]
         }
       ]

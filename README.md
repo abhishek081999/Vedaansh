@@ -49,7 +49,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Dashas** | Vimshottari, Yogini, Kalachakra, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
-| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Interpretation hub teaser (overview + 3 themes), Tattva overview teaser, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
+| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Interpretation hub teaser (overview + 3 themes), AI prompt export (all calculations + topic methods), Tattva overview teaser, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
 | **Library** | Save up to **20** charts and **20** Kundali Milan matches (separate caps); public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
@@ -61,6 +61,7 @@ Everything in Free, plus:
 | **Chart library** | Save up to **200** charts and **200** Kundali Milan matches |
 | **PDF / HTML export** | `/api/chart/export` (also gated in `src/proxy.ts`) |
 | **Muhurta** | Full `/muhurta` + `/api/muhurta/*` (Gold+) |
+| **AI prompt (full)** | Chart AI prompt also carries Interpretation hub notes and Vedaansh engine readings per topic (career, marriage, love, personality, wealth D4, spirituality) |
 | **UI depth** | Full Interpretation hub (planets, houses, rashis, strength charts, transit, dasha), full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels, relationship and marriage, career and profession, Tattva (full), Naamkaran (full), Kundali Milan match-making, married life, All Sections, and print (see matrix) |
 
 ### Platinum — ₹336/month or ₹2,888/year
@@ -87,6 +88,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 - Saved Kundali Milan library on My Charts (same 20 / 200 / unlimited caps as natal charts)
 - Relationship and marriage, career and profession (Free preview; full reading on Gold+)
 - Interpretation hub (Free overview teaser; full multi-section reading on Gold+)
+- AI prompt export: copy any chart as one Markdown prompt for ChatGPT, Claude or Gemini — calculations, graha drishti, Shadbala in rupas, dashas, plus topic studies (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality). Free: data + method; Gold+: engine readings too
 - Social Studio (admin Instagram packs) + Remotion CLI for HQ Reels
 - Cosmic roadmap `/roadmap` and time scrubber `/scrubber`
 - PWA (Serwist) + Android TWA packaging

@@ -40,7 +40,7 @@ Production deploy checklist: [SECURITY_DEPLOY.md](./SECURITY_DEPLOY.md).
 
 | Layer | Location | Goal |
 |-------|----------|------|
-| **Engine** | `__tests__/engine/**` | Pure Jyotish math — dashas, yogas, muhurta, ashtakavarga, nakshatra, milan, interpretation hub aggregates (`interpretationHub.test.ts`), etc. No I/O. |
+| **Engine** | `__tests__/engine/**` | Pure Jyotish math — dashas, yogas, muhurta, ashtakavarga, nakshatra, milan, interpretation hub aggregates (`interpretationHub.test.ts`), AI prompt builder (`aiPrompt.test.ts` — sections, topics, plan gating, drishti, Shadbala in rupas), etc. No I/O. |
 | **Security** | `__tests__/security/**` | Rate limits, CSP, CSRF/origin, body limits, password policy, plan access, presets, tokens, login throttle |
 | **Admin** | `__tests__/admin/**` | Admin guards, user/chart query helpers |
 | **UI** | `__tests__/ui/**` | Design-system smoke; **i18n parity** (`i18n.test.ts` — every `messages/en` key exists in `hi` with matching placeholders/list lengths); search corpus Hindi smoke where present |
