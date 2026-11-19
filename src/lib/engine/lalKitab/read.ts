@@ -19,6 +19,7 @@ import { lkConjunctions, type LkConjunction } from './conjunctions'
 import { lkMasnuiFormed, type LkMasnuiDef } from './masnui'
 import { LK_HOUSE_WAKER, type LkStates } from './states'
 import { lkAreaReadings, lkPhalReadings, type LkAreaReading, type LkPhalReading } from './phal'
+import { lkRemedyPlan, type LkRemedyPlan } from './remedies'
 import { buildTeva, type LkTeva } from './chart'
 import { LK_FOUNDATION_RULES, LK_FOUNDATION_TEXT } from './catalogue/foundation'
 import type { LkRule, LkRuleText } from './catalogue/types'
@@ -94,6 +95,8 @@ export interface LalKitabReading {
   phal: LkPhalReading[]
   /** Life areas built from the readings. */
   areas: LkAreaReading[]
+  /** Remedies for the planets that need them. */
+  remedies: LkRemedyPlan
 }
 
 export interface ReadLalKitabOptions {
@@ -278,5 +281,6 @@ export function readLalKitab(chart: ChartOutput, opts: ReadLalKitabOptions = {})
     masnui: lkMasnuiFormed(teva).map((m) => ({ ...m, ...withText(`masnui.${m.def.id}`, m.house) })),
     phal,
     areas: lkAreaReadings(phal),
+    remedies: lkRemedyPlan(facts, phal, findings.filter((x) => x.id.startsWith('dosha.')).map((x) => x.id), lang),
   }
 }

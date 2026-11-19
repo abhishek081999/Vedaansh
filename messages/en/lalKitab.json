@@ -19,6 +19,8 @@
       "nishaniyan": "Signs in life",
       "doshas": "Doshas",
       "rin": "Rin (debts)",
+      "upay": "Remedies",
+      "finder": "Remedy finder",
       "planets": "Planets",
       "houses": "Houses",
       "drishti": "Drishti",
@@ -73,7 +75,7 @@
     },
     "takkarTitle": "Takkar (collision)",
     "takkarEmpty": "No planet strikes another by takkar.",
-    "comingNext": "Coming next: the full remedies (upay), prohibitions and Varshphal.",
+    "comingNext": "Coming next: Varshphal (the yearly chart), the 35-year cycle and a life timeline.",
     "gateFeature": "The full Lal Kitab reading",
     "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
   },
@@ -318,7 +320,7 @@
     "title": "Doshas the Lal Kitab way",
     "lede": "Lal Kitab judges a dosha by the state of the planet behind it, so the same placement can be a dosha in one chart and harmless in another.",
     "none": "No Lal Kitab dosha is formed in this chart.",
-    "remedyNext": "Remedies for each dosha come with the Upay update."
+    "remedyNext": "Remedies for each dosha are in the Remedies tab."
   },
   "rin": {
     "title": "Rin (karmic debts)",
@@ -346,5 +348,90 @@
       "daivik": "Daivik Rin (divine)",
       "swa": "Swa Rin (oneself)"
     }
+  },
+  "upay": {
+    "topTitle": "Remedies that matter most",
+    "topLede": "One remedy for each planet that needs help, most needed first. Do one per planet at a time.",
+    "print": "Print checklist",
+    "markDone": "Mark as done",
+    "noneNeeded": "No planet in this chart needs a remedy right now.",
+    "notNeeded": "Left alone because they already give good results: {list}.",
+    "kind": {
+      "worship": "Prayer",
+      "serve": "Service",
+      "keep": "Keep",
+      "habit": "Habit",
+      "donate": "Give",
+      "flow": "Flowing water",
+      "feed": "Feed"
+    },
+    "once": "Once",
+    "days": "{n} days",
+    "weekday": {
+      "0": "Sundays",
+      "1": "Mondays",
+      "2": "Tuesdays",
+      "3": "Wednesdays",
+      "4": "Thursdays",
+      "5": "Fridays",
+      "6": "Saturdays"
+    },
+    "cost": {
+      "none": "No cost",
+      "low": "Low cost",
+      "medium": "Some cost"
+    },
+    "blocked": {
+      "strengthensHarmer": "Not now: strengthening {planet} would add to the harm it does to {victim}.",
+      "releasesKismat": "Not now: {planet} is your planet of destiny, and this gives its things away."
+    },
+    "rulesTitle": "Rules every remedy follows",
+    "rules": {
+      "daylight": "Start between sunrise and sunset.",
+      "days": "Keep it up for the stated days in a row (usually 43).",
+      "restart": "If you miss a day, start the count again.",
+      "onePerPlanet": "Do one remedy per planet at a time.",
+      "onlyHard": "Only treat a planet that is hard or mixed; leave a good planet alone.",
+      "self": "Do it yourself. Family remedies for debts are done by the whole family together.",
+      "eclipse": "Do not start on an eclipse day.",
+      "quiet": "Do it quietly, without show.",
+      "noHarm": "Never use a remedy to harm anyone."
+    },
+    "safety": "Lal Kitab remedies are traditional practices. They are not medical, legal or financial advice; for health, money or legal trouble, see a qualified professional as well.",
+    "byPlanetTitle": "Planet by planet",
+    "byPlanetLede": "Every remedy that suits each planet in its house, what to avoid, and any remedy the conflict check holds back.",
+    "forDosha": "Also treated for a dosha",
+    "doThis": "Do this",
+    "alternatives": "Or instead",
+    "blockedTitle": "Held back",
+    "parhez": "Avoid (parhez)",
+    "wakeTitle": "Waking sleeping houses",
+    "wakeLede": "A sleeping house stays quiet until its waking planet is strengthened.",
+    "wakeRow": "House {house}, woken by {planet}",
+    "wakeSkip": "Skipped: the waking planet is hard in this chart.",
+    "rinNote": "Family remedies for karmic debts are in the Rin tab."
+  },
+  "finder": {
+    "title": "Remedy finder",
+    "lede": "Pick a problem. The finder looks at the planets behind it in your chart and gives their remedies.",
+    "pick": "Problem",
+    "problems": {
+      "marriageDelay": "Marriage delay",
+      "children": "Children",
+      "job": "Job",
+      "business": "Business",
+      "debt": "Debt",
+      "health": "Health",
+      "court": "Court case",
+      "abroad": "Going abroad",
+      "study": "Studies",
+      "family": "Family quarrels",
+      "property": "House and property",
+      "sleep": "Sleep and worry"
+    },
+    "behind": "Planets behind this in your chart: {list}",
+    "supported": "Your chart supports this area; no remedy is needed. Keep the general rules and prohibitions.",
+    "teaser": "The planets behind this problem in your chart, and their remedies, are part of the full reading.",
+    "safety": "For health, money or legal trouble, see a qualified professional as well."
   }
 }

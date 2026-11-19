@@ -393,3 +393,28 @@ fieldset.mini legend { padding: 0 0.2rem; }
 .rinBody { display: flex; flex-direction: column; gap: 0.45rem; }
 .rinBody .why { padding: 0; }
 .rinBody .whyTitle { padding: 0; }
+
+.upay { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.upayBlocked { opacity: 0.7; }
+.upayBlocked .miniText { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--rose) 60%, transparent); }
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.checklist > li { padding: 0.6rem 0.7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.checklist .check { min-height: 0; padding: 0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+@media print {
+  /* Print only the checklist. Selectors keep a local class so CSS modules accept them. */
+  :global(body):has(.printArea) * { visibility: hidden; }
+  :global(body) .printArea, :global(body) .printArea * { visibility: visible; }
+  .printArea { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; background: none; }
+  .noPrint { display: none; }
+}

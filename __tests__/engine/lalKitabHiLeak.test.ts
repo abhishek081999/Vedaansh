@@ -16,7 +16,7 @@ function collect(x: unknown, path: string, out: [string, string][] = []): [strin
 }
 
 const CODE = /^(Su|Mo|Ma|Me|Ju|Ve|Sa|Ra|Ke)$/
-const ID_PATH = /\.(id|planet|from|to|a|b|kind|relation|effect|basis|op|area|tone|side|role|waker|areas\[\d+\]|reasons\[\d+\]|dignities\[\d+\]|occupants\[\d+\]|karakas\[\d+\]|others\[\d+\]|lang)$/
+const ID_PATH = /\.(id|planet|from|to|a|b|kind|relation|effect|basis|op|area|tone|side|role|waker|houses|planet|victim|reason|kind|cost|houses\[\d+\]|strengthens\[\d+\]|releases\[\d+\]|notNeeded\[\d+\]|doshas\[\d+\]|planets\[\d+\]|areas\[\d+\]|reasons\[\d+\]|dignities\[\d+\]|occupants\[\d+\]|karakas\[\d+\]|others\[\d+\]|lang)$/
 
 function englishLeaks(value: unknown): string[] {
   return collect(value, 'root')
@@ -52,6 +52,7 @@ describe('Lal Kitab reading in Hindi', () => {
         masnui: r.masnui.map(({ label, text }) => ({ label, text })),
         phal: r.phal,
         areas: r.areas,
+        remedies: r.remedies,
       })).toEqual([])
     }
   })
