@@ -16,6 +16,7 @@ import { LIVELIHOOD, OCCUPANT_PHALA, TENTH_LORD_PHALA } from '@/lib/engine/dasha
 import { LIVELIHOOD_HI, OCCUPANT_PHALA_HI, TENTH_LORD_PHALA_HI } from '@/lib/engine/locale/dashamsaClassical.hi'
 import { CP_HI } from '@/lib/engine/locale/careerProfession.hi'
 import { CAREER_EXACT_HI } from '@/lib/engine/locale/careerExact.hi'
+import { polishCareerHindi } from '@/lib/engine/locale/careerHindiPolish'
 import { fill, type EngineLang } from '@/lib/engine/lang'
 import { gName, rName } from '@/lib/engine/divisionalLang'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
@@ -195,25 +196,25 @@ function applyPhrases(text: string, pairs: [string, string][]): string {
 export function localizeCareerString(text: string, lang: EngineLang = 'hi'): string {
   if (lang !== 'hi' || !text) return text
   const exact = CAREER_EXACT_HI[text]
-  if (exact) return exact
+  if (exact) return polishCareerHindi(exact)
   let out = applyCareerPatterns(text)
-  if (CAREER_EXACT_HI[out]) return CAREER_EXACT_HI[out]
+  if (CAREER_EXACT_HI[out]) return polishCareerHindi(CAREER_EXACT_HI[out])
   out = replaceClassicalBlocks(out)
   out = applyPhrases(out, CP_HI.detailPhrases)
   out = applyPhrases(out, CP_HI.titlePhrases)
   // Second pass: exact fragments / full lines that appear after partial phrase replace
-  if (CAREER_EXACT_HI[out]) return CAREER_EXACT_HI[out]
+  if (CAREER_EXACT_HI[out]) return polishCareerHindi(CAREER_EXACT_HI[out])
   out = applyCareerPatterns(out)
   // Replace any remaining known exact substrings (longest first already in object insertion)
   for (const [en, hi] of Object.entries(CAREER_EXACT_HI)) {
     if (en.length >= 20 && out.includes(en)) out = out.split(en).join(hi)
   }
-  return swapAstroTerms(out)
+  return polishCareerHindi(swapAstroTerms(out))
 }
 
 function localizeTitle(title: string): string {
   if (CAREER_EXACT_HI[title]) return CAREER_EXACT_HI[title]
-  return swapAstroTerms(applyPhrases(applyCareerPatterns(title), CP_HI.titlePhrases))
+  return polishCareerHindi(swapAstroTerms(applyPhrases(applyCareerPatterns(title), CP_HI.titlePhrases)))
 }
 
 function localizeNote(note: CareerNote): CareerNote {
@@ -453,10 +454,15 @@ export function localizeCareerProfession(raw: CareerProfessionAnalysis): CareerP
     heading: CP_HI.briefHeadings[s.heading as keyof typeof CP_HI.briefHeadings] ?? localizeTitle(s.heading),
     body: localizeCareerString(s.body),
   }))
+  // Rebuild the summary from translated parts: the English one is cut mid-sentence before translation.
+  const firstHi = (t: string) => t.split(/[।.]\s/)[0].replace(/[।.]$/, '')
+  const scoreLead = raw.scores[0] ? firstHi(localizeScore(raw.scores[0]).summary) : ''
+  const predLead = track.prediction.split('।').map(x => x.trim()).filter(Boolean).slice(0, 2).join('। ')
+  const summary = [scoreLead, predLead].filter(Boolean).map(x => `${x}।`).join(' ')
   return {
     ...raw,
     headline: localizeCareerString(raw.headline),
-    summary: localizeCareerString(raw.summary),
+    summary: summary || localizeCareerString(raw.summary),
     ethics: CP_HI.ethics,
     scores: raw.scores.map(localizeScore),
     significators: raw.significators.map(localizeSignificator),

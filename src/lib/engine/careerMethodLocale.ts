@@ -4,6 +4,7 @@ import type { CareerMethodAnalysis, MethodCombo, MethodHouse, MethodQuestion } f
 import { CM_HI } from '@/lib/engine/locale/careerMethod.hi'
 import { CAREER_EXACT_HI } from '@/lib/engine/locale/careerExact.hi'
 import { localizeCareerString } from '@/lib/engine/careerProfessionLocale'
+import { polishCareerHindi } from '@/lib/engine/locale/careerHindiPolish'
 import { gName, rName } from '@/lib/engine/divisionalLang'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
 
@@ -36,7 +37,7 @@ function applyPhrases(text: string): string {
 function loc(text: string): string {
   if (!text) return text
   if (CAREER_EXACT_HI[text]) return CAREER_EXACT_HI[text]
-  return swapAstroTerms(applyPhrases(localizeCareerString(text)))
+  return polishCareerHindi(swapAstroTerms(applyPhrases(localizeCareerString(text))))
 }
 
 type ToneNote = { id: string; title: string; answer: string; reading: string; tone: CareerMethodAnalysis['d10']['tone'] }
