@@ -32,6 +32,7 @@ export type LkCondition =
   | { op: 'kayam'; planet: LkGraha }
   | { op: 'dharmi'; planet: LkGraha }
   | { op: 'chartType'; type: LkChartType }
+  | { op: 'kaalSarp' }
   | { op: 'all'; of: readonly LkCondition[] }
   | { op: 'any'; of: readonly LkCondition[] }
   | { op: 'not'; cond: LkCondition }
@@ -116,6 +117,18 @@ export function evalCondition(cond: LkCondition, f: LkFacts): LkEval {
       return leaf(f.states.dharmi.includes(cond.planet), { op: cond.op, planet: cond.planet, house: house[cond.planet] })
     case 'chartType':
       return leaf(f.states.chartTypes.includes(cond.type), { op: cond.op, chartType: cond.type })
+    case 'kaalSarp': {
+      const r = house.Ra
+      if (!r || !house.Ke) return FAIL
+      const sides = new Set<number>()
+      for (const [p, h] of Object.entries(house) as [string, LkHouse][]) {
+        if (p === 'Ra' || p === 'Ke') continue
+        const d = ((h - r) % 12 + 12) % 12
+        if (d >= 1 && d <= 5) sides.add(1)
+        if (d >= 7 && d <= 11) sides.add(2)
+      }
+      return leaf(sides.size === 1, { op: cond.op, house: r, others: ['Ke'], planet: 'Ra' })
+    }
     case 'all': {
       const trail: LkTrailStep[] = []
       for (const c of cond.of) {

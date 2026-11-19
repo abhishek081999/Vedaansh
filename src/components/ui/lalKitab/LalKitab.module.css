@@ -389,3 +389,7 @@ fieldset.mini legend { padding: 0 0.2rem; }
 .status_signsOnly { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); }
 .status_chartOnly { color: var(--text-secondary); }
 .status_clear { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 45%, var(--border)); }
+
+.rinBody { display: flex; flex-direction: column; gap: 0.45rem; }
+.rinBody .why { padding: 0; }
+.rinBody .whyTitle { padding: 0; }

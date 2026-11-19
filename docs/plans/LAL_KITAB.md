@@ -1,6 +1,6 @@
 # Lal Kitab — advanced, complete section plan
 
-Status: **approved plan** (2026-11-19). Phases 0–3 done; Phase 4 next.
+Status: **approved plan** (2026-11-19). Phases 0–4 done; Phase 5 (remedies) next.
 
 Open research items (need the 1952 text before they are set):
 - Rahu/Ketu exaltation and debilitation houses (`LK_NODE_DIGNITY_PENDING`); the common Ketu table puts house 6 as both pakka ghar and neech.
@@ -8,6 +8,7 @@ Open research items (need the 1952 text before they are set):
 - Dhokha grah moves to Phase 6, since it is read from the Varshphal chart.
 - Rules tagged `edition: 'commentary'` (waking-planet table, andhi/ratandh conditions, kismat method, four masnui readings) to be confirmed or replaced.
 - The 108 planet-in-house readings and the 63 Nishaniyan signs are written from karakas and house meanings (`LK_PHAL_EDITION`, `LK_NISHANI_EDITION` = commentary); check each against the 1952 text, and add per-reading conditions where the book gives them.
+- Rin trigger houses follow the commonly cited list; the Manglik split by Mars's state and the Kaal Sarp reading are commentary. Debt descriptions and family remedies are written in our own words and avoid harm or large sums.
 
 ## Context
 

@@ -20,6 +20,7 @@ export function LalKitabOverview({ reading, userPlan }: { reading: LalKitabReadi
   const name = (id: Parameters<typeof lkGrahaName>[0]) => lkGrahaName(id, lang)
   const list = (ids: readonly Parameters<typeof lkGrahaName>[0][]) => (ids.length ? ids.map(name).join(', ') : t('none'))
   const typeFindings = reading.findings.filter((f) => f.id.startsWith('teva.'))
+  const doshaRin = reading.findings.filter((f) => (f.id.startsWith('dosha.') && f.effect === 'bad') || f.id.startsWith('rin.'))
 
   return (
     <div className={styles.stack}>
@@ -42,6 +43,10 @@ export function LalKitabOverview({ reading, userPlan }: { reading: LalKitabReadi
         <div className={styles.stat}>
           <span className={styles.statLabel}>{t('sleepingHouses')}</span>
           <span className={styles.statValue}>{states.sleepingHouses.length ? states.sleepingHouses.map((s) => s.house).join(', ') : t('none')}</span>
+        </div>
+        <div className={styles.stat}>
+          <span className={styles.statLabel}>{t('doshasRin')}</span>
+          <span className={styles.statValue}>{doshaRin.length ? doshaRin.map((f) => f.label).join(', ') : t('none')}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>{t('kayam')}</span>

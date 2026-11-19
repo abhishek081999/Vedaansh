@@ -17,6 +17,8 @@
       "teva": "Teva",
       "predictions": "Predictions",
       "nishaniyan": "Signs in life",
+      "doshas": "Doshas",
+      "rin": "Rin (debts)",
       "planets": "Planets",
       "houses": "Houses",
       "drishti": "Drishti",
@@ -71,7 +73,7 @@
     },
     "takkarTitle": "Takkar (collision)",
     "takkarEmpty": "No planet strikes another by takkar.",
-    "comingNext": "Coming next: doshas, debts (rin), remedies and Varshphal.",
+    "comingNext": "Coming next: the full remedies (upay), prohibitions and Varshphal.",
     "gateFeature": "The full Lal Kitab reading",
     "chandraNote": "States are read from the Lagna Teva, so they are shown only there."
   },
@@ -186,7 +188,8 @@
     "chartTypeTitle": "What kind of chart this is",
     "topTitle": "Strongest findings",
     "topLede": "The five rules that weigh most in this chart. Open one to see why.",
-    "allTitle": "All findings ({count})"
+    "allTitle": "All findings ({count})",
+    "doshasRin": "Hard doshas and debts"
   },
   "planets": {
     "title": "Planets",
@@ -310,5 +313,38 @@
     "listTitle": "Signs in life",
     "listLede": "Lal Kitab reads these everyday signs as a planet turning hard. Tick only what has happened to you or your home.",
     "privacy": "Your ticks are kept only in this browser."
+  },
+  "doshas": {
+    "title": "Doshas the Lal Kitab way",
+    "lede": "Lal Kitab judges a dosha by the state of the planet behind it, so the same placement can be a dosha in one chart and harmless in another.",
+    "none": "No Lal Kitab dosha is formed in this chart.",
+    "remedyNext": "Remedies for each dosha come with the Upay update."
+  },
+  "rin": {
+    "title": "Rin (karmic debts)",
+    "lede": "A rin is a debt carried from the family's past, shown by set planets in set houses. Lal Kitab clears it together: the whole family joins one remedy on one day.",
+    "none": "No karmic debt is shown in this chart.",
+    "because": "Because of {list}",
+    "planetInHouse": "{planet} in house {house}",
+    "teaser": "What it comes from, its signs and the family remedy are part of the full reading.",
+    "origin": "Comes from",
+    "who": "Who takes part",
+    "remedy": "Family remedy",
+    "signs": "Signs it is active",
+    "howTitle": "How it is cleared",
+    "how": "every blood relative gives an equal share, the shares are put together on one day, and the remedy is done once, in daylight.",
+    "clearTitle": "Debts not shown in this chart",
+    "trigger": "{planets} in houses {houses}",
+    "names": {
+      "pitri": "Pitri Rin (ancestral)",
+      "matri": "Matri Rin (mother)",
+      "stri": "Stri Rin (wife)",
+      "bhai": "Bhai Rin (brother or friend)",
+      "behan": "Behan Rin (sister or daughter)",
+      "zalim": "Zalim Rin (oppressor)",
+      "ajanma": "Ajanma Rin (the unborn)",
+      "daivik": "Daivik Rin (divine)",
+      "swa": "Swa Rin (oneself)"
+    }
   }
 }

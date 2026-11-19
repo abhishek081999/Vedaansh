@@ -12,6 +12,9 @@ import { LK_FOUNDATION_TEXT_HI } from '@/lib/engine/locale/lalKitabFoundation.hi
 import { LK_COMBINATION_TEXT_HI, LK_STATE_TEXT_HI } from '@/lib/engine/locale/lalKitabCombinations.hi'
 import { LK_COMBINATION_TEXT, LK_MASNUI_RULES, LK_PAIR_RULES } from './catalogue/combinations'
 import { LK_STATE_RULES, LK_STATE_TEXT } from './catalogue/states'
+import { LK_DOSHA_RULES, LK_DOSHA_TEXT } from './catalogue/doshas'
+import { LK_RIN_RULES, LK_RIN_TEXT } from './catalogue/rin'
+import { LK_DOSHA_TEXT_HI, LK_RIN_TEXT_HI } from '@/lib/engine/locale/lalKitabDoshaRin.hi'
 import { lkConjunctions, type LkConjunction } from './conjunctions'
 import { lkMasnuiFormed, type LkMasnuiDef } from './masnui'
 import { LK_HOUSE_WAKER, type LkStates } from './states'
@@ -99,10 +102,10 @@ export interface ReadLalKitabOptions {
 }
 
 /** Every rule the reading runs, in catalogue order. */
-export const LK_ALL_RULES: readonly LkRule[] = [...LK_FOUNDATION_RULES, ...LK_STATE_RULES, ...LK_PAIR_RULES, ...LK_MASNUI_RULES]
+export const LK_ALL_RULES: readonly LkRule[] = [...LK_FOUNDATION_RULES, ...LK_STATE_RULES, ...LK_PAIR_RULES, ...LK_MASNUI_RULES, ...LK_DOSHA_RULES, ...LK_RIN_RULES]
 
-export const LK_ALL_TEXT: Record<string, LkRuleText> = { ...LK_FOUNDATION_TEXT, ...LK_STATE_TEXT, ...LK_COMBINATION_TEXT }
-export const LK_ALL_TEXT_HI: Record<string, LkRuleText> = { ...LK_FOUNDATION_TEXT_HI, ...LK_STATE_TEXT_HI, ...LK_COMBINATION_TEXT_HI }
+export const LK_ALL_TEXT: Record<string, LkRuleText> = { ...LK_FOUNDATION_TEXT, ...LK_STATE_TEXT, ...LK_COMBINATION_TEXT, ...LK_DOSHA_TEXT, ...LK_RIN_TEXT }
+export const LK_ALL_TEXT_HI: Record<string, LkRuleText> = { ...LK_FOUNDATION_TEXT_HI, ...LK_STATE_TEXT_HI, ...LK_COMBINATION_TEXT_HI, ...LK_DOSHA_TEXT_HI, ...LK_RIN_TEXT_HI }
 
 function ruleText(key: string, lang: EngineLang): LkRuleText {
   const en = LK_ALL_TEXT[key] ?? { label: key, text: key }
@@ -141,6 +144,7 @@ const STEP_EN: Record<LkTrailStep['op'], string> = {
   kayam: '{planet} has no enemy with it, looking at it or striking it',
   dharmi: '{planet} is dharmi in house {house}',
   chartType: '{chartType}',
+  kaalSarp: 'all other planets sit on one side of Rahu and Ketu',
 }
 
 const STEP_HI: Record<LkTrailStep['op'], string> = {
@@ -163,6 +167,7 @@ const STEP_HI: Record<LkTrailStep['op'], string> = {
   kayam: '{planet} के साथ न कोई शत्रु है, न उस पर शत्रु की दृष्टि या टक्कर',
   dharmi: '{planet} भाव {house} में धर्मी है',
   chartType: '{chartType}',
+  kaalSarp: 'बाक़ी सभी ग्रह राहु-केतु के एक ही ओर बैठे हैं',
 }
 
 const CHART_TYPE_EN: Record<LkChartType, string> = {
@@ -194,10 +199,10 @@ export function describeLkStep(step: LkTrailStep, lang: EngineLang = 'en'): stri
 
 function toFinding(rule: LkRule, trail: LkTrailStep[], facts: LkFacts, lang: EngineLang): LkFinding {
   const t = ruleText(rule.text, lang)
-  const others = trail.flatMap((s) => s.others ?? [])
+  const others = trail.flatMap((s) => s.others ?? (rule.id.startsWith('rin.') && s.planet ? [s.planet] : []))
   const slots = {
     planet: rule.planet ? lkGrahaName(rule.planet, lang) : '',
-    house: rule.planet ? facts.teva.house[rule.planet] ?? '' : '',
+    house: (rule.planet && !rule.id.startsWith('rin.') ? facts.teva.house[rule.planet] : undefined) ?? trail.find((s) => s.house)?.house ?? '',
     others: names([...new Set(others)], lang),
   }
   return {
