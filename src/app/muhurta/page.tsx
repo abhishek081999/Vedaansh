@@ -391,6 +391,20 @@ export default function MuhurtaPage() {
 
   const [isMobile, setIsMobile] = useState(false)
 
+  // Deep-link presets, e.g. /muhurta?purpose=BUSINESS&from=2027-03-01&to=2027-03-31 (career desk links).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const p = q.get('purpose')
+    if (p && (MUHURTA_ACTIVITIES as readonly string[]).includes(p)) setPurpose(p as MuhurtaActivity)
+    const iso = /^\d{4}-\d{2}-\d{2}$/
+    const from = q.get('from')
+    const to = q.get('to')
+    if (from && iso.test(from) && from >= today) setFromDate(from)
+    if (to && iso.test(to) && to > (from && iso.test(from) ? from : today)) setToDate(to)
+    // Read once on mount; `today` is stable for the session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()

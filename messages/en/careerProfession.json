@@ -39,6 +39,8 @@
     "yogasHint": "Career yogas and the nakshatra profession formula",
     "turns": "Turns and Support",
     "turnsHint": "Starts, breaks, changes, and rises of the career, and who helps or blocks the post",
+    "change": "Change and Switch",
+    "changeHint": "Job stability, when to switch, job vs business, layoff risk, promotion, transfer, side income, reskilling, and later career",
     "timing": "Timing",
     "timingHint": "Good and poor periods from mahadasha down to sookshma, and the slow-planet transits",
     "action": "Remedies and Brief",
@@ -173,5 +175,34 @@
       "professionFormula": "Profession formula",
       "styleOfWorking": "Style of working"
     }
+  },
+  "change": {
+    "title": "Career change and switch",
+    "stable": "Long tenure",
+    "mobile": "Frequent change",
+    "stabilityScore": "Change tendency {score}/10",
+    "stabilityAria": "Career change tendency {score} out of 10",
+    "skyLoading": "The transit check appears once current planetary positions load.",
+    "windows": "Switch, growth, and caution windows (next 12 years)",
+    "filterAria": "Filter windows by type",
+    "filter": {
+      "all": "All",
+      "switch": "Change",
+      "rise": "Growth",
+      "caution": "Caution",
+      "steady": "Steady"
+    },
+    "noWindows": "No windows of this type in the next 12 years.",
+    "now": "Now",
+    "rules": "Rules for a career switch",
+    "checkD10": "D10",
+    "checkKp": "KP",
+    "checkGochar": "Gochar",
+    "bestSwitch": "Best confirmed change window",
+    "bestSwitchChecks": "{agree} of {available} cross-checks (D10, KP, gochar) agree with this window.",
+    "gocharUnavailable": "Future transits could not be loaded, so windows are checked by D10 and KP only.",
+    "days": "Pick the day (muhurta)",
+    "teaserTitle": "Change and switch",
+    "teaserText": "Gold shows dated change, growth and caution windows for the next 12 years, checked against D10, KP and gochar, plus job vs business, layoff risk, promotion, transfer and the best day to join."
   }
 }

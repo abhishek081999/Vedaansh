@@ -24,6 +24,7 @@ import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { CLASSICAL, DRISHTI_NOTE, RASHI_LORD, aspectersOf, conjunctWith, aspectsSign, day, gname, houseFrom, shadbalaRupas, signOfHouse, table } from '@/lib/engine/aiPromptFormat'
 import { analyzeCareerProfession } from '@/lib/engine/careerProfession'
 import { analyzeCareerMethod } from '@/lib/engine/careerMethod'
+import { analyzeCareerChange } from '@/lib/engine/careerChange'
 import { analyzeMarriedLife } from '@/lib/engine/marriedLifeAnalysis'
 import { analyzeClassicalMarriage } from '@/lib/engine/classicalMarriage'
 import { analyzeMarriageHouses } from '@/lib/engine/marriageHouses'
@@ -127,10 +128,12 @@ const TOPICS: Record<AiTopic, TopicDef> = {
       'Am I better suited for a job, business, or independent profession?',
       'When are the strongest periods for promotion or a job change in the next 5 years?',
       'Is foreign work or settlement indicated for my career?',
+      'Is this a good time to switch jobs or careers, and which field should I move into?',
     ],
     readings: [
       { title: 'Career and profession reading', run: (c, l, now) => analyzeCareerProfession(c, now, l) },
       { title: 'Career method (step-by-step classical analysis)', run: (c, l, now) => analyzeCareerMethod(c, now, l) },
+      { title: 'Career change and switch (stability, switch/growth/caution windows, job vs business, risks)', run: (c, l, now) => analyzeCareerChange(c, now, l) },
     ],
   },
   love: {

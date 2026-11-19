@@ -156,6 +156,7 @@ Also gated in `src/proxy.ts` for `/muhurta` and `/api/muhurta`.
 | GET | `/api/panchang` | no | — | Daily panchang |
 | GET | `/api/transit` | no | — | Transits |
 | GET | `/api/transit/sade-sati` | no | — | Sade Sati / Kantaka / Ashtama from Moon |
+| GET | `/api/transit/slow-spans` | no | — | Saturn / Jupiter / Rahu / Ketu sign spans for the next `years` (default 12, max 20); career change windows |
 | GET | `/api/transit/aspects` | no | — | Gochara aspects + double/triple windows |
 | GET | `/api/transit/moorthy` | no | — | Ju/Sa Moorthy Nirnaya (ingress weekday) |
 | POST | `/api/transit/moon` | no | — | Moon passages over natal grahas / lagnas / upagrahas (72h + 27d) |
