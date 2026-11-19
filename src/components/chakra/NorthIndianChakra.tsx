@@ -440,12 +440,12 @@ export function NorthIndianChakra({
               points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
               fill={
                 highlightHouses.includes(h)
-                  ? 'rgba(253, 230, 138, 0.14)'
+                  ? 'var(--chart-house-highlight, var(--gold-faint))'
                   : 'transparent'
               }
-              stroke="var(--gold)"
-              strokeWidth={1.25}
-              strokeOpacity={0.42}
+              stroke="var(--chart-grid-stroke, var(--gold))"
+              strokeWidth={1.2}
+              strokeOpacity={1}
               strokeLinejoin="round"
             />
 
@@ -722,7 +722,7 @@ export function NorthIndianChakra({
 
       {/* Outer framing box */}
       <rect x=".5" y=".5" width={S - 1} height={S - 1}
-        fill="none" stroke="var(--gold)" strokeWidth={1.25} strokeOpacity={0.5} />
+        fill="none" stroke="var(--chart-grid-stroke, var(--gold))" strokeWidth={1.35} strokeOpacity={1} />
 
       {/* ── Aspect Lines ── */}
       {aspectLines.map(({ from, to }, idx) => {
