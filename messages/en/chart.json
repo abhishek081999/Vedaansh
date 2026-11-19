@@ -628,6 +628,35 @@
     "am": "am",
     "pm": "pm"
   },
+  "aiPrompt": {
+    "button": "AI prompt",
+    "title": "Copy this chart as a prompt for Claude, ChatGPT or any AI",
+    "heading": "Ask any AI about this chart",
+    "body": "Copies every calculation for this chart (planets, houses, vargas, dashas, strengths, yogas and our readings) as one prompt. Paste it into an AI chat, then ask your question.",
+    "freeNote": "Gold adds the full Interpretation hub notes and our detailed career, marriage and relationship readings to the prompt.",
+    "hideName": "Leave out the name",
+    "copy": "Copy prompt",
+    "copied": "✓ Copied",
+    "download": "Download .md",
+    "size": "About {kb} KB of text",
+    "openIn": "Open:",
+    "privacy": "The prompt includes birth date, time and place. It goes to the AI provider you paste it into, under their privacy terms.",
+    "topicsLabel": "Add a focus study (optional)",
+    "topicsNone": "No focus: a general reading of the whole chart.",
+    "topicsOn": "Each focus adds the classical method, the key houses and vargas, and the dasha periods that activate it.",
+    "preparing": "Preparing…",
+    "topics": {
+      "personality": "Personality & mind",
+      "career": "Career",
+      "love": "Love life",
+      "marriage": "Marriage",
+      "wealth": "Wealth",
+      "health": "Health",
+      "education": "Education",
+      "children": "Children",
+      "spirituality": "Spirituality"
+    }
+  },
   "actions": {
     "pdfLocked": "PDF export requires Gold plan",
     "pdfTitle": "Export {name} as PDF",

@@ -60,6 +60,7 @@ const LifeHighlightsCard = dynamic(() => import('@/components/dashboard/Dashboar
 const TodayPanchangCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TodayPanchangCard), { ssr: false })
 const TransitSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TransitSnapshotCard), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
+const AiPromptButton = dynamic(() => import('@/components/ui/AiPromptButton').then(m => m.AiPromptButton), { ssr: false })
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPanel').then(m => m.AstroDetailsPanel), { ssr: false })
@@ -1888,6 +1889,7 @@ function HomeContent() {
                     </Link>
                   )}
                   <ExportPdfButton chart={chart} compact />
+                  <AiPromptButton chart={chart} compact />
                   <EmailChartButton chart={chart} compact />
                   {status === 'authenticated' && userPlan === 'platinum' && (
                     <button
@@ -1930,6 +1932,7 @@ function HomeContent() {
                     {shareCopied ? '✓' : <ShareLinkIcon />}
                   </button>
                   <ExportPdfButton chart={chart} compact />
+                  <AiPromptButton chart={chart} compact />
                   <EmailChartButton chart={chart} compact />
                   <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm">✎</button>
                   <button onClick={startNewChart} className="btn btn-primary btn-sm">{tAct('newChart')}</button>
