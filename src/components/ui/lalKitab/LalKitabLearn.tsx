@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import {
   LK_CYCLE, LK_ENEMIES, LK_FRIENDS, LK_GRAHAS, LK_HOUSE_ASPECTS, LK_HOUSE_KARAKA, LK_HOUSE_WAKER, LK_HOUSES,
-  LK_MASNUI, LK_MATURITY_AGE, LK_NEECH, LK_NODE_DIGNITY_PENDING, LK_PAKKA_GHAR, LK_UCHCHA, LK_VARSH_FIRST_COL,
+  LK_MASNUI, LK_MATURITY_AGE, LK_NEECH, LK_NODE_DIGNITY_COMMENTARY, LK_PAKKA_GHAR, LK_UCHCHA, LK_VARSH_FIRST_COL,
   lkAspectsFromHouse, lkBunyadHouse, lkGrahaKaraka, lkGrahaName, lkHouseMeaning, lkTakkarHouse,
   type LkGraha, type LkHouse,
 } from '@/lib/engine/lalKitab'
@@ -55,15 +55,15 @@ export function LalKitabLearn() {
         <div className={styles.cards}>
           {LK_GRAHAS.map((id) => {
             const k = lkGrahaKaraka(id, lang)
-            const pending = LK_NODE_DIGNITY_PENDING.includes(id)
+            const star = LK_NODE_DIGNITY_COMMENTARY.includes(id) ? ' *' : ''
             return (
               <article key={id} className={styles.mini}>
                 <h3 className={styles.miniTitle}>{name(id)}</h3>
                 <p className={styles.miniText}>{k.nature}</p>
                 <dl className={styles.facts}>
                   <dt>{t('pakkaGhar')}</dt><dd>{houses(LK_PAKKA_GHAR[id])}</dd>
-                  <dt>{t('uchcha')}</dt><dd>{pending ? t('pending') : houses(LK_UCHCHA[id])}</dd>
-                  <dt>{t('neech')}</dt><dd>{pending ? t('pending') : houses(LK_NEECH[id])}</dd>
+                  <dt>{t('uchcha')}</dt><dd>{houses(LK_UCHCHA[id])}{star}</dd>
+                  <dt>{t('neech')}</dt><dd>{houses(LK_NEECH[id])}{star}</dd>
                   <dt>{t('relatives')}</dt><dd>{k.relatives}</dd>
                   <dt>{t('body')}</dt><dd>{k.body}</dd>
                   <dt>{t('colour')}</dt><dd>{k.colour}</dd>
@@ -75,6 +75,7 @@ export function LalKitabLearn() {
             )
           })}
         </div>
+        <p className={styles.note}>{t('commentaryStar')}</p>
       </section>
 
       <section className={styles.card} aria-labelledby="lk-friends-title">

@@ -42,6 +42,12 @@ describe('varshphal table', () => {
     // Year 16, birth house 1 → 3 (Saptarishis example for Mars in H1).
     expect(lkVarshShift(16)[1]).toBe(3)
   })
+
+  it('matches independent copies of the first and last rows', () => {
+    // Year 1 as widely reproduced; year 120 as in a separate Scribd copy of the table.
+    expect(Object.values(lkVarshShift(1))).toEqual([1, 9, 10, 3, 5, 6, 11, 7, 2, 12, 4, 8])
+    expect(Object.values(lkVarshShift(120))).toEqual([6, 8, 7, 12, 2, 3, 5, 4, 11, 1, 9, 10])
+  })
 })
 
 describe('35-year cycle', () => {

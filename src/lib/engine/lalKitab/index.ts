@@ -6,7 +6,7 @@
 export * from './types'
 export { buildTeva, houseOfRashi } from './chart'
 export type { LkTeva } from './chart'
-export { LK_PAKKA_GHAR, LK_UCHCHA, LK_NEECH, LK_HOUSE_KARAKA, LK_NODE_DIGNITY_PENDING, lkDignity } from './pakkaGhar'
+export { LK_PAKKA_GHAR, LK_UCHCHA, LK_NEECH, LK_HOUSE_KARAKA, LK_NODE_DIGNITY_COMMENTARY, lkDignity } from './pakkaGhar'
 export type { LkDignity } from './pakkaGhar'
 export { LK_FRIENDS, LK_ENEMIES, lkRelation, lkMutualClash } from './friendship'
 export { LK_HOUSE_ASPECTS, LK_ASPECT_PERCENT, lkAspectsFromHouse, lkBunyadHouse, lkPlanetAspects, lkTakkarHouse, lkTakkars } from './drishti'

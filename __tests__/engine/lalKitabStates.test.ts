@@ -127,3 +127,20 @@ describe('whole catalogue', () => {
     expect(r.findings.map((f) => f.id)).toEqual(expect.arrayContaining(['teva.andhi', 'dharmi.Ra', 'house8.through2']))
   })
 })
+
+describe('Rahu and Ketu dignity (commentary list)', () => {
+  const read = (houses: Partial<Record<LkGraha, number>>) =>
+    readLalKitab(chartWith(houses)).findings
+  it('reads strong and weak Rahu and Ketu, tagged commentary', () => {
+    const strong = read({ Ra: 3, Ke: 9 })
+    expect(strong.map((f) => f.id)).toEqual(expect.arrayContaining(['uchcha.Ra.3', 'uchcha.Ke.9']))
+    expect(read({ Ra: 8, Ke: 2 }).map((f) => f.id)).toContain('neech.Ra.8')
+    for (const r of LK_ALL_RULES.filter((x) => /^(uchcha|neech)\.(Ra|Ke)\./.test(x.id))) expect(r.edition).toBe('commentary')
+  })
+  it('treats Ketu in house 6 (pakka and neech) as mixed, not hard', () => {
+    const ids = read({ Ke: 6, Ra: 12 })
+    expect(ids.find((f) => f.id === 'neech.Ke.6')?.effect).toBe('mixed')
+    expect(ids.map((f) => f.id)).toContain('pakka.Ke.6')
+    expect(readLalKitab(chartWith({ Ke: 6, Ra: 12 })).phal.find((p) => p.planet === 'Ke')?.side).toBe('good')
+  })
+})

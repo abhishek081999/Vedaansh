@@ -8,6 +8,9 @@
 //  (Rabinder Nath Bhandari). Four OCR typos were corrected so each
 //  row is a permutation of 1–12 and the first column follows the
 //  known 12-year cycle [1,4,9,3,11,5,7,2,12,10,8,6].
+//  Cross-check (2026-11-21): rows 1 and 120 match an independent
+//  Scribd copy of the table. The four corrected cells are not
+//  recorded; confirm them against a scan of the 1952 text.
 // ─────────────────────────────────────────────────────────────
 
 import type { LkHouse } from '../types'

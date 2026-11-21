@@ -2,9 +2,12 @@
 //  src/lib/engine/lalKitab/pakkaGhar.ts
 //  Permanent houses (pakka ghar), Lal Kitab exaltation and
 //  debilitation by house, and the karaka planets of each house.
-//  Source: 1952 edition. Rahu and Ketu exaltation houses differ
-//  between editions, so they stay empty until the edition check
-//  (Phase 2) settles them.
+//  Source: 1952 edition for the seven planets. Rahu and Ketu follow
+//  the commonly published Lal Kitab list (e.g. AstroSage's Lal Kitab
+//  pages): Rahu exalted 3, 6 and debilitated 8, 9, 11; Ketu exalted
+//  5, 9, 12 and debilitated 6, 8. House 6 is both Ketu's pakka ghar
+//  and a debilitation house in that list; the phal logic lets the
+//  pakka ghar lift it unless an enemy harms Ketu. Tagged commentary.
 // ─────────────────────────────────────────────────────────────
 
 import type { LkGraha, LkHouse } from './types'
@@ -16,16 +19,16 @@ export const LK_PAKKA_GHAR: Record<LkGraha, readonly LkHouse[]> = {
 
 /** Houses where a planet is exalted (uchcha) in the Lal Kitab chart. */
 export const LK_UCHCHA: Record<LkGraha, readonly LkHouse[]> = {
-  Su: [1], Mo: [2], Ma: [10], Me: [6], Ju: [4], Ve: [12], Sa: [7], Ra: [], Ke: [],
+  Su: [1], Mo: [2], Ma: [10], Me: [6], Ju: [4], Ve: [12], Sa: [7], Ra: [3, 6], Ke: [5, 9, 12],
 }
 
 /** Houses where a planet is debilitated (neech) in the Lal Kitab chart. */
 export const LK_NEECH: Record<LkGraha, readonly LkHouse[]> = {
-  Su: [7], Mo: [8], Ma: [4], Me: [12], Ju: [10], Ve: [6], Sa: [1], Ra: [], Ke: [],
+  Su: [7], Mo: [8], Ma: [4], Me: [12], Ju: [10], Ve: [6], Sa: [1], Ra: [8, 9, 11], Ke: [6, 8],
 }
 
-/** Rahu and Ketu exaltation / debilitation houses vary by edition and are not yet set. */
-export const LK_NODE_DIGNITY_PENDING: readonly LkGraha[] = ['Ra', 'Ke']
+/** Planets whose exaltation / debilitation houses come from commentary, not the 1952 text. */
+export const LK_NODE_DIGNITY_COMMENTARY: readonly LkGraha[] = ['Ra', 'Ke']
 
 /** The karaka (significator) planets of each house. */
 export const LK_HOUSE_KARAKA: Record<LkHouse, readonly LkGraha[]> = {

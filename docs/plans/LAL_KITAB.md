@@ -2,14 +2,18 @@
 
 Status: **approved plan** (2026-11-19). Phases 0–8 done — full section shipped.
 
-Open research items (need the 1952 text before they are set):
-- Rahu/Ketu exaltation and debilitation houses (`LK_NODE_DIGNITY_PENDING`); the common Ketu table puts house 6 as both pakka ghar and neech.
+Open research items (2026-11-21). Settled from published sources, tagged `commentary` until checked against a 1952 scan:
+- Rahu/Ketu dignity: Rahu exalted 3, 6 / debilitated 8, 9, 11; Ketu exalted 5, 9, 12 / debilitated 6, 8 (`LK_NODE_DIGNITY_COMMENTARY`). Ketu in 6 is both pakka ghar and debilitated; it reads as mixed, and its pakka ghar lifts it unless an enemy harms it.
+- 35-year cycle order Sa 6, Ra 6, Ke 3, Ju 6, Su 2, Mo 1, Ve 3, Ma 6, Me 2: confirmed by published commentary.
+- Varshphal table: rows 1 and 120 match an independent copy (tested). The four "corrected" cells are unrecorded and still need a 1952 scan.
+- Dhokha grah: matches the common description (planet that loses most dignity in the year).
+
+Still open (no reliable source found):
 - Gupt (hidden) and achanak-chot (sudden blow) house pairs.
-- Dhokha grah: Phase 6 ships a commentary check (settled natal → pressured in the year chart); confirm against the 1952 wording when the text is available.
-- Rules tagged `edition: 'commentary'` (waking-planet table, andhi/ratandh conditions, kismat method, four masnui readings) to be confirmed or replaced.
-- The 108 planet-in-house readings and the 63 Nishaniyan signs are written from karakas and house meanings (`LK_PHAL_EDITION`, `LK_NISHANI_EDITION` = commentary); check each against the 1952 text, and add per-reading conditions where the book gives them.
-- Rin trigger houses follow the commonly cited list; the Manglik split by Mars's state and the Kaal Sarp reading are commentary. Debt descriptions and family remedies are written in our own words and avoid harm or large sums.
-- Remedies (53) and prohibitions (36) are pools per planet with house lists, not 108 hand-written sets; each placement gets ≥2 remedies and ≥1 prohibition (tested). Edition: commentary. The remedy tracker (saved 43-day progress) is in Phase 7.
+- Masphal / dinphal method (commentary rotation).
+- Rules tagged `edition: 'commentary'` (waking-planet table, andhi/ratandh conditions, kismat method, four masnui readings).
+- The 108 planet-in-house readings, 63 Nishaniyan signs, remedies (53) and prohibitions (36) are written in our own words from karakas and house meanings; check against the 1952 text and add per-reading conditions where the book gives them.
+- Rin trigger houses follow the commonly cited list; the Manglik split and the Kaal Sarp reading are commentary.
 
 ## Context
 

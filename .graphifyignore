@@ -41,3 +41,16 @@ Thumbs.db
 # ── Environment files ────────────────────────────────────────
 .env
 .env.*
+
+# ── Agent / tooling noise ────────────────────────────────────
+.claude/
+.agent/
+.gemini/
+.hallmark/
+.impeccable/
+.playwright-mcp/
+.storybook/
+public/
+messages/
+android-twa/
+GEMINI.md

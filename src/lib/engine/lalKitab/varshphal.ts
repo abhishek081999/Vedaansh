@@ -7,7 +7,10 @@
 //  Masphal / dinphal: commentary method — rotate the parent chart so
 //  the marker planet (Sun / Mars) sits in the period's house index.
 //  Dhokha: planets that look settled in the birth Teva but face an
-//  enemy aspect, enemy company or debility in the year chart.
+//  enemy aspect, enemy company or debility in the year chart. This
+//  follows the common description of dhokha grah as the planet that
+//  loses the most dignity in a given year (the opposite of the planet
+//  of destiny); the 1952 wording is not yet checked.
 // ─────────────────────────────────────────────────────────────
 
 import type { LkTeva } from './chart'

@@ -86,10 +86,20 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 | Rule | Scope |
 |------|-------|
 | `core-doctrine.mdc` | Always — research-first, autonomous execution |
+| `graphify.mdc` | Always — query `graphify-out/` before broad codebase exploration |
 | `nextjs-api.mdc` | `src/app/api/**` |
 | `engine.mdc` | `src/lib/engine/**` |
 | `react-ui.mdc` | `src/components/**` |
 | `tests.mdc` | `__tests__/**` |
+
+### Knowledge graph (graphify)
+
+Installed CLI: `graphify` (`graphifyy` on PyPI). Outputs live in `graphify-out/` (gitignored). Prefer:
+
+- `graphify query "…"` / `graphify path "A" "B"` / `graphify explain "X"` before broad Grep/Read exploration
+- `graphify-out/wiki/index.md` for wiki-style navigation
+- `graphify update .` after code changes (AST-only; post-commit hook also rebuilds)
+- Full rebuild skill: `/graphify .` (docs/images need `GEMINI_API_KEY` for semantic pass)
 
 ### Critical patterns
 
