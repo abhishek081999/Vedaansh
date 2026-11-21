@@ -25,6 +25,7 @@ import {
 import type { EngineLang } from '@/lib/engine/lang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { buildInterpretationHub } from '@/lib/engine/interpretationHub'
+import { analyzeUcchaNeechaLens } from '@/lib/engine/ucchaNeechaLens'
 import { AI_TOPICS, buildTopicStudy, topicTitle, type AiTopic } from '@/lib/engine/aiPromptTopics'
 import {
   RASHI_LORD,
@@ -245,6 +246,35 @@ function lagnaSection(chart: ChartOutput): string {
       ['Indu Lagna', signPos(l.induLagna)],
       ['Bhrigu Bindu', signPos(l.bhriguBindu)],
     ]),
+  ].join('\n')
+}
+
+/** Uccha–neecha lens: Lagna lord's exaltation / debilitation house plus every house lord. */
+function ucchaNeechaSection(chart: ChartOutput, short = false): string {
+  let un
+  try {
+    un = analyzeUcchaNeechaLens(chart, 'en')
+  } catch {
+    return ''
+  }
+  const head = [
+    short ? '### Uccha–neecha lens' : '## 2b. Uccha–neecha lens (motivation and insecurity)',
+    '',
+    `_Method: ${un.method} ${un.dutyNote} Treat these as possibilities that the karakas refine, not verdicts. Insecurity means possessiveness or over-effort, not fear._`,
+    '',
+    `- **Motivation (H${un.motivation.house}):** ${un.motivation.summary} ${un.motivation.points.join(' ')}`,
+    `- **Insecurity (H${un.insecurity.house}):** ${un.insecurity.summary} ${un.insecurity.points.join(' ')}`,
+  ]
+  if (short) return head.join('\n')
+  return [
+    ...head,
+    ...un.planets.map((p) => `- **${gname(p.graha)} ${p.dignity}:** ${p.text}`),
+    '',
+    table(['House', 'Lord', 'Drive comes via', 'Insecurity plays out in', 'House link'], un.houses.map((h) => [
+      h.house, gname(h.lord), `H${h.motivationHouse}`, `H${h.insecurityHouse}`, h.special ?? '',
+    ])),
+    '',
+    '_Bhavat bhavam: the 12th from any house is its loss/expense (and control of loss), the 11th its gain, the 9th its fortune, the 6th its trouble, the 4th its happiness. Houses 3, 5, 9 (6th/8th/12th from the 10th) mark career changes in dashas._',
   ].join('\n')
 }
 
@@ -559,6 +589,7 @@ export function buildAiPrompt(chart: ChartOutput, opts: AiPromptOptions = {}): s
     return [
       shortInstructions(lang, topics),
       shortChart(chart, !!opts.hideName, now),
+      ucchaNeechaSection(chart, true),
       ...topics.map((t) => buildTopicStudy(chart, t, { plan, lang, now, short: true })),
       '_Short version from Vedaansh. Ask for the full prompt if you need every varga, dasha system and reading._',
     ].filter((p) => p && p.trim()).join('\n\n') + '\n'
@@ -567,6 +598,7 @@ export function buildAiPrompt(chart: ChartOutput, opts: AiPromptOptions = {}): s
     instructions(lang, topics),
     birthDetails(chart, !!opts.hideName),
     lagnaSection(chart),
+    ucchaNeechaSection(chart),
     grahaSection(chart),
     houseSection(chart),
     strengthSection(chart),
