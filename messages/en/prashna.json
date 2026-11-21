@@ -540,5 +540,22 @@
       "signHeight": "Sign Height",
       "location": "Location"
     }
+  },
+  "houses": {
+    "title": "What each house covers in praśna",
+    "intro": "Pick the house that rules your question before you read the chart. Every signification of a house applies in praśna. Horary-specific uses are listed first, then the house's other significations. Search with a word from your question.",
+    "searchAria": "Search house significations",
+    "searchPlaceholder": "Which house? Try visa, theft, tenant, loan",
+    "none": "Nothing matches that word. Try a simpler one.",
+    "houseAria": "House",
+    "houseN": "House {n}",
+    "inPrashna": "Horary-specific uses",
+    "prashnaTag": "horary",
+    "general": "Other significations, also used in praśna",
+    "footnote": "Reference only. Compiled from teaching notes; schools differ on some points.",
+    "coversTitle": "What house {n} covers in praśna",
+    "coversHint": "The matter is read from house {n}, and every signification below applies. Check that your question is one of these; if not, pick a closer topic or look it up in the house reference.",
+    "planetsTitle": "Planets in health questions",
+    "planetsHint": "Read the planet tied to the house in question. Traditional indications only, not medical advice; please rely on a qualified doctor."
   }
 }

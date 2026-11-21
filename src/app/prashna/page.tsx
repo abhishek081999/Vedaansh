@@ -45,6 +45,7 @@ import { analyseLagnaStability, type StabilityResult } from '@/lib/engine/prashn
 import { SatpanchasikaPanel } from '@/components/prashna/SatpanchasikaPanel'
 import { VedicPrashnaPanel } from '@/components/prashna/VedicPrashnaPanel'
 import { SatpanchasikaReference } from '@/components/prashna/SatpanchasikaReference'
+import { PrashnaHouseReference } from '@/components/prashna/PrashnaHouseReference'
 
 const ChakraSelector = dynamic(
   () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
@@ -1614,6 +1615,8 @@ export default function PrashnaPage() {
         {mode === 'satpanchasika' && (
           <SatpanchasikaReference status={satpanchasikaReading?.slokaStatus} />
         )}
+
+        <PrashnaHouseReference initialHouse={VEDIC_TOPICS.find(x => x.id === vedicTopic)?.house ?? 1} />
       </main>
 
       <style>{`

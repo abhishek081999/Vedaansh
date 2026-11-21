@@ -6,12 +6,13 @@
 
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
-import { AlertTriangle, Clock, Scale, Target } from 'lucide-react'
+import { AlertTriangle, Clock, Home, Scale, Target } from 'lucide-react'
 import type { VedicPolarity, VedicPrashnaReading } from '@/lib/engine/vedicPrashna'
 import { grahaName, ordinal } from '@/lib/engine/satpanchasikaFacts'
 import type { StabilityResult } from '@/lib/engine/prashnaStability'
 import { Section, StabilitySection, VERDICT_STYLE, approxDate } from './SatpanchasikaPanel'
 import { PrashnaLagnaSignCard } from './PrashnaLagnaSignCard'
+import { PrashnaHouseCovers } from './PrashnaHouseReference'
 
 const POLARITY: Record<VedicPolarity, { color: string; label: string }> = {
   favourable: { color: 'var(--teal)', label: 'Favourable' },
@@ -34,6 +35,7 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
   const tr = useTranslations('prashna.vedic')
   const tv = useTranslations('prashna.verdict')
   const tp = useTranslations('prashna.polarity')
+  const th = useTranslations('prashna.houses')
   const { lang } = useLang()
   const v = VERDICT_STYLE[r.verdict]
   const s = r.significators
@@ -74,6 +76,10 @@ export function VedicPrashnaPanel({ reading: r, questionText, stability, askedOn
             </div>
           ))}
         </div>
+      </Section>
+
+      <Section title={th('coversTitle', { n: s.karyaHouse })} Icon={Home} accent="var(--teal)" defaultOpen={false}>
+        <PrashnaHouseCovers house={s.karyaHouse} />
       </Section>
 
       {lagnaRashi ? <PrashnaLagnaSignCard lagnaRashi={lagnaRashi} lagnaDegree={lagnaDegree ?? 0} /> : null}
