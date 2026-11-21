@@ -14,6 +14,7 @@ import {
   Moon as MoonLucide,
   Orbit,
   Scale,
+  ArrowUpDown,
   Sparkles,
   Star,
   Sun as SunLucide,
@@ -52,9 +53,10 @@ import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { UcchaNeechaTab } from './UcchaNeechaTab'
 import styles from './PlanetsWorkspace.module.css'
 
-type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus' | 'saturn' | 'rahu' | 'ketu' | 'remedies' | 'maturity' | 'energy' | 'yogi' | 'insights'
+type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus' | 'saturn' | 'rahu' | 'ketu' | 'remedies' | 'maturity' | 'energy' | 'yogi' | 'insights' | 'uccha'
 
 const TABS: {
   id: TabId
@@ -74,6 +76,7 @@ const TABS: {
   { id: 'saturn', label: 'Saturn · Shani', shortLabel: 'Saturn', Icon: Mountain },
   { id: 'rahu', label: 'Rahu · Rāhu', shortLabel: 'Rahu', Icon: Eclipse },
   { id: 'ketu', label: 'Ketu · Śikhin', shortLabel: 'Ketu', Icon: CircleDot },
+  { id: 'uccha', label: 'Uccha–Neecha', shortLabel: 'Uccha', Icon: ArrowUpDown },
   { id: 'remedies', label: 'Remedies · Upay', shortLabel: 'Remedies', Icon: Flower2 },
   { id: 'maturity', label: 'Maturity Ages', shortLabel: 'Maturity', Icon: Hourglass },
   { id: 'energy', label: 'Energy Cycles', shortLabel: 'Energy', Icon: Orbit },
@@ -482,6 +485,12 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
               : t('ketuFree')}
           </p>
           <KetuAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {tab === 'uccha' && (
+        <section className={styles.section} role="tabpanel">
+          <UcchaNeechaTab chart={chart} mode="planets" />
         </section>
       )}
 

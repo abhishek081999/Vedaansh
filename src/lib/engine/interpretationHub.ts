@@ -32,6 +32,7 @@ import { dignityInterpretation, nakshatraInterpretation } from '@/lib/engine/int
 import { getChartHouseClassical, getChartMultiVakriNotes } from '@/lib/engine/classicalChartAnalysis'
 import { evaluateGochar, houseFrom, isGocharPlanet, type GocharPlanet } from '@/lib/engine/gocharRules'
 import { analyzeVimshottariPeriod } from '@/lib/engine/dasha/vimshottariAnalysis'
+import { analyzeUcchaNeechaLens, ucchaNeechaLabels, ucchaNeechaTitle, type UcchaNeechaLens } from '@/lib/engine/ucchaNeechaLens'
 import { fill, type EngineLang } from '@/lib/engine/lang'
 import { GRAHA_HI, KARAKA_SHORT_HI, NAKSHATRA_DEITY_HI, NAKSHATRA_HI, NAKSHATRA_SYMBOL_HI, RASHI_HI } from '@/i18n/jyotish'
 import { getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
@@ -168,6 +169,14 @@ function houseOf(chart: ChartOutput, rashi: Rashi): HouseNumber {
   return wholeSignHouseFromLagna(chart.lagnas.ascRashi, rashi)
 }
 
+function safeLens(chart: ChartOutput, lang: EngineLang): UcchaNeechaLens | null {
+  try {
+    return chart.lagnas?.ascRashi ? analyzeUcchaNeechaLens(chart, lang) : null
+  } catch {
+    return null
+  }
+}
+
 // ── Overview ────────────────────────────────────────────────
 
 export function buildOverviewSection(chart: ChartOutput, lang: EngineLang = 'en'): HubSection {
@@ -189,6 +198,25 @@ export function buildOverviewSection(chart: ChartOutput, lang: EngineLang = 'en'
     points: (i.actions ?? []).map((a) => ({ label: hi ? HH.action : 'Action', text: a })),
     tags: i.relatedGrahas.map((g) => gn(g, lang)),
   }))
+
+  const un = safeLens(chart, lang)
+  if (un) {
+    const L = ucchaNeechaLabels(lang)
+    for (const f of [un.motivation, un.insecurity]) {
+      items.push({
+        id: `uccha-neecha-${f.kind}`,
+        title: ucchaNeechaTitle(f.kind, f.house, lang),
+        subtitle: fill(L.subtitle, { lord: gn(f.lord, lang), sign: rn(f.sign, lang) }),
+        tone: f.kind === 'motivation' ? (f.strained ? 'mixed' : 'supportive') : (f.strained ? 'caution' : 'mixed'),
+        summary: f.summary,
+        points: [
+          ...f.points.map((text) => ({ text })),
+          ...(f.kind === 'motivation' ? [{ label: L.duty, text: un.dutyNote }, { label: L.method, text: un.method }] : []),
+        ],
+        tags: [gn(f.lord, lang), ...f.facets.slice(0, 2).map((x) => gn(x.graha, lang))],
+      })
+    }
+  }
 
   // Charts often hold several yogas with the same display name (e.g. multiple Raja Yogas).
   // Include index + planets so React keys and hub item ids stay unique.
@@ -277,6 +305,7 @@ function mixLayerHi(
 export function buildPlanetsSection(chart: ChartOutput, lang: EngineLang = 'en'): HubSection {
   const ascRashi = chart.lagnas.ascRashi
   const hi = lang === 'hi'
+  const un = safeLens(chart, lang)
   const items: HubItem[] = []
   for (const id of CLASSICAL_ORDER) {
     const g = chart.grahas.find((p) => p.id === id)
@@ -304,10 +333,13 @@ export function buildPlanetsSection(chart: ChartOutput, lang: EngineLang = 'en')
         ?? getPlanetInSign(id, g.rashi, 'summary')
         ?? mix?.blendedSummary
         ?? `${g.name} occupies the ${ordinal(house)} house.`,
-      points: (mix?.layers ?? []).map((l) => (hi ? mixLayerHi(l, { id, house, rashi: g.rashi, nak: g.nakshatraIndex, pada: g.pada, dignity: g.dignity }) : l)).flatMap((l) => [
-        ...l.texts.map((t) => ({ label: l.label, text: t, source: l.provenance })),
-        ...notePoints(l.classicalNotes, l.label, lang),
-      ]),
+      points: [
+        ...(mix?.layers ?? []).map((l) => (hi ? mixLayerHi(l, { id, house, rashi: g.rashi, nak: g.nakshatraIndex, pada: g.pada, dignity: g.dignity }) : l)).flatMap((l) => [
+          ...l.texts.map((t) => ({ label: l.label, text: t, source: l.provenance })),
+          ...notePoints(l.classicalNotes, l.label, lang),
+        ]),
+        ...(un?.planets.filter((p) => p.graha === id).map((p) => ({ label: ucchaNeechaLabels(lang).planetLens, text: p.text })) ?? []),
+      ],
       tags: flags,
     })
   }
@@ -324,6 +356,8 @@ export function buildPlanetsSection(chart: ChartOutput, lang: EngineLang = 'en')
 export function buildHousesSection(chart: ChartOutput, lang: EngineLang = 'en'): HubSection {
   const ascRashi = chart.lagnas.ascRashi
   const hi = lang === 'hi'
+  const un = safeLens(chart, lang)
+  const UL = ucchaNeechaLabels(lang)
   const items: HubItem[] = []
   for (let h = 1 as HouseNumber; h <= 12; h = (h + 1) as HouseNumber) {
     const theme = getHouseTheme(h, lang)
@@ -362,6 +396,15 @@ export function buildHousesSection(chart: ChartOutput, lang: EngineLang = 'en'):
         source: classicalSourceLabel(a.note.source, lang),
       })),
       ...notePoints(pkg.houseNotes, hi ? HH.classical : 'Classical', lang),
+      ...(() => {
+        const hl = un?.houses.find((x) => x.house === h)
+        if (!hl) return []
+        return [
+          ...(h !== 1 ? [{ label: UL.motivation, text: hl.motivationText }, { label: UL.insecurity, text: hl.insecurityText }] : []),
+          { label: UL.bhavatBhavam, text: hl.bhavatBhavam.join('; ') },
+          ...(hl.special ? [{ label: UL.houseNote, text: hl.special }] : []),
+        ]
+      })(),
       ...(bb ? [{ label: hi ? HH.bhavaBala : 'Bhava Bala', text: hi ? fill(HH.rupas, { n: bb.totalRupa.toFixed(2) }) : `${bb.totalRupa.toFixed(2)} rupas` }] : []),
     ]
 
