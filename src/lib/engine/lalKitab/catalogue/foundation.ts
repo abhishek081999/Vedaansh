@@ -5,7 +5,7 @@
 //  Edition: 1952. Text written in our own words.
 // ─────────────────────────────────────────────────────────────
 
-import { LK_NEECH, LK_PAKKA_GHAR, LK_UCHCHA } from '../pakkaGhar'
+import { LK_NEECH, LK_NODE_DIGNITY_COMMENTARY, LK_PAKKA_GHAR, LK_UCHCHA } from '../pakkaGhar'
 import { LK_GRAHAS, type LkArea, type LkGraha } from '../types'
 import type { LkRule, LkRuleText } from './types'
 
@@ -25,14 +25,15 @@ export const LK_GRAHA_AREAS: Record<LkGraha, readonly LkArea[]> = {
 function dignityRules(): LkRule[] {
   const out: LkRule[] = []
   for (const p of LK_GRAHAS) {
+    const dignityEdition = LK_NODE_DIGNITY_COMMENTARY.includes(p) ? 'commentary' : '1952'
     for (const h of LK_PAKKA_GHAR[p]) {
       out.push({ id: `pakka.${p}.${h}`, text: `pakka.${p}.${h}`, when: { op: 'inHouse', planet: p, houses: [h] }, effect: p === 'Ma' && h === 8 ? 'mixed' : 'good', weight: 3, areas: LK_GRAHA_AREAS[p], planet: p, edition: '1952' })
     }
     for (const h of LK_UCHCHA[p]) {
-      out.push({ id: `uchcha.${p}.${h}`, text: `uchcha.${p}`, when: { op: 'inHouse', planet: p, houses: [h] }, effect: 'good', weight: 4, areas: LK_GRAHA_AREAS[p], planet: p, edition: '1952' })
+      out.push({ id: `uchcha.${p}.${h}`, text: `uchcha.${p}`, when: { op: 'inHouse', planet: p, houses: [h] }, effect: 'good', weight: 4, areas: LK_GRAHA_AREAS[p], planet: p, edition: dignityEdition })
     }
     for (const h of LK_NEECH[p]) {
-      out.push({ id: `neech.${p}.${h}`, text: `neech.${p}`, when: { op: 'inHouse', planet: p, houses: [h] }, effect: 'bad', weight: 4, areas: LK_GRAHA_AREAS[p], planet: p, edition: '1952' })
+      out.push({ id: `neech.${p}.${h}`, text: `neech.${p}`, when: { op: 'inHouse', planet: p, houses: [h] }, effect: p === 'Ke' && LK_PAKKA_GHAR.Ke.includes(h) ? 'mixed' : 'bad', weight: 4, areas: LK_GRAHA_AREAS[p], planet: p, edition: dignityEdition })
     }
   }
   return out
@@ -74,6 +75,10 @@ export const LK_FOUNDATION_TEXT: Record<string, LkRuleText> = {
   'neech.Me': { label: 'Debilitated Mercury', text: 'Mercury is debilitated in house 12: careless words and poor money choices bring expenses.' },
   'neech.Ju': { label: 'Debilitated Jupiter', text: 'Jupiter is debilitated in house 10: learning does not easily turn into status, and ignoring elders costs you.' },
   'neech.Ve': { label: 'Debilitated Venus', text: 'Venus is debilitated in house 6: the spouse\'s health and married comfort need care.' },
+  'uchcha.Ra': { label: 'Strong Rahu', text: 'Rahu is strong in house {house}: fearless moves, victory over rivals and gains from sharp, unusual thinking.' },
+  'uchcha.Ke': { label: 'Strong Ketu', text: 'Ketu is strong in house {house}: protection on journeys, good fortune through sons and a spiritual pull.' },
+  'neech.Ra': { label: 'Weak Rahu', text: 'Rahu is weak in house {house}: sudden confusion, fear and trouble through in-laws or false blame.' },
+  'neech.Ke': { label: 'Weak Ketu', text: 'Ketu is weak in house {house}: restless travel, worry about sons and trouble with the joints. In house 6, its own permanent house, the two pull against each other.' },
   'neech.Sa': { label: 'Debilitated Saturn', text: 'Saturn is debilitated in house 1: a slow, hard start in life; laziness and drink make it worse.' },
   enemyCompany: { label: '{planet} with an enemy', text: '{planet} shares house {house} with {others}, a planet it counts as an enemy, so its own results are held back.' },
   friendCompany: { label: '{planet} with a friend', text: '{planet} shares house {house} with {others}, a friend, and the two support each other.' },

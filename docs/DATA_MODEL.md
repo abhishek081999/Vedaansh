@@ -102,7 +102,8 @@ Deleted with the user account. Counted on its own save cap (20 / 200 / unlimited
 | upayId | string | Catalogue id (e.g. `Su.water`) |
 | planet | string | Graha code |
 | startedAt | Date | |
-| days | boolean[] | Length = planned days (usually 43) |
+| timeZone | string | IANA zone saved at start (default `UTC`); fixes where each tracker day begins |
+| days | boolean[] | Length = planned days (usually 43). Only today's day (calendar day in `timeZone`) can be ticked; a missed day forces a restart |
 | status | `active` \| `completed` \| `abandoned` | |
 
 **Indexes:** `{ userId, chartKey, status }`; `{ userId, chartId }`

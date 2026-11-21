@@ -49,7 +49,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Dashas** | Vimshottari, Yogini, Kalachakra, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
-| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Interpretation hub teaser (overview + 3 themes), AI prompt export (all calculations + topic methods), Tattva overview teaser, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
+| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Interpretation hub teaser (overview + 3 themes), AI prompt export (all calculations + topic methods), Tattva overview teaser, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), Lal Kitab (Teva, overview, signs-in-life checker, one remedy), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
 | **Library** | Save up to **20** charts and **20** Kundali Milan matches (separate caps); public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
@@ -85,6 +85,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 ## Highlights (v2.6.x)
 
 - Sarvatobhadra Chakra, Prashna, Jaimini, Nadi Astrology, KP significators, Vastu, ACG, Naamkaran (name prediction)
+- Lal Kitab (`/lal-kitab`): Teva, 108 planet-in-house readings, doshas, rin, remedies and finder, Varshphal, 35-year cycle, Teva correction, 43-day tracker (Free teasers; full on Gold+)
 - Saved Kundali Milan library on My Charts (same 20 / 200 / unlimited caps as natal charts)
 - Relationship and marriage, career and profession (Free preview; full reading on Gold+)
 - Interpretation hub (Free overview teaser; full multi-section reading on Gold+)
@@ -99,7 +100,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 
 ## Calculation engine
 
-Pure TypeScript under `src/lib/engine/` (153 top-level modules, 229 files, plus `dasha/`, `jaimini/`, `nadi/`, `numerology/`, and `lagnaCharacterData/`). No React / Mongo / Redis / NextAuth imports. Orchestrator: `calculateChart()` → `ChartOutput`.
+Pure TypeScript under `src/lib/engine/` (153 top-level modules, 229 files, plus `dasha/`, `jaimini/`, `nadi/`, `lalKitab/`, `numerology/`, and `lagnaCharacterData/`). No React / Mongo / Redis / NextAuth imports. Orchestrator: `calculateChart()` → `ChartOutput`.
 
 | Area | Examples |
 |---|---|

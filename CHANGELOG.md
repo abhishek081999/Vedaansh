@@ -10,6 +10,7 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Fixed
 
+- Lal Kitab: the 43-day remedy tracker now follows the calendar in your time zone. Only today can be ticked, and a missed day restarts the run (also enforced by the server). Rahu and Ketu now have exaltation and debilitation houses, Gold locks no longer overlap short previews, and the "Open Birth Form" button is translated on Hindi pages
 - Divisional charts: Parashara/PVR rules corrected for D5, D6, D8, D20, D24, D27, D81, D144 and several named variants; Vimsopaka now uses the same `vargas.ts` functions. Chart Redis cache key bumped to `v20` so stale varga maps miss; admin Cleanup now clears all chart versions plus panchang, atlas, and horoscope prefixes
 - Numerology: full names totalling more than 52 now get a compound meaning (read on Cheiro's cycle, same root). Gold predictions and remedies are now built on the server, so free accounts can no longer read them from the browser
 - Auth gates, Gold and Platinum page gates, the sign-in rate limit, and the CSP now run: `proxy.ts` moved to `src/proxy.ts`. Previously Next.js ignored it. Logged-out visitors to `/muhurta` now go to login, and XLSX export now requires Gold

@@ -18,8 +18,11 @@ export interface LkCycleSpan {
 }
 
 /**
- * Fixed 35-year cycle, then repeats. Order and lengths follow the
- * 1952 listing: Sa 6, Ra 6, Ke 3, Ju 6, Su 2, Mo 1, Ve 3, Ma 6, Me 2.
+ * Fixed 35-year cycle, then repeats, the same order for everyone.
+ * Order and lengths as published by Lal Kitab commentators (e.g.
+ * astrobix "Lal Kitab and special years of planets"): Sa 6, Ra 6,
+ * Ke 3, Ju 6, Su 2, Mo 1, Ve 3, Ma 6, Me 2. Not yet checked against
+ * a 1952 scan.
  */
 export const LK_CYCLE: readonly LkCycleSpan[] = [
   { planet: 'Sa', years: 6 },
