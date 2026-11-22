@@ -26,6 +26,7 @@ const PROTECTED_API = [
   '/api/user',
   '/api/muhurta',
   '/api/lal-kitab',
+  '/api/remedies',
   '/api/research',
   '/api/clients',
   '/api/payment/checkout',
@@ -34,7 +35,7 @@ const PROTECTED_API = [
 ]
 
 const GOLD_ROUTES = ['/muhurta']
-const GOLD_API = ['/api/muhurta', '/api/chart/export', '/api/chart/export-xlsx', '/api/chart/acg-transits', '/api/lal-kitab']
+const GOLD_API = ['/api/muhurta', '/api/chart/export', '/api/chart/export-xlsx', '/api/chart/acg-transits', '/api/lal-kitab', '/api/remedies']
 
 const PLATINUM_ROUTES = ['/research']
 const PLATINUM_API = ['/api/research']

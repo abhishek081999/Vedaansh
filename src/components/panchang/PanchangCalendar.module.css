@@ -512,6 +512,7 @@
   .legend { order: 2; }
   .keyDays { order: 4; }
   .note { order: 5; }
+  .exportSlot { order: 6; }
 
   .detailColumn {
     order: 3;

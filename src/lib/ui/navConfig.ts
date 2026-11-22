@@ -113,6 +113,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'transit-forecast', label: 'Forecast', icon: TrendingUp, path: '/transit/forecast' },
       { id: 'transit-moon', label: 'Moon Passages', icon: Moon, path: '/transit/moon' },
       { id: 'transit-roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/transit/roadmap' },
+      { id: 'transit-eclipses', label: 'Eclipses', icon: CloudMoon, path: '/transit/eclipses' },
       { id: 'transit-sade-sati', label: 'Sade Sati', icon: Hourglass, path: '/transit/sade-sati' },
       { id: 'transit-aspects', label: 'Aspects', icon: Crosshair, path: '/transit/aspects' },
       { id: 'transit-biwheel', label: 'Bi-wheel', icon: Orbit, path: '/transit/biwheel' },

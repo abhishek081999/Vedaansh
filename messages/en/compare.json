@@ -67,7 +67,8 @@
     "summary": "Summary",
     "matchReading": "Match reading",
     "eachChart": "Each chart",
-    "charts": "Charts"
+    "charts": "Charts",
+    "partners": "Business & friends"
   },
   "verdict": {
     "strengthsTitle": "Relationship strengths",
@@ -150,5 +151,17 @@
   "footer": {
     "brand": "VEDAANSH PRECISION ASTROLOGY ENGINE",
     "tagline": "SWISS EPHEMERIS · ASHTAKOOT + THREE-STAGE KUNDALI MILAN"
+  },
+  "partners": {
+    "title": "Business & friendship",
+    "lede": "How {a} and {b} work together beyond marriage: as business partners or as friends.",
+    "modeLabel": "Kind of relationship",
+    "mode": {
+      "business": "Business partners",
+      "friendship": "Friends"
+    },
+    "person1": "Person 1",
+    "person2": "Person 2",
+    "note": "This reading uses the Moon, Lagna and key planets only. Person 1 and Person 2 follow the order the charts were entered. Use it alongside your own judgement for money and contracts."
   }
 }

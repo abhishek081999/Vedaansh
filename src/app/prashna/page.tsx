@@ -46,6 +46,7 @@ import { SatpanchasikaPanel } from '@/components/prashna/SatpanchasikaPanel'
 import { VedicPrashnaPanel } from '@/components/prashna/VedicPrashnaPanel'
 import { SatpanchasikaReference } from '@/components/prashna/SatpanchasikaReference'
 import { PrashnaHouseReference } from '@/components/prashna/PrashnaHouseReference'
+import { PrashnaM1Panel } from '@/components/prashna/PrashnaM1Panel'
 
 const ChakraSelector = dynamic(
   () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
@@ -216,7 +217,7 @@ interface HistoryEntry {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function PrashnaPage() {
+function PrashnaM2() {
   const t = useTranslations('prashna')
   const { lang } = useLang()
   const u = useTranslations('prashna.ui')
@@ -1631,6 +1632,34 @@ export default function PrashnaPage() {
           * { color-scheme: light !important; }
         }
       `}</style>
+    </div>
+  )
+}
+
+type PrashnaView = 'm1' | 'm2'
+
+/** Prashna M1 (horary chart: panchang, vargas, planets, dasha) is the default; M2 holds the classical readings. */
+export default function PrashnaPage() {
+  const t = useTranslations('prashna.m1')
+  const [view, setView] = useState<PrashnaView>('m1')
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)' }}>
+      <div role="tablist" aria-label={t('switchAria')}
+        style={{ display: 'flex', gap: 6, padding: '0.6rem 1.5rem', borderBottom: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+        {(['m1', 'm2'] as const).map(v => (
+          <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)}
+            className={`btn btn-sm ${view === v ? 'btn-primary' : 'btn-ghost'}`} style={{ fontWeight: view === v ? 700 : 500 }}>
+            {t(`tab.${v}`)}
+          </button>
+        ))}
+      </div>
+      {/* Both stay mounted so a cast chart survives switching tabs. */}
+      <div hidden={view !== 'm1'} style={{ maxWidth: 1600, margin: '0 auto', padding: '1.25rem clamp(1rem, 2vw, 1.5rem) 4rem' }}>
+        <PrashnaM1Panel />
+      </div>
+      <div hidden={view !== 'm2'}>
+        <PrashnaM2 />
+      </div>
     </div>
   )
 }

@@ -38,6 +38,7 @@ const CoupleNumerologyCard = dynamic(() => import('@/components/numerology/Coupl
 const MilanMarriedLifePanel = dynamic(() => import('@/components/ui/MilanMarriedLifePanel').then(m => m.MilanMarriedLifePanel), { ssr: false })
 const MilanMatchMakingPanel = dynamic(() => import('@/components/ui/MilanMatchMakingPanel').then(m => m.MilanMatchMakingPanel), { ssr: false })
 const RelationshipMarriagePanel = dynamic(() => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel), { ssr: false })
+const PartnerCompatPanel = dynamic(() => import('@/components/ui/PartnerCompatPanel').then(m => m.PartnerCompatPanel), { ssr: false })
 const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
 function ChartLibraryLoader() {
   const t = useTranslations('compare')
@@ -84,7 +85,7 @@ const KOOTA_ORDER: KootaKey[] = ['varna', 'vashya', 'tara', 'yoni', 'maitri', 'g
 const GRAHA_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const GRAHA_SYM: Record<string, string> = { Su: '☀', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋' }
 
-type View = 'verdict' | 'match' | 'people' | 'charts'
+type View = 'verdict' | 'match' | 'partners' | 'people' | 'charts'
 type ChartTool = 'charts' | 'overlay' | 'planets' | 'dasha' | 'panchang' | 'ashtakavarga' | 'compat'
 
 function personPayload(chart: ChartOutput) {
@@ -544,6 +545,7 @@ function CompareContent() {
               {([
                 ['verdict', t('tabs.summary')],
                 ['match', t('tabs.matchReading')],
+                ['partners', t('tabs.partners')],
                 ['people', t('tabs.eachChart')],
                 ['charts', t('tabs.charts')],
               ] as [View, string][]).map(([id, label]) => (
@@ -705,6 +707,8 @@ function CompareContent() {
                 />
               </div>
             )}
+
+            {view === 'partners' && <PartnerCompatPanel chartA={chartA} chartB={chartB} />}
 
             {view === 'people' && (
               <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>

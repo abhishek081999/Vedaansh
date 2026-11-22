@@ -43,6 +43,8 @@ export interface EclipseInfo {
   /** Sidereal sign and nakshatra of the Moon at maximum. */
   sign: Rashi
   nakshatra: string
+  /** Sidereal longitude of the Moon at maximum (Lahiri); the Sun is here (solar) or opposite (lunar). */
+  longitude: number
   local: EclipseLocal
 }
 
@@ -60,10 +62,10 @@ function typeOf(kind: EclipseKind, flag: number): EclipseType {
 
 const iso = (jd: number | undefined) => (jd && jd > 0 ? jdToDate(jd).toISOString() : undefined)
 
-function moonAt(jd: number): { sign: Rashi; nakshatra: string } {
+function moonAt(jd: number): { sign: Rashi; nakshatra: string; longitude: number } {
   const ayan = getAyanamsha(jd, 'lahiri')
   const lon = toSidereal(getPlanetPosition(jd, SWISSEPH_IDS.Mo).longitude, ayan)
-  return { sign: signOf(lon) as Rashi, nakshatra: getNakshatra(lon).name }
+  return { sign: signOf(lon) as Rashi, nakshatra: getNakshatra(lon).name, longitude: Math.round(lon * 1000) / 1000 }
 }
 
 function solarAt(jdStart: number, loc: { lat: number; lng: number }): EclipseInfo | null {

@@ -43,12 +43,16 @@ const TransitForecastPanel = dynamic(
   () => import('@/components/dashboard/TransitForecastPanel').then(m => m.TransitForecastPanel),
   { ssr: false },
 )
+const EclipseImpactPanel = dynamic(
+  () => import('@/components/dashboard/EclipseImpactPanel').then(m => m.EclipseImpactPanel),
+  { ssr: false },
+)
 const MoonTransitPanel = dynamic(
   () => import('@/components/dashboard/MoonTransitPanel').then(m => m.MoonTransitPanel),
   { ssr: false },
 )
 
-export type TransitHubTab = 'roadmap' | 'forecast' | 'scrubber' | 'moon' | 'sade-sati' | 'aspects' | 'biwheel' | 'calendar'
+export type TransitHubTab = 'roadmap' | 'forecast' | 'scrubber' | 'moon' | 'sade-sati' | 'aspects' | 'biwheel' | 'calendar' | 'eclipses'
 
 const GOLD_TABS = new Set<TransitHubTab>(['forecast', 'sade-sati', 'aspects', 'biwheel', 'calendar'])
 
@@ -57,6 +61,7 @@ const TAB_CONFIG: Array<{ id: TransitHubTab; href: string; gold?: boolean }> = [
   { id: 'forecast', href: '/transit/forecast', gold: true },
   { id: 'moon', href: '/transit/moon' },
   { id: 'roadmap', href: '/transit/roadmap' },
+  { id: 'eclipses', href: '/transit/eclipses' },
   { id: 'sade-sati', href: '/transit/sade-sati', gold: true },
   { id: 'aspects', href: '/transit/aspects', gold: true },
   { id: 'biwheel', href: '/transit/biwheel', gold: true },
@@ -153,6 +158,12 @@ export function TransitHub({ tab }: TransitHubProps) {
     body = (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
         <MoonTransitPanel natalChart={chart} />
+      </div>
+    )
+  } else if (tab === 'eclipses') {
+    body = (
+      <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
+        <EclipseImpactPanel chart={chart} />
       </div>
     )
   } else if (tab === 'sade-sati') {
