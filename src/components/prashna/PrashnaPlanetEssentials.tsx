@@ -26,11 +26,11 @@ import {
   getPlanetTables,
   nodeDignity,
   readPrashnaPlanets,
-  type DignityKind,
 } from '@/lib/engine/prashnaPlanetEssentials'
+import { computeAvasthas } from '@/lib/engine/prashnaGlance'
+import { glancePlanets, shadvargaOf } from './prashnaChartInput'
 
 const SIGNS: Rashi[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-const AVASTHA: Record<DignityKind, string> = { exalted: 'deepta', moolatrikona: 'swastha', own: 'swastha', friend: 'mudita', enemy: 'khala', debilitated: 'deena' }
 
 const box: React.CSSProperties = { padding: '0.7rem 0.8rem', borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.45rem', minWidth: 0 }
 const h4: React.CSSProperties = { margin: 0, fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '0.02em' }
@@ -70,6 +70,8 @@ export function PrashnaPlanetEssentials({ chart, at }: { chart?: ChartOutput | n
       sunTropical: sun.lonTropical,
     })
   }, [chart, at])
+
+  const avasthas = useMemo(() => (chart ? computeAvasthas(glancePlanets(chart), shadvargaOf(chart)) : {}), [chart])
 
   const dignityCells = (id: GrahaId) => {
     if (id === 'Ra' || id === 'Ke') {
@@ -111,12 +113,14 @@ export function PrashnaPlanetEssentials({ chart, at }: { chart?: ChartOutput | n
               </thead>
               <tbody>
                 {reading.rows.map(r => {
-                  const flags = [
+                  const flags: string[] = [
                     r.retro && t('flag.retro'),
                     r.mrityu && t('flag.mrityu'),
                     r.pushkara && t('flag.pushkara'),
-                  ].filter(Boolean)
-                  const avastha = [r.dignity && t(`avastha.${AVASTHA[r.dignity]}`), r.combust && t('avastha.peedita')].filter(Boolean)
+                  ].filter((x): x is string => !!x)
+                  const av = avasthas[r.id]
+                  const avastha = av?.kinds.map(k => t(`avastha.${k}`)) ?? []
+                  if (av?.war) flags.push(t(av.war.won ? 'flag.warWon' : 'flag.warLost', { other: gName(av.war.with) }))
                   return (
                     <tr key={r.id} style={{ borderTop: '1px solid var(--border-soft)' }}>
                       <td style={{ ...cell, fontWeight: 700 }}>{gName(r.id)}</td>

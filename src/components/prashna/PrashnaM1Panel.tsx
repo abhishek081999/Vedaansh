@@ -5,7 +5,7 @@
  * or for any date, time and place.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useSession } from 'next-auth/react'
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
@@ -80,6 +80,11 @@ export function PrashnaM1Panel() {
   const [saved, setSaved] = useState<SavedPrashna[]>([])
   const [showSaved, setShowSaved] = useState(false)
   const [showEssentials, setShowEssentials] = useState(false)
+  const essentialsRef = useRef<HTMLDivElement>(null)
+  // Opening Essentials brings it into view (it sits below the chart once one is cast).
+  useEffect(() => {
+    if (showEssentials) essentialsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [showEssentials])
 
   // Fill date/time on the client only (avoids a hydration mismatch).
   useEffect(() => {
@@ -287,7 +292,10 @@ export function PrashnaM1Panel() {
         )}
       </div>
 
-      {showEssentials && <PrashnaEssentials chart={loading ? null : chart} at={loading ? null : castAt?.instant} />}
+      {/* Before a chart is cast, Essentials opens here as a plain reference. */}
+      {showEssentials && !(chart && castAt) && (
+        <div ref={essentialsRef} style={{ scrollMarginTop: 80 }}><PrashnaEssentials /></div>
+      )}
 
       {loading && (
         <div className="card" style={{ height: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -400,6 +408,13 @@ export function PrashnaM1Panel() {
               </div>
             </div>
           </div>
+
+          {/* With a cast chart, Essentials reads that chart, below it. */}
+          {showEssentials && (
+            <div ref={essentialsRef} style={{ scrollMarginTop: 80 }}>
+              <PrashnaEssentials chart={chart} at={castAt.instant} />
+            </div>
+          )}
         </>
       )}
     </div>

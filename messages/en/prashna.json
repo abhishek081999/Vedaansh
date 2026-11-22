@@ -635,7 +635,35 @@
       "body": "Body parts",
       "places": "Places and objects",
       "traits": "{sign} by classification",
-      "glance": "Signs at a glance",
+      "glance": {
+        "title": "This prashna at a glance",
+        "subtitle": "The cast chart, read through the essentials below.",
+        "lagna": "Lagna",
+        "lagnaLord": "Lagna lord",
+        "moon": "Moon",
+        "kendras": "Kendras",
+        "lordOf": "lord {lord}",
+        "placed": "{planet} in {sign}, house {house}",
+        "strongNow": "Strong at this hour",
+        "weakNow": "Weak at this hour",
+        "tiltFixed": "Dual, leans fixed",
+        "tiltMovable": "Dual, leans movable",
+        "mrityu": "Mrityu bhaga",
+        "pushkara": "Pushkara bhaga",
+        "retro": "Retrograde",
+        "moonBenefic": "Benefic by tithi",
+        "moonMalefic": "Malefic by tithi",
+        "houseN": "House {n}",
+        "eventTime": "Planets in the Lagna point to {time}.",
+        "warWon": "Won a planetary war with {other}.",
+        "warLost": "Lost a planetary war to {other}.",
+        "time": {
+          "morning": "the morning",
+          "noon": "noon",
+          "afternoon": "the afternoon",
+          "evening": "the evening"
+        }
+      },
       "sign": "Sign",
       "classifications": "Classifications",
       "firstHalf": "1st half",
@@ -659,7 +687,7 @@
         "eventTime": "{planets} in the Lagna: the event points to {time}.",
         "lagnaMrityu": "The Lagna is in its mrityu bhaga.",
         "mandiMrityu": "Mandi is in its mrityu bhaga.",
-        "readingNote": "Friend and enemy signs use prashna group friendship. Avastha here comes from the sign only, plus Peedita when combust; Rahu and Ketu are left out because schools differ.",
+        "readingNote": "Avasthas: Deepta, Swastha, Mudita, Deena and Khala from the sign (friend and enemy by praśna group friendship); Shanta when at least 4 of 6 shadvarga signs are owned by benefics; Shakta when visible, Peedita when combust, Bheeta within 10° of the Sun; Vikala when joined with a malefic; Khala also for the loser of a planetary war (within 1°, the northern planet wins). Rahu and Ketu are left out because schools differ.",
         "mrityuLive": "Highlighted cells are the signs the planets occupy now; red means the planet is in that degree.",
         "time": {
           "morning": "the morning",
@@ -690,12 +718,18 @@
           "mudita": "Mudita",
           "khala": "Khala",
           "deena": "Deena",
-          "peedita": "Peedita"
+          "peedita": "Peedita",
+          "shanta": "Shanta",
+          "shakta": "Shakta",
+          "vikala": "Vikala",
+          "bheeta": "Bheeta"
         },
         "flag": {
           "retro": "Retrograde",
           "mrityu": "Mrityu bhaga",
-          "pushkara": "Pushkara bhaga"
+          "pushkara": "Pushkara bhaga",
+          "warWon": "Won war with {other}",
+          "warLost": "Lost war to {other}"
         },
         "yes": "Yes",
         "no": "No",
