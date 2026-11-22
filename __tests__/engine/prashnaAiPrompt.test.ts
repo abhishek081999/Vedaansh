@@ -21,6 +21,7 @@ beforeAll(async () => {
     latitude: 28.61,
     longitude: 77.21,
     timezone: 'Asia/Kolkata',
+    gender: 'male',
   })
   base = { at: AT, place: 'New Delhi, India', lat: 28.61, lng: 77.21, tz: 'Asia/Kolkata', hora: { lord: 'Sa', start: new Date('2026-11-22T15:40:00Z'), end: new Date('2026-11-22T16:45:00Z') } }
 })
