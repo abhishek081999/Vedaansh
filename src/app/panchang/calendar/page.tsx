@@ -14,6 +14,7 @@ import { termHi } from '@/i18n/jyotish'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { CalendarDayDetail, TONE_CLASS } from '@/components/panchang/CalendarDayDetail'
+import { FestivalCalendarExport } from '@/components/panchang/FestivalCalendarExport'
 import type { PanchangApiData } from '@/components/panchang/DailyPanchangView'
 import styles from '@/components/panchang/PanchangCalendar.module.css'
 import { buildDayReading, type DayReading, type DayTone } from '@/lib/panchang/day-reading'
@@ -319,6 +320,10 @@ export default function MonthlyPanchangPage() {
           <p className={styles.note}>
             {t('note', { place: location.name })}
           </p>
+
+          <div className={styles.exportSlot}>
+            <FestivalCalendarExport location={location} chart={chart} year={year} />
+          </div>
         </div>
 
         <div className={styles.detailColumn}>

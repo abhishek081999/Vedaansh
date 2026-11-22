@@ -463,3 +463,24 @@ export function findCalendarEvents(
     a.date.localeCompare(b.date) || KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a.title.localeCompare(b.title),
   )
 }
+
+/**
+ * Civil dates in [from, to] on which `tithi` prevails at sunrise in the amanta
+ * `masa` — the yearly tithi birthday (janma tithi). Adhika months are skipped,
+ * so the birthday falls in the regular (nija) month.
+ */
+export function findTithiDays(
+  from: string,
+  to: string,
+  loc: EventLocation,
+  target: { tithi: number; masa: LunarMasa },
+): string[] {
+  const days = buildDays(from, to, loc)
+  return matchTithiDays(days, 'sunrise', target.tithi)
+    .filter(({ at }) => {
+      const m = masaAt(at)
+      return !m.adhika && m.masa === target.masa
+    })
+    .map(({ i }) => days[i].date)
+    .filter((d) => d >= from && d <= to)
+}

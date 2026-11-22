@@ -19,6 +19,11 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Added / live
 
+- Festival calendar export (`/panchang/calendar`): download a year of festivals, vrats, sankrantis and eclipses for your own place as an .ics file for Google Calendar, Apple Calendar or Outlook, in English or Hindi. With a chart loaded it can add your yearly tithi birthday (janma tithi)
+- Eclipses tab in Transit (`/transit/eclipses`, Free): the next two years of solar and lunar eclipses read against your chart — house from Lagna and Moon, natal points within 5°, janma nakshatra and janma rashi, local visibility, contact times and sutak (none for penumbral eclipses)
+- Planetary remedy tracker (Gold+): start a daily beej-mantra japa (21 or 40 days) or a weekly fast on the planet's weekday (7–21 weeks) from the Planets remedies panel and tick it off day by day. Days follow your time zone, and a missed practice day restarts the run (enforced by the server)
+- Business & friendship compatibility (`/compare`, new tab): a 0–100 score for business partners or friends from the Moon-sign relation, tara both ways, sign-lord friendship, Lagna harmony, Mercury and wealth-house links (business) or gana, houses of friends and Jupiter/Venus warmth (friendship), less Saturn/Mars pressure
+
 - Lal Kitab (`/lal-kitab`): Teva with house 1 as Aries, predictions, doshas, rin, remedies, Varshphal (120-year table), life timeline, Gold PDF export, saved 43-day remedy tracker, Teva check from life signs (±2h Lagna window), and an AI-prompt focus study
 - AI prompt on the chart toolbar (✦ AI prompt): copies the whole chart as one Markdown prompt to paste into ChatGPT, Claude, Gemini or any AI. It carries birth settings, Lagna and special lagnas, planets, houses with lords, graha drishti (planet, house and house-lord aspects, conjunctions, mutual aspects), Shadbala in rupas against each planet's BPHS minimum, Vimsopaka, Ashtakavarga, vargas, dashas, Jaimini karakas and arudhas, yogas, janma panchang, and instructions that keep the AI on the calculated data. Copy, download as .md, and an option to leave out the name
 - AI prompt length: Short (the essentials in about 4–10 KB, for AI chats that reject long messages) or Full (every calculation and reading)

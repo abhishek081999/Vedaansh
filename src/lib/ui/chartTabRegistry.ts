@@ -130,6 +130,7 @@ export const MOBILE_DASHBOARD_OPTIONS = {
     { id: 'transit-forecast', label: 'Forecast', path: '/transit/forecast' },
     { id: 'transit-moon', label: 'Moon Passages', path: '/transit/moon' },
     { id: 'transit-roadmap', label: 'Cosmic Roadmap', path: '/transit/roadmap' },
+    { id: 'transit-eclipses', label: 'Eclipses', path: '/transit/eclipses' },
     { id: 'transit-sade-sati', label: 'Sade Sati', path: '/transit/sade-sati' },
     { id: 'transit-aspects', label: 'Aspects', path: '/transit/aspects' },
     { id: 'transit-biwheel', label: 'Bi-wheel', path: '/transit/biwheel' },

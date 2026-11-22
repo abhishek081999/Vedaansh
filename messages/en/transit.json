@@ -44,6 +44,10 @@
       "calendar": {
         "label": "Calendar",
         "blurb": "Personal monthly gochar calendar + printable HTML"
+      },
+      "eclipses": {
+        "label": "Eclipses",
+        "blurb": "Upcoming grahan on your chart — houses, natal hits, janma nakshatra, sutak"
       }
     },
     "gates": {
@@ -519,5 +523,31 @@
     "cycleHint": "Next hit of each natal graha, lagna, and upagraha",
     "houseMeta": "H{house}",
     "toneMeta": "H{house} · {tone}"
+  },
+  "eclipses": {
+    "loading": "Finding the eclipses ahead…",
+    "loadFailed": "Could not load eclipses",
+    "none": "No eclipses in the next two years.",
+    "intro": "The next solar and lunar eclipses, read against your chart: which house each falls in, which natal points it touches, and whether it falls in your birth nakshatra or sign.",
+    "visibilityFor": "Visibility for",
+    "kind": {
+      "solar": "Surya Grahan (solar eclipse)",
+      "lunar": "Chandra Grahan (lunar eclipse)"
+    },
+    "type": {
+      "total": "Total",
+      "annular": "Annular",
+      "hybrid": "Hybrid",
+      "partial": "Partial",
+      "penumbral": "Penumbral"
+    },
+    "level": {
+      "high": "Strong for you",
+      "moderate": "Noticeable",
+      "low": "Light"
+    },
+    "localTimes": "Local eclipse: {start} to {end}",
+    "sutakFrom": "Sutak from {time}",
+    "note": "Eclipse degrees use the Lahiri ayanamsha. Sutak applies only where the eclipse is visible."
   }
 }

@@ -22,6 +22,7 @@ import {
   type RemedyNeed,
 } from '@/lib/engine/planetaryRemedies'
 import { ICON } from '@/components/ui/PlanetDetailCard'
+import { RemedyPracticeTracker } from '@/components/ui/RemedyPracticeTracker'
 
 const FREE_PREVIEW_COUNT = 2
 
@@ -331,6 +332,8 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
           </PlanGate>
         </div>
       )}
+
+      <RemedyPracticeTracker chart={chart} userPlan={userPlan} order={result.planets.map((p) => p.grahaId)} />
     </div>
   )
 }

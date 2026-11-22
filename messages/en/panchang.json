@@ -328,7 +328,25 @@
     "sunrise": "Sunrise",
     "sunset": "Sunset",
     "abhijit": "Abhijit",
-    "rahu": "Rahu Kalam"
+    "rahu": "Rahu Kalam",
+    "export": {
+      "title": "Add festivals to your calendar",
+      "body": "Festivals, vrats, sankrantis and eclipses for a whole year, worked out for {place}. Import the file into Google Calendar, Apple Calendar or Outlook.",
+      "year": "Year",
+      "kinds": {
+        "festival": "Festivals",
+        "vrat": "Vrats",
+        "sankranti": "Sankrantis",
+        "eclipse": "Eclipses"
+      },
+      "birthday": "Tithi birthday ({name})",
+      "you": "you",
+      "download": "Download calendar (.ics)",
+      "building": "Building calendar…",
+      "hint": "Dates follow the sunrise rules for this place.",
+      "done": "Calendar downloaded. Open the file to add it to your calendar app.",
+      "failed": "The calendar could not be built. Please try again."
+    }
   },
   "natal": {
     "title": "Natal Panchang",
