@@ -127,7 +127,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
     const ilPosition = createSpecialPos('IL', 'Indu Lagna', chart.lagnas.induLagna)
     const bbPosition = createSpecialPos('BB', 'Bhrigu Bindu', chart.lagnas.bhriguBindu)
 
-    return [lagPosition, ppPosition, ilPosition, bbPosition, ...base].map((p) => {
+    // Planets first, then special points (Lagna / PP / IL / BB)
+    return [...base, lagPosition, ppPosition, ilPosition, bbPosition].map((p) => {
       const full = chart.grahas.find((g) => g.id === p.grahaId)
       const shad = chart.shadbala?.planets[p.grahaId]
       return { ...p, ...full, shadbala: shad }
