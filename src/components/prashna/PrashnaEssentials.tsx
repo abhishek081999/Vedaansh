@@ -12,6 +12,7 @@ import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { PrashnaHouseEssentials } from '@/components/prashna/PrashnaHouseEssentials'
 import { PrashnaPlanetEssentials } from '@/components/prashna/PrashnaPlanetEssentials'
+import { PrashnaGlanceCard } from '@/components/prashna/PrashnaGlanceCard'
 import {
   CONSTITUTION_COMBOS,
   CONSTITUTION_KINDS,
@@ -112,6 +113,8 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
           ))}
         </div>
       </div>
+
+      {chart && at && <PrashnaGlanceCard chart={chart} at={at} />}
 
       {tab === 'planets' && <PrashnaPlanetEssentials chart={chart} at={at} />}
 
