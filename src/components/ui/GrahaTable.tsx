@@ -164,10 +164,31 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
   const currentVargaGrahas = (vargas && vargas[selectedVarga]) ? vargas[selectedVarga] : grahas
 
   // 2. Prepare the bodies list for the table
+  // Order: grahas first, then lagnas/special points, then upagrahas
   const bodies = useMemo(() => {
     const list: BodyInfo[] = []
-    
-    // 1. Handle Lagnas (Ascendants) - Now on top
+
+    // 1. Planets (top)
+    const mainIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
+    const displayGrahas = (vargas && vargas[selectedVarga]) || vargas?.D1 || []
+
+    displayGrahas
+      .filter(g => !limited || mainIds.includes(g.id))
+      .forEach(g => {
+        list.push({
+          id:       g.id,
+          name:     hi ? GRAHA_HI[g.id] : isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
+          totalDeg: g.totalDegree,
+          isRetro:  g.isRetro,
+          karaka:   g.charaKaraka,
+          color:    g.isRetro ? 'var(--rose)' : 'inherit',
+          avastha:  g.avastha,
+          dignity:  g.dignity,
+          conditions: g,
+        })
+      })
+
+    // 2. Lagnas / special points
     if (selectedVarga === 'D1' && lagnas) {
       const items = [
           { name: t('lagnas.lagna'),   deg: lagnas.ascDegree    },
@@ -203,26 +224,6 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         color: 'var(--text-gold)' 
       })
     }
-
-    // 2. Filter and map the planets for the current varga
-    const mainIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
-    const displayGrahas = (vargas && vargas[selectedVarga]) || vargas?.D1 || []
-
-    displayGrahas
-      .filter(g => !limited || mainIds.includes(g.id))
-      .forEach(g => {
-        list.push({
-          id:       g.id,
-          name:     hi ? GRAHA_HI[g.id] : isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
-          totalDeg: g.totalDegree,
-          isRetro:  g.isRetro,
-          karaka:   g.charaKaraka,
-          color:    g.isRetro ? 'var(--rose)' : 'inherit',
-          avastha:  g.avastha,
-          dignity:  g.dignity,
-          conditions: g,
-        })
-      })
 
     // 3. Upagrahas only in D1 (at the bottom)
     if (upagrahas && !limited && selectedVarga === 'D1') {
