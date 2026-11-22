@@ -28,6 +28,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const WEEKDAY_LORD: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
 
 const SAVED_KEY = 'prashna_m1_saved'
+/** One height for every control in the input card, so the row lines up. */
+const CONTROL_H = 44
 
 interface SavedPrashna {
   id: string
@@ -195,26 +197,64 @@ export function PrashnaM1Panel() {
     return `${lord} · ${fmt(h.start)}–${fmt(h.end)}`
   }
 
-  const label: React.CSSProperties = { display: 'block', fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }
+  const label: React.CSSProperties = { display: 'block', fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* ── Input ─────────────────────────────────────────────── */}
-      <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <input type="text" className="input" placeholder={`✍️ ${t('questionPlaceholder')}`}
+      <div className="card" style={{ padding: '1rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+        {/* Ask now */}
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <input type="text" className="input" placeholder={`✍️ ${t('questionPlaceholder')}`} aria-label={t('questionPlaceholder')}
             value={question} onChange={e => setQuestion(e.target.value)}
-            style={{ flex: 1, minWidth: 200, fontSize: '0.82rem' }} />
+            style={{ flex: '1000 1 260px', height: CONTROL_H, fontSize: '0.88rem' }} />
           <button type="button" onClick={captureMoment} disabled={loading} className="btn btn-primary"
-            style={{ height: 40, fontSize: '0.88rem', fontWeight: 700, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+            style={{ flex: '1 0 auto', height: CONTROL_H, padding: '0 1.4rem', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 700, letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>
             {t('captureBtn')}
           </button>
-          <button type="button" onClick={() => setShowSaved(v => !v)} aria-expanded={showSaved} className="btn btn-ghost"
-            style={{ height: 40, whiteSpace: 'nowrap', background: showSaved ? 'var(--gold-faint)' : undefined }}>
+        </div>
+
+        {/* Or choose a moment */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <span style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
+          <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{t('orManual')}</span>
+          <span style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: '1000 1 150px', minWidth: 0 }}>
+            <label htmlFor="m1-date" style={label}>{t('date')}</label>
+            <input id="m1-date" type="date" className="input" value={date} onChange={e => setDate(e.target.value)} style={{ height: CONTROL_H, fontSize: '0.9rem' }} />
+          </div>
+          <div style={{ flex: '1000 1 170px', minWidth: 0 }}>
+            <label htmlFor="m1-time" style={label}>{t('time')}</label>
+            <input id="m1-time" type="time" step={1} className="input" value={time} onChange={e => setTime(e.target.value)} style={{ height: CONTROL_H, fontSize: '0.9rem' }} />
+          </div>
+          <div style={{ flex: '3000 1 240px', minWidth: 0 }}>
+            <span style={label}>{t('place')}</span>
+            <LocationPicker value={location} onChange={setLocation} label="" inlineLocate />
+          </div>
+          <div style={{ flex: '1 0 auto', display: 'flex', gap: '0.5rem' }}>
+            <button type="button" onClick={setToNow} className="btn btn-ghost" title={t('nowHint')}
+              style={{ flex: '1 0 auto', height: CONTROL_H, padding: '0 1rem', justifyContent: 'center' }}>
+              {t('nowBtn')}
+            </button>
+            <button type="button" onClick={() => cast(date, time)} disabled={loading} className="btn btn-secondary"
+              style={{ flex: '2 0 auto', height: CONTROL_H, padding: '0 1.2rem', justifyContent: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>
+              {t('castBtn')}
+            </button>
+          </div>
+        </div>
+
+        {/* Footer: hint + tools */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.7rem', borderTop: '1px solid var(--border-soft)' }}>
+          <span style={{ flex: '1 1 200px', fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('tzHint', { tz: location.tz })}</span>
+          <button type="button" onClick={() => setShowSaved(v => !v)} aria-expanded={showSaved} className="btn btn-sm btn-ghost"
+            style={{ whiteSpace: 'nowrap', background: showSaved ? 'var(--gold-faint)' : undefined }}>
             {t('savedBtn', { n: saved.length })}
           </button>
-          <button type="button" onClick={() => setShowEssentials(v => !v)} aria-expanded={showEssentials} className="btn btn-ghost"
-            style={{ height: 40, whiteSpace: 'nowrap', background: showEssentials ? 'var(--gold-faint)' : undefined }}>
+          <button type="button" onClick={() => setShowEssentials(v => !v)} aria-expanded={showEssentials} className="btn btn-sm btn-ghost"
+            style={{ whiteSpace: 'nowrap', background: showEssentials ? 'var(--gold-faint)' : undefined }}>
             {t('essentialsBtn')}
           </button>
         </div>
@@ -239,28 +279,6 @@ export function PrashnaM1Panel() {
             )}
           </div>
         )}
-
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div>
-            <label htmlFor="m1-date" style={label}>{t('date')}</label>
-            <input id="m1-date" type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div>
-            <label htmlFor="m1-time" style={label}>{t('time')}</label>
-            <input id="m1-time" type="time" step={1} className="input" value={time} onChange={e => setTime(e.target.value)} />
-          </div>
-          <div style={{ flexShrink: 0 }}>
-            <LocationPicker value={location} onChange={setLocation} label={t('place')} />
-          </div>
-          <button type="button" onClick={setToNow} className="btn btn-ghost btn-sm" style={{ height: 40 }}>
-            {t('nowBtn')}
-          </button>
-          <button type="button" onClick={() => cast(date, time)} disabled={loading} className="btn btn-secondary"
-            style={{ height: 40, fontWeight: 700, whiteSpace: 'nowrap' }}>
-            {t('castBtn')}
-          </button>
-        </div>
-        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{t('tzHint', { tz: location.tz })}</div>
 
         {error && (
           <div style={{ fontSize: '0.75rem', color: 'var(--rose)', padding: '0.5rem 0.65rem', borderRadius: 8, border: '1px solid var(--rose)' }}>

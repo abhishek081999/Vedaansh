@@ -749,6 +749,8 @@
           "misc": "Miscellaneous"
         }
       }
-    }
+    },
+    "orManual": "or choose a date, time and place",
+    "nowHint": "Fill in the current date and time"
   }
 }

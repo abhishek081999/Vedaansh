@@ -32,6 +32,8 @@ interface Props {
   birthLocation?: LocationValue | null
   /** If true and value is still the Delhi default with no saved override, request GPS once. */
   autoGeolocate?: boolean
+  /** Put the "use my location" button inside the field (no chip row above), so the field lines up with sibling inputs. */
+  inlineLocate?: boolean
 }
 
 export const DELHI_DEFAULT: LocationValue = {
@@ -53,7 +55,7 @@ function saveLocation(loc: LocationValue) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(loc)) } catch {}
 }
 
-export function LocationPicker({ value, onChange, label: labelProp, birthLocation, autoGeolocate }: Props) {
+export function LocationPicker({ value, onChange, label: labelProp, birthLocation, autoGeolocate, inlineLocate }: Props) {
   const t = useTranslations('common.location')
   const label = labelProp ?? t('label')
   const [query,      setQuery]      = useState(value.name)
@@ -167,7 +169,9 @@ export function LocationPicker({ value, onChange, label: labelProp, birthLocatio
         </label>
       )}
 
+      {(!inlineLocate || birthLocation) && (
       <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+        {!inlineLocate && (
         <button
           type="button"
           onClick={handleGeolocate}
@@ -184,6 +188,7 @@ export function LocationPicker({ value, onChange, label: labelProp, birthLocatio
         >
           {geoLoading ? '\u27f3' : '\ud83d\udccd'} {geoLoading ? t('locating') : t('mine')}
         </button>
+        )}
 
         {birthLocation && (
           <button
@@ -205,6 +210,7 @@ export function LocationPicker({ value, onChange, label: labelProp, birthLocatio
           </button>
         )}
       </div>
+      )}
 
       <div style={{ position: 'relative' }}>
         <input
@@ -215,9 +221,26 @@ export function LocationPicker({ value, onChange, label: labelProp, birthLocatio
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={t('search')}
           autoComplete="off"
-          style={{ width: '100%', paddingRight: loading ? '2rem' : undefined }}
+          style={{ width: '100%', paddingRight: inlineLocate ? '2.4rem' : loading ? '2rem' : undefined, ...(inlineLocate ? { height: 44 } : {}) }}
         />
-        {loading && (
+        {inlineLocate && (
+          <button
+            type="button"
+            onClick={handleGeolocate}
+            disabled={geoLoading}
+            title={t('useMine')}
+            aria-label={t('useMine')}
+            style={{
+              position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+              width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', border: 'none', borderRadius: 'var(--r-sm)', fontSize: '0.95rem',
+              cursor: geoLoading ? 'wait' : 'pointer', opacity: geoLoading ? 0.6 : 1,
+            }}
+          >
+            {geoLoading || loading ? '\u27f3' : '\ud83d\udccd'}
+          </button>
+        )}
+        {loading && !inlineLocate && (
           <span style={{
             position: 'absolute', right: '0.5rem', top: '50%',
             transform: 'translateY(-50%)', fontSize: '0.72rem', color: 'var(--text-muted)',
