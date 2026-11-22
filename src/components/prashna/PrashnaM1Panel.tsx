@@ -15,6 +15,7 @@ import { GrahaTable } from '@/components/ui/GrahaTable'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { PrashnaEssentials } from '@/components/prashna/PrashnaEssentials'
+import { PrashnaAiPromptButton } from '@/components/prashna/PrashnaAiPromptButton'
 import { GRAHA_NAMES, RASHI_NAMES, type ChartOutput, type GrahaId, type UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { getHoraTable } from '@/lib/engine/nakshatra'
@@ -183,12 +184,12 @@ export function PrashnaM1Panel() {
     ]
   }
 
-  /** Hora lord running at the prashna moment, with its time window (hora day runs sunrise to sunrise). */
-  const horaAt = (c: ChartOutput, at: Date, tz: string) => {
+  /** Hora running at the prashna moment (the hora day runs sunrise to sunrise). */
+  const horaInfo = (c: ChartOutput, at: Date, tz: string): { lord: GrahaId; start: Date; end: Date } | null => {
     const ms = at.getTime()
     let sunrise = new Date(c.panchang.sunrise)
     let sunset = new Date(c.panchang.sunset)
-    if (!Number.isFinite(sunrise.getTime()) || !Number.isFinite(sunset.getTime())) return '—'
+    if (!Number.isFinite(sunrise.getTime()) || !Number.isFinite(sunset.getTime())) return null
     if (ms < sunrise.getTime()) {
       // Before today's sunrise the hora still belongs to yesterday's night.
       sunrise = new Date(sunrise.getTime() - DAY_MS)
@@ -196,6 +197,12 @@ export function PrashnaM1Panel() {
     }
     const dayLord = WEEKDAY_LORD[Number(formatInTimeZone(sunrise, tz, 'i')) % 7]
     const h = getHoraTable(sunrise, sunset, dayLord).find(x => x.start.getTime() <= ms && ms < x.end.getTime())
+    return h ? { lord: h.lord, start: h.start, end: h.end } : null
+  }
+
+  /** Hora lord with its time window, for the panchang strip. */
+  const horaAt = (c: ChartOutput, at: Date, tz: string) => {
+    const h = horaInfo(c, at, tz)
     if (!h) return '—'
     const lord = hi ? GRAHA_HI[h.lord] ?? h.lord : GRAHA_NAMES[h.lord] ?? h.lord
     const fmt = (d: Date) => formatInTimeZone(d, tz, 'HH:mm')
@@ -321,6 +328,16 @@ export function PrashnaM1Panel() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   {t('castFor')} <strong style={{ color: 'var(--rose)' }}>{castAt.date} {castAt.time}</strong> · {castAt.place}
                 </span>
+                <PrashnaAiPromptButton
+                  chart={chart}
+                  at={castAt.instant}
+                  question={question.trim() || castAt.question}
+                  place={castAt.place}
+                  lat={castAt.loc.lat}
+                  lng={castAt.loc.lng}
+                  tz={castAt.tz}
+                  hora={horaInfo(chart, castAt.instant, castAt.tz)}
+                />
                 <button type="button" onClick={savePrashna} disabled={isSaved} className={`btn btn-sm ${isSaved ? 'btn-ghost' : 'btn-primary'}`}>
                   {isSaved ? t('savedDone') : t('saveBtn')}
                 </button>
