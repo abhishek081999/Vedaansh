@@ -129,7 +129,8 @@
     },
     "maturity": "{planet} matures",
     "now": "Current year of life: {year}",
-    "teaser": "The full 1–120 timeline with cycle planets and maturity ages is part of the Gold reading."
+    "teaser": "The full 1–120 timeline with cycle planets and maturity ages is part of the Gold reading.",
+    "axis": "Axis: age in years."
   },
   "learn": {
     "housesTitle": "The twelve houses",
@@ -245,12 +246,44 @@
     "dharmi": "Dharmi planets",
     "none": "None",
     "chartTypeTitle": "What kind of chart this is",
-    "topTitle": "Strongest findings",
-    "topLede": "The five rules that weigh most in this chart. Open one to see why.",
     "allTitle": "All findings ({count})",
-    "doshasRin": "Hard doshas and debts",
-    "cycle": "Cycle planet",
-    "yearOfLife": "Year of life {year}"
+    "yearOfLife": "Year of life {year}",
+    "eyebrow": "At a glance",
+    "headline": {
+      "good": "A supportive chart",
+      "mixed": "A chart of give and take",
+      "hard": "A chart that asks for care"
+    },
+    "headlineLede": "Of the nine planets, {good} give their good side, {mixed} give both sides and {hard} lean to their hard side.",
+    "balanceAria": "Planet balance: {good} good, {mixed} both sides, {hard} hard",
+    "balance": {
+      "good": "Good side",
+      "mixed": "Both sides",
+      "hard": "Hard side"
+    },
+    "planetsTitle": "Planets in the Teva",
+    "openPlanets": "Planet cards",
+    "houseN": "House {house}",
+    "asleep": "Asleep",
+    "kayamShort": "Kayam",
+    "strengthsTitle": "Working for you",
+    "strengthsEmpty": "No supporting rule stands out in this chart.",
+    "challengesTitle": "Needs care",
+    "challengesEmpty": "No hard rule here beyond the debts and doshas below.",
+    "nowTitle": "{planet} rules this year",
+    "nowText": "{left} of its {span} years are left in the 35-year cycle. {next} comes next.",
+    "openVarshphal": "This year’s chart",
+    "debtsCount": "{count, plural, =0 {None found} one {# found} other {# found}}",
+    "debtsTitle": "Doshas and debts",
+    "debtsEmpty": "No hard dosha or debt in this chart.",
+    "debtsNote": "Debts are common in Lal Kitab charts. Each has a family remedy.",
+    "openRin": "Debts",
+    "openDoshas": "Doshas",
+    "startEyebrow": "Start here",
+    "startTitle": "First remedy",
+    "startNone": "No planet needs a remedy right now.",
+    "openUpay": "All remedies",
+    "allLede": "Every rule that applies to this chart, strongest first. Open one to see why."
   },
   "planets": {
     "title": "Planets",
@@ -516,7 +549,9 @@
     "todayDone": "Today is done. Come back tomorrow.",
     "missed": "A day was missed, so this run is broken. Restart to begin again from day 1.",
     "completed": "All days done. This remedy is complete.",
-    "dayMissedN": "Day {n}, missed"
+    "dayMissedN": "Day {n}, missed",
+    "replaceConfirm": "A {planet} remedy is already running ({done} of {total} days done). Lal Kitab allows one remedy per planet at a time, so starting this one ends it. Start anyway?",
+    "unknownRemedy": "This remedy is no longer in the catalogue."
   },
   "correction": {
     "title": "Teva check from life signs",

@@ -2,7 +2,7 @@
 // Teva correction: tick life signs (shared with Nishaniyan storage), score
 // a ±2h Lagna window, and show placement hints. Gold+.
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
@@ -13,55 +13,26 @@ import {
   type LalKitabReading,
 } from '@/lib/engine/lalKitab'
 import { LalKitabGate } from './LalKitabGate'
+import { useStoredIds } from './useStoredIds'
 import styles from './LalKitab.module.css'
-
-const STORE_KEY = 'vedaansh.lalKitab.nishaniyan'
-
-function loadTicks(): string[] {
-  try {
-    const raw = window.localStorage.getItem(STORE_KEY)
-    const parsed: unknown = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : []
-  } catch {
-    return []
-  }
-}
-
-function saveTicks(ticks: string[]) {
-  try {
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(ticks))
-  } catch {
-    // ignore
-  }
-}
 
 function rashiName(r: Rashi, lang: 'en' | 'hi'): string {
   return lang === 'hi' ? RASHI_HI[r] : RASHI_NAMES[r]
 }
 
 export function LalKitabCorrection({
-  chart, reading, userPlan,
+  chart, reading, userPlan, chartKey,
 }: {
   chart: ChartOutput
   reading: LalKitabReading
   userPlan: UserPlan
+  chartKey: string
 }) {
   const t = useTranslations('lalKitab.correction')
   const { lang } = useLang()
-  const [ticks, setTicks] = useState<string[]>([])
-  useEffect(() => { setTicks(loadTicks()) }, [])
-
+  const { ids: ticks, toggle, clear } = useStoredIds('signs', chartKey)
   const signs = useMemo(() => lkNishaniyan(lang), [lang])
   const result = useMemo(() => lkTevaCorrection(chart, ticks), [chart, ticks])
-
-  const toggle = (id: string) => {
-    setTicks((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-      saveTicks(next)
-      return next
-    })
-  }
-  const clear = () => { setTicks([]); saveTicks([]) }
 
   const full = (
     <div className={styles.stack}>

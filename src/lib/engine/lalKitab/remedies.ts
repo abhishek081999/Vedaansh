@@ -66,6 +66,12 @@ function localise(u: LkUpay, lang: EngineLang): LkUpay {
   return lang === 'hi' ? { ...u, text: LK_UPAY_HI[u.id] ?? u.text } : u
 }
 
+/** Text of a catalogue remedy by id, or undefined for an unknown id. */
+export function lkUpayText(id: string, lang: EngineLang = 'en'): string | undefined {
+  const u = LK_UPAY.find((x) => x.id === id)
+  return u ? localise(u, lang).text : undefined
+}
+
 export function lkUpayFor(planet: LkGraha, house: LkHouse, lang: EngineLang = 'en'): LkUpay[] {
   return LK_UPAY.filter((u) => u.planet === planet && (u.houses === 'all' || u.houses.includes(house))).map((u) => localise(u, lang))
 }

@@ -19,7 +19,7 @@ export const ZONES_16 = [
   { id: 'WSW', name: 'West-South-West',  ruling: 'Sa', element: 'Prithvi',prana: 'Apana',  quality: 'Education, Savings, Discipline',           angle: 247.5 },
   { id: 'W',   name: 'West',             ruling: 'Sa', element: 'Akasha', prana: 'Vyana',  quality: 'Gains, Profits, Results of Effort',        angle: 270 },
   { id: 'WNW', name: 'West-North-West',  ruling: 'Mo', element: 'Akasha', prana: 'Udana',  quality: 'Depression, Detox, Purification',          angle: 292.5 },
-  { id: 'NW',  name: 'North-West',       ruling: 'Mo', element: 'Vayu',   prana: 'Udana',  quality: 'Support, Banking, Helpful People',         angle: 315 },
+  { id: 'NW',  name: 'North-West',       ruling: 'Mo', coRuling: 'Ke', element: 'Vayu',   prana: 'Udana',  quality: 'Support, Banking, Helpful People',         angle: 315 },
   { id: 'NNW', name: 'North-North-West', ruling: 'Me', element: 'Vayu',   prana: 'Prana',  quality: 'Attraction, Sensuality, Charisma',         angle: 337.5 },
 ]
 
@@ -31,7 +31,7 @@ export const ZONES_8 = [
   { id: 'S',  name: 'South',      ruling: 'Ma', element: 'Agni',   prana: 'Samana', quality: 'Relaxation, Fame',         angle: 180 },
   { id: 'SW', name: 'South-West', ruling: 'Ra', element: 'Prithvi',prana: 'Samana', quality: 'Skills, Relationships',    angle: 225 },
   { id: 'W',  name: 'West',       ruling: 'Sa', element: 'Akasha', prana: 'Vyana',  quality: 'Gains, Profits',           angle: 270 },
-  { id: 'NW', name: 'North-West', ruling: 'Mo', element: 'Vayu',   prana: 'Udana',  quality: 'Support, Banking',         angle: 315 },
+  { id: 'NW', name: 'North-West', ruling: 'Mo', coRuling: 'Ke', element: 'Vayu',   prana: 'Udana',  quality: 'Support, Banking',         angle: 315 },
 ]
 
 /* 45-Deity Vastu Purusha Mandala (Ekashitipada) ─────────────────── */
@@ -142,7 +142,7 @@ export const NAVAGRAHA_ZONES = [
   { planet: 'Ve', name: 'Shukra (Venus)',   dir: 'SE',  en: 'South-East', qual: 'Wealth, beauty, luxury, relationships, arts',         color: '#FF69B4', remedy: 'Silver Venus Yantra, White flowers, Sugar offering',  mantra: 'Om Dram Drim Draum Sah Shukraya Namah' },
   { planet: 'Sa', name: 'Shani (Saturn)',   dir: 'W',   en: 'West',       qual: 'Discipline, longevity, service, karma, patience',     color: '#4169E1', remedy: 'Iron Shani Yantra, Blue sapphire, Sesame seeds',      mantra: 'Om Pram Prim Praum Sah Shanaye Namah' },
   { planet: 'Ra', name: 'Rahu',            dir: 'SW',  en: 'South-West', qual: 'Material ambition, foreign, technology, illusion',    color: '#800080', remedy: 'Lead Rahu Yantra, Coconut, Hassonite Garnet',         mantra: 'Om Bhram Bhrim Bhraum Sah Rahave Namah' },
-  { planet: 'Ke', name: 'Ketu',            dir: 'NNE', en: 'North-NE',   qual: 'Spirituality, liberation, past karma, occult',        color: '#808080', remedy: 'Iron Ketu Yantra, Cat\'s Eye, Sesame & black items',   mantra: 'Om Sram Srim Sraum Sah Ketave Namah' },
+  { planet: 'Ke', name: 'Ketu',            dir: 'NW',  en: 'North-West',   qual: 'Spirituality, liberation, past karma, occult',        color: '#808080', remedy: 'Iron Ketu Yantra, Cat\'s Eye, Sesame & black items',   mantra: 'Om Sram Srim Sraum Sah Ketave Namah' },
 ]
 
 /* Vastu Doshas — from Manasara, Mayamata, Vishwakarma Prakash ───── */
@@ -153,7 +153,7 @@ export const VASTU_DOSHAS = [
     effect: 'Confusion, poor decisions, chronic family disharmony, central nervous system issues, leadership failure.',
     remedy: 'Keep the central 1/9th area completely open. Place a Vastu Purush Yantra (copper) in the center. Install crystal sphere or Swastik symbol. Never drill marma points.',
     scripture: 'Manasara (Ch. 14): "The center of the site is sacred as the sky itself. Any construction here invites cosmic displeasure."',
-    checkFn: () => true,
+    chartZone: undefined as string | undefined,
   },
   {
     id: 'ishan-dosha', name: 'Ishan (NE) Dosha', severity: 'high', zone: 'NE',
@@ -161,7 +161,7 @@ export const VASTU_DOSHAS = [
     effect: 'Loss of wisdom, mental disturbance, health deterioration, blocked spiritual growth, strained finances.',
     remedy: 'Keep NE clear and light. Place water body or fountain. Install copper Shri Yantra or clear quartz crystal. Perform daily water puja in NE.',
     scripture: 'Brihat Samhita (53.76): "Ishan belongs to Isha (Shiva). Difficult influence here causes suffering to the master of the house, his wisdom and health."',
-    checkFn: () => true,
+    chartZone: 'NE' as string | undefined,
   },
   {
     id: 'agni-dosha', name: 'Agni (SE) Dosha', severity: 'medium', zone: 'SE',
@@ -169,7 +169,7 @@ export const VASTU_DOSHAS = [
     effect: 'Cash flow trouble, digestive issues, fire safety concerns, money worries, low confidence.',
     remedy: 'Place triangular red items, fire lamp (Akhand Jyoti), copper pyramid in SE. Avoid water storage in SE completely.',
     scripture: 'Vishwakarma Prakash: "Agni in the SE is the sustainer of wealth. Water opposing fire here drains wealth."',
-    checkFn: () => true,
+    chartZone: 'SE' as string | undefined,
   },
   {
     id: 'nairiti-dosha', name: 'Nairiti (SW) Dosha', severity: 'high', zone: 'SW',
@@ -177,7 +177,7 @@ export const VASTU_DOSHAS = [
     effect: 'Instability, relationship breakdowns, skill decline, frequent relocation, loss of accumulated wealth.',
     remedy: 'Add height and weight to SW. Place heavy furniture or rock garden. Use yellow and brown colors. Plant a Banyan tree if space permits.',
     scripture: 'Manasara: "Nirriti rules the SW with the weight of the Earth. An open SW is like a ship without an anchor — all gains are lost."',
-    checkFn: () => true,
+    chartZone: 'SW' as string | undefined,
   },
   {
     id: 'vayu-dosha', name: 'Vayu (NW) Dosha', severity: 'medium', zone: 'NW',
@@ -185,7 +185,7 @@ export const VASTU_DOSHAS = [
     effect: 'Lack of support from others, unstable relationships, erratic income, dependency and anxiety.',
     remedy: 'Balance NW with metallic wind chimes (7-rod). White/silver colors. Moderately open — not too heavy, not too empty.',
     scripture: 'Vastu Vidya Granth: "Vayu Kona governs all supportive relationships. Imbalance brings the wind of isolation and financial instability."',
-    checkFn: () => true,
+    chartZone: 'NW' as string | undefined,
   },
   {
     id: 'veedhi-shoola', name: 'Veedhi Shoola (Road Hit)', severity: 'high', zone: 'Any wall',
@@ -193,7 +193,7 @@ export const VASTU_DOSHAS = [
     effect: 'Mishaps, sudden losses, legal challenges, stress-related health issues, obstacles in career.',
     remedy: 'Install Vastu Kavach. Plant dense trees or bamboo as buffer. Place protective mirror (facing road). Install Hanuman Yantra on affected wall.',
     scripture: 'Mayamata (Ch. 6): "Roads converging at a point create Veedhi Shoola — they pierce the property like a spear, draining its vital force."',
-    checkFn: () => true,
+    chartZone: undefined as string | undefined,
   },
   {
     id: 'underground-water', name: 'Underground Water Dosha', severity: 'medium', zone: 'SW, S, SE',
@@ -201,7 +201,7 @@ export const VASTU_DOSHAS = [
     effect: 'Destabilization of earth energy, financial draining, health issues related to water-borne ailments.',
     remedy: 'Relocate water storage to NE, N, or E zones. Place Varun Yantra near water source. Perform Vastu Shanti puja.',
     scripture: 'Samarangana Sutradhara (Ch. 19): "Water flowing beneath the SW erodes the foundation of the household, both literal and metaphorical."',
-    checkFn: () => true,
+    chartZone: undefined as string | undefined,
   },
   {
     id: 'staircase-dosha', name: 'Staircase Direction Dosha', severity: 'low', zone: 'NE, Center',
@@ -209,7 +209,7 @@ export const VASTU_DOSHAS = [
     effect: 'Heavy energy in wisdom/health zone (NE) or sacred center causes mental restlessness and health issues.',
     remedy: 'Best staircase positions: S, SW, W, NW. Place Sri Yantra near NE staircase. Keep area well-lit.',
     scripture: 'Vastu Shastra: "The staircase of a house should always climb toward the South or West, never toward the sacred Ishan (NE) corner."',
-    checkFn: () => true,
+    chartZone: undefined as string | undefined,
   },
 ]
 
@@ -283,13 +283,13 @@ export const SLEEP_DIRECTIONS = [
   { head: 'North', quality: 'bad',     icon: '✗',    col: '#ef4444', desc: 'Strictly avoided in Vedic tradition. Earth\'s magnetic north pole creates opposing field to body\'s north, causing: disturbed sleep, poor memory, health issues, mental unrest, and chronic fatigue.' },
 ]
 
-/* Panchabhutas and their Vastu zones, qualities, enhancement ────── */
+/* Panchabhutas — qualities and enhancement. Their zones come from each zone's `element` in ZONES_16 / ZONES_8. */
 export const PANCHA_BHUTAS = [
-  { bhuta: 'Prithvi', name: 'Earth', zones: ['SW', 'S', 'W', 'SE'], qual: 'Stability, weight, patience, endurance, rootedness', color: '#d97706', enhance: 'Heavy stone, yellow/brown colors, low furniture, earthen pottery, lead/iron', icon: '⛰️' },
-  { bhuta: 'Jal',     name: 'Water', zones: ['N', 'NE', 'NNE'],     qual: 'Flow, clarity, opportunities, purity, healing, creativity', color: '#3b82f6', enhance: 'Water fountain, aquarium, blue/silver colors, copper bowl with water, crystals', icon: '🌊' },
-  { bhuta: 'Agni',    name: 'Fire',  zones: ['SE', 'SSE', 'E'],     qual: 'Energy, passion, transformation, digestion, confidence, cash', color: '#ef4444', enhance: 'Fire lamp, candles, red/orange colors, copper items, triangular shapes', icon: '🔥' },
-  { bhuta: 'Vayu',    name: 'Air',   zones: ['NW', 'WNW', 'NNW', 'NE'], qual: 'Movement, speed, support, breath, communication, connections', color: '#10b981', enhance: 'Wind chimes, fans, light curtains, green plants, silver metal, open windows', icon: '🌬️' },
-  { bhuta: 'Akasha',  name: 'Space', zones: ['W', 'WSW', 'Center'], qual: 'Expansion, consciousness, gains, sound, liberation, meditation', color: '#8b5cf6', enhance: 'Open space, crystals, sound bowls, grey/purple colors, no clutter, silence', icon: '✨' },
+  { bhuta: 'Prithvi', name: 'Earth', qual: 'Stability, weight, patience, endurance, rootedness', color: '#d97706', enhance: 'Heavy stone, yellow/brown colors, low furniture, earthen pottery, lead/iron', icon: '⛰️' },
+  { bhuta: 'Jal',     name: 'Water', qual: 'Flow, clarity, opportunities, purity, healing, creativity', color: '#3b82f6', enhance: 'Water fountain, aquarium, blue/silver colors, copper bowl with water, crystals', icon: '🌊' },
+  { bhuta: 'Agni',    name: 'Fire',  qual: 'Energy, passion, transformation, digestion, confidence, cash', color: '#ef4444', enhance: 'Fire lamp, candles, red/orange colors, copper items, triangular shapes', icon: '🔥' },
+  { bhuta: 'Vayu',    name: 'Air',   qual: 'Movement, speed, support, breath, communication, connections', color: '#10b981', enhance: 'Wind chimes, fans, light curtains, green plants, silver metal, open windows', icon: '🌬️' },
+  { bhuta: 'Akasha',  name: 'Space', qual: 'Expansion, consciousness, gains, sound, liberation, meditation', color: '#8b5cf6', enhance: 'Open space, crystals, sound bowls, grey/purple colors, no clutter, silence', icon: '✨' },
 ]
 
 /* Prana Vayu — 5 life force currents mapped to zones ────────────── */
@@ -457,7 +457,7 @@ export const PLANET_PROFILES: Record<string, { vastuDir: string; element: string
     weaknesses: ['Deception and illusion', 'Addictive tendencies', 'Instability if uncontrolled'],
     spatial: 'SW zone (Rahu-Earth) must be kept heavy and grounded. Main entrance never in SW. Master bedroom here for house owner is acceptable.',
     remedy: 'Hessonite Garnet (Gomed), Lead Rahu yantra in SW, Saturday or Rahu Kalam puja, Rahu mantra' },
-  Ke: { vastuDir: 'NNE', element: 'Fire/Ether', color: '#a78bfa',
+  Ke: { vastuDir: 'NW', element: 'Fire/Ether', color: '#a78bfa',
     core: 'Liberation/Moksha — detachment, spiritual liberation, research, past lives, isolation, healing',
     health: 'Mental health, isolation, mystical diseases, neurological conditions',
     strengths: ['Spiritual advancement', 'Research depth', 'Hidden knowledge', 'Traditional medicine'],
@@ -492,13 +492,16 @@ export const RASHI_PROFILES: Record<number, { symbol: string; element: string; l
 }
 
 /* Dig Bala rows — directional strength copy (planet id stays English) */
+/* Dig Bala — full directional strength (BPHS): Ju/Me in the 1st (East),
+   Mo/Ve in the 4th (North), Sa in the 7th (West), Su/Ma in the 10th (South). */
 export const DIG_BALA = [
-  { planet: 'Ju', dir: 'East (Lagna)', desc: 'Max strength in 1st bhava — wisdom, expansion, children' },
-  { planet: 'Su', dir: 'South (10H)',  desc: 'Max strength in 10th bhava — career, authority, father' },
-  { planet: 'Sa', dir: 'West (7H)',    desc: 'Max strength in 7th bhava — longevity, discipline, service' },
-  { planet: 'Mo', dir: 'North (4H)',   desc: 'Max strength in 4th bhava — mind, mother, domestic peace' },
-  { planet: 'Ma', dir: 'South (10H)',  desc: 'Directional strength adds courage and property gains' },
-  { planet: 'Me', dir: 'North (1H)',   desc: 'Commerce and communication amplified in North-facing rooms' },
+  { planet: 'Ju', dir: 'East (1H)',   desc: 'Max strength in 1st bhava — wisdom, expansion, children' },
+  { planet: 'Me', dir: 'East (1H)',   desc: 'Max strength in 1st bhava — intellect, commerce, communication' },
+  { planet: 'Mo', dir: 'North (4H)',  desc: 'Max strength in 4th bhava — mind, mother, domestic peace' },
+  { planet: 'Ve', dir: 'North (4H)',  desc: 'Max strength in 4th bhava — comforts, vehicles, home luxury' },
+  { planet: 'Sa', dir: 'West (7H)',   desc: 'Max strength in 7th bhava — longevity, discipline, service' },
+  { planet: 'Su', dir: 'South (10H)', desc: 'Max strength in 10th bhava — career, authority, father' },
+  { planet: 'Ma', dir: 'South (10H)', desc: 'Max strength in 10th bhava — courage, property, drive' },
 ]
 
 export const ROOM_GUIDE = [
@@ -526,18 +529,18 @@ export const ZONE_COLORS = [
 ]
 
 export const LIFE_AREAS = [
-  { icon: '💼', area: 'Career', h: '10', zone: 'ENE', room: 'Home Office', planet: 'Su', color: '#f59e0b' },
-  { icon: '💰', area: 'Wealth', h: '2', zone: 'SE', room: 'Kitchen', planet: 'Ve', color: '#ec4899' },
-  { icon: '🙏', area: 'Fortune', h: '9', zone: 'NE', room: 'Puja Room', planet: 'Ju', color: '#DAA520' },
-  { icon: '💍', area: 'Marriage', h: '7', zone: 'N', room: 'Guest Room', planet: 'Me', color: '#22c55e' },
-  { icon: '🏠', area: 'Home Peace', h: '4', zone: 'SW', room: 'Master Bed', planet: 'Ra', color: '#7c3aed' },
-  { icon: '👶', area: 'Children', h: '5', zone: 'W', room: "Kids' Room", planet: 'Sa', color: '#94a3b8' },
-  { icon: '⚕️', area: 'Health', h: '6', zone: 'NW', room: 'Utility', planet: 'Mo', color: '#e2e8f0' },
-  { icon: '📈', area: 'Gains', h: '11', zone: 'NNW', room: 'Garden/Social', planet: 'Me', color: '#22c55e' },
-  { icon: '💪', area: 'Courage', h: '3', zone: 'S', room: 'Gym', planet: 'Ma', color: '#ef4444' },
-  { icon: '🔬', area: 'Research', h: '8', zone: 'NNE', room: 'Safe/Store', planet: 'Ke', color: '#a78bfa' },
-  { icon: '🧘', area: 'Spiritual', h: '12', zone: 'WNW', room: 'Meditation', planet: 'Ju', color: '#6366f1' },
-  { icon: '🧍', area: 'Self', h: '1', zone: 'E', room: 'Main Entry', planet: 'Su', color: '#f59e0b' },
+  { icon: '💼', area: 'Career', h: '10', room: 'Home Office', planet: 'Su', color: '#f59e0b' },
+  { icon: '💰', area: 'Wealth', h: '2', room: 'Kitchen', planet: 'Ve', color: '#ec4899' },
+  { icon: '🙏', area: 'Fortune', h: '9', room: 'Puja Room', planet: 'Ju', color: '#DAA520' },
+  { icon: '💍', area: 'Marriage', h: '7', room: 'Guest Room', planet: 'Me', color: '#22c55e' },
+  { icon: '🏠', area: 'Home Peace', h: '4', room: 'Master Bed', planet: 'Ra', color: '#7c3aed' },
+  { icon: '👶', area: 'Children', h: '5', room: "Kids' Room", planet: 'Sa', color: '#94a3b8' },
+  { icon: '⚕️', area: 'Health', h: '6', room: 'Utility', planet: 'Mo', color: '#e2e8f0' },
+  { icon: '📈', area: 'Gains', h: '11', room: 'Garden/Social', planet: 'Me', color: '#22c55e' },
+  { icon: '💪', area: 'Courage', h: '3', room: 'Gym', planet: 'Ma', color: '#ef4444' },
+  { icon: '🔬', area: 'Research', h: '8', room: 'Safe/Store', planet: 'Ke', color: '#a78bfa' },
+  { icon: '🧘', area: 'Spiritual', h: '12', room: 'Meditation', planet: 'Ju', color: '#6366f1' },
+  { icon: '🧍', area: 'Self', h: '1', room: 'Main Entry', planet: 'Su', color: '#f59e0b' },
 ]
 
 export const PLANET_COMPASS = [

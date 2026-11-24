@@ -339,7 +339,18 @@
   justify-content: center;
   min-width: 0;
 }
-.chartBox :global(svg) { max-width: 100%; height: auto; }
+.chartBox :global(svg) { width: 100%; max-width: 100%; height: auto; }
+/* The rail wheel fills its column (the SVG scales by viewBox, labels too). */
+.chartCard .chartBox { align-self: stretch; }
+.chartCard .chartBox :global(svg) { max-width: 460px; }
+
+/* Large screens: a wider rail so the Teva stays readable. */
+@media (min-width: 1280px) {
+  .workspace { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); }
+}
+@media (min-width: 1600px) {
+  .workspace { grid-template-columns: minmax(0, 1fr) minmax(400px, 480px); }
+}
 
 .tableWrap { overflow-x: auto; }
 
@@ -628,3 +639,139 @@ fieldset.mini legend { padding: 0 0.2rem; }
 }
 
 .gate { min-height: 8.5rem; }
+
+/* ── Overview ─────────────────────────────────────────────── */
+
+.ovHero { gap: 0.55rem; padding: 1.1rem 1.15rem 1.15rem; }
+
+.ovHeadline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.balance {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.balanceSeg { flex-basis: 0; min-width: 6px; }
+.seg_good { background: var(--teal); }
+.seg_mixed { background: var(--amber); }
+.seg_hard { background: var(--rose); }
+
+.balanceLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.balanceLegend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.balanceLegend strong { color: var(--text-primary); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+
+.ovFacts {
+  margin: 0.5rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-soft, var(--border));
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 0.75rem 1rem;
+}
+.ovFacts dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.ovFacts dd { margin: 0.15rem 0 0; font-size: 0.88rem; font-weight: 600; color: var(--text-primary); }
+.ovFacts .statHint { display: block; font-weight: 500; }
+
+.planetGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* Nine planets: 3 × 3, or one row of 9 when the column is wide. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+@media (min-width: 1360px) {
+  .planetGrid { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+}
+
+.planetTile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.65rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--tile-accent, var(--border)) 30%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tile-accent, transparent) 7%, var(--surface-2));
+}
+.tile_good { --tile-accent: var(--teal); }
+.tile_mixed { --tile-accent: var(--amber); }
+.tile_hard { --tile-accent: var(--rose); }
+
+.tileName { font-size: 0.9rem; font-weight: 650; color: var(--text-primary); }
+.tileHouse { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.tileSide { font-size: 0.74rem; font-weight: 650; color: var(--tile-accent); }
+.tileMeta { font-size: 0.7rem; color: var(--text-muted); }
+
+.accentGood { border-top: 3px solid color-mix(in srgb, var(--teal) 70%, var(--border)); }
+.accentHard { border-top: 3px solid color-mix(in srgb, var(--rose) 70%, var(--border)); }
+
+/* Year and first remedy on the left, the taller debts card spanning both rows on the right. */
+.ovSteps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "year debts" "start debts";
+  gap: 0.9rem;
+  align-items: start;
+}
+.ovSteps > .card { gap: 0.5rem; }
+.ovYear { grid-area: year; }
+.ovDebts { grid-area: debts; align-self: stretch; }
+.ovStart { grid-area: start; }
+.ovDebts .goRow { margin-top: auto; }
+
+.goRow { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+
+.goBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 32px;
+  padding: 0.2rem 0;
+  border: 0;
+  background: none;
+  color: var(--text-gold);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.goBtn:hover { text-decoration: underline; text-underline-offset: 3px; }
+.goBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+@media (max-width: 767px) {
+  .ovHeadline { font-size: 1.25rem; }
+  .ovHero { padding: 0.9rem 0.85rem 0.95rem; }
+  .planetGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+  .planetTile { padding: 0.45rem 0.5rem; }
+  .ovSteps { grid-template-columns: minmax(0, 1fr); grid-template-areas: "year" "debts" "start"; }
+}

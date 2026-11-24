@@ -15,7 +15,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
-import { lkAgeYears, lkYearOfLife, readLalKitab, type LkChartBasis } from '@/lib/engine/lalKitab'
+import { lkAgeYears, lkChartKey, lkYearOfLife, readLalKitab, type LkChartBasis } from '@/lib/engine/lalKitab'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { ChartContextBar } from '@/components/ui/patterns/ChartContextBar'
@@ -85,6 +85,7 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
     [chart, lang, ageYears],
   )
   const canExport = planMeetsUiGate(userPlan, 'gold')
+  const chartKey = lkChartKey(chart.meta)
 
   useEffect(() => {
     const el = rootRef.current
@@ -99,9 +100,30 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
     return () => ro.disconnect()
   }, [])
 
+  /** Switch view from inside a view: show its tab and bring the tab row into sight. */
+  function openView(id: LkView) {
+    setView(id)
+    requestAnimationFrame(() => {
+      const tab = document.getElementById(`lk-tab-${id}`)
+      tab?.scrollIntoView({ block: 'nearest', inline: 'center' })
+      const top = tab?.parentElement?.getBoundingClientRect().top
+      if (top !== undefined && top < 0) tab?.parentElement?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    })
+  }
+
   async function exportPdf() {
     if (!canExport || exporting) return
+    // Open the window inside the click, before any await: browsers block
+    // windows opened later, after the network round trip.
+    const w = window.open('', '_blank')
+    if (w) {
+      w.document.write(`<!doctype html><meta charset="utf-8"><title>${t('exporting')}</title><p style="font:14px system-ui;padding:2rem">${t('exporting')}</p>`)
+    }
     setExporting(true)
+    const fail = () => {
+      w?.close()
+      window.alert(t('exportFail'))
+    }
     try {
       const res = await fetch('/api/lal-kitab/export', {
         method: 'POST',
@@ -109,17 +131,25 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
         body: JSON.stringify({ meta: chart.meta }),
       })
       if (!res.ok) {
-        window.alert(t('exportFail'))
+        fail()
         return
       }
       const html = await res.text()
-      const w = window.open('', '_blank')
-      if (w) {
-        w.document.write(html)
-        w.document.close()
+      if (!w || w.closed) {
+        // Popup blocked anyway: save the report as a file instead.
+        const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'lal-kitab.html'
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 10_000)
+        return
       }
+      w.document.open()
+      w.document.write(html)
+      w.document.close()
     } catch {
-      window.alert(t('exportFail'))
+      fail()
     } finally {
       setExporting(false)
     }
@@ -165,14 +195,16 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
 
       <div className={styles.workspace}>
         <section id={`lk-panel-${view}`} className={styles.content} role="tabpanel" aria-labelledby={`lk-tab-${view}`}>
-          {view === 'overview' && <LalKitabOverview reading={reading} userPlan={userPlan} currentYear={currentYear} />}
+          {view === 'overview' && (
+            <LalKitabOverview reading={reading} userPlan={userPlan} currentYear={currentYear} onOpen={openView} />
+          )}
           {view === 'teva' && <LalKitabTeva chart={chart} reading={reading} basis={basis} />}
           {view === 'predictions' && <LalKitabPredictions reading={reading} userPlan={userPlan} />}
-          {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} />}
-          {view === 'correction' && <LalKitabCorrection chart={chart} reading={reading} userPlan={userPlan} />}
+          {view === 'nishaniyan' && <LalKitabNishaniyan reading={reading} chartKey={chartKey} />}
+          {view === 'correction' && <LalKitabCorrection chart={chart} reading={reading} userPlan={userPlan} chartKey={chartKey} />}
           {view === 'doshas' && <LalKitabDoshas reading={reading} userPlan={userPlan} />}
           {view === 'rin' && <LalKitabRin reading={reading} userPlan={userPlan} />}
-          {view === 'upay' && <LalKitabRemedies reading={reading} userPlan={userPlan} />}
+          {view === 'upay' && <LalKitabRemedies reading={reading} userPlan={userPlan} chartKey={chartKey} />}
           {view === 'finder' && <LalKitabFinder reading={reading} userPlan={userPlan} />}
           {view === 'tracker' && <LalKitabTracker chart={chart} reading={reading} userPlan={userPlan} />}
           {view === 'planets' && <LalKitabPlanets reading={reading} userPlan={userPlan} />}

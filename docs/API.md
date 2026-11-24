@@ -139,6 +139,16 @@ Also gated in `src/proxy.ts` for `/muhurta` and `/api/muhurta`.
 
 ---
 
+## Astro-Vastu (Gold+)
+
+| Method | Path | Auth | Plan | Notes |
+|--------|------|------|------|-------|
+| POST | `/api/vastu/export` | yes | **gold** | Printable Astro-Vastu HTML. Body `{ meta, home? }`; `home` = optional door, rooms, Ayadi size (Zod-validated) |
+
+Also gated in `src/proxy.ts` (`PROTECTED_API` + `GOLD_API`).
+
+---
+
 ## Lal Kitab (Gold+)
 
 | Method | Path | Auth | Plan | Notes |

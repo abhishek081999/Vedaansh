@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
-import { lkChartKey, lkGrahaName, type LalKitabReading } from '@/lib/engine/lalKitab'
+import { lkChartKey, lkGrahaName, lkUpayText, type LalKitabReading, type LkGraha } from '@/lib/engine/lalKitab'
 import { LalKitabGate, useGold } from './LalKitabGate'
 import styles from './LalKitab.module.css'
 
@@ -66,7 +66,18 @@ export function LalKitabTracker({
 
   useEffect(() => { void load() }, [load])
 
-  async function start(upayId: string) {
+  async function start(upayId: string, planet: LkGraha) {
+    // The server keeps one running remedy per planet: starting this one
+    // ends the other. Say so first, with how far the other has got.
+    const running = rows.find((r) => r.status === 'active' && r.planet === planet && r.upayId !== upayId)
+    if (running) {
+      const ok = window.confirm(t('replaceConfirm', {
+        planet: lkGrahaName(planet, lang),
+        done: running.days.filter(Boolean).length,
+        total: running.days.length,
+      }))
+      if (!ok) return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -124,11 +135,7 @@ export function LalKitabTracker({
           <p className={styles.note}>{t('noneActive')}</p>
         ) : active.map((r) => {
           const done = r.days.filter(Boolean).length
-          const upayText = reading.remedies.planets
-            .flatMap((p) => p.remedies)
-            .find((c) => c.upay.id === r.upayId)?.upay.text
-            ?? starters.find((c) => c.upay.id === r.upayId)?.upay.text
-            ?? r.upayId
+          const upayText = lkUpayText(r.upayId, lang) ?? t('unknownRemedy')
           return (
             <article key={r._id} className={styles.mini}>
               <h4 className={styles.miniTitle}>
@@ -186,7 +193,7 @@ export function LalKitabTracker({
                   type="button"
                   className={styles.segBtn}
                   disabled={busy || active.some((a) => a.upayId === c.upay.id)}
-                  onClick={() => void start(c.upay.id)}
+                  onClick={() => void start(c.upay.id, c.planet)}
                 >
                   {t('start')}
                 </button>

@@ -1,8 +1,6 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
-import { interactiveTransition } from '@/lib/ui/transitions'
-import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -12,11 +10,6 @@ import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi, type UserPlan } fro
 
 const AstroVastuPanel = dynamic(
   () => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel),
-  { ssr: false }
-)
-
-const ChakraSelector = dynamic(
-  () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
   { ssr: false }
 )
 
@@ -34,7 +27,6 @@ export default function VastuPage() {
   const { chart } = useChart()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
-  const [chartExpanded, setChartExpanded] = useState(false)
 
   if (!chart) {
     return (
@@ -100,9 +92,6 @@ export default function VastuPage() {
   const atmakaraka   = chart.karakas?.AK ?? ''
   const moonGraha    = chart.grahas.find((g: { id: string }) => g.id === 'Mo')
   const moonRashi    = moonGraha ? rname(moonGraha.rashi as number) : '—'
-  const moonNakIndex = chart.panchang?.nakshatra?.index ?? 0
-  const tithiNumber  = chart.panchang?.tithi?.number ?? 1
-  const varaNumber   = chart.panchang?.vara?.number  ?? 0
 
   return (
     <div className="fade-up" style={{
@@ -164,60 +153,26 @@ export default function VastuPage() {
               </div>
             ))}
 
-            {/* Expand / collapse toggle */}
-            <button
-              onClick={() => setChartExpanded(v => !v)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.35rem',
-                padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem',
-                border: '1px solid rgba(201,168,76,0.35)',
-                background: chartExpanded ? 'rgba(201,168,76,0.15)' : 'transparent',
-                color: 'var(--text-gold)', cursor: 'pointer', transition: interactiveTransition('0.2s'),
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {chartExpanded ? t('page.hideChart') : t('page.showChart')}
-            </button>
           </div>
         </div>
 
-        {/* Chart body — collapsible */}
-        {chartExpanded && (
-          <div style={{ padding: '1rem 1.25rem 1.5rem' }}>
-            <ChakraSelector
-              ascRashi={chart.lagnas.ascRashi}
-              grahas={chart.grahas}
-              lagnas={chart.lagnas}
-              arudhas={chart.arudhas}
-              moonNakIndex={moonNakIndex}
-              tithiNumber={tithiNumber}
-              showCharaDrishtiControls
-              varaNumber={varaNumber}
-              defaultStyle="north"
-              size={460}
-            />
-          </div>
-        )}
-
-        {/* Collapsed: mini planet strip */}
-        {!chartExpanded && (
-          <div style={{ padding: '0.6rem 1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-            {chart.grahas
-              .filter((g: { id: string }) => !['Ur','Ne','Pl'].includes(g.id))
-              .map((g: { id: string; rashi: number; isRetro?: boolean }) => (
-                <div key={g.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.25rem',
-                  background: 'var(--surface-2)', border: '1px solid var(--border-soft)',
-                  borderRadius: '6px', padding: '2px 8px',
-                }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'var(--font-chart-planets)' }}>
-                    {g.id}{g.isRetro ? 'ᴿ' : ''}
-                  </span>
-                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{rname(g.rashi)}</span>
-                </div>
-              ))}
-          </div>
-        )}
+        {/* Mini planet strip — the full chart is the panel's Lagna Chart tab */}
+        <div style={{ padding: '0.6rem 1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+          {chart.grahas
+            .filter((g: { id: string }) => !['Ur','Ne','Pl'].includes(g.id))
+            .map((g: { id: string; rashi: number; isRetro?: boolean }) => (
+              <div key={g.id} style={{
+                display: 'flex', alignItems: 'center', gap: '0.25rem',
+                background: 'var(--surface-2)', border: '1px solid var(--border-soft)',
+                borderRadius: '6px', padding: '2px 8px',
+              }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'var(--font-chart-planets)' }}>
+                  {g.id}{g.isRetro ? 'ᴿ' : ''}
+                </span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{rname(g.rashi)}</span>
+              </div>
+            ))}
+        </div>
       </div>
 
       <AstroVastuPanel chart={chart} userPlan={userPlan} />

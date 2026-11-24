@@ -40,6 +40,7 @@
     "travel": { "label": "Travel start", "blurb": "Leave home / board journey" },
     "surgery": { "label": "Medical", "blurb": "Procedure or treatment start" },
     "house": { "label": "Housewarming", "blurb": "Griha pravesh / move-in" },
+    "bhoomi": { "label": "Bhoomi pujan", "blurb": "Foundation / start of construction" },
     "naming": { "label": "Naming / samskar", "blurb": "Child naming & rites" },
     "loan": { "label": "Loan / contract", "blurb": "Sign papers, open account" },
     "interview": { "label": "Interview", "blurb": "Job or admission interview" },

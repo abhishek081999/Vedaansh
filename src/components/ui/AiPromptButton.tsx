@@ -25,7 +25,7 @@ interface Props {
 }
 
 // Mirrors AI_TOPICS in aiPromptTopics (kept here so the engines load only when the popup opens).
-const TOPICS: AiTopic[] = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality', 'lalKitab']
+const TOPICS: AiTopic[] = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality', 'lalKitab', 'vastu']
 
 // Mirrors FREE_AI_TOPICS in aiPrompt (the builder enforces it too).
 const FREE_TOPICS: AiTopic[] = ['personality']

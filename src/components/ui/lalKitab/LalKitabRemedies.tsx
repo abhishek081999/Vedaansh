@@ -12,6 +12,7 @@ import { useLang } from '@/i18n/useLang'
 import { LK_UPAY_RULES, lkGrahaName, type LalKitabReading, type LkPlanetRemedies } from '@/lib/engine/lalKitab'
 import { LalKitabGate, useGold } from './LalKitabGate'
 import { LalKitabUpayItem } from './LalKitabUpayItem'
+import { useStoredIds } from './useStoredIds'
 import styles from './LalKitab.module.css'
 
 function PlanetBlock({ p }: { p: LkPlanetRemedies }) {
@@ -46,8 +47,9 @@ function PlanetBlock({ p }: { p: LkPlanetRemedies }) {
   )
 }
 
-export function LalKitabRemedies({ reading, userPlan }: { reading: LalKitabReading; userPlan: UserPlan }) {
+export function LalKitabRemedies({ reading, userPlan, chartKey }: { reading: LalKitabReading; userPlan: UserPlan; chartKey: string }) {
   const t = useTranslations('lalKitab.upay')
+  const done = useStoredIds('upayDone', chartKey)
   const { lang } = useLang()
   const gold = useGold(userPlan)
   const plan = reading.remedies
@@ -70,7 +72,7 @@ export function LalKitabRemedies({ reading, userPlan }: { reading: LalKitabReadi
             {top.map((c) => (
               <li key={c.upay.id}>
                 <label className={styles.check}>
-                  <input type="checkbox" aria-label={t('markDone')} />
+                  <input type="checkbox" aria-label={t('markDone')} checked={done.ids.includes(c.upay.id)} onChange={() => done.toggle(c.upay.id)} />
                   <LalKitabUpayItem choice={c} />
                 </label>
               </li>

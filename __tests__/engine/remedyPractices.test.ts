@@ -1,4 +1,5 @@
 // Remedy practice catalogue and tracker calendar rules (pure).
+import { VASTU_ZONES_8 } from '@/lib/engine/astroVastu'
 import { describe, expect, it } from 'vitest'
 import {
   describePractice,
@@ -6,6 +7,9 @@ import {
   practiceTrackerState,
   remedyPracticesFor,
   weeklyTrackerState,
+  isVastuPractice,
+  VASTU_PRACTICE_ZONES,
+  vastuPracticesFor,
 } from '@/lib/engine/remedyPractices'
 import { REMEDY_GRAHAS } from '@/lib/engine/planetaryRemedies'
 
@@ -83,5 +87,35 @@ describe('daily tracker', () => {
     const s = practiceTrackerState({ cadence: 'daily' }, [true, false, false], at('2026-11-22'), at('2026-11-23'), tz)
     expect(s).toMatchObject({ todayIndex: 1, practiceDay: true, canTick: true, nextDate: '2026-11-23' })
     expect(practiceTrackerState({ cadence: 'daily' }, [false, false], at('2026-11-22'), at('2026-11-23'), tz).missed).toBe(true)
+  })
+})
+
+describe('Vastu zone practices', () => {
+  it('has one daily practice per zone that the API can resolve', () => {
+    for (const z of VASTU_PRACTICE_ZONES) {
+      const d = getRemedyPractice(`vastu.${z}`)
+      expect(d).toMatchObject({ kind: 'vastu', cadence: 'daily', zone: z, count: 11, defaultLength: 21 })
+      expect(d!.lengths).toContain(d!.defaultLength)
+      expect(d!.id.length).toBeLessThanOrEqual(32)
+    }
+  })
+
+  it('rulers match the Astro-Vastu zones', () => {
+    for (const z of VASTU_ZONES_8) expect(getRemedyPractice(`vastu.${z.id}`)?.graha).toBe(z.ruling)
+  })
+
+  it('keeps zone order and describes in both languages', () => {
+    const en = vastuPracticesFor(['SW', 'N'])
+    expect(en.map(p => p.zone)).toEqual(['SW', 'N'])
+    expect(en[0].title).toBe('South-West zone practice (Rahu)')
+    const hi = vastuPracticesFor(['SE'], 'hi')[0]
+    expect(hi.title).toContain('दक्षिण-पूर्व')
+    expect(hi.how).not.toMatch(/[A-Za-z]{3,}/)
+  })
+
+  it('is not mixed into the planet lists', () => {
+    for (const g of REMEDY_GRAHAS) expect(remedyPracticesFor(g).some(p => p.kind === 'vastu')).toBe(false)
+    expect(isVastuPractice('vastu.NE')).toBe(true)
+    expect(isVastuPractice('Ju.mantra')).toBe(false)
   })
 })
