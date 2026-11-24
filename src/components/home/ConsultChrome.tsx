@@ -51,6 +51,23 @@ export interface ConsultChromeProps {
   savedChartId: string | null
   authenticated: boolean
   onSaveChart?: () => void
+  /** Rendered inside a drawer: always open, no collapse toggle. */
+  embedded?: boolean
+}
+
+function ToggleWrap({ embedded, open, onClick, className, children }: {
+  embedded: boolean
+  open: boolean
+  onClick: () => void
+  className: string
+  children: React.ReactNode
+}) {
+  if (embedded) return <div className={className}>{children}</div>
+  return (
+    <button type="button" className={className} onClick={onClick} aria-expanded={open}>
+      {children}
+    </button>
+  )
 }
 
 const STORAGE_KEY = 'vedaansh-consult-chrome-open'
@@ -80,13 +97,15 @@ export function ConsultChrome({
   savedChartId,
   authenticated,
   onSaveChart,
+  embedded = false,
 }: ConsultChromeProps) {
   const t = useTranslations('chart.workspace.consult')
   const { hi, tag, lang } = useLang()
   const { openWorkspace } = useAppLayout()
   const isPlatinum = planMeetsUiGate(userPlan, 'platinum')
 
-  const [open, setOpen] = useState(false)
+  const [openState, setOpen] = useState(false)
+  const open = embedded || openState
   const [tab, setTab] = useState<TabId>('notes')
   const [client, setClient] = useState<LinkedClient | null>(null)
   const [clientLoading, setClientLoading] = useState(false)
@@ -219,11 +238,11 @@ export function ConsultChrome({
       aria-label={t('aria')}
     >
       <div className={styles.head}>
-        <button
-          type="button"
+        <ToggleWrap
+          embedded={embedded}
           className={styles.toggle}
           onClick={toggleOpen}
-          aria-expanded={open}
+          open={open}
         >
           <div className={styles.titleBlock}>
             <span className={styles.kicker}>{t('kicker')}</span>
@@ -247,12 +266,14 @@ export function ConsultChrome({
                 : t('subLocked')}
             </span>
           </div>
-          <ChevronDown
-            size={16}
-            className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}
-            aria-hidden
-          />
-        </button>
+          {!embedded && (
+            <ChevronDown
+              size={16}
+              className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}
+              aria-hidden
+            />
+          )}
+        </ToggleWrap>
         {!isPlatinum && (
           <Link href="/pricing" className={styles.upgrade}>
             {t('upgrade')}
