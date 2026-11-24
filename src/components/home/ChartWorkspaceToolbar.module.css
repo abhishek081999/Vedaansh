@@ -1,0 +1,85 @@
+.desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.btnLabel {
+  margin-left: 0.3rem;
+}
+
+.moreWrap {
+  position: relative;
+  overflow: visible;
+}
+
+.moreBtn {
+  display: inline-flex;
+  align-items: center;
+}
+
+.moreMenu {
+  position: fixed;
+  z-index: 200;
+  min-width: 11.5rem;
+  max-width: min(16rem, calc(100vw - 1rem));
+  padding: 0.35rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-1, #fff);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.moreItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 34px;
+  padding: 0.4rem 0.55rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.moreItem:hover {
+  background: var(--surface-3);
+}
+
+.moreItem:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.moreToolRow {
+  display: flex;
+  width: 100%;
+}
+
+.moreToolRow > * {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.moreToolRow button {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+@media (max-width: 720px) {
+  .btnLabel {
+    display: none;
+  }
+}

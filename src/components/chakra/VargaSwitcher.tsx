@@ -333,6 +333,13 @@ export function VargaSwitcher({
           const { grahas, varAscRashi } = chartProps(name)
           
           const { raw: vArudhas, bphs: vArudhasBphs } = buildArudhaBundle(varAscRashi, grahas)
+          const selectedHouse = selectedHouseByChart[name] ?? null
+          const dashaHouses = chart ? getDashaLordPlacementHouses(chart, grahas, varAscRashi) : []
+          const highlightHouses = enableCharaDrishti
+            ? (selectedHouse ? Array.from(new Set([selectedHouse, ...getCharaDrishtiHousesFromHouse(selectedHouse, varAscRashi)])) : [])
+            : dashaHouses
+          const rawTopic = meta.topic.includes(' — ') ? meta.topic.split(' — ')[1] : meta.topic
+          const topic = rawTopic ? rawTopic.charAt(0).toUpperCase() + rawTopic.slice(1) : ''
 
           return (
             <div key={idx} className="fade-up" style={{
@@ -379,7 +386,7 @@ export function VargaSwitcher({
                 <SettingsBtn
                   open={Boolean(chartSettingsOpen[name])}
                   onClick={() => setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))}
-                  label={!isMobile && idx === 0}
+                  label={!isMobile}
                 />
               </div>
 
@@ -390,56 +397,67 @@ export function VargaSwitcher({
                 gap: '0.4rem',
                 marginBottom: '0.35rem',
                 flexWrap: 'wrap',
-                minHeight: 22,
+                minHeight: 24,
               }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={enableCharaDrishti}
-                    onChange={(e) => setEnableCharaDrishti(e.target.checked)}
-                  />
-                  <span style={{ fontSize: '0.7rem', color: enableCharaDrishti ? 'var(--gold)' : 'var(--text-muted)', fontWeight: 700 }}>
-                    {t('charaDrishti')}
-                  </span>
-                </label>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-                    {selectedHouseByChart[name]
-                      ? t('selectedHouse', { n: selectedHouseByChart[name] ?? 0 })
-                      : t('clickHouse')}
-                  </span>
-                  {selectedHouseByChart[name] ? (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedHouseByChart((prev) => ({ ...prev, [name]: null }))}
-                      style={{
-                        padding: '0.16rem 0.38rem',
-                        fontSize: '0.64rem',
-                        borderRadius: '4px',
-                        border: '1px solid var(--border-soft)',
-                        background: 'transparent',
-                        color: 'var(--text-muted)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {t('clear')}
-                    </button>
+                <button
+                  type="button"
+                  aria-pressed={enableCharaDrishti}
+                  onClick={() => setEnableCharaDrishti((v) => !v)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: 99,
+                    border: `1px solid ${enableCharaDrishti ? 'var(--gold)' : 'var(--border-soft)'}`,
+                    background: enableCharaDrishti ? 'var(--gold-faint)' : 'transparent',
+                    color: enableCharaDrishti ? 'var(--gold)' : 'var(--text-muted)',
+                    fontSize: '0.68rem', fontWeight: 700, fontFamily: 'var(--font-body)',
+                    cursor: 'pointer',
+                    transition: interactiveTransition('0.15s'),
+                  }}
+                >
+                  <span aria-hidden style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: enableCharaDrishti ? 'var(--gold)' : 'var(--border-bright)',
+                  }} />
+                  {t('charaDrishti')}
+                </button>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', minWidth: 0 }}>
+                  {enableCharaDrishti ? (
+                    <>
+                      <span style={{ fontSize: '0.66rem', color: selectedHouse ? 'var(--gold)' : 'var(--text-muted)', fontWeight: selectedHouse ? 700 : 400 }}>
+                        {selectedHouse ? t('selectedHouse', { n: selectedHouse }) : t('clickHouse')}
+                      </span>
+                      {selectedHouse ? (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedHouseByChart((prev) => ({ ...prev, [name]: null }))}
+                          style={{
+                            padding: '0.12rem 0.38rem',
+                            fontSize: '0.64rem',
+                            borderRadius: '4px',
+                            border: '1px solid var(--border-soft)',
+                            background: 'transparent',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('clear')}
+                        </button>
+                      ) : null}
+                    </>
+                  ) : dashaHouses.length > 0 ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+                      <span aria-hidden style={{
+                        width: 10, height: 10, borderRadius: 2,
+                        background: 'rgba(253, 230, 138, 0.4)', border: '1px solid rgba(201,168,76,0.45)',
+                      }} />
+                      {t('dashaShade')}
+                    </span>
                   ) : null}
                 </div>
               </div>
 
               <div className="varga-chart-frame">
-                {(() => {
-                  const selectedHouse = selectedHouseByChart[name]
-                  const dashaHouses = chart ? getDashaLordPlacementHouses(chart, grahas, varAscRashi) : []
-                  const charaHouses =
-                    enableCharaDrishti && selectedHouse
-                      ? [selectedHouse, ...getCharaDrishtiHousesFromHouse(selectedHouse, varAscRashi)]
-                      : []
-                  const highlightHouses = enableCharaDrishti
-                    ? Array.from(new Set(charaHouses))
-                    : dashaHouses
-                  return (
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={isMobile ? 300 : 440}
                   vargaName={name}
@@ -459,14 +477,14 @@ export function VargaSwitcher({
                   }
                   hideInternalSettingsToggle={!isMobile ? (idx === 0 || idx === 1) : true}
                 />
-                  )
-                })()}
               </div>
 
               {/* Topic hint — compact single line */}
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', marginTop: '0.2rem', opacity: 0.8 }}>
-                {meta.topic.includes(' — ') ? meta.topic.split(' — ')[1] : meta.topic}
-              </div>
+              {topic ? (
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', marginTop: '0.2rem', opacity: 0.85 }}>
+                  {topic}
+                </div>
+              ) : null}
             </div>
           )
         })}

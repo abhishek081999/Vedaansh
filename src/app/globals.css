@@ -2766,19 +2766,20 @@ select.input {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding-top: 0.15rem;
-  padding-bottom: 0.35rem;
-  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.45rem;
   border-bottom: 1px solid var(--border-soft);
+  overflow: visible;
 }
 
 .chart-sticky-toolbar .chart-header-row {
   border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.4rem;
 }
 
-.kundali-snapshot-strip,
-.jaimini-snapshot-strip {
+/* Data strip stays pinned under the app header while the workspace scrolls */
+.kundali-snapshot-strip {
   position: sticky;
   top: 0;
   z-index: 85;
@@ -2793,10 +2794,31 @@ select.input {
   margin-bottom: 0.75rem;
 }
 
+/* Hint that the strip scrolls sideways: fade the right edge, pad so the last item clears it. */
+.kundali-snapshot-strip {
+  scrollbar-width: none;
+  padding-right: 2rem !important;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+.kundali-snapshot-strip::-webkit-scrollbar {
+  display: none;
+}
+
 .jaimini-snapshot-strip {
+  position: sticky;
+  top: 0;
+  z-index: 85;
+  background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  max-width: 100%;
+  min-width: 0;
   margin-top: 0;
   margin-bottom: 0;
-  box-shadow: none;
 }
 
 .jaimini-panel {
@@ -2934,6 +2956,18 @@ select.input {
 .chart-mobile-actions-collapsed .chart-mobile-action-btn {
   width: 32px;
   height: 32px;
+}
+
+.chart-mobile-actions-collapsed .chart-mobile-action-btn--ai {
+  width: auto;
+  padding: 0 0.5rem;
+  gap: 0.22rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  color: var(--text-gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border-soft));
+  background: var(--gold-faint);
 }
 
 .chart-mobile-action-btn--primary {

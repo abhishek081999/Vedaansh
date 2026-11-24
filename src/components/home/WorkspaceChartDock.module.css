@@ -1,0 +1,287 @@
+.dock {
+  position: sticky;
+  top: 0.75rem;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.65rem 0.7rem 0.75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  min-width: 0;
+  max-height: calc(100dvh - var(--app-header-height) - 1.5rem);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-soft) transparent;
+}
+
+.dockCompact {
+  position: relative;
+  top: auto;
+  max-height: none;
+  margin-bottom: 0.65rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.pinWrap {
+  position: relative;
+}
+
+.pinBtn,
+.pinClear {
+  height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  font-size: 0.64rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.pinBtn:hover,
+.pinClear:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.pinBtn:disabled,
+.pinClear:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pinMenu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 20;
+  min-width: 9.5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--text-primary) 12%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pinMenuItem {
+  height: 28px;
+  padding: 0 0.55rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.pinMenuItem:hover {
+  background: var(--gold-faint);
+  color: var(--gold);
+}
+
+.pinMenuItem:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pinError {
+  margin: 0;
+  font-size: 0.64rem;
+  color: var(--danger, #b91c1c);
+}
+
+.pinSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.pinHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.pinTitle {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  font-family: var(--font-display, var(--font-body));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 10rem;
+}
+
+.pinLagna {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-top: 0.15rem;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.kicker {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.title {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  font-family: var(--font-display, var(--font-body));
+}
+
+.jump {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  font-size: 0.64rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.jump:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.metaItem,
+.metaItemBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.3rem 0.35rem;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--surface-3) 85%, transparent);
+}
+
+.metaItemBtn {
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.metaItemBtn:hover {
+  border-color: var(--gold);
+}
+
+.metaLabel {
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.metaValue {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chart {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.actionBtn {
+  height: 28px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.actionBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-faint);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+  width: 100%;
+}
+
+.layoutStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

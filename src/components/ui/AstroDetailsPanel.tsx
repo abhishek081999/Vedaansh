@@ -52,7 +52,10 @@ function Sec({ title, children }: { title: string; children: React.ReactNode }) 
 
 const TATVA_HI: Record<string, string> = { Fire: 'अग्नि', Earth: 'पृथ्वी', Air: 'वायु', Water: 'जल' }
 
-export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
+/**
+ * @param hideIdentity Skip name, date and time — for places where the chart header already shows them.
+ */
+export function AstroDetailsPanel({ chart, hideIdentity = false }: { chart: ChartOutput; hideIdentity?: boolean }) {
   const t = useTranslations('chart.astroDetails')
   const { hi, tag } = useLang()
   const T = (en: string) => (hi ? termHi(en) : en)
@@ -125,17 +128,17 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
 
       {/* ── Birth + Panchang merged ── */}
       <Sec title={t('secBirth')}>
-        <Row label={t('name')} value={chart.meta.name || '—'} />
-        <Row label={t('date')} value={(() => {
+        {!hideIdentity && <Row label={t('name')} value={chart.meta.name || '—'} />}
+        {!hideIdentity && <Row label={t('date')} value={(() => {
           const [y, m, d] = chart.meta.birthDate.split('-')
           return `${d} ${m} ${y}`
-        })()} />
-        <Row label={t('time')} value={(() => {
+        })()} />}
+        {!hideIdentity && <Row label={t('time')} value={(() => {
           if (!chart.meta.birthTime) return '—'
           const [h, min] = chart.meta.birthTime.split(':').map(Number)
           const ampm = h >= 12 ? t('pm') : t('am')
           return `${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
-        })()} />
+        })()} />}
         <Row label={t('vara')} value={`${hi ? VAAR_HI[chart.panchang.vara.number] ?? chart.panchang.vara.name : chart.panchang.vara.name} · ${gName(chart.panchang.vara.lord)}`} />
         <Row label={t('tithi')} value={t('tithiVal', { name: T(chart.panchang.tithi.name), n: chart.panchang.tithi.number, paksha: T(chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna') })} />
         <Row label={t('nakshatra')} value={t('pada', { nak: hi ? NAKSHATRA_HI[moon.nakshatraIndex] : moon.nakshatraName, pada: moon.pada })} />

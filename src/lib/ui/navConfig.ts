@@ -103,44 +103,43 @@ export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-medical', label: 'Medical', icon: Activity, path: '/nakshatra/medical' },
 ]
 
-/** Multi-item astrology sections. Single destinations live in ASTRO_DIRECT_TABS. */
+/**
+ * Consultation-first astrology sections.
+ * Primary path: Consult → Readings → Divisionals / Strength / Transit (progressive disclosure).
+ */
 export const ASTRO_GROUPS: NavGroup[] = [
   {
-    id: 'transit',
-    label: 'Transit',
-    tabs: [
-      { id: 'transit-scrubber', label: 'Live Transit', icon: Timer, path: '/transit/scrubber' },
-      { id: 'transit-forecast', label: 'Forecast', icon: TrendingUp, path: '/transit/forecast' },
-      { id: 'transit-moon', label: 'Moon Passages', icon: Moon, path: '/transit/moon' },
-      { id: 'transit-roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/transit/roadmap' },
-      { id: 'transit-eclipses', label: 'Eclipses', icon: CloudMoon, path: '/transit/eclipses' },
-      { id: 'transit-sade-sati', label: 'Sade Sati', icon: Hourglass, path: '/transit/sade-sati' },
-      { id: 'transit-aspects', label: 'Aspects', icon: Crosshair, path: '/transit/aspects' },
-      { id: 'transit-biwheel', label: 'Bi-wheel', icon: Orbit, path: '/transit/biwheel' },
-      { id: 'transit-calendar', label: 'Calendar', icon: CalendarDays, path: '/transit/calendar' },
-    ],
-  },
-  {
-    id: 'core-analysis',
-    label: 'Core Analysis',
+    id: 'consult',
+    label: 'Consult',
     tabs: [
       { id: 'astro-details', label: 'Astro Details', icon: ClipboardList, path: ASTROLOGY_HOME_PATH },
       { id: 'planets', label: 'Planets', icon: Sparkles, path: ASTROLOGY_HOME_PATH },
-      { id: 'navamsha', label: 'Navamsha (D9)', icon: Orbit, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha', label: 'Dasha', icon: Hourglass, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha-interpretation', label: 'Dasha Interpretation', icon: NotebookText, path: ASTROLOGY_HOME_PATH },
       { id: 'house', label: 'House', icon: Home, path: ASTROLOGY_HOME_PATH },
       { id: 'yogas', label: 'Yogas', icon: Star, path: ASTROLOGY_HOME_PATH },
-      { id: 'kp-stellar', label: 'Stellar (KP)', icon: Crosshair, path: ASTROLOGY_HOME_PATH },
       { id: 'interpretation', label: 'Interpretation', icon: BookOpen, path: ASTROLOGY_HOME_PATH },
+      { id: 'kp-stellar', label: 'Stellar (KP)', icon: Crosshair, path: ASTROLOGY_HOME_PATH },
+    ],
+  },
+  {
+    id: 'readings',
+    label: 'Readings',
+    tabs: [
+      { id: 'relationship', label: 'Relationship', icon: Heart, path: '/relationship' },
+      { id: 'career', label: 'Career', icon: Briefcase, path: '/career' },
+      { id: 'dosha', label: 'Dosha & Upay', icon: ShieldAlert, path: '/dosha' },
       { id: 'tattva', label: 'Tattva Prediction', icon: Wind, path: ASTROLOGY_HOME_PATH },
       { id: 'naamkaran', label: 'Naamkaran', icon: PenLine, path: ASTROLOGY_HOME_PATH },
+      { id: 'varshaphal', label: 'Solar Return', icon: Sun, path: ASTROLOGY_HOME_PATH },
+      { id: 'panchang', label: 'Natal Panchang', icon: Calendar, path: ASTROLOGY_HOME_PATH },
     ],
   },
   {
     id: 'divisional-charts',
-    label: 'Divisional Chart Analysis',
+    label: 'Divisional Charts',
     tabs: [
+      { id: 'navamsha', label: 'Navamsha (D9)', icon: Orbit, path: ASTROLOGY_HOME_PATH },
       { id: 'chaturthamsa', label: 'Chaturthamsha (D4)', icon: Building2, path: ASTROLOGY_HOME_PATH },
       { id: 'saptamsha', label: 'Saptamsha (D7)', icon: Heart, path: ASTROLOGY_HOME_PATH },
       { id: 'dashamsa', label: 'Dashamsha (D10)', icon: Briefcase, path: ASTROLOGY_HOME_PATH },
@@ -159,9 +158,27 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'vimsopaka', label: 'Vimsopaka', icon: BarChart3, path: ASTROLOGY_HOME_PATH },
     ],
   },
+  {
+    id: 'transit',
+    label: 'Transit',
+    tabs: [
+      { id: 'transit-scrubber', label: 'Live Transit', icon: Timer, path: '/transit/scrubber' },
+      { id: 'transit-forecast', label: 'Forecast', icon: TrendingUp, path: '/transit/forecast' },
+      { id: 'transit-moon', label: 'Moon Passages', icon: Moon, path: '/transit/moon' },
+      { id: 'transit-roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/transit/roadmap' },
+      { id: 'transit-eclipses', label: 'Eclipses', icon: CloudMoon, path: '/transit/eclipses' },
+      { id: 'transit-sade-sati', label: 'Sade Sati', icon: Hourglass, path: '/transit/sade-sati' },
+      { id: 'transit-aspects', label: 'Aspects', icon: Crosshair, path: '/transit/aspects' },
+      { id: 'transit-biwheel', label: 'Bi-wheel', icon: Orbit, path: '/transit/biwheel' },
+      { id: 'transit-calendar', label: 'Calendar', icon: CalendarDays, path: '/transit/calendar' },
+    ],
+  },
 ]
 
-/** Chart destinations that do not need their own accordion. */
+/**
+ * Legacy flat list of chart destinations that used to sit outside groups.
+ * Kept for AppFramework external-path checks; all live under Readings now.
+ */
 export const ASTRO_DIRECT_TABS: NavTab[] = [
   { id: 'relationship', label: 'Relationship', icon: Heart, path: '/relationship' },
   { id: 'career', label: 'Career', icon: Briefcase, path: '/career' },
@@ -180,23 +197,13 @@ function astroGroup(id: string): NavGroup {
   return group
 }
 
-function astroDirectTab(id: string): NavTab {
-  const tab = ASTRO_DIRECT_TABS.find((entry) => entry.id === id)
-  if (!tab) throw new Error(`Missing astrology nav tab: ${id}`)
-  return tab
-}
-
-/** Sidenav order inside Astrology: groups and direct links interleaved. */
+/** Sidenav order: consult path first, then progressive disclosure. */
 export const ASTRO_NAV: AstroNavEntry[] = [
-  { kind: 'group', group: astroGroup('transit') },
-  { kind: 'group', group: astroGroup('core-analysis') },
+  { kind: 'group', group: astroGroup('consult') },
+  { kind: 'group', group: astroGroup('readings') },
   { kind: 'group', group: astroGroup('divisional-charts') },
   { kind: 'group', group: astroGroup('strength-analytics') },
-  { kind: 'link', tab: astroDirectTab('relationship') },
-  { kind: 'link', tab: astroDirectTab('career') },
-  { kind: 'link', tab: astroDirectTab('dosha') },
-  { kind: 'link', tab: astroDirectTab('varshaphal') },
-  { kind: 'link', tab: astroDirectTab('panchang') },
+  { kind: 'group', group: astroGroup('transit') },
 ]
 
 export function astroNavTabs(): NavTab[] {

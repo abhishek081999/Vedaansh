@@ -140,7 +140,7 @@ interface GrahaTableProps {
 // ── Component ────────────────────────────────────────────
 
 export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, defaultVarga = 'D1', arudhas }: GrahaTableProps) {
-  const { language } = useAppLayout()
+  const { language, openWorkspace } = useAppLayout()
   const t = useTranslations('chart.grahaTable')
   const { hi } = useLang()
   const isSa = language === 'sa' && !hi
@@ -363,7 +363,19 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                 : null
 
               return (
-                <tr key={`${b.name}-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'rgba(0,0,0,0.012)' : 'transparent' }}>
+                <tr
+                  key={`${b.name}-${i}`}
+                  onClick={() => {
+                    if (!isMainPlanet || !b.id) return
+                    openWorkspace('planets', { type: 'planet', planet: b.id as GrahaId })
+                  }}
+                  style={{
+                    borderBottom: '1px solid var(--border-soft)',
+                    background: i % 2 === 0 ? 'rgba(0,0,0,0.012)' : 'transparent',
+                    cursor: isMainPlanet ? 'pointer' : 'default',
+                  }}
+                  title={isMainPlanet ? t('openPlanet', { name: b.name }) : undefined}
+                >
                   {/* Body */}
                   <td style={{ padding: '0.2rem 0.45rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
@@ -393,7 +405,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                           }, 200)
                         }}
                         onMouseLeave={() => { if (hoverTimer.current) clearTimeout(hoverTimer.current); setHoveredPlanet(null) }}
-                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.78rem', cursor: isMainPlanet ? 'help' : 'default' }}>
+                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.78rem', cursor: isMainPlanet ? 'pointer' : 'default' }}>
                         {b.name}{b.isRetro && <sup style={{ fontSize: '0.5rem', marginLeft: 1 }}>℞</sup>}
                       </span>
                       {b.karaka && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px', background: 'var(--surface-3)', borderRadius: 2 }}>{hi ? KARAKA_SHORT_HI[b.karaka] ?? b.karaka : b.karaka}</span>}

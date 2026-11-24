@@ -79,90 +79,85 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
 
   return (
     <div style={{
-      background: enabled ? 'rgba(139,124,246,0.08)' : 'var(--surface-2)',
-      border: `1px solid ${enabled ? 'rgba(139,124,246,0.35)' : 'var(--border)'}`,
-      borderRadius: 'var(--r-md)',
-      padding: '0.75rem 1rem',
+      display: 'flex', alignItems: 'center', gap: '0.5rem 0.75rem', flexWrap: 'wrap',
+      minHeight: 36,
+      background: enabled ? 'rgba(139,124,246,0.07)' : 'transparent',
+      border: `1px solid ${enabled ? 'rgba(139,124,246,0.32)' : 'var(--border-soft)'}`,
+      borderRadius: 'var(--r-sm)',
+      padding: '0.3rem 0.6rem',
       transition: interactiveTransition('0.2s'),
     }}>
-      {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-        {/* Toggle */}
-        <button
-          onClick={() => setEnabled(e => !e)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-          }}
-        >
-          <div style={{
-            width: 36, height: 20, borderRadius: 99, position: 'relative',
-            background: enabled ? 'var(--accent)' : 'var(--surface-4)',
-            transition: 'background 0.2s',
-          }}>
-            <div style={{
-              position: 'absolute', top: 3, left: enabled ? 19 : 3,
-              width: 14, height: 14, borderRadius: '50%', background: '#fff',
-              transition: 'left 0.2s',
-            }} />
-          </div>
+      {/* Toggle */}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        onClick={() => setEnabled(e => !e)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+          background: 'none', border: 'none', cursor: 'pointer', padding: '0.15rem 0',
+          flexShrink: 0,
+        }}
+      >
+        <span aria-hidden style={{
+          width: 30, height: 17, borderRadius: 99, position: 'relative', flexShrink: 0,
+          background: enabled ? 'var(--accent)' : 'var(--surface-4)',
+          transition: 'background 0.2s',
+        }}>
           <span style={{
-            fontFamily: 'var(--font-display)', fontSize: '0.85rem',
-            fontWeight: 600, color: enabled ? 'var(--accent)' : 'var(--text-secondary)',
-          }}>
-            {t('toggle')}
-          </span>
-        </button>
-
-        {/* Date picker */}
-        {enabled && (
-          <input
-            type="date"
-            value={date}
-            max={todayIST()}
-            onChange={e => setDate(e.target.value)}
-            style={{
-              background: 'var(--surface-3)', border: '1px solid var(--border)',
-              borderRadius: 'var(--r-sm)', padding: '0.2rem 0.5rem',
-              fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
-              color: 'var(--text-primary)', cursor: 'pointer',
-            }}
-          />
-        )}
-
-        {loading && (
-          <span className="spin-loader" style={{
-            width: 14, height: 14,
-            border: '2px solid var(--border)',
-            borderTopColor: 'var(--accent)',
+            position: 'absolute', top: 2.5, left: enabled ? 15.5 : 2.5,
+            width: 12, height: 12, borderRadius: '50%', background: '#fff',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+            transition: 'left 0.2s',
           }} />
-        )}
+        </span>
+        <span style={{
+          fontFamily: 'var(--font-body)', fontSize: '0.76rem',
+          fontWeight: 600, color: enabled ? 'var(--accent)' : 'var(--text-secondary)',
+        }}>
+          {t('toggle')}
+        </span>
+      </button>
 
-        {enabled && !loading && transit && (
-          <span style={{
-            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: 'var(--accent)',
-            fontFamily: 'var(--font-display)',
-          }}>
-            {t('live')}
-          </span>
-        )}
+      {/* Date picker */}
+      {enabled && (
+        <input
+          type="date"
+          value={date}
+          max={todayIST()}
+          onChange={e => setDate(e.target.value)}
+          aria-label={t('toggle')}
+          style={{
+            background: 'var(--surface-1)', border: '1px solid var(--border)',
+            borderRadius: 'var(--r-sm)', padding: '0.12rem 0.4rem',
+            fontFamily: 'var(--font-mono)', fontSize: '0.72rem',
+            color: 'var(--text-primary)', cursor: 'pointer',
+          }}
+        />
+      )}
 
-        {error && (
-          <span style={{ fontSize: '0.75rem', color: 'var(--rose)', fontFamily: 'var(--font-display)' }}>
-            {error}
-          </span>
-        )}
-      </div>
+      {loading && (
+        <span className="spin-loader" style={{
+          width: 14, height: 14,
+          border: '2px solid var(--border)',
+          borderTopColor: 'var(--accent)',
+        }} />
+      )}
 
-      {/* Transit positions summary */}
+      {error && (
+        <span style={{ fontSize: '0.72rem', color: 'var(--rose)', fontFamily: 'var(--font-body)' }}>
+          {error}
+        </span>
+      )}
+
+      {/* Transit positions — same row, wraps on narrow screens */}
       {enabled && transit && !loading && (
-        <div style={{ marginTop: '0.65rem', display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', minWidth: 0 }}>
           {transit.grahas.map(g => (
-            <span key={g.id} style={{
-              padding: '0.12rem 0.45rem', borderRadius: 99, fontSize: '0.7rem',
+            <span key={g.id} title={GRAHA_NAME[g.id]} style={{
+              padding: '0.08rem 0.4rem', borderRadius: 99, fontSize: '0.68rem',
               background: 'rgba(139,124,246,0.12)', border: '1px solid rgba(139,124,246,0.25)',
-              fontFamily: 'var(--font-mono)', color: 'var(--accent)',
+              fontFamily: 'var(--font-mono)', color: 'var(--accent)', whiteSpace: 'nowrap',
             }}>
               {/* House counted from the natal Lagna (whole sign), not the transit sign number. */}
               {GRAHA_SYMBOL[g.id]} {g.rashi ? `H${((g.rashi - natalChart.lagnas.ascRashi + 12) % 12) + 1}` : g.id}
@@ -174,7 +169,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
 
       {/* Legend */}
       {enabled && (
-        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1rem', fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', fontSize: '0.66rem', fontFamily: 'var(--font-body)', fontWeight: 600 }}>
           <span style={{ color: 'var(--text-primary)' }}>{t('natal')}</span>
           <span style={{ color: 'var(--accent)' }}>{t('transit')}</span>
         </div>

@@ -3,7 +3,7 @@
 //  src/components/ui/HousePanel.tsx
 //  Bhava Analysis — Sripati Madhya / Sandhi / Dasham Madhya / Mandi
 // ─────────────────────────────────────────────────────────────
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { interactiveTransition } from '@/lib/ui/transitions'
 import type { ChartOutput, Rashi, UpagrahaData } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
@@ -11,6 +11,7 @@ import { getNakshatra } from '@/lib/engine/nakshatra'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { calcSripatiBhava, planetInSripatiHouse } from '@/lib/engine/sripatiBhava'
 import {
   getHouseTheme,
@@ -115,6 +116,7 @@ function SummaryChip({
 export function HousePanel({ chart }: { chart: ChartOutput }) {
   const t = useTranslations('chart.housePanel')
   const { hi, lang } = useLang()
+  const { workspaceFocus, clearWorkspaceFocus } = useAppLayout()
   const gname = (id: string) => (hi ? GRAHA_HI[id as keyof typeof GRAHA_HI] : GRAHA_NAMES[id as keyof typeof GRAHA_NAMES]) || id
   const rname = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
   const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'karaka' | 'uccha' | 'belts' | 'lagna' | 'rashi'>('analysis')
@@ -123,6 +125,22 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
     setSelectedHouse(n)
     document.getElementById(`bhava-card-${n}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
+
+  useEffect(() => {
+    if (workspaceFocus?.type !== 'house') return
+    const n = workspaceFocus.house
+    if (n < 1 || n > 12) {
+      clearWorkspaceFocus()
+      return
+    }
+    setActiveTab('analysis')
+    // Wait a frame so cards are mounted before scrolling.
+    const id = window.requestAnimationFrame(() => {
+      selectHouse(n)
+      clearWorkspaceFocus()
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [workspaceFocus, clearWorkspaceFocus])
   const { lagnas, grahas, meta, upagrahas } = chart
   const houseSystem = meta.settings.houseSystem
   const ascRashi = lagnas.ascRashi

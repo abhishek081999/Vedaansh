@@ -381,7 +381,10 @@ export function NorthIndianChakra({
         const numARows = aList.length > 0 ? Math.ceil(aList.length / 3) : 0
 
         const n = planets.length
-        const useTwoCol = n > 2
+        // Side triangles (3/5/9/11) are tall and narrow: stack up to 4 planets in one column
+        // instead of squeezing two columns into the tip beside the sign numeral.
+        const isSideTriangle = h === 3 || h === 5 || h === 9 || h === 11
+        const useTwoCol = isSideTriangle ? n > 4 : n > 2
         const rows = useTwoCol ? Math.ceil(n / 2) : n
 
         const linesPerPl = 1
@@ -474,7 +477,23 @@ export function NorthIndianChakra({
               const polyArr = pts as [number, number][]
               const spanAtRow =
                 horizontalSpanAtY(polyArr, py) ?? [leftX + PAD, rightX - PAD]
-              const [sxmin, sxmax] = spanAtRow
+              let [sxmin, sxmax] = spanAtRow
+              // Keep labels clear of the sign numeral when it sits at one end of this row
+              // (side triangles 3/5/9/11 and kites 4/10); centred numerals are left alone.
+              const rowMid = (sxmin + sxmax) / 2
+              const numeralClear = rashiFont * 0.9 + plFont * 0.5
+              if (
+                Math.abs(py - rp.y) < (rashiFont + plFont) * 0.6 &&
+                Math.abs(rp.x - rowMid) > (sxmax - sxmin) * 0.15 &&
+                rp.x > sxmin - rashiFont && rp.x < sxmax + rashiFont
+              ) {
+                const nmin = rp.x < rowMid ? Math.max(sxmin, rp.x + numeralClear) : sxmin
+                const nmax = rp.x < rowMid ? sxmax : Math.min(sxmax, rp.x - numeralClear)
+                if (nmax - nmin > plFont * 2) {
+                  sxmin = nmin
+                  sxmax = nmax
+                }
+              }
               const spanW = sxmax - sxmin
               const labelPad = Math.max(S * 0.006, plFont * 0.52, spanW * 0.035)
 

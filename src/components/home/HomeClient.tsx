@@ -15,7 +15,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { useLang } from '@/i18n/useLang'
 import { YOGA_CATEGORY_HI, yogaNameHi } from '@/lib/engine/locale/yogas.hi'
-import { Star, Grid3x3, Scale, Home, BarChart3, Compass, Layers, Download, Library, ChevronDown } from 'lucide-react'
+import { Star, Grid3x3, Scale, Home, BarChart3, Compass, Layers, Download } from 'lucide-react'
 import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 import { getCurrentMahaDashaLord, MajorKundaliStrip } from '@/components/ui/MajorKundaliStrip'
 
@@ -59,9 +59,12 @@ const DivisionalSnapshotCard = dynamic(() => import('@/components/dashboard/Dash
 const LifeHighlightsCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.LifeHighlightsCard), { ssr: false })
 const TodayPanchangCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TodayPanchangCard), { ssr: false })
 const TransitSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TransitSnapshotCard), { ssr: false })
+const TodayBriefCard = dynamic(() => import('@/components/dashboard/TodayBriefCard').then(m => m.TodayBriefCard), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
-const AiPromptButton = dynamic(() => import('@/components/ui/AiPromptButton').then(m => m.AiPromptButton), { ssr: false })
-const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
+const ChartWorkspaceToolbar = dynamic(
+  () => import('@/components/home/ChartWorkspaceToolbar').then((m) => m.ChartWorkspaceToolbar),
+  { ssr: false },
+)
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPanel').then(m => m.AstroDetailsPanel), { ssr: false })
 const PlanetDetailCard = dynamic(() => import('@/components/ui/PlanetDetailCard').then(m => m.PlanetDetailCard), { ssr: false })
@@ -90,11 +93,20 @@ import { LandingExplore } from '@/components/home/LandingExplore'
 import landingStyles from '@/components/home/LandingSections.module.css'
 import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
 import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } from '@/components/home/MobileDashboardNav'
+import { WorkspaceChartDock } from '@/components/home/WorkspaceChartDock'
+import dockStyles from '@/components/home/WorkspaceChartDock.module.css'
+import { useWorkspacePin } from '@/components/home/useWorkspacePin'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+
+const SavedChartSelector = dynamic(
+  () => import('@/components/ui/SavedChartSelector').then((m) => m.SavedChartSelector),
+  { ssr: false },
+)
 import { useMasonryGrid, masonryGridStyle } from '@/hooks/useMasonryGrid'
 
 import { ChartContextBar, PanelShell } from '@/components/ui/patterns'
 import {
+  isChartDockTab,
   isFlushPaddingChartTab,
   isFullWidthChartTab,
   isStrengthAnalyticsTab,
@@ -437,18 +449,6 @@ function buildChartShareUrl(chart: ChartOutput): string {
   return `${typeof window !== 'undefined' ? window.location.origin : ''}/?${q.toString()}`
 }
 
-function ShareLinkIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="18" cy="5" r="3" />
-      <circle cx="6" cy="12" r="3" />
-      <circle cx="18" cy="19" r="3" />
-      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-    </svg>
-  )
-}
-
 const VIMSHOTTARI_TARA_IDS = ['Mo', 'As', 'Su', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'] as const
 
 function VimshottariDashaBlock({
@@ -598,6 +598,19 @@ function HomeContent() {
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
+  const [pinLibraryOpen, setPinLibraryOpen] = useState(false)
+  const {
+    pin,
+    loading: pinLoading,
+    error: pinError,
+    pickerOpen: pinPickerOpen,
+    setPickerOpen: setPinPickerOpen,
+    pinTransit,
+    pinPartner,
+    clear: clearPin,
+    comparisonGrahas: pinComparisonGrahas,
+    pinTransitGrahas,
+  } = useWorkspacePin(chart)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
   const [dashaView, setDashaView] = useState<'graphics' | 'table'>('graphics')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
@@ -1611,7 +1624,7 @@ function HomeContent() {
             </button>
           </div>
           <div style={{ maxHeight: expandAstro ? 'none' : '220px', overflow: 'hidden', position: 'relative', padding: '0.4rem 0.5rem' }}>
-            <AstroDetailsPanel chart={dashboardChart} />
+            <AstroDetailsPanel chart={dashboardChart} hideIdentity />
             {!expandAstro && (
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '48px', background: 'linear-gradient(transparent, var(--surface-1))', pointerEvents: 'none' }} />
             )}
@@ -1709,34 +1722,6 @@ function HomeContent() {
             </>
           )}
 
-          {/* Divider */}
-          <div style={{ borderTop: '1px solid var(--border-soft)' }} />
-
-          {/* Daily Suitability */}
-          <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>{tw('dailySuitability')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '0.65rem', rowGap: '0.28rem' }}>
-              {[
-                { label: tw('suit.Spiritual'), icon: '✦', rating: 95, color: 'var(--teal)' },
-                { label: tw('suit.Wellness'),  icon: '✦', rating: 82, color: 'var(--teal)' },
-                { label: tw('suit.Learning'),  icon: '✦', rating: 78, color: 'var(--gold)' },
-                { label: tw('suit.Business'),  icon: '✦', rating: 45, color: 'var(--rose)' },
-                { label: tw('suit.Travel'),    icon: '✦', rating: 30, color: 'var(--rose)' },
-                { label: tw('suit.Property'),  icon: '✦', rating: 15, color: 'var(--rose)' },
-              ].map((act, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{act.label}</span>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: act.color, fontFamily: 'var(--font-mono)' }}>{act.rating}%</span>
-                  </div>
-                  <div style={{ height: 2, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${act.rating}%`, background: act.color }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       </div>
     )
@@ -1744,77 +1729,7 @@ function HomeContent() {
 
   const leftDashboardCards = desktopDashboardCardOrder.slice(0, 2)
   const rightDashboardCards = desktopDashboardCardOrder.slice(2)
-  const phoneQuickActionCount = status === 'authenticated' ? 5 : 3
-  const phoneQuickActions = (
-    <>
-      <button
-        type="button"
-        onClick={() => handleCopyShareLink()}
-        aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
-        title={shareCopied ? tw('copied') : tw('copyFree')}
-        className="chart-mobile-action-btn"
-        style={{
-          borderColor: shareCopied ? 'var(--accent)' : undefined,
-          background: shareCopied ? 'rgba(34,197,94,0.1)' : undefined,
-          color: shareCopied ? 'var(--accent)' : undefined,
-        }}
-      >
-        {shareCopied ? (
-          <span style={{ fontSize: '0.85rem' }}>✓</span>
-        ) : (
-          <ShareLinkIcon />
-        )}
-      </button>
-      {status === 'authenticated' && (
-        <button
-          type="button"
-          onClick={() => handleSave('regular')}
-          disabled={saving || saveDone}
-          aria-label={isSavedChart ? tw('updateSaved') : tw('saveChart')}
-          className="chart-mobile-action-btn"
-          style={{
-            borderColor: saveDone ? 'var(--accent)' : undefined,
-            background: saveDone ? 'rgba(34,197,94,0.1)' : undefined,
-            color: saveDone ? 'var(--accent)' : undefined,
-          }}
-        >
-          {saving ? (
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>…</span>
-          ) : saveDone ? (
-            <span style={{ fontSize: '0.85rem' }}>✓</span>
-          ) : (
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-              <polyline points="17 21 17 13 7 13 7 21"/>
-              <polyline points="7 3 7 8 15 8"/>
-            </svg>
-          )}
-        </button>
-      )}
-      <button
-        type="button"
-        onClick={() => setIsFormOpen(true)}
-        aria-label={tw('editBirth')}
-        className="chart-mobile-action-btn"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={startNewChart}
-        aria-label={tw('newChart')}
-        className="chart-mobile-action-btn chart-mobile-action-btn--primary"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
-    </>
-  )
+  const phoneQuickActionCount = status === 'authenticated' ? 4 : 3
 
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -1837,7 +1752,7 @@ function HomeContent() {
                 tags={chartTags}
                 isMobile={isPhone}
                 mobileReserveRight={isPhone
-                  ? (mobileChartActionsOpen ? '2.5rem' : `calc(2.5rem + ${phoneQuickActionCount} * 2.15rem)`)
+                  ? (mobileChartActionsOpen ? '2.5rem' : `calc(4rem + ${phoneQuickActionCount} * 2.15rem)`)
                   : undefined}
                 showDefaultStar={status === 'authenticated'}
                 isDefaultChart={isDefaultChart}
@@ -1846,140 +1761,146 @@ function HomeContent() {
               />
 
               {isPhone && (
-                <div className="chart-mobile-header-tools">
-                  {!mobileChartActionsOpen && (
-                    <div className="chart-mobile-actions-collapsed">
-                      {phoneQuickActions}
-                      {status === 'authenticated' && (
-                        <Link
-                          href="/my/charts"
-                          aria-label={tw('myCharts')}
-                          title={tw('myCharts')}
-                          className="chart-mobile-action-btn"
-                        >
-                          <Library size={16} strokeWidth={2} aria-hidden />
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    className="chart-mobile-actions-toggle"
-                    aria-expanded={mobileChartActionsOpen}
-                    aria-label={mobileChartActionsOpen ? tw('hideActions') : tw('showActions')}
-                    onClick={toggleMobileChartActions}
-                  >
-                    <ChevronDown size={16} strokeWidth={2.25} aria-hidden />
-                  </button>
-                </div>
+                <ChartWorkspaceToolbar
+                  chart={chart}
+                  variant="phone-chrome"
+                  authenticated={status === 'authenticated'}
+                  userPlan={userPlan}
+                  isSavedChart={isSavedChart}
+                  saving={saving}
+                  saveDone={saveDone}
+                  shareCopied={shareCopied}
+                  crmSaving={crmSaving}
+                  crmDone={crmDone}
+                  mobileOpen={mobileChartActionsOpen}
+                  onToggleMobile={toggleMobileChartActions}
+                  onSave={() => { void handleSave('regular') }}
+                  onShare={() => { void handleCopyShareLink() }}
+                  onEdit={() => setIsFormOpen(true)}
+                  onNew={startNewChart}
+                  onCrm={() => { void handleSaveToCRM() }}
+                />
               )}
               </div>
-              {isPhone && mobileChartActionsOpen && (
-                <div className="chart-mobile-actions-row">
-                  {phoneQuickActions}
-                </div>
-              )}
-              {isPhone && mobileChartActionsOpen && (
-                <div className="chart-mobile-actions-row">
-                  {status === 'authenticated' && (
-                    <Link
-                      href="/my/charts"
-                      className="btn btn-secondary btn-sm"
-                      style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
-                    >
-                      {tAct('myCharts')}
-                    </Link>
-                  )}
-                  <ExportPdfButton chart={chart} compact />
-                  <AiPromptButton chart={chart} compact />
-                  <EmailChartButton chart={chart} compact />
-                  {status === 'authenticated' && userPlan === 'platinum' && (
-                    <button
-                      type="button"
-                      onClick={handleSaveToCRM}
-                      disabled={crmSaving || crmDone}
-                      className="btn btn-secondary btn-sm"
-                      style={{ borderColor: 'var(--gold)', color: crmDone ? 'var(--text-muted)' : 'var(--gold)' }}
-                    >
-                      {crmSaving ? '…' : crmDone ? '✓ CRM' : 'CRM'}
-                    </button>
-                  )}
-                </div>
+
+              {isPhone && (
+                <ChartWorkspaceToolbar
+                  chart={chart}
+                  variant="phone-panel"
+                  authenticated={status === 'authenticated'}
+                  userPlan={userPlan}
+                  isSavedChart={isSavedChart}
+                  saving={saving}
+                  saveDone={saveDone}
+                  shareCopied={shareCopied}
+                  crmSaving={crmSaving}
+                  crmDone={crmDone}
+                  mobileOpen={mobileChartActionsOpen}
+                  onToggleMobile={toggleMobileChartActions}
+                  onSave={() => { void handleSave('regular') }}
+                  onShare={() => { void handleCopyShareLink() }}
+                  onEdit={() => setIsFormOpen(true)}
+                  onNew={startNewChart}
+                  onCrm={() => { void handleSaveToCRM() }}
+                />
               )}
 
-              <div className="chart-actions-compact" style={{ display: isPhone ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                  {status === 'authenticated' && (
-                    <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
-                      {saving ? '…' : saveDone ? '✓' : isSavedChart ? tw('update') : tw('save')}
-                    </button>
-                  )}
-                  {status === 'authenticated' && (
-                    <Link href="/my/charts" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                      {tAct('myCharts')}
-                    </Link>
-                  )}
-                  {status === 'authenticated' && userPlan === 'platinum' && (
-                    <button onClick={handleSaveToCRM} disabled={crmSaving || crmDone} className={`btn ${crmDone ? 'btn-ghost' : 'btn-secondary'} btn-sm`}
-                      style={{ borderColor: 'var(--gold)', color: crmDone ? 'var(--text-muted)' : 'var(--gold)' }}>
-                      {crmSaving ? '…' : crmDone ? '✓ CRM' : 'CRM'}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => void handleCopyShareLink()}
-                    className={`btn btn-secondary btn-sm`}
-                    title={shareCopied ? tw('copied') : tw('copyFree')}
-                    aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
-                  >
-                    {shareCopied ? '✓' : <ShareLinkIcon />}
-                  </button>
-                  <ExportPdfButton chart={chart} compact />
-                  <AiPromptButton chart={chart} compact />
-                  <EmailChartButton chart={chart} compact />
-                  <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm">✎</button>
-                  <button onClick={startNewChart} className="btn btn-primary btn-sm">{tAct('newChart')}</button>
-              </div>
+              {!isPhone && (
+                <ChartWorkspaceToolbar
+                  chart={chart}
+                  variant="desktop"
+                  authenticated={status === 'authenticated'}
+                  userPlan={userPlan}
+                  isSavedChart={isSavedChart}
+                  saving={saving}
+                  saveDone={saveDone}
+                  shareCopied={shareCopied}
+                  crmSaving={crmSaving}
+                  crmDone={crmDone}
+                  onSave={() => { void handleSave('regular') }}
+                  onShare={() => { void handleCopyShareLink() }}
+                  onEdit={() => setIsFormOpen(true)}
+                  onNew={startNewChart}
+                  onCrm={() => { void handleSaveToCRM() }}
+                />
+              )}
             </div>
 
             {activeTab === 'dashboard' && (
-              <MajorKundaliStrip chart={chart} todayPanchang={todayPanchang} isMobile={isMobile} />
+              <>
+                <MajorKundaliStrip chart={chart} todayPanchang={todayPanchang} isMobile={isMobile} />
+                {!isMobile && <TodayBriefCard chart={chart} />}
+              </>
             )}
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
             {isFullWidthChartTab(activeTab) && (
               <div
-                className={`${isFlushPaddingChartTab(activeTab) ? '' : 'panel'} fade-up`}
-                style={{ padding: isFlushPaddingChartTab(activeTab) ? '0' : '0.65rem', width: '100%' }}
+                className={
+                  isChartDockTab(activeTab)
+                    ? `${isMobile ? dockStyles.layoutStack : dockStyles.layout} fade-up`
+                    : 'fade-up'
+                }
+                style={{ width: '100%' }}
               >
-                {activeTab === 'planets' ? (
-                    <PlanetsWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'navamsha' ? (
-                    <NavamshaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'chaturthamsa' ? (
-                    <ChaturthamsaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'saptamsha' ? (
-                    <SaptamshaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'dashamsa' ? (
-                    <DashamsaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'dwadashamsha' ? (
-                    <DwadashamshaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'drekkana' ? (
-                    <DrekkanaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'nakshatramsha' ? (
-                    <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'house' ? (
-                    <HousePanel chart={chart} />
-                ) : activeTab === 'interpretation' ? (
-                  <InterpretationHub chart={chart} userPlan={userPlan} />
-                ) : activeTab === 'tattva' ? (
-                  <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
-                ) : activeTab === 'naamkaran' ? (
-                  <NaamkaranPanel chart={chart} userPlan={userPlan} />
-                ) : activeTab === 'kp-stellar' ? (
-                  <KPStellarPanel chart={chart} userPlan={userPlan} />
-                ) : (
-                  <VarshaphalPanel natalChart={chart} />
+                {isChartDockTab(activeTab) && (
+                  <WorkspaceChartDock
+                    chart={chart}
+                    userPlan={userPlan}
+                    moonNakIndex={moonNakIndex}
+                    tithiNumber={tithiNumber}
+                    varaNumber={varaNumber}
+                    transitGrahas={pinTransitGrahas ?? transitGrahas}
+                    comparisonGrahas={pinComparisonGrahas}
+                    pin={pin}
+                    pinLoading={pinLoading}
+                    pinError={pinError}
+                    pickerOpen={pinPickerOpen}
+                    onTogglePicker={() => setPinPickerOpen((o) => !o)}
+                    onClosePicker={() => setPinPickerOpen(false)}
+                    onPinTransit={() => { void pinTransit() }}
+                    onOpenLibrary={() => {
+                      setPinPickerOpen(false)
+                      setPinLibraryOpen(true)
+                    }}
+                    onClearPin={clearPin}
+                    compact={isMobile}
+                  />
                 )}
+                <div
+                  className={isFlushPaddingChartTab(activeTab) ? '' : 'panel'}
+                  style={{ padding: isFlushPaddingChartTab(activeTab) ? '0' : '0.65rem', width: '100%', minWidth: 0 }}
+                >
+                  {activeTab === 'planets' ? (
+                      <PlanetsWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'navamsha' ? (
+                      <NavamshaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'chaturthamsa' ? (
+                      <ChaturthamsaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'saptamsha' ? (
+                      <SaptamshaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'dashamsa' ? (
+                      <DashamsaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'dwadashamsha' ? (
+                      <DwadashamshaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'drekkana' ? (
+                      <DrekkanaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'nakshatramsha' ? (
+                      <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
+                    ) : activeTab === 'house' ? (
+                      <HousePanel chart={chart} />
+                  ) : activeTab === 'interpretation' ? (
+                    <InterpretationHub chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'tattva' ? (
+                    <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'naamkaran' ? (
+                    <NaamkaranPanel chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'kp-stellar' ? (
+                    <KPStellarPanel chart={chart} userPlan={userPlan} />
+                  ) : (
+                    <VarshaphalPanel natalChart={chart} />
+                  )}
+                </div>
               </div>
             )}
 
@@ -2013,7 +1934,8 @@ function HomeContent() {
                      mobileSelectedVarga={chartActiveVarga}
                      onMobileSelectedVargaChange={setChartActiveVarga}
                      hideMobileSelector={isMobile}
-                     transitGrahas={transitGrahas ?? undefined}
+                     transitGrahas={(pinTransitGrahas ?? transitGrahas) ?? undefined}
+                     comparisonGrahas={pinComparisonGrahas}
                      chart={chart}
                      transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                   />
@@ -2236,6 +2158,7 @@ function HomeContent() {
 
                       {mobileDashTab === 'today' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <TodayBriefCard chart={chart} />
                           <div className="panel">
                             <div className="panel-header"><span>{tw('cosmicWeather')}</span></div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
@@ -2262,29 +2185,6 @@ function HomeContent() {
                           />
                           <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
                           <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
-                          <div className="panel">
-                            <div className="panel-header"><span>{tw('dailySuitability')}</span></div>
-                            <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
-                              {[
-                                { label: tw('suit.Spiritual'), rating: 95, color: 'var(--teal)' },
-                                { label: tw('suit.Wellness'),  rating: 82, color: 'var(--teal)' },
-                                { label: tw('suit.Learning'),  rating: 78, color: 'var(--gold)' },
-                                { label: tw('suit.Business'),  rating: 45, color: 'var(--rose)' },
-                                { label: tw('suit.Travel'),    rating: 30, color: 'var(--rose)' },
-                                { label: tw('suit.Property'),  rating: 15, color: 'var(--rose)' },
-                              ].map((act) => (
-                                <div key={act.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{act.label}</span>
-                                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: act.color, fontFamily: 'var(--font-mono)' }}>{act.rating}%</span>
-                                  </div>
-                                  <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${act.rating}%`, background: act.color }} />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
                         </div>
                       )}
 
@@ -3337,6 +3237,16 @@ function HomeContent() {
               />
             )}
       </ChartFormDrawer>
+
+      {pinLibraryOpen && (
+        <SavedChartSelector
+          onClose={() => setPinLibraryOpen(false)}
+          onSelect={(saved) => {
+            setPinLibraryOpen(false)
+            void pinPartner(saved)
+          }}
+        />
+      )}
 
       <MobileDashboardNav
         showMainNav={showMainDashBottomNav}
