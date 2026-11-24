@@ -281,18 +281,18 @@
     "strength": "{score}% strength", "dominant": "Dominant Bhuta"
   },
   "preview": {
-    "body": "Free preview: chart + compass overview. Bhava Vastu, mandala, doshas, rooms, and remedies require Gold.",
+    "body": "Free preview: chart, compass and timing overview. My Home, Plot & Build, Bhava Vastu, mandala, doshas, rooms and remedies require Gold.",
     "plans": "View plans",
     "moreTabs": "More tabs on Gold",
     "unlock": "Overall grade <b>{grade}</b> · full property report, doshas & remedies on Gold",
     "unlockBtn": "Unlock report"
   },
   "tabs": {
-    "chart": "Lagna Chart", "compass": "Compass", "bhavas": "Bhava Vastu",
+    "chart": "Lagna Chart", "compass": "Compass", "timing": "Timing", "home": "My Home", "build": "Plot & Build", "bhavas": "Bhava Vastu",
     "mandala": "Mandala", "doshas": "Doshas", "rooms": "Rooms & Design", "remedies": "Remedies & Yantras"
   },
   "mobile": {
-    "chart": "Chart", "compass": "Compass", "bhavas": "Bhavas", "mandala": "Mandala",
+    "chart": "Chart", "compass": "Compass", "timing": "Timing", "home": "Home", "build": "Build", "bhavas": "Bhavas", "mandala": "Mandala",
     "doshas": "Doshas", "rooms": "Rooms", "remedy": "Remedy", "aria": "Astro Vastu sections"
   },
   "chart": {

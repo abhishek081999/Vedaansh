@@ -3,7 +3,7 @@ import { Link } from '@/i18n/navigation'
 import { interactiveTransition } from '@/lib/ui/transitions'
 import React, { useCallback, useMemo, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap, Lock } from 'lucide-react'
+import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap, Lock, Hourglass, Sofa, Ruler } from 'lucide-react'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES } from '@/types/astrology'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
@@ -40,7 +40,7 @@ interface AstroVastuPanelProps {
   userPlan?: UserPlan
 }
 
-const FREE_VASTU_TABS = new Set<string>(['chart', 'compass'])
+const FREE_VASTU_TABS = new Set<string>(['chart', 'compass', 'timing'])
 
 
 const DIR_CODES = new Set(['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'Center'])
@@ -66,7 +66,7 @@ function parseRooms(raw: string | null): HomeRooms {
   }
 }
 
-type TabId = 'chart' | 'compass' | 'mandala' | 'doshas' | 'rooms' | 'remedies' | 'bhavas'
+type TabId = 'chart' | 'compass' | 'timing' | 'home' | 'build' | 'mandala' | 'doshas' | 'rooms' | 'remedies' | 'bhavas'
 
 function ScoreBar({ score, height = 8 }: { score: number; height?: number }) {
   const color = score > 70 ? 'var(--teal)' : score < 40 ? 'var(--rose)' : 'var(--gold)'
@@ -342,6 +342,9 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
   const tabs: { id: TabId; label: string; icon: string }[] = [
     { id: 'chart',    label: t('tabs.chart'),    icon: '🔵' },
     { id: 'compass',  label: t('tabs.compass'),  icon: '🧭' },
+    { id: 'timing',   label: t('tabs.timing'),   icon: '⏳' },
+    { id: 'home',     label: t('tabs.home'),     icon: '🏡' },
+    { id: 'build',    label: t('tabs.build'),    icon: '📐' },
     { id: 'bhavas',   label: t('tabs.bhavas'),   icon: '📖' },
     { id: 'mandala',  label: t('tabs.mandala'),  icon: '💠' },
     { id: 'doshas',   label: t('tabs.doshas'),   icon: '🔮' },
@@ -352,10 +355,13 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
   const mobileTabs = [
     { id: 'chart' as const, icon: CircleDot, label: t('mobile.chart') },
     { id: 'compass' as const, icon: Compass, label: t('mobile.compass') },
+    { id: 'timing' as const, icon: Hourglass, label: t('mobile.timing') },
+    { id: 'home' as const, icon: Home, label: t('mobile.home') },
+    { id: 'build' as const, icon: Ruler, label: t('mobile.build') },
     { id: 'bhavas' as const, icon: BookOpen, label: t('mobile.bhavas') },
     { id: 'mandala' as const, icon: Gem, label: t('mobile.mandala') },
     { id: 'doshas' as const, icon: Eye, label: t('mobile.doshas') },
-    { id: 'rooms' as const, icon: Home, label: t('mobile.rooms') },
+    { id: 'rooms' as const, icon: Sofa, label: t('mobile.rooms') },
     { id: 'remedies' as const, icon: Zap, label: t('mobile.remedy') },
   ]
 
@@ -581,18 +587,6 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
       {/* ══════════════════════════════════════════════════════════
           TAB: COMPASS
           ══════════════════════════════════════════════════════════ */}
-      {activeTab === 'compass' && dashaFocus && (
-        <DashaFocusCard focus={dashaFocus} showFull={showFull} dirName={dirName} gname={gname} />
-      )}
-
-      {activeTab === 'compass' && (
-        <TransitYearCard ascRashi={ascRashi} zoneScores8={zoneScores8} showFull={showFull} dirName={dirName} gname={gname} rname={rname} />
-      )}
-
-      {activeTab === 'compass' && (
-        <LiveCompass zones={analysis} sectorAngle={sectorAngle} dirName={dirName} />
-      )}
-
       {activeTab === 'compass' && (
         <div className="fade-up" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem', alignItems: 'flex-start' }}>
           {/* SVG Compass */}
@@ -770,6 +764,41 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'compass' && (
+        <LiveCompass zones={analysis} sectorAngle={sectorAngle} dirName={dirName} />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════
+          TAB: TIMING — dasha focus and this year's transits
+          ══════════════════════════════════════════════════════════ */}
+      {activeTab === 'timing' && (
+        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+          {dashaFocus && <DashaFocusCard focus={dashaFocus} showFull={showFull} dirName={dirName} gname={gname} />}
+          <TransitYearCard ascRashi={ascRashi} zoneScores8={zoneScores8} showFull={showFull} dirName={dirName} gname={gname} rname={rname} />
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════
+          TAB: MY HOME — floor plan, room mapper, household
+          ══════════════════════════════════════════════════════════ */}
+      {activeTab === 'home' && (
+        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+          <FloorPlanOverlay zones={analysis} sectorAngle={sectorAngle} dirName={dirName} onMarkRoom={addRoom} roomsAt={roomsAt} />
+          <HomeMapper rooms={rooms} findings={homeFindings} onToggle={toggleRoom} onClear={() => saveRooms({})} dirName={dirName} />
+          <HouseholdView chart={chart} ownerZones={zoneScores8} platinum={planMeetsUiGate(userPlan, 'platinum')} dirName={dirName} />
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════
+          TAB: PLOT & BUILD — Ayadi size and building muhurta
+          ══════════════════════════════════════════════════════════ */}
+      {activeTab === 'build' && (
+        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+          <AyadiCard birthNakshatra={moonNakshatra} />
+          <VastuMuhurtaCard />
         </div>
       )}
 
@@ -1041,16 +1070,6 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
           ══════════════════════════════════════════════════════════ */}
       {activeTab === 'rooms' && (
         <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-
-          <FloorPlanOverlay zones={analysis} sectorAngle={sectorAngle} dirName={dirName} onMarkRoom={addRoom} roomsAt={roomsAt} />
-
-          <HomeMapper rooms={rooms} findings={homeFindings} onToggle={toggleRoom} onClear={() => saveRooms({})} dirName={dirName} />
-
-          <HouseholdView chart={chart} ownerZones={zoneScores8} platinum={planMeetsUiGate(userPlan, 'platinum')} dirName={dirName} />
-
-          <AyadiCard birthNakshatra={moonNakshatra} />
-
-          <VastuMuhurtaCard />
 
           {/* Personalized Facing + Dig Bala */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
