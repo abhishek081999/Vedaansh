@@ -19,6 +19,8 @@
 .dockCompact {
   position: relative;
   top: auto;
+  /* In the phone flex column, `start` shrinks the dock to its content width. */
+  align-self: stretch;
   max-height: none;
   margin-bottom: 0.65rem;
 }
@@ -49,7 +51,7 @@
   border: 1px solid var(--border-soft);
   background: var(--surface-3);
   color: var(--text-secondary);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-body);
@@ -90,14 +92,15 @@
   border-radius: var(--r-sm);
   background: transparent;
   color: var(--text-primary);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
   font-family: var(--font-body);
 }
 
-.pinMenuItem:hover {
+.pinMenuItem:hover,
+.pinMenuItem:focus-visible {
   background: var(--gold-faint);
   color: var(--gold);
 }
@@ -109,7 +112,7 @@
 
 .pinError {
   margin: 0;
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   color: var(--danger, #b91c1c);
 }
 
@@ -141,7 +144,7 @@
 
 .pinLagna {
   flex-shrink: 0;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-muted);
   padding-top: 0.15rem;
@@ -155,7 +158,7 @@
 }
 
 .kicker {
-  font-size: 0.58rem;
+  font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -177,7 +180,7 @@
   border: 1px solid var(--border-soft);
   background: var(--surface-3);
   color: var(--text-secondary);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-body);
@@ -218,7 +221,7 @@
 }
 
 .metaLabel {
-  font-size: 0.52rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -253,7 +256,7 @@
   border: 1px solid var(--border-soft);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-body);
@@ -263,6 +266,55 @@
   border-color: var(--gold);
   color: var(--gold);
   background: var(--gold-faint);
+}
+
+/* Devanagari: tracking pulls conjuncts apart, and case has no meaning. */
+.kicker:lang(hi),
+.metaLabel:lang(hi) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.chartToggle {
+  align-self: flex-start;
+  height: 26px;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.chartToggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.transitSlot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--r-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.transitAsOf {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
 .layout {

@@ -96,6 +96,9 @@ import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } fro
 import { WorkspaceChartDock } from '@/components/home/WorkspaceChartDock'
 import dockStyles from '@/components/home/WorkspaceChartDock.module.css'
 import { useWorkspacePin } from '@/components/home/useWorkspacePin'
+import { useChartActions } from '@/components/home/useChartActions'
+import { ChartActionNotice } from '@/components/home/ChartActionNotice'
+import { WorkspaceInsightDrawers } from '@/components/home/WorkspaceInsightDrawers'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 
 const SavedChartSelector = dynamic(
@@ -434,21 +437,6 @@ import { Suspense } from 'react'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { LandingSection } from '@/components/home/LandingSection'
 
-/** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
-function buildChartShareUrl(chart: ChartOutput): string {
-  const m = chart.meta
-  const q = new URLSearchParams({
-    name: m.name,
-    birthDate: m.birthDate,
-    birthTime: m.birthTime,
-    birthPlace: m.birthPlace,
-    lat: String(m.latitude),
-    lng: String(m.longitude),
-    tz: m.timezone,
-  })
-  return `${typeof window !== 'undefined' ? window.location.origin : ''}/?${q.toString()}`
-}
-
 const VIMSHOTTARI_TARA_IDS = ['Mo', 'As', 'Su', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'] as const
 
 function VimshottariDashaBlock({
@@ -643,12 +631,7 @@ function HomeContent() {
   const urlChartId = searchParams.get('chartId')
 
   const [loading,    setLoading]    = useState(false)
-  const [saving,     setSaving]     = useState(false)
-  const [saveDone,   setSaveDone]   = useState(false)
   const [chartTags,  setChartTags]  = useState<string[]>([])
-  const [shareCopied, setShareCopied] = useState(false)
-  const [crmSaving,  setCrmSaving]  = useState(false)
-  const [crmDone,    setCrmDone]    = useState(false)
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [birthFormKey, setBirthFormKey] = useState(0)
@@ -674,6 +657,29 @@ function HomeContent() {
     defaultChart?.chartId &&
     String(defaultChart.chartId) === String(savedChartId),
   )
+  const {
+    saving,
+    saveDone,
+    shareCopied,
+    crmSaving,
+    crmDone,
+    notice: actionNotice,
+    dismissNotice: dismissActionNotice,
+    handleSave,
+    handleShare,
+    handleSaveToCRM,
+  } = useChartActions({
+    chart,
+    chartTags,
+    savedChartId,
+    isSavedChart,
+    hindi: hiLang,
+    onSavedNew: (chartId) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('chartId', chartId)
+      router.replace(`?${params.toString()}`, { scroll: false })
+    },
+  })
   const [settingDefault, setSettingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
   const [dashExpandAv, setDashExpandAv] = useState(false)
@@ -1034,56 +1040,6 @@ function HomeContent() {
     }
   }, [hasBirthUrl, isNewUrl, skipUrlHydration, setSkipUrlHydration])
 
-  async function handleSave(type: 'regular' | 'personal' = 'regular'): Promise<string | null> {
-    if (!chart || saving) return savedChartId
-    setSaving(true)
-    const payload = {
-      name:       chart.meta.name,
-      birthDate:  chart.meta.birthDate,
-      birthTime:  chart.meta.birthTime,
-      birthPlace: chart.meta.birthPlace,
-      latitude:   chart.meta.latitude,
-      longitude:  chart.meta.longitude,
-      timezone:   chart.meta.timezone,
-      gender:     chart.meta.gender,
-      settings:   chart.meta.settings,
-      isPersonal: type === 'personal',
-      tags:       chartTags,
-    }
-    try {
-      const res = isSavedChart
-        ? await fetch(`/api/chart/${savedChartId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          })
-        : await fetch('/api/chart/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          })
-      if (res.ok) {
-        const json = await res.json().catch(() => ({}))
-        const nextId = isSavedChart
-          ? String(savedChartId)
-          : (json.chartId ? String(json.chartId) : null)
-        if (!isSavedChart && nextId) {
-          const params = new URLSearchParams(searchParams.toString())
-          params.set('chartId', nextId)
-          router.replace(`?${params.toString()}`, { scroll: false })
-        }
-        setSaveDone(true)
-        setTimeout(() => setSaveDone(false), 4000)
-        return nextId
-      }
-    } catch (e) {
-      console.error('Save failed', e)
-    } finally {
-      setSaving(false)
-    }
-    return null
-  }
-
   async function handleSetDefault() {
     if (!chart || status !== 'authenticated' || settingDefault || isDefaultChart) return
     setSettingDefault(true)
@@ -1137,61 +1093,6 @@ function HomeContent() {
     }
     router.push('/?new=true')
   }, [router, searchParams, setChart, setIsFormOpen])
-
-  async function handleSaveToCRM() {
-    if (!chart || crmSaving) return
-    setCrmSaving(true)
-    try {
-      const res = await fetch('/api/clients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name:       chart.meta.name,
-          birthDate:  chart.meta.birthDate,
-          birthTime:  chart.meta.birthTime,
-          birthPlace: chart.meta.birthPlace,
-          latitude:   chart.meta.latitude,
-          longitude:  chart.meta.longitude,
-          timezone:   chart.meta.timezone,
-          status:     'active',
-        })
-      })
-      const json = await res.json()
-      if (res.ok && json.success) {
-        setCrmDone(true)
-        setTimeout(() => setCrmDone(false), 4000)
-      } else {
-        alert(json.error || tAct('crmFailed'))
-      }
-    } catch (e) {
-      console.error('CRM Save failed', e)
-    } finally {
-      setCrmSaving(false)
-    }
-  }
-
-  async function handleCopyShareLink() {
-    if (!chart) return
-    const url = buildChartShareUrl(chart)
-    try {
-      await navigator.clipboard.writeText(url)
-    } catch {
-      try {
-        const ta = document.createElement('textarea')
-        ta.value = url
-        ta.style.position = 'fixed'
-        ta.style.left = '-9999px'
-        document.body.appendChild(ta)
-        ta.select()
-        document.execCommand('copy')
-        document.body.removeChild(ta)
-      } catch {
-        return
-      }
-    }
-    setShareCopied(true)
-    setTimeout(() => setShareCopied(false), 2500)
-  }
 
   useEffect(() => {
     if (!chart || (vimshottariTara === 'Mo' && !vimshottariTribhagi)) {
@@ -1775,7 +1676,7 @@ function HomeContent() {
                   mobileOpen={mobileChartActionsOpen}
                   onToggleMobile={toggleMobileChartActions}
                   onSave={() => { void handleSave('regular') }}
-                  onShare={() => { void handleCopyShareLink() }}
+                  onShare={() => { void handleShare(true) }}
                   onEdit={() => setIsFormOpen(true)}
                   onNew={startNewChart}
                   onCrm={() => { void handleSaveToCRM() }}
@@ -1798,7 +1699,7 @@ function HomeContent() {
                   mobileOpen={mobileChartActionsOpen}
                   onToggleMobile={toggleMobileChartActions}
                   onSave={() => { void handleSave('regular') }}
-                  onShare={() => { void handleCopyShareLink() }}
+                  onShare={() => { void handleShare(true) }}
                   onEdit={() => setIsFormOpen(true)}
                   onNew={startNewChart}
                   onCrm={() => { void handleSaveToCRM() }}
@@ -1818,13 +1719,15 @@ function HomeContent() {
                   crmSaving={crmSaving}
                   crmDone={crmDone}
                   onSave={() => { void handleSave('regular') }}
-                  onShare={() => { void handleCopyShareLink() }}
+                  onShare={() => { void handleShare(false) }}
                   onEdit={() => setIsFormOpen(true)}
                   onNew={startNewChart}
                   onCrm={() => { void handleSaveToCRM() }}
                 />
               )}
             </div>
+
+            <ChartActionNotice notice={actionNotice} onDismiss={dismissActionNotice} />
 
             {activeTab === 'dashboard' && (
               <>
@@ -1865,6 +1768,15 @@ function HomeContent() {
                     }}
                     onClearPin={clearPin}
                     compact={isMobile}
+                    footer={
+                      <WorkspaceInsightDrawers
+                        chart={chart}
+                        userPlan={userPlan}
+                        savedChartId={savedChartId}
+                        authenticated={status === 'authenticated'}
+                        onSaveChart={() => { void handleSave('regular') }}
+                      />
+                    }
                   />
                 )}
                 <div

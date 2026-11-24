@@ -57,7 +57,7 @@ export function Drawer({
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 1100,
+          zIndex: 1800, // above .app-header (1600), below dialogs (2000)
           background: 'rgba(0,0,0,0.5)',
           backdropFilter: 'blur(4px)',
           opacity: open ? 1 : 0,
@@ -78,7 +78,7 @@ export function Drawer({
           [side]: 0,
           top: 0,
           bottom: 0,
-          zIndex: 1101,
+          zIndex: 1801,
           boxShadow: side === 'right' ? '-8px 0 32px rgba(0,0,0,0.4)' : '8px 0 32px rgba(0,0,0,0.4)',
           background: 'var(--surface-1)',
           display: 'flex',

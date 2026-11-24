@@ -161,6 +161,12 @@ export function ChartWorkspaceToolbar({
   }, [moreOpen])
 
   useEffect(() => {
+    if (!moreOpen || !menuPos) return
+    const first = moreMenuRef.current?.querySelector<HTMLElement>('a[href], button:not(:disabled)')
+    first?.focus()
+  }, [moreOpen, menuPos])
+
+  useEffect(() => {
     if (!moreOpen) return
     const onDoc = (e: MouseEvent) => {
       const t = e.target as Node
@@ -168,8 +174,32 @@ export function ChartWorkspaceToolbar({
       if (moreMenuRef.current?.contains(t)) return
       setMoreOpen(false)
     }
+    // The menu is portalled to <body>, so move focus into it and keep
+    // arrow / Tab / Escape handling here — otherwise it is unreachable by keyboard.
+    const focusables = () =>
+      Array.from(
+        moreMenuRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not(:disabled), [role="menuitem"]:not([aria-disabled="true"])',
+        ) ?? [],
+      )
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMoreOpen(false)
+      if (e.key === 'Escape' || e.key === 'Tab') {
+        if (e.key === 'Tab') e.preventDefault()
+        setMoreOpen(false)
+        moreBtnRef.current?.focus()
+        return
+      }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return
+      const list = focusables()
+      if (!list.length) return
+      e.preventDefault()
+      const i = list.indexOf(document.activeElement as HTMLElement)
+      const next =
+        e.key === 'Home' ? 0
+          : e.key === 'End' ? list.length - 1
+            : e.key === 'ArrowDown' ? (i + 1) % list.length
+              : (i - 1 + list.length) % list.length
+      list[next]?.focus()
     }
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
@@ -291,6 +321,7 @@ export function ChartWorkspaceToolbar({
             ref={moreMenuRef}
             className={styles.moreMenu}
             role="menu"
+            aria-label={tw('moreActions')}
             style={{ top: menuPos.top, right: menuPos.right }}
           >
             {authenticated ? (
@@ -358,6 +389,7 @@ export function ChartWorkspaceToolbar({
         aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
       >
         {shareCopied ? '✓' : <ShareLinkIcon />}
+        <span className={styles.btnLabel}>{shareCopied ? tw('copied') : tw('share')}</span>
       </button>
 
       <AiPromptButton chart={chart} compact />
@@ -367,7 +399,8 @@ export function ChartWorkspaceToolbar({
         <span className={styles.btnLabel}>{tw('edit')}</span>
       </button>
 
-      <button type="button" onClick={onNew} className="btn btn-primary btn-sm">
+      {/* Save is the primary action when signed in; New chart steps back. */}
+      <button type="button" onClick={onNew} className={`btn ${authenticated ? 'btn-secondary' : 'btn-primary'} btn-sm`}>
         {tAct('newChart')}
       </button>
 

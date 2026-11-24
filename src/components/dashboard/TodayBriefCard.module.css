@@ -392,6 +392,12 @@
   100% { background-position: -100% 0; }
 }
 
+/* Drawer width (~420px): stack the story and the life-area bars. */
+.cardEmbedded .body,
+.cardEmbedded .skeleton {
+  grid-template-columns: 1fr;
+}
+
 @media (max-width: 1023px) {
   .body {
     grid-template-columns: 1fr;

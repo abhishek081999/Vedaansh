@@ -60,7 +60,9 @@ export function TodayBriefCard({
   const t = useTranslations('chart.workspace.todayBrief')
   const { tag } = useLang()
   const { openWorkspace } = useAppLayout()
-  const [open, setOpen] = useState(false)
+  const [openPref, setOpen] = useState(false)
+  // Inside a drawer the card is the whole content — never collapsed.
+  const open = embedded || openPref
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
@@ -114,10 +116,10 @@ export function TodayBriefCard({
         <button
           type="button"
           className={styles.toggle}
-          onClick={toggleOpen}
-          aria-expanded={open}
-          aria-controls="today-brief-body"
-          aria-label={open ? t('collapse') : t('expand')}
+          onClick={embedded ? undefined : toggleOpen}
+          aria-expanded={embedded ? undefined : open}
+          aria-controls={embedded ? undefined : 'today-brief-body'}
+          aria-label={embedded ? undefined : open ? t('collapse') : t('expand')}
         >
           <span className={styles.titleBlock}>
             <span className={styles.titleRow}>
@@ -147,11 +149,13 @@ export function TodayBriefCard({
               </span>
             )}
           </span>
-          <ChevronDown
-            size={14}
-            className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}
-            aria-hidden
-          />
+          {!embedded && (
+            <ChevronDown
+              size={14}
+              className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}
+              aria-hidden
+            />
+          )}
         </button>
 
         <div className={styles.headActions}>
