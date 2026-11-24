@@ -124,8 +124,9 @@ export function TodayBriefCard({
           <span className={styles.titleBlock}>
             <span className={styles.titleRow}>
               <span className={styles.live}>{t('kicker')}</span>
-              <span className={styles.title}>{t('title')}</span>
-              {reading ? (
+              {/* In a drawer the title and score are already on screen (drawer header, score ring). */}
+              {!embedded && <span className={styles.title}>{t('title')}</span>}
+              {reading && !embedded ? (
                 <span className={styles.scorePill} style={{ color }}>
                   {reading.score}
                 </span>

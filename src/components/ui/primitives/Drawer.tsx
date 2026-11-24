@@ -42,8 +42,11 @@ export function Drawer({
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden'
+      // Lets fixed page chrome (e.g. the phone bottom nav) step aside.
+      document.body.dataset.drawerOpen = 'true'
       return () => {
         document.body.style.overflow = ''
+        delete document.body.dataset.drawerOpen
       }
     }
   }, [open])
