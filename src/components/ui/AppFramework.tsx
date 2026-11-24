@@ -79,7 +79,7 @@ function persistSidenavSection(open: SidenavSection | null) {
 }
 
 function defaultAstroGroupOpen(): Record<string, boolean> {
-  return Object.fromEntries(ASTRO_GROUPS.map((g) => [g.id, g.id === 'core-analysis']))
+  return Object.fromEntries(ASTRO_GROUPS.map((g) => [g.id, g.id === 'consult']))
 }
 
 function loadAstroGroupOpen(): Record<string, boolean> {
@@ -564,12 +564,6 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
               ))}
-              <div className="app-header-menu-group">
-                <div className="app-header-menu-group-title">{tNav('labels.readings')}</div>
-                <div className="app-header-menu-group-links">
-                  {ASTRO_DIRECT_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
-                </div>
-              </div>
             </div>,
             { active: isAstroHeaderActive, wide: true },
           )}

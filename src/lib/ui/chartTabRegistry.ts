@@ -48,6 +48,18 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'kp-stellar',
 ]
 
+/**
+ * Full-width reading tabs that do not embed their own Kundali.
+ * These get a docked mini D1 chart so the consult context stays visible.
+ */
+export const CHART_DOCK_TABS: readonly ChartTabId[] = [
+  'house',
+  'interpretation',
+  'tattva',
+  'naamkaran',
+  'kp-stellar',
+]
+
 /** Tabs with flush padding (no panel wrapper padding). */
 export const FLUSH_PADDING_CHART_TABS: readonly ChartTabId[] = [
   'planets',
@@ -144,6 +156,10 @@ export function isFullWidthChartTab(tab: string): tab is ChartTabId {
 
 export function isFlushPaddingChartTab(tab: string): boolean {
   return (FLUSH_PADDING_CHART_TABS as readonly string[]).includes(tab)
+}
+
+export function isChartDockTab(tab: string): tab is ChartTabId {
+  return (CHART_DOCK_TABS as readonly string[]).includes(tab)
 }
 
 export function isStrengthAnalyticsTab(tab: string): tab is StrengthAnalyticsTabId {

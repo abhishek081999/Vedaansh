@@ -71,9 +71,11 @@
     "feature-requests": "Request a Feature"
   },
   "groups": {
+    "consult": "Consult",
+    "readings": "Readings",
     "transit": "Transit",
     "core-analysis": "Core Analysis",
-    "divisional-charts": "Divisional Chart Analysis",
+    "divisional-charts": "Divisional Charts",
     "strength-analytics": "Strength & Analytics"
   },
   "sections": {

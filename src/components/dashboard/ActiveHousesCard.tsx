@@ -9,8 +9,9 @@ import { getActiveHouses, getHouseTopics, getProgressionHouse } from '@/lib/engi
 import { getLagnaHouseReading } from '@/lib/engine/lagnaCharacter'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
-import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
-import type { GrahaId, Rashi } from '@/types/astrology'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import type { GrahaId } from '@/types/astrology'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 
 interface ActiveHousesCardProps {
   chart: ChartOutput
@@ -27,6 +28,7 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
   const ascRashi = lagnas.ascRashi
   const t = useTranslations('chart.activeHouses')
   const { lang, hi } = useLang()
+  const { openWorkspace } = useAppLayout()
   const topics = getHouseTopics(lang)
   const activeHouses = getActiveHouses(chart, transitMoonLon)
 
@@ -105,13 +107,25 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
             const accentColor = isTransit ? 'var(--teal)' : isDasha ? 'var(--gold)' : isProgression ? 'var(--gold)' : 'var(--border-soft)'
 
             return (
-              <div key={h} style={{
-                display: 'flex', alignItems: 'flex-start', gap: '0.45rem',
-                padding: '0.35rem 0.55rem',
-                borderBottom: idx === activeHouses.length - 1 ? 'none' : '1px solid var(--border-soft)',
-                borderLeft: `3px solid ${accentColor}`,
-                background: 'transparent',
-              }}>
+              <button
+                key={h}
+                type="button"
+                onClick={() => openWorkspace('house', { type: 'house', house: h })}
+                aria-label={t('openHouse', { n: h, topic: topics[h] })}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.45rem',
+                  width: '100%',
+                  padding: '0.35rem 0.55rem',
+                  border: 'none',
+                  borderBottom: idx === activeHouses.length - 1 ? 'none' : '1px solid var(--border-soft)',
+                  borderLeft: `3px solid ${accentColor}`,
+                  background: 'transparent',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                  color: 'inherit',
+                }}
+              >
                 {/* House number badge */}
                 <span style={{
                   flexShrink: 0, minWidth: '1.6rem', height: '1.6rem',
@@ -140,7 +154,7 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>

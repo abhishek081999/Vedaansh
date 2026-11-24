@@ -71,9 +71,11 @@
     "feature-requests": "सुविधा का अनुरोध"
   },
   "groups": {
+    "consult": "परामर्श",
+    "readings": "फलादेश",
     "transit": "गोचर",
     "core-analysis": "मूल विश्लेषण",
-    "divisional-charts": "वर्ग कुंडली विश्लेषण",
+    "divisional-charts": "वर्ग कुंडली",
     "strength-analytics": "बल एवं विश्लेषण"
   },
   "sections": {

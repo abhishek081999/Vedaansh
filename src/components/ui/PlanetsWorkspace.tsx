@@ -4,7 +4,7 @@
 //  Planets workspace — overview charts, detail cards, energy cycles
 // ─────────────────────────────────────────────────────────────
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Activity,
   Brain,
@@ -47,16 +47,29 @@ import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
 import { ageFromBirthDate, computePlanetaryEnergyCycles } from '@/lib/engine/planetaryEnergyCycles'
 import { NAKSHATRA_NAMES as NAK_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
-import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { UcchaNeechaTab } from './UcchaNeechaTab'
 import styles from './PlanetsWorkspace.module.css'
 
 type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus' | 'saturn' | 'rahu' | 'ketu' | 'remedies' | 'maturity' | 'energy' | 'yogi' | 'insights' | 'uccha'
+
+const PLANET_TAB: Partial<Record<GrahaId, TabId>> = {
+  Su: 'sun',
+  Mo: 'moon',
+  Ma: 'mars',
+  Me: 'mercury',
+  Ju: 'jupiter',
+  Ve: 'venus',
+  Sa: 'saturn',
+  Ra: 'rahu',
+  Ke: 'ketu',
+}
 
 const TABS: {
   id: TabId
@@ -93,8 +106,16 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
   const t = useTranslations('chart.planetsWs')
   const tw = t
   const { hi, lang } = useLang()
+  const { workspaceFocus, clearWorkspaceFocus } = useAppLayout()
   const [tab, setTab] = useState<TabId>('overview')
   const energyFull = planMeetsUiGate(userPlan, 'gold')
+
+  useEffect(() => {
+    if (workspaceFocus?.type !== 'planet') return
+    const next = PLANET_TAB[workspaceFocus.planet] ?? 'details'
+    setTab(next)
+    clearWorkspaceFocus()
+  }, [workspaceFocus, clearWorkspaceFocus])
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const classical = useMemo(
     () => chart.grahas.filter((g) => !['Ur', 'Ne', 'Pl'].includes(g.id)),

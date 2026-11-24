@@ -10,6 +10,7 @@ import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 
 export function getCurrentMahaDashaLord(chart: ChartOutput): GrahaId | null {
   const now = Date.now()
@@ -47,6 +48,7 @@ export function MajorKundaliStrip({
 }) {
   const t = useTranslations('chart.strip')
   const { hi } = useLang()
+  const { openWorkspace } = useAppLayout()
   const [fetchedPanchang, setFetchedPanchang] = useState<PanchangData | null>(null)
   const todayPanchang = todayPanchangProp !== undefined ? todayPanchangProp : fetchedPanchang
 
@@ -97,15 +99,51 @@ export function MajorKundaliStrip({
   }
   const runningAge = Math.max(0, completedAge) + 1
 
-  const items: { id: string; label: string; value: string; hideLabel?: boolean }[] = [
+  const items: {
+    id: string
+    label: string
+    value: string
+    hideLabel?: boolean
+    onOpen?: () => void
+  }[] = [
     ...(isMobile ? [{ id: 'dob', label: t('dob'), value: formattedDOB }] : []),
     { id: 'age', label: t('age'), value: String(runningAge) },
-    { id: 'lagna', label: t('lagna'), value: `${sign(chart.lagnas.ascRashi as Rashi)} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
-    { id: 'moon', label: t('moon'), value: moon ? `${sign(moon.rashi)} · ${T(moon.nakshatraName)}` : '—' },
-    { id: 'sun', label: t('sun'), value: sun ? `${sign(sun.rashi)} ${sun.degree.toFixed(1)}°` : '—' },
-    { id: 'ak', label: t('ak'), value: ak },
-    { id: 'maha', label: '', value: mahaLord ? t('maha', { lord: graha(mahaLord) }) : '—', hideLabel: true },
-    { id: 'natal', label: t('natal'), value: natalPanchang },
+    {
+      id: 'lagna',
+      label: t('lagna'),
+      value: `${sign(chart.lagnas.ascRashi as Rashi)} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°`,
+      onOpen: () => openWorkspace('house', { type: 'house', house: 1 }),
+    },
+    {
+      id: 'moon',
+      label: t('moon'),
+      value: moon ? `${sign(moon.rashi)} · ${T(moon.nakshatraName)}` : '—',
+      onOpen: () => openWorkspace('planets', { type: 'planet', planet: 'Mo' }),
+    },
+    {
+      id: 'sun',
+      label: t('sun'),
+      value: sun ? `${sign(sun.rashi)} ${sun.degree.toFixed(1)}°` : '—',
+      onOpen: () => openWorkspace('planets', { type: 'planet', planet: 'Su' }),
+    },
+    {
+      id: 'ak',
+      label: t('ak'),
+      value: ak,
+      onOpen: chart.karakas?.AK
+        ? () => openWorkspace('planets', { type: 'planet', planet: chart.karakas!.AK as GrahaId })
+        : undefined,
+    },
+    {
+      id: 'maha',
+      label: '',
+      value: mahaLord ? t('maha', { lord: graha(mahaLord) }) : '—',
+      hideLabel: true,
+      onOpen: mahaLord
+        ? () => openWorkspace('dasha')
+        : undefined,
+    },
+    { id: 'natal', label: t('natal'), value: natalPanchang, onOpen: () => openWorkspace('panchang') },
     { id: 'live', label: t('live'), value: livePanchang },
   ]
 
@@ -126,19 +164,49 @@ export function MajorKundaliStrip({
     >
       {items.map((item, idx) => (
         <React.Fragment key={item.id}>
-          <span style={{ whiteSpace: 'nowrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-            {!item.hideLabel && (
-              <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
-                {item.id === 'live' ? (
-                  <>
-                    <span style={{ color: 'var(--rose)' }}>{t('live')}</span>
-                    <span style={{ marginLeft: 3 }}>{t('panchang')}</span>
-                  </>
-                ) : item.label}
-              </span>
-            )}
-            <span style={{ marginLeft: item.hideLabel ? 0 : 4, fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
-          </span>
+          {item.onOpen ? (
+            <button
+              type="button"
+              onClick={item.onOpen}
+              style={{
+                whiteSpace: 'nowrap',
+                fontSize: '0.7rem',
+                fontFamily: 'var(--font-body)',
+                lineHeight: 1.2,
+                color: 'var(--text-secondary)',
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+            >
+              {!item.hideLabel && (
+                <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+                  {item.id === 'live' ? (
+                    <>
+                      <span style={{ color: 'var(--rose)' }}>{t('live')}</span>
+                      <span style={{ marginLeft: 3 }}>{t('panchang')}</span>
+                    </>
+                  ) : item.label}
+                </span>
+              )}
+              <span style={{ marginLeft: item.hideLabel ? 0 : 4, fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
+            </button>
+          ) : (
+            <span style={{ whiteSpace: 'nowrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+              {!item.hideLabel && (
+                <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+                  {item.id === 'live' ? (
+                    <>
+                      <span style={{ color: 'var(--rose)' }}>{t('live')}</span>
+                      <span style={{ marginLeft: 3 }}>{t('panchang')}</span>
+                    </>
+                  ) : item.label}
+                </span>
+              )}
+              <span style={{ marginLeft: item.hideLabel ? 0 : 4, fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
+            </span>
+          )}
           {idx < items.length - 1 && <span style={{ color: 'var(--border-bright)' }}>|</span>}
         </React.Fragment>
       ))}

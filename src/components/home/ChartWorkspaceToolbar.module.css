@@ -1,0 +1,77 @@
+.desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.btnLabel {
+  margin-left: 0.3rem;
+}
+
+.moreWrap {
+  position: relative;
+}
+
+.moreBtn {
+  display: inline-flex;
+  align-items: center;
+}
+
+.moreMenu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: var(--z-dropdown, 40);
+  min-width: 220px;
+  padding: 0.45rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-1);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.moreItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.moreItem:hover {
+  background: var(--surface-3);
+}
+
+.moreItem:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.moreTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.2rem 0.15rem 0.35rem;
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+@media (max-width: 720px) {
+  .btnLabel {
+    display: none;
+  }
+}
