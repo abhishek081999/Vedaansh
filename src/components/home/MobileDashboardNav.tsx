@@ -62,6 +62,7 @@ export function MobileDashboardNav({
       {showStrengthSubNav &&
         createPortal(
           <nav
+            className="mobile-dash-nav"
             aria-label={t('strengthAria')}
             style={{
               position: 'fixed',
@@ -148,6 +149,7 @@ export function MobileDashboardNav({
       {showMainNav &&
         createPortal(
           <nav
+            className="mobile-dash-nav"
             aria-label={t('dashAria')}
             style={{
               position: 'fixed',

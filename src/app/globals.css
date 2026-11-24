@@ -1502,6 +1502,12 @@ select.input {
   background: rgba(122, 58, 108, 0.22);
 }
 
+/* Phone bottom nav sits at z-index 9999 (above dialogs); hide it while a
+   drawer is open so it can't cover the drawer's content or actions. */
+body[data-drawer-open] .mobile-dash-nav {
+  display: none !important;
+}
+
 /* ── Focus visible ──────────────────────────────────────────── */
 
 :focus-visible {

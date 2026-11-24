@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { interactiveTransition } from '@/lib/ui/transitions'
 import type { GrahaData, ChartOutput } from '@/types/astrology'
 import { useTranslations } from 'next-intl'
+import { zonedDateTime, zonedToday } from '@/lib/chart/zonedNow'
 
 interface TransitOverlayProps {
   natalChart:    ChartOutput
@@ -23,23 +24,14 @@ const GRAHA_NAME: Record<string, string> = {
   Ju:'Jupiter', Ve:'Venus', Sa:'Saturn', Ra:'Rahu', Ke:'Ketu'
 }
 
-function todayIST(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
-}
-function nowTimeIST(): string {
-  const d = new Date()
-  const h = String(d.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit' })).padStart(2,'0')
-  const m = String(d.getMinutes()).padStart(2,'0')
-  return `${h}:${m}:00`
-}
-
 export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProps) {
   const t = useTranslations('chart.transitOverlay')
   const [enabled,  setEnabled]  = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [transit,  setTransit]  = useState<ChartOutput | null>(null)
   const [error,    setError]    = useState<string | null>(null)
-  const [date,     setDate]     = useState(todayIST())
+  const tz = natalChart.meta.timezone
+  const [date,     setDate]     = useState(() => zonedToday(tz))
 
   const fetchTransit = useCallback(async (d: string) => {
     setLoading(true)
@@ -51,7 +43,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
         body: JSON.stringify({
           name:       'Transit',
           birthDate:  d,
-          birthTime:  nowTimeIST(),
+          birthTime:  zonedDateTime(tz).time,
           birthPlace: natalChart.meta.birthPlace,
           latitude:   natalChart.meta.latitude,
           longitude:  natalChart.meta.longitude,
@@ -69,13 +61,17 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
     } finally {
       setLoading(false)
     }
-  }, [natalChart, onTransitLoad, t])
+  }, [natalChart, onTransitLoad, t, tz])
 
   // Auto-fetch when enabled
   useEffect(() => {
     if (enabled) fetchTransit(date)
     else { setTransit(null); onTransitLoad(null) }
   }, [enabled, date]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Unmounting (e.g. switching to a full-width tab) must not leave a
+  // transit overlay on other charts with no switch to turn it off.
+  useEffect(() => () => onTransitLoad(null), [onTransitLoad])
 
   return (
     <div style={{
@@ -124,7 +120,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
         <input
           type="date"
           value={date}
-          max={todayIST()}
+          max={zonedToday(tz)}
           onChange={e => setDate(e.target.value)}
           aria-label={t('toggle')}
           style={{

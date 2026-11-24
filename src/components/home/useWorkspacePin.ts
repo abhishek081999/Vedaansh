@@ -3,16 +3,23 @@
 //  Pin a second chart (transit or saved partner) beside natal
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChartOutput } from '@/types/astrology'
+import { zonedDateTime } from '@/lib/chart/zonedNow'
 
 export type WorkspacePinKind = 'transit' | 'partner'
 
 export type WorkspacePin = {
   kind: WorkspacePinKind
   chart: ChartOutput
-  label: string
+  /** Partner name; null for transit or an unnamed chart (UI supplies a translated label). */
+  name: string | null
+  /** When the pin was calculated (ISO). For transit this is the moment shown. */
+  asOf: string
 }
+
+/** Error kinds — the UI maps these to translated copy. */
+export type WorkspacePinError = 'transit' | 'partner'
 
 export type SavedChartBirth = {
   name: string
@@ -22,23 +29,6 @@ export type SavedChartBirth = {
   latitude: number
   longitude: number
   timezone: string
-}
-
-function todayIST(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
-}
-
-function nowTimeIST(): string {
-  const d = new Date()
-  const h = String(
-    d.toLocaleTimeString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour12: false,
-      hour: '2-digit',
-    }),
-  ).padStart(2, '0')
-  const m = String(d.getMinutes()).padStart(2, '0')
-  return `${h}:${m}:00`
 }
 
 function natalKey(chart: ChartOutput | null): string | null {
@@ -61,74 +51,77 @@ async function calculateChart(body: Record<string, unknown>): Promise<ChartOutpu
 export function useWorkspacePin(natal: ChartOutput | null) {
   const [pin, setPin] = useState<WorkspacePin | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<WorkspacePinError | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const key = natalKey(natal)
+  /** Bumped on every request and natal change so late responses are dropped. */
+  const requestId = useRef(0)
 
   useEffect(() => {
+    requestId.current += 1
     setPin(null)
     setError(null)
+    setLoading(false)
     setPickerOpen(false)
   }, [key])
 
   const clear = useCallback(() => {
+    requestId.current += 1
     setPin(null)
     setError(null)
+    setLoading(false)
     setPickerOpen(false)
+  }, [])
+
+  const run = useCallback(async (
+    kind: WorkspacePinKind,
+    body: Record<string, unknown>,
+    name: string | null,
+  ) => {
+    const id = ++requestId.current
+    setLoading(true)
+    setError(null)
+    setPickerOpen(false)
+    try {
+      const chart = await calculateChart(body)
+      if (id !== requestId.current) return
+      setPin({ kind, chart, name, asOf: new Date().toISOString() })
+    } catch {
+      if (id !== requestId.current) return
+      setError(kind)
+      setPin(null)
+    } finally {
+      if (id === requestId.current) setLoading(false)
+    }
   }, [])
 
   const pinTransit = useCallback(async () => {
     if (!natal) return
-    setLoading(true)
-    setError(null)
-    setPickerOpen(false)
-    try {
-      const chart = await calculateChart({
-        name: 'Transit',
-        birthDate: todayIST(),
-        birthTime: nowTimeIST(),
-        birthPlace: natal.meta.birthPlace,
-        latitude: natal.meta.latitude,
-        longitude: natal.meta.longitude,
-        timezone: natal.meta.timezone,
-        settings: natal.meta.settings,
-      })
-      setPin({ kind: 'transit', chart, label: 'Transit' })
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to pin transit')
-      setPin(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [natal])
+    const now = zonedDateTime(natal.meta.timezone)
+    await run('transit', {
+      name: 'Transit',
+      birthDate: now.date,
+      birthTime: now.time,
+      birthPlace: natal.meta.birthPlace,
+      latitude: natal.meta.latitude,
+      longitude: natal.meta.longitude,
+      timezone: natal.meta.timezone,
+      settings: natal.meta.settings,
+    }, null)
+  }, [natal, run])
 
   const pinPartner = useCallback(async (saved: SavedChartBirth) => {
-    setLoading(true)
-    setError(null)
-    setPickerOpen(false)
-    try {
-      const chart = await calculateChart({
-        name: saved.name,
-        birthDate: saved.birthDate,
-        birthTime: saved.birthTime,
-        birthPlace: saved.birthPlace,
-        latitude: saved.latitude,
-        longitude: saved.longitude,
-        timezone: saved.timezone,
-        settings: natal?.meta.settings,
-      })
-      setPin({
-        kind: 'partner',
-        chart,
-        label: saved.name?.trim() || 'Partner',
-      })
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to pin chart')
-      setPin(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [natal?.meta.settings])
+    await run('partner', {
+      name: saved.name,
+      birthDate: saved.birthDate,
+      birthTime: saved.birthTime,
+      birthPlace: saved.birthPlace,
+      latitude: saved.latitude,
+      longitude: saved.longitude,
+      timezone: saved.timezone,
+      settings: natal?.meta.settings,
+    }, saved.name?.trim() || null)
+  }, [natal?.meta.settings, run])
 
   const comparisonGrahas = useMemo(
     () => (pin?.kind === 'partner' ? pin.chart.grahas : undefined),

@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { createPortal } from 'react-dom'
 import { CalendarDays, ClipboardList, Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Drawer } from '@/components/ui/primitives/Drawer'
@@ -41,9 +42,11 @@ export function WorkspaceInsightDrawers({
   const t = useTranslations('chart.workspace.insights')
   const [panel, setPanel] = useState<Panel>(null)
   const [drawerWidth, setDrawerWidth] = useState(400)
+  const [mounted, setMounted] = useState(false)
   const isPlatinum = planMeetsUiGate(userPlan, 'platinum')
 
   useEffect(() => {
+    setMounted(true)
     const place = () => setDrawerWidth(Math.min(420, window.innerWidth))
     place()
     window.addEventListener('resize', place)
@@ -78,36 +81,43 @@ export function WorkspaceInsightDrawers({
         ) : null}
       </div>
 
-      <Drawer
-        open={panel === 'today'}
-        onClose={() => setPanel(null)}
-        title={t('todayTitle')}
-        subtitle={t('todaySub')}
-        width={drawerWidth}
-      >
-        {panel === 'today' ? <TodayBriefCard chart={chart} embedded /> : null}
-      </Drawer>
+      {/* Portalled: the bar sits inside animated / sticky containers whose
+          transforms would otherwise trap the fixed-position drawer. */}
+      {mounted && createPortal(
+        <>
+          <Drawer
+            open={panel === 'today'}
+            onClose={() => setPanel(null)}
+            title={t('todayTitle')}
+            subtitle={t('todaySub')}
+            width={drawerWidth}
+          >
+            {panel === 'today' ? <TodayBriefCard chart={chart} embedded /> : null}
+          </Drawer>
 
-      {authenticated ? (
-        <Drawer
-          open={panel === 'consult'}
-          onClose={() => setPanel(null)}
-          title={t('consultTitle')}
-          subtitle={t('consultSub')}
-          width={drawerWidth}
-        >
-          {panel === 'consult' ? (
-            <ConsultChrome
-              chart={chart}
-              userPlan={userPlan}
-              savedChartId={savedChartId}
-              authenticated={authenticated}
-              onSaveChart={onSaveChart}
-              embedded
-            />
+          {authenticated ? (
+            <Drawer
+              open={panel === 'consult'}
+              onClose={() => setPanel(null)}
+              title={t('consultTitle')}
+              subtitle={t('consultSub')}
+              width={drawerWidth}
+            >
+              {panel === 'consult' ? (
+                <ConsultChrome
+                  chart={chart}
+                  userPlan={userPlan}
+                  savedChartId={savedChartId}
+                  authenticated={authenticated}
+                  onSaveChart={onSaveChart}
+                  embedded
+                />
+              ) : null}
+            </Drawer>
           ) : null}
-        </Drawer>
-      ) : null}
+        </>,
+        document.body,
+      )}
     </>
   )
 }

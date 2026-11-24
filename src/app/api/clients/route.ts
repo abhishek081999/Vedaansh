@@ -152,6 +152,17 @@ export async function POST(req: NextRequest) {
       birthTime: parsed.data.birthTime.length === 5 ? `${parsed.data.birthTime}:00` : parsed.data.birthTime
     }
 
+    // Idempotent: the same person (name + birth moment) is not added twice.
+    const existing = await Client.findOne({
+      userId,
+      name: clientData.name.trim(),
+      birthDate: clientData.birthDate,
+      birthTime: clientData.birthTime,
+    }).collation({ locale: 'en', strength: 2 })
+    if (existing) {
+      return NextResponse.json({ success: true, client: existing, existing: true })
+    }
+
     const client = await Client.create(clientData)
 
     return NextResponse.json({ success: true, client })
