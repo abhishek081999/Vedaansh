@@ -98,6 +98,7 @@ type JaiminiTabId =
 
 const JAIMINI_TABS: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
   { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
+  { id: 'dashas', label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
   { id: 'karakamsha', label: 'Karakamsha', short: 'Swamsha', Icon: Star },
   { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
   { id: 'argala', label: 'Argala', short: 'Argala', Icon: Compass },
@@ -106,7 +107,6 @@ const JAIMINI_TABS: { id: JaiminiTabId; label: string; short: string; Icon: Luci
   { id: 'marriage', label: 'Marriage & Relationship', short: 'Marriage', Icon: HeartHandshake },
   { id: 'lagnas', label: 'Special Lagnas', short: 'Lagnas', Icon: Landmark },
   { id: 'houses', label: 'Houses', short: 'Houses', Icon: Home },
-  { id: 'dashas', label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
   { id: 'transits', label: 'Transits', short: 'Transit', Icon: Orbit },
   { id: 'board', label: 'All Dashas', short: 'All', Icon: TrendingUp },
   { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
@@ -934,7 +934,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     const asc = getLagnaForVarga(varga);
     const chartKey = `${varga}-${arudhaBphsMode ? 'bphs' : 'raw'}-${showArudhaOverlay ? 'on' : 'off'}`;
     const scale = Math.min(Math.max(chartScale, 0.5), 2.0);
-    const chartMaxPx = isMobile ? undefined : `min(100%, ${(30 * scale).toFixed(2)}rem)`;
+    // Desktop: also fit the screen height (app bar, header and controls take ~20.5rem
+    // above the chart), so the whole chart shows without scrolling on short windows.
+    // Zoom still scales it.
+    const chartMaxPx = isMobile
+      ? undefined
+      : `min(100%, ${(30 * scale).toFixed(2)}rem, max(14rem, calc((100dvh - 20.5rem) * ${scale.toFixed(2)})))`;
     const chartProps = {
       ascRashi: asc,
       grahas: grahasForChart,
@@ -1022,15 +1027,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 value={method}
                 onChange={(e) => setMethod(e.target.value as JaiminiMethod)}
                 className={styles.dashaSelect}
+                title={t(`method.${method}.topic`)}
               >
                 {JAIMINI_METHODS.map(m => (
                   <option key={m.id} value={m.id}>{m.code} · {t(`method.${m.id}.name`)}</option>
                 ))}
               </select>
             </label>
-            <p style={{ margin: '0.3rem 0 0', fontSize: '0.7rem', lineHeight: 1.45, color: 'var(--text-secondary)' }}>
-              {t(`method.${method}.topic`)}
-            </p>
           </div>
 
           <div className={styles.controlsRow}>
