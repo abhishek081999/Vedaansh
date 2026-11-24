@@ -13,6 +13,21 @@ import { useLocale, useTranslations } from 'next-intl'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { vastuTables } from '@/components/ui/vastu/localize'
 import { ELEM_COLOR, ELEM_ICON } from '@/components/ui/vastu/tables'
+import {
+  analyzeHome, analyzeVastuZones, dashaVastuFocus, digBalaBand, digBalaShash, doshaIndication, entranceVerdict,
+  homeDoshas, houseBearing, vastuBearing, zoneForBearing,
+  ENTRANCE_DIRECTIONS, HOME_ZONES, ROOM_IDS, type EntranceDirection, type HomeRooms, type HomeZone, type RoomId,
+} from '@/lib/engine/astroVastu'
+import { HomeMapper } from '@/components/ui/vastu/HomeMapper'
+import { DashaFocusCard } from '@/components/ui/vastu/DashaFocusCard'
+import { AyadiCard } from '@/components/ui/vastu/AyadiCard'
+import { LiveCompass } from '@/components/ui/vastu/LiveCompass'
+import { VastuRemedyTracker } from '@/components/ui/vastu/VastuRemedyTracker'
+import { VastuMuhurtaCard } from '@/components/ui/vastu/VastuMuhurtaCard'
+import { TransitYearCard } from '@/components/ui/vastu/TransitYearCard'
+import { FloorPlanOverlay } from '@/components/ui/vastu/FloorPlanOverlay'
+import { HouseholdView } from '@/components/ui/vastu/HouseholdView'
+import type { VastuPracticeZone } from '@/lib/engine/remedyPractices'
 
 const ChakraSelector = dynamic(
   () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
@@ -27,6 +42,29 @@ interface AstroVastuPanelProps {
 
 const FREE_VASTU_TABS = new Set<string>(['chart', 'compass'])
 
+
+const DIR_CODES = new Set(['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'Center'])
+const FACING_STORAGE_KEY = 'vedaansh.vastu.facing'
+const ROOMS_STORAGE_KEY = 'vedaansh.vastu.rooms'
+
+/** Keep only known rooms and zones from stored JSON. */
+function parseRooms(raw: string | null): HomeRooms {
+  if (!raw) return {}
+  try {
+    const data = JSON.parse(raw) as Record<string, unknown>
+    const out: HomeRooms = {}
+    for (const id of ROOM_IDS) {
+      const zones = data?.[id]
+      if (Array.isArray(zones)) {
+        const ok = zones.filter((z): z is HomeZone => (HOME_ZONES as readonly string[]).includes(z as string))
+        if (ok.length) out[id] = ok
+      }
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
 
 type TabId = 'chart' | 'compass' | 'mandala' | 'doshas' | 'rooms' | 'remedies' | 'bhavas'
 
@@ -66,7 +104,10 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
     return hi ? (RASHI_HI[r] ?? String(n)) : (RASHI_NAMES[r] ?? String(n))
   }
   const el = (id: string) => t(`elements.${id}`)
-  const dirName = useCallback((code: string) => t(`dirs.${code}`), [t])
+  /** Localized direction for a code (`N`, `NNE`, `Center`); anything else is returned as-is. */
+  const dirName = useCallback((code: string) => (DIR_CODES.has(code) ? t(`dirs.${code}`) : code), [t])
+  /** Localize a comma-separated list of direction codes (`'NE, NNE'`). */
+  const dirList = useCallback((list: string) => list.split(/,\s*/).map(c => dirName(c.trim())).join(', '), [dirName])
   const { grahas } = chart
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [mode, setMode]               = useState<'8' | '16'>('16')
@@ -76,6 +117,90 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
   const [isMobile, setIsMobile]       = useState(false)
   const [isSmall,  setIsSmall]        = useState(false)
   const [isMobileNav, setIsMobileNav] = useState(false)
+  const [facing, setFacing]           = useState<EntranceDirection | null>(null)
+  const [rooms, setRooms]             = useState<HomeRooms>({})
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(FACING_STORAGE_KEY)
+      if (saved && (ENTRANCE_DIRECTIONS as readonly string[]).includes(saved)) setFacing(saved as EntranceDirection)
+      setRooms(parseRooms(window.localStorage.getItem(ROOMS_STORAGE_KEY)))
+    } catch { /* storage unavailable */ }
+  }, [])
+
+  const saveRooms = (next: HomeRooms) => {
+    setRooms(next)
+    try {
+      if (Object.keys(next).length) window.localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(next))
+      else window.localStorage.removeItem(ROOMS_STORAGE_KEY)
+    } catch { /* storage unavailable */ }
+  }
+
+  const [exporting, setExporting] = useState(false)
+
+  /** Gold: printable report. The chart is recalculated server-side from meta; home details come from this browser. */
+  const exportReport = async () => {
+    // Open the window inside the click, before any await: browsers block later popups.
+    const w = window.open('', '_blank')
+    w?.document.write(`<!doctype html><meta charset="utf-8"><title>${t('export.working')}</title><p style="font:14px system-ui;padding:2rem">${t('export.working')}</p>`)
+    setExporting(true)
+    const fail = () => { w?.close(); window.alert(t('export.fail')) }
+    try {
+      let ayadiInput: { length: number; breadth: number; unit: 'ft' | 'm' } | undefined
+      try {
+        const raw = JSON.parse(window.localStorage.getItem('vedaansh.vastu.ayadi') ?? 'null') as { length?: string; breadth?: string; unit?: string } | null
+        const l = Number(raw?.length), b = Number(raw?.breadth)
+        if (l > 0 && b > 0) ayadiInput = { length: l, breadth: b, unit: raw?.unit === 'm' ? 'm' : 'ft' }
+      } catch { /* no saved size */ }
+      const res = await fetch('/api/vastu/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meta: chart.meta, home: { facing: facing ?? undefined, rooms, ayadi: ayadiInput } }),
+      })
+      if (!res.ok) { fail(); return }
+      const html = await res.text()
+      if (!w || w.closed) {
+        const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'vastu-report.html'
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 10_000)
+        return
+      }
+      w.document.open()
+      w.document.write(html)
+      w.document.close()
+    } catch {
+      fail()
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const addRoom = (room: RoomId, zone: HomeZone) => {
+    const cur = rooms[room] ?? []
+    if (!cur.includes(zone)) saveRooms({ ...rooms, [room]: [...cur, zone] })
+  }
+  const roomsAt = (zone: HomeZone) => ROOM_IDS.filter(r => rooms[r]?.includes(zone))
+
+  const toggleRoom = (room: RoomId, zone: HomeZone) => {
+    const cur = rooms[room] ?? []
+    const zones = cur.includes(zone) ? cur.filter(z => z !== zone) : [...cur, zone]
+    const next = { ...rooms }
+    if (zones.length) next[room] = zones
+    else delete next[room]
+    saveRooms(next)
+  }
+
+  const chooseFacing = (dir: EntranceDirection) => {
+    const next = facing === dir ? null : dir
+    setFacing(next)
+    try {
+      if (next) window.localStorage.setItem(FACING_STORAGE_KEY, next)
+      else window.localStorage.removeItem(FACING_STORAGE_KEY)
+    } catch { /* storage unavailable */ }
+  }
 
   const selectTab = (id: TabId) => {
     if (!showFull && !FREE_VASTU_TABS.has(id)) return
@@ -102,28 +227,37 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
   const sectorAngle = mode === '16' ? 22.5 : 45
 
   /* Zone analysis with scoring ────────────────────────────────── */
+  const ascRashi = (chart.lagnas?.ascRashi ?? 1) as number
   const analysis = useMemo(() => {
-    return activeZones.map(zone => {
-      const occupants = grahas.filter(g => {
-        const signAngle = (g.rashi - 1) * 30 + 15
-        const diff = Math.abs(signAngle - zone.angle)
-        const threshold = mode === '16' ? 15 : 25
-        return diff < threshold || Math.abs(signAngle - zone.angle - 360) < threshold
-      })
-      const rulingPlanet = grahas.find(g => g.id === zone.ruling)
-      let score = 50
-      if (rulingPlanet) {
-        if (rulingPlanet.dignity === 'exalted')     score += 30
-        if (rulingPlanet.dignity === 'own')          score += 20
-        if (rulingPlanet.dignity === 'moolatrikona') score += 25
-        if (rulingPlanet.dignity === 'debilitated')  score -= 30
-        if (rulingPlanet.isRetro)                    score -= 10
-      }
-      const malefics = occupants.filter(g => ['Sa', 'Ra', 'Ke', 'Ma'].includes(g.id))
-      if (['N', 'NE', 'E'].includes(zone.id) && malefics.length > 0) score -= 15
-      return { ...zone, occupants, rulingPlanet, score: Math.max(0, Math.min(100, score)) }
-    })
-  }, [grahas, activeZones, mode])
+    const scores = analyzeVastuZones(grahas, ascRashi, activeZones, chart.shadbala)
+    return activeZones.map((zone, i) => ({
+      ...zone,
+      occupants: grahas.filter(g => scores[i].occupantIds.includes(g.id)),
+      rulingPlanet: grahas.find(g => g.id === zone.ruling),
+      score: scores[i].score,
+    }))
+  }, [grahas, ascRashi, activeZones, chart.shadbala])
+
+  /** 8-direction scores — dosha signals are read here whatever the compass mode. */
+  const zoneScores8 = useMemo(
+    () => analyzeVastuZones(grahas, ascRashi, tables.zones8, chart.shadbala),
+    [grahas, ascRashi, tables.zones8, chart.shadbala],
+  )
+
+  const entrance = facing ? entranceVerdict(facing, zoneScores8, ascRashi) : null
+  const moonIdx = grahas.find(g => g.id === 'Mo')?.nakshatraIndex
+  const moonNakshatra = typeof moonIdx === 'number' ? moonIdx + 1 : undefined
+  const weakestZones = useMemo(
+    () => [...zoneScores8].sort((a, b) => a.score - b.score).map(z => z.id as VastuPracticeZone),
+    [zoneScores8],
+  )
+  const homeFindings = useMemo(() => analyzeHome(rooms, zoneScores8), [rooms, zoneScores8])
+  const foundInHome = useMemo(() => homeDoshas(rooms, facing), [rooms, facing])
+  const dashaFocus = useMemo(
+    () => dashaVastuFocus(chart.dashas?.vimshottari, zoneScores8),
+    [chart.dashas?.vimshottari, zoneScores8],
+  )
+  const entranceRemedy = entrance ? tables.navagraha.find(n => n.dir === entrance.facing)?.remedy : undefined
 
   const overallScore  = Math.round(analysis.reduce((a, z) => a + z.score, 0) / analysis.length)
   const bestZone      = [...analysis].sort((a, b) => b.score - a.score)[0]
@@ -144,7 +278,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
 
   /* Positioned planets ────────────────────────────────────────── */
   const positionedPlanets = useMemo(() => {
-    const pos = grahas.map(p => ({ ...p, angle: ((p.rashi - 1) * 30 + p.degree) - 90, r: 100 }))
+    const pos = grahas.map(p => ({ ...p, angle: vastuBearing(p.rashi, p.degree, ascRashi) - 90, r: 100 }))
     pos.sort((a, b) => a.angle - b.angle)
     for (let i = 0; i < pos.length; i++) {
       let stack = 0
@@ -155,7 +289,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
       pos[i].r += stack * 22
     }
     return pos
-  }, [grahas])
+  }, [grahas, ascRashi])
 
   /* Navagraha planet dignity map ──────────────────────────────── */
   const grahaMap = useMemo(() => {
@@ -282,6 +416,12 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                 </button>
               ))}
             </div>
+            {showFull && (
+              <button type="button" onClick={exportReport} disabled={exporting}
+                style={{ marginTop: '0.75rem', padding: '0.45rem 1rem', borderRadius: 8, border: '1px solid var(--border-bright)', background: 'var(--surface-2)', color: 'var(--text-gold)', fontWeight: 600, fontSize: '0.8rem', cursor: exporting ? 'wait' : 'pointer', fontFamily: 'inherit' }}>
+                📄 {exporting ? t('export.working') : t('export.button')}
+              </button>
+            )}
           </div>
 
           <div className="vastu-grade-card" style={{ borderColor: gradeColor, boxShadow: `0 0 28px ${overallScore > 68 ? 'rgba(78,205,196,0.12)' : overallScore > 50 ? 'rgba(201,168,76,0.12)' : 'rgba(224,123,142,0.12)'}` }}>
@@ -294,9 +434,9 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
         {/* Quick Stats */}
         <div style={{ position: 'relative', marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.65rem' }}>
           {[
-            { label: t('stats.power'),    value: bestZone.id,     sub: t('stats.strength', { score: bestZone.score }), color: 'var(--teal)' },
-            { label: t('stats.weak'),     value: worstZone.id,    sub: t('stats.strength', { score: worstZone.score }), color: 'var(--rose)' },
-            { label: t('stats.entrance'), value: bestEntrance.id, sub: bestEntrance.quality.split(',')[0], color: 'var(--gold)' },
+            { label: t('stats.power'),    value: dirName(bestZone.id),     sub: t('stats.strength', { score: bestZone.score }), color: 'var(--teal)' },
+            { label: t('stats.weak'),     value: dirName(worstZone.id),    sub: t('stats.strength', { score: worstZone.score }), color: 'var(--rose)' },
+            { label: t('stats.entrance'), value: dirName(bestEntrance.id), sub: bestEntrance.quality.split(',')[0], color: 'var(--gold)' },
             { label: t('stats.element'),  value: ELEM_ICON[dominantElement] + ' ' + el(dominantElement), sub: t('stats.dominant'), color: 'var(--accent)' },
           ].map(s => (
             <div key={s.label} className="vastu-stat-chip" style={{ borderLeftColor: s.color }}>
@@ -305,6 +445,48 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>{s.sub}</div>
             </div>
           ))}
+        </div>
+
+        {/* Main door — the entrance the user actually has */}
+        <div className="vastu-entrance-card" style={{ position: 'relative', marginTop: '1rem', padding: '0.9rem 1rem', background: 'var(--surface-2)', borderRadius: '12px', border: '1px solid var(--border-soft)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{t('entrance.title')}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('entrance.subtitle')}</div>
+            </div>
+          </div>
+          <div role="radiogroup" aria-label={t('entrance.title')} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            {ENTRANCE_DIRECTIONS.map(dir => {
+              const on = facing === dir
+              return (
+                <button
+                  key={dir}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => chooseFacing(dir)}
+                  style={{ minWidth: 44, minHeight: 32, padding: '0.3rem 0.7rem', borderRadius: '8px', border: `1px solid ${on ? 'var(--gold)' : 'var(--border-soft)'}`, background: on ? 'var(--gold)' : 'var(--surface-3)', color: on ? 'var(--text-on-gold)' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'inherit', transition: interactiveTransition('0.2s') }}
+                >
+                  {dirName(dir)}
+                </button>
+              )
+            })}
+          </div>
+          {entrance && (() => {
+            const vc = entrance.band === 'good' ? 'var(--teal)' : entrance.band === 'weak' ? 'var(--rose)' : 'var(--gold)'
+            const lagnaArgs = { rashi: rname(ascRashi), dir: dirName(entrance.lagnaDir) }
+            return (
+              <div aria-live="polite" style={{ marginTop: '0.75rem', paddingLeft: '0.75rem', borderLeft: `3px solid ${vc}`, fontSize: '0.8rem', lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 700, color: vc }}>{t(`entrance.verdict.${entrance.band}`)} · {entrance.score}%</div>
+                <div style={{ color: 'var(--text-secondary)' }}>
+                  {entrance.matchesLagna ? t('entrance.lagnaMatch', lagnaArgs) : t('entrance.lagnaOther', lagnaArgs)}
+                </div>
+                {entrance.band === 'weak' && showFull && entranceRemedy && (
+                  <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '0.2rem' }}>{t('entrance.remedy', { remedy: entranceRemedy })}</div>
+                )}
+              </div>
+            )
+          })()}
         </div>
       </section>
 
@@ -399,6 +581,18 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
       {/* ══════════════════════════════════════════════════════════
           TAB: COMPASS
           ══════════════════════════════════════════════════════════ */}
+      {activeTab === 'compass' && dashaFocus && (
+        <DashaFocusCard focus={dashaFocus} showFull={showFull} dirName={dirName} gname={gname} />
+      )}
+
+      {activeTab === 'compass' && (
+        <TransitYearCard ascRashi={ascRashi} zoneScores8={zoneScores8} showFull={showFull} dirName={dirName} gname={gname} rname={rname} />
+      )}
+
+      {activeTab === 'compass' && (
+        <LiveCompass zones={analysis} sectorAngle={sectorAngle} dirName={dirName} />
+      )}
+
       {activeTab === 'compass' && (
         <div className="fade-up" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem', alignItems: 'flex-start' }}>
           {/* SVG Compass */}
@@ -419,8 +613,8 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                 <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border-soft)" strokeWidth="0.3" />
 
                 {/* Segments */}
-                {analysis.map((zone, i) => {
-                  const sa = (i * sectorAngle) * Math.PI / 180, ea = ((i+1) * sectorAngle) * Math.PI / 180
+                {analysis.map(zone => {
+                  const sa = (zone.angle - sectorAngle/2) * Math.PI / 180, ea = (zone.angle + sectorAngle/2) * Math.PI / 180
                   const x1 = 100+89*Math.cos(sa), y1 = 100+89*Math.sin(sa), x2 = 100+89*Math.cos(ea), y2 = 100+89*Math.sin(ea)
                   const col = zone.score > 70 ? '#4ecdc4' : zone.score < 40 ? '#e07b8e' : '#c9a84c'
                   const active = selectedZone === zone.id
@@ -434,8 +628,8 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                 })}
 
                 {/* Labels */}
-                {analysis.map((zone, i) => {
-                  const angle = (i * sectorAngle + sectorAngle/2) * Math.PI/180
+                {analysis.map(zone => {
+                  const angle = zone.angle * Math.PI/180
                   const tx = 100+70*Math.cos(angle), ty = 100+70*Math.sin(angle)
                   const active = selectedZone === zone.id
                   const col = zone.score > 70 ? '#4ecdc4' : zone.score < 40 ? '#e07b8e' : '#c9a84c'
@@ -443,8 +637,8 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                 })}
 
                 {/* Score dots */}
-                {analysis.map((zone, i) => {
-                  const angle = (i * sectorAngle + sectorAngle/2) * Math.PI/180
+                {analysis.map(zone => {
+                  const angle = zone.angle * Math.PI/180
                   const tx = 100+93*Math.cos(angle), ty = 100+93*Math.sin(angle)
                   const col = zone.score > 70 ? '#4ecdc4' : zone.score < 40 ? '#e07b8e' : '#c9a84c'
                   return <circle key={'dot-'+zone.id} cx={tx} cy={ty} r="1.8" fill={col} opacity="0.75" />
@@ -545,7 +739,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                         <div style={{ width: 9, height: 9, borderRadius: '50%', background: sc, flexShrink: 0, boxShadow: `0 0 6px ${sc}` }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.83rem', display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.4rem' }}>{zone.id}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.4rem' }}>{dirName(zone.id)}</span>
                             <span style={{ color: sc, flexShrink: 0 }}>{zone.score}%</span>
                           </div>
                           <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>{zone.quality.split(',')[0]}</div>
@@ -568,7 +762,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   const conflict = (za.score > 70 && zb.score < 30) || (za.score < 30 && zb.score > 70)
                   return (
                     <div key={a+b} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: conflict ? 'rgba(224,123,142,0.07)' : 'var(--surface-2)', borderRadius: '8px', border: '1px solid var(--border-soft)' }}>
-                      <span style={{ fontSize: '0.84rem', fontWeight: 600 }}>{a} ⟷ {b}</span>
+                      <span style={{ fontSize: '0.84rem', fontWeight: 600 }}>{dirName(a)} ⟷ {dirName(b)}</span>
                       <span style={{ fontSize: '0.72rem', color: conflict ? 'var(--rose)' : 'var(--teal)', fontWeight: 600 }}>{conflict ? t('compass.tension') : t('compass.balanced')}</span>
                     </div>
                   )
@@ -702,7 +896,9 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
           <div>
             <SectionTitle icon="🔮" title={t('dosha.title')} subtitle={t('dosha.subtitle')} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {tables.doshas.map((d, i) => {
+              {tables.doshas.map(d => {
+                const signal = foundInHome.has(d.id) ? 'home' : doshaIndication(d.chartZone, zoneScores8)
+                const signalColor = signal === 'home' || signal === 'indicated' ? 'var(--rose)' : signal === 'clear' ? 'var(--teal)' : 'var(--text-muted)'
                 const sevColor = d.severity === 'critical' ? 'var(--rose)' : d.severity === 'high' ? '#f97316' : d.severity === 'medium' ? 'var(--gold)' : 'var(--text-muted)'
                 return (
                   <details key={d.id} className="vastu-dosha-card" style={{ borderLeft: `5px solid ${sevColor}` }}>
@@ -716,6 +912,9 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                           <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{t('dosha.zone', { zone: d.zone })}</div>
                         </div>
                       </div>
+                      <span style={{ marginLeft: 'auto', fontSize: '0.66rem', padding: '3px 8px', borderRadius: '999px', fontWeight: 700, color: signalColor, border: `1px solid ${signalColor}`, whiteSpace: 'nowrap' }}>
+                        {t(`dosha.signal.${signal}`)}
+                      </span>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>▼</span>
                     </summary>
                     <div style={{ padding: '0 1.25rem 1.25rem' }}>
@@ -777,7 +976,8 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
             <SectionTitle icon="🌐" title={t('bhuta.title')} subtitle={t('bhuta.subtitle')} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
               {tables.bhutas.map(b => {
-                const zoneScores = analysis.filter(z => b.zones.some(bz => z.id === bz || z.id.startsWith(bz)))
+                // Zones are grouped by the element the zone table assigns, so the score and the list agree
+                const zoneScores = analysis.filter(z => z.element === b.bhuta)
                 const avgScore = zoneScores.length > 0 ? Math.round(zoneScores.reduce((a, z) => a + z.score, 0) / zoneScores.length) : 50
                 const sc = avgScore > 70 ? 'var(--teal)' : avgScore < 40 ? 'var(--rose)' : 'var(--gold)'
                 return (
@@ -786,13 +986,13 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                       <span style={{ fontSize: '1.5rem' }}>{b.icon}</span>
                       <div>
                         <div style={{ fontWeight: 700, color: b.color, fontSize: '0.9rem' }}>{b.name}</div>
-                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{b.bhuta}</div>
+                        {!hi && <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{b.bhuta}</div>}
                       </div>
                       <div style={{ marginLeft: 'auto', fontSize: '0.78rem', fontWeight: 700, color: sc }}>{avgScore}%</div>
                     </div>
                     <ScoreBar score={avgScore} height={6} />
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.6rem', lineHeight: 1.4 }}>{b.qual}</div>
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.67rem', color: b.color }}>{b.zones.join(', ')}</div>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.67rem', color: b.color }}>{zoneScores.map(z => dirName(z.id)).join(', ')}</div>
                   </div>
                 )
               })}
@@ -808,7 +1008,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                       <div style={{ fontWeight: 700, fontSize: '0.88rem', color: pv.color }}>{pv.vayu}</div>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text-gold)' }}>{pv.dir}</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--text-gold)' }}>{dirList(pv.dir)}</div>
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{pv.func}</div>
                   </div>
@@ -842,6 +1042,16 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
       {activeTab === 'rooms' && (
         <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
 
+          <FloorPlanOverlay zones={analysis} sectorAngle={sectorAngle} dirName={dirName} onMarkRoom={addRoom} roomsAt={roomsAt} />
+
+          <HomeMapper rooms={rooms} findings={homeFindings} onToggle={toggleRoom} onClear={() => saveRooms({})} dirName={dirName} />
+
+          <HouseholdView chart={chart} ownerZones={zoneScores8} platinum={planMeetsUiGate(userPlan, 'platinum')} dirName={dirName} />
+
+          <AyadiCard birthNakshatra={moonNakshatra} />
+
+          <VastuMuhurtaCard />
+
           {/* Personalized Facing + Dig Bala */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
             <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--accent)', background: 'linear-gradient(135deg, var(--surface-2), var(--surface-3))' }}>
@@ -872,9 +1082,10 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
               <SectionTitle icon="📐" title={t('digBala.title')} subtitle={t('digBala.subtitle')} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                 {tables.digbala.map(d => {
-                  const p = grahaMap[d.planet]
-                  const strong = p?.dignity === 'exalted' || p?.dignity === 'own' || p?.dignity === 'moolatrikona'
-                  const debil  = p?.dignity === 'debilitated'
+                  const dig = digBalaShash(chart.shadbala, d.planet)
+                  const band = digBalaBand(dig)
+                  const strong = band === 'strong'
+                  const debil  = band === 'weak'
                   return (
                     <div key={d.planet} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.7rem 0.85rem', background: 'var(--surface-2)', borderRadius: '10px', border: `1px solid ${strong ? 'rgba(78,205,196,0.25)' : debil ? 'rgba(224,123,142,0.2)' : 'var(--border-soft)'}` }}>
                       <span className="badge badge-accent" style={{ flexShrink: 0, minWidth: 28, textAlign: 'center' }}>{d.planet}</span>
@@ -882,8 +1093,13 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                         <div style={{ fontSize: '0.84rem', fontWeight: 600 }}>{gname(d.planet)}</div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('digBala.optimal', { desc: d.desc, dir: d.dir })}</div>
                       </div>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: strong ? 'var(--teal)' : debil ? 'var(--rose)' : 'var(--text-muted)', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: strong ? 'var(--teal)' : debil ? 'var(--rose)' : 'var(--text-muted)', flexShrink: 0, textAlign: 'right' }}>
                         {strong ? t('dig.strong') : debil ? t('dig.weak') : t('dig.neutral')}
+                        {dig !== undefined && (
+                          <span style={{ display: 'block', fontWeight: 500, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                            {t('dig.value', { value: dig.toFixed(1) })}
+                          </span>
+                        )}
                       </span>
                     </div>
                   )
@@ -960,7 +1176,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   {tables.colors.map(c => (
                     <div key={c.zone} style={{ textAlign: 'center' }}>
                       <div style={{ width: '100%', aspectRatio: '1', background: c.color, borderRadius: '50%', border: '3px solid var(--surface-3)', boxShadow: `0 4px 12px ${c.color}55`, marginBottom: '0.35rem' }} />
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700 }}>{c.zone}</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700 }}>{dirName(c.zone)}</div>
                       <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{c.name}</div>
                     </div>
                   ))}
@@ -977,7 +1193,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
               {tables.plants.map(p => (
                 <div key={p.plant} style={{ padding: '0.85rem 1rem', background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-soft)', borderLeft: '4px solid var(--teal)' }}>
                   <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.35rem' }}>🌿 {p.plant}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', marginBottom: '0.3rem', fontWeight: 600 }}>{t('plants.place', { zone: p.zone })}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', marginBottom: '0.3rem', fontWeight: 600 }}>{t('plants.place', { zone: dirList(p.zone) })}</div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '0.35rem' }}>{p.benefit}</div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--rose)' }}>{t('plants.avoid', { text: p.avoid })}</div>
                 </div>
@@ -992,6 +1208,13 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
           ══════════════════════════════════════════════════════════ */}
       {activeTab === 'remedies' && (
         <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+
+          <VastuRemedyTracker
+            chart={chart}
+            zoneOrder={weakestZones}
+            zoneScore={z => zoneScores8.find(s => s.id === z)?.score}
+            dirName={dirName}
+          />
 
           {/* Priority Remedies */}
           <div className="card" style={{ padding: '1.75rem', borderLeft: '5px solid var(--rose)' }}>
@@ -1055,7 +1278,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                 return (
                   <div key={m.dir} style={{ padding: '0.9rem 1rem', background: 'var(--surface-2)', borderRadius: '12px', border: `1px solid ${m.color}33`, borderLeft: `4px solid ${m.color}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: m.color }}>{m.dir} — {m.metal}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: m.color }}>{dirName(m.dir)} — {m.metal}</div>
                       {z && <span style={{ fontSize: '0.72rem', color: z.score > 65 ? 'var(--teal)' : z.score < 40 ? 'var(--rose)' : 'var(--gold)', fontWeight: 700 }}>{z.score}%</span>}
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.45rem' }}>{ELEM_ICON[m.element] || '✨'} {m.bhuta}</div>
@@ -1120,7 +1343,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                     <div key={item.obj} style={{ padding: '0.42rem 0.75rem', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '7px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <span>{item.icon}</span>
                       <span style={{ fontWeight: 600 }}>{item.obj}</span>
-                      <span style={{ color: 'var(--text-gold)', fontSize: '0.68rem' }}>{item.zone}</span>
+                      <span style={{ color: 'var(--text-gold)', fontSize: '0.68rem' }}>{dirList(item.zone)}</span>
                     </div>
                   ))}
                 </div>
@@ -1518,7 +1741,12 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
             <div className="card" style={{ padding: isMobile ? '1.25rem' : '1.75rem' }}>
               <SectionTitle icon="🔗" title={t('bhavas.lifeTitle')} subtitle={t('bhavas.lifeSub')} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {tables.lifeAreas.map(row => (
+                {tables.lifeAreas.map(row => {
+                  const house = Number(row.h)
+                  const z = zoneForBearing(houseBearing(house), analysis)
+                  const lord = bhavaData[house - 1]?.lordId ?? row.planet
+                  const zc = z.score > 70 ? 'var(--teal)' : z.score < 40 ? 'var(--rose)' : 'var(--gold)'
+                  return (
                   <div key={row.area} style={{ display: 'flex', alignItems: 'center', gap: isSmall ? '0.35rem' : '0.5rem', padding: isSmall ? '0.3rem 0.4rem' : '0.35rem 0.5rem', borderRadius: '6px', background: 'var(--surface-2)' }}>
                     <span style={{ fontSize: isSmall ? '0.85rem' : '0.95rem', flexShrink: 0 }}>{row.icon}</span>
                     <div style={{ width: isSmall ? 68 : 80, flexShrink: 0 }}>
@@ -1526,15 +1754,16 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                       <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>H{row.h}</div>
                     </div>
                     <div style={{ flex: 1, height: 5, background: 'var(--surface-3)', borderRadius: 3, minWidth: 0 }}>
-                      <div style={{ height: '100%', width: '100%', background: `linear-gradient(90deg, ${row.color}88, ${row.color}22)`, borderRadius: 3 }} />
+                      <div title={`${z.score}%`} style={{ height: '100%', width: `${z.score}%`, background: zc, borderRadius: 3 }} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
-                      <span style={{ background: `${row.color}22`, color: row.color, borderRadius: '4px', padding: '1px 5px', fontSize: isSmall ? '0.6rem' : '0.65rem', fontWeight: 800 }}>{dirName(row.zone)}</span>
+                      <span style={{ background: `${row.color}22`, color: row.color, borderRadius: '4px', padding: '1px 5px', fontSize: isSmall ? '0.6rem' : '0.65rem', fontWeight: 800 }}>{dirName(z.id)}</span>
                       {!isMobile && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{row.room}</span>}
                     </div>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${row.color}22`, border: `1.5px solid ${row.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.52rem', fontWeight: 800, color: row.color, flexShrink: 0 }}>{row.planet}</div>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${row.color}22`, border: `1.5px solid ${row.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.52rem', fontWeight: 800, color: row.color, flexShrink: 0 }} title={gname(lord)}>{lord}</div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>

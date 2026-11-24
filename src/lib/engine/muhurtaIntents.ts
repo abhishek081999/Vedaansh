@@ -19,6 +19,7 @@ export const MUHURTA_INTENTS: readonly MuhurtaIntent[] = [
   { id: 'travel', label: 'Travel start', blurb: 'Leave home / board journey', activity: 'TRAVEL' },
   { id: 'surgery', label: 'Medical', blurb: 'Procedure or treatment start', activity: 'HEALTH' },
   { id: 'house', label: 'Housewarming', blurb: 'Griha pravesh / move-in', activity: 'REAL_ESTATE' },
+  { id: 'bhoomi', label: 'Bhoomi pujan', blurb: 'Foundation / start of construction', activity: 'REAL_ESTATE' },
   { id: 'naming', label: 'Naming / samskar', blurb: 'Child naming & rites', activity: 'SPIRITUAL' },
   { id: 'loan', label: 'Loan / contract', blurb: 'Sign papers, open account', activity: 'BUSINESS' },
   { id: 'interview', label: 'Interview', blurb: 'Job or admission interview', activity: 'EDUCATION' },

@@ -14,7 +14,7 @@ import type { RemedyGrahaId } from './planetaryRemedies'
 import type { EngineLang } from './lang'
 import { lkCalendarDate, lkTrackerState, type LkTrackerState } from './lalKitab/trackerDays'
 
-export type PracticeKind = 'mantra' | 'fast'
+export type PracticeKind = 'mantra' | 'fast' | 'vastu'
 export type PracticeCadence = 'daily' | 'weekly'
 
 export interface RemedyPracticeDef {
@@ -30,8 +30,10 @@ export interface RemedyPracticeDef {
   defaultLength: number
   /** Devanagari mantra (mantra only). */
   mantra?: string
-  /** Repetitions per sitting (mantra only). */
+  /** Repetitions per sitting (mantra and vastu). */
   count?: number
+  /** Vastu zone (vastu only), e.g. "SE". */
+  zone?: VastuPracticeZone
 }
 
 export interface RemedyPracticeView extends RemedyPracticeDef {
@@ -97,7 +99,61 @@ function defsFor(graha: RemedyGrahaId): RemedyPracticeDef[] {
   return out
 }
 
-const ALL: RemedyPracticeDef[] = (['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'] as RemedyGrahaId[]).flatMap(defsFor)
+// ── Vastu zone practices ─────────────────────────────────────
+// A daily routine for one direction of the home: clean and clear the
+// zone, set its element marker, then chant the zone ruler's beej
+// mantra 11 times facing that direction. Ids are "vastu.<zone>".
+
+export const VASTU_PRACTICE_ZONES = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
+export type VastuPracticeZone = (typeof VASTU_PRACTICE_ZONES)[number]
+
+/** Navagraha ruler of each zone (matches VASTU_ZONES_8 in astroVastu). */
+const ZONE_RULER: Record<VastuPracticeZone, RemedyGrahaId> = {
+  N: 'Me', NE: 'Ju', E: 'Su', SE: 'Ve', S: 'Ma', SW: 'Ra', W: 'Sa', NW: 'Mo',
+}
+const ZONE_EN: Record<VastuPracticeZone, string> = {
+  N: 'North', NE: 'North-East', E: 'East', SE: 'South-East', S: 'South', SW: 'South-West', W: 'West', NW: 'North-West',
+}
+const ZONE_HI: Record<VastuPracticeZone, string> = {
+  N: 'उत्तर', NE: 'उत्तर-पूर्व', E: 'पूर्व', SE: 'दक्षिण-पूर्व', S: 'दक्षिण', SW: 'दक्षिण-पश्चिम', W: 'पश्चिम', NW: 'उत्तर-पश्चिम',
+}
+const ZONE_ACTION_EN: Record<VastuPracticeZone, string> = {
+  N: 'keep a clean bowl of fresh water there',
+  NE: 'keep it light and open, and place fresh water or a tulsi plant',
+  E: 'open the windows to morning light and water a green plant',
+  SE: 'light a ghee lamp or candle',
+  S: 'light a lamp and keep the area dry and warm',
+  SW: 'keep it heavy and orderly, with nothing broken or stored loosely',
+  W: 'ring a metal chime and keep metal objects clean',
+  NW: 'ring a metal wind chime and let air move through',
+}
+const ZONE_ACTION_HI: Record<VastuPracticeZone, string> = {
+  N: 'वहाँ स्वच्छ ताज़े जल का पात्र रखें',
+  NE: 'इसे हल्का और खुला रखें, और ताज़ा जल या तुलसी रखें',
+  E: 'खिड़कियाँ प्रातः प्रकाश के लिए खोलें और हरे पौधे को जल दें',
+  SE: 'घी का दीपक या मोमबत्ती जलाएँ',
+  S: 'दीपक जलाएँ और स्थान को सूखा और गर्म रखें',
+  SW: 'इसे भारी और व्यवस्थित रखें, टूटी या बिखरी वस्तुएँ न हों',
+  W: 'धातु की घंटी बजाएँ और धातु वस्तुएँ स्वच्छ रखें',
+  NW: 'धातु की पवन-घंटी बजाएँ और हवा का प्रवाह रहने दें',
+}
+
+function vastuDef(zone: VastuPracticeZone): RemedyPracticeDef {
+  const graha = ZONE_RULER[zone]
+  return { id: `vastu.${zone}`, graha, kind: 'vastu', cadence: 'daily', lengths: [21, 40], defaultLength: 21, mantra: BEEJ[graha], count: 11, zone }
+}
+
+/** Vastu practices for the given zones, in the order given (e.g. weakest first). */
+export function vastuPracticesFor(zones: readonly VastuPracticeZone[], lang: EngineLang = 'en'): RemedyPracticeView[] {
+  return zones.map((z) => describePractice(vastuDef(z), lang))
+}
+
+export const isVastuPractice = (id: string) => id.startsWith('vastu.')
+
+const ALL: RemedyPracticeDef[] = [
+  ...(['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'] as RemedyGrahaId[]).flatMap(defsFor),
+  ...VASTU_PRACTICE_ZONES.map(vastuDef),
+]
 
 export function practiceGrahaName(graha: RemedyGrahaId, lang: EngineLang = 'en'): string {
   return lang === 'hi' ? GRAHA_HI[graha] : GRAHA_EN[graha]
@@ -113,6 +169,16 @@ export function remedyPracticesFor(graha: RemedyGrahaId, lang: EngineLang = 'en'
 
 export function describePractice(d: RemedyPracticeDef, lang: EngineLang = 'en'): RemedyPracticeView {
   const hi = lang === 'hi'
+  if (d.kind === 'vastu' && d.zone) {
+    const z = d.zone
+    return {
+      ...d,
+      title: hi ? `${ZONE_HI[z]} क्षेत्र साधना (${GRAHA_HI[d.graha]})` : `${ZONE_EN[z]} zone practice (${GRAHA_EN[d.graha]})`,
+      how: hi
+        ? `प्रतिदिन प्रातः ${ZONE_HI[z]} क्षेत्र को साफ़ और अव्यवस्था-रहित करें, ${ZONE_ACTION_HI[z]}, फिर ${ZONE_HI[z]} की ओर मुख करके ${GRAHA_HI[d.graha]} बीज मंत्र ${d.count} बार जपें।`
+        : `Every morning clean and clear the ${ZONE_EN[z]} zone, ${ZONE_ACTION_EN[z]}, then chant the ${GRAHA_EN[d.graha]} beej mantra ${d.count} times facing ${ZONE_EN[z]}.`,
+    }
+  }
   if (d.kind === 'mantra') {
     return {
       ...d,

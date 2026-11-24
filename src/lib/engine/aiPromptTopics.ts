@@ -48,8 +48,12 @@ import { getLagnaCharacterProfile } from '@/lib/engine/lagnaCharacter'
 import { buildLagnaCheatSheet } from '@/lib/engine/lagnaCheatSheet'
 import { getNakshatraTeaching } from '@/lib/engine/nakshatraTeaching'
 import { lkAgeYears, lkCycleAt, lkYearOfLife, readLalKitab } from '@/lib/engine/lalKitab'
+import {
+  analyzeVastuZones, dashaVastuFocus, digBalaBand, digBalaShash, doshaIndication, lagnaDirection,
+  DIG_BALA_DIRECTION, VASTU_ZONES_8,
+} from '@/lib/engine/astroVastu'
 
-export const AI_TOPICS = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality', 'lalKitab'] as const
+export const AI_TOPICS = ['personality', 'career', 'love', 'marriage', 'wealth', 'health', 'education', 'children', 'spirituality', 'lalKitab', 'vastu'] as const
 export type AiTopic = (typeof AI_TOPICS)[number]
 
 interface EngineReading {
@@ -326,6 +330,75 @@ const TOPICS: Record<AiTopic, TopicDef> = {
     ],
     extra: lalKitabData,
   },
+  vastu: {
+    title: 'Vastu (home and property)',
+    houses: [4, 1, 2, 9, 11, 12],
+    karakas: ['Ma', 'Mo', 'Ve', 'Sa', 'Ju'],
+    vargas: ['D4', 'D9'],
+    method: [
+      'Use the Astro-Vastu frame below: houses map to directions from the Lagna (1st = East, 4th = North, 7th = West, 10th = South), so a planet\'s house gives its direction in the home.',
+      'The 4th house, its lord and Mars (bhumi karaka) show the home and property itself; the Moon shows peace at home; Venus comforts and vehicles; Saturn old or delayed property. Confirm with the Chaturthamsha (D4).',
+      'Read each zone score: its ruling planet\'s dignity and Dig Bala, and any malefic sitting in the light north-east quadrant. Strong zones are where to work, keep valuables and spend time; weak zones need clearing and remedies first.',
+      'Dig Bala in shashtiamsa (0–60) tells which directions each planet supports. Name the directions of the strongest and weakest planets.',
+      'Use the running dasha focus: the Mahadasha and Antardasha lords point to their zones. Say what to activate or balance now and what changes in the next periods.',
+      'Ask the user for what the chart cannot show: main-door direction, where the kitchen, master bedroom, toilets, pooja room, staircase and water tank sit, and the plot size. Then judge each placement against classical rules (kitchen SE, master bedroom SW, pooja NE, toilets NW/W, no toilet, kitchen or staircase in NE or the centre).',
+      'Keep remedies practical and gentle (decluttering, light, colour, element objects, placement changes, the zone planet\'s mantra). Do not advise demolition or major construction without an on-site Vastu consultant, and do not promise outcomes.',
+    ],
+    questions: [
+      'Which directions of my home are strongest and weakest for me, and why?',
+      'Which direction should my main door, bedroom and work desk face?',
+      'What should I focus on in my home during my current dasha?',
+      'Which simple Vastu remedies fit my chart?',
+    ],
+    extra: vastuData,
+  },
+}
+
+const ZONE_DOSHAS: { zone: string; name: string }[] = [
+  { zone: 'NE', name: 'Ishan (NE) dosha' },
+  { zone: 'SE', name: 'Agni (SE) dosha' },
+  { zone: 'SW', name: 'Nairiti (SW) dosha' },
+  { zone: 'NW', name: 'Vayu (NW) dosha' },
+]
+
+function vastuData(chart: ChartOutput): string {
+  const asc = chart.lagnas.ascRashi as number
+  const zones = analyzeVastuZones(chart.grahas, asc, VASTU_ZONES_8, chart.shadbala)
+  const sorted = [...zones].sort((a, b) => b.score - a.score)
+  const zoneLines = VASTU_ZONES_8.map((z, i) => {
+    const s = zones[i]
+    const occ = s.occupantIds.length ? s.occupantIds.join(', ') : 'none'
+    return `- ${z.id} (ruler ${z.ruling}${z.coRuling ? ` + ${z.coRuling}` : ''}): ${s.score}% · planets here: ${occ}`
+  })
+  const digLines = Object.entries(DIG_BALA_DIRECTION).map(([id, dir]) => {
+    const v = digBalaShash(chart.shadbala, id)
+    return `- ${id}: ${v === undefined ? 'n/a' : v.toFixed(1)} / 60 (${digBalaBand(v)}; full strength facing ${dir})`
+  })
+  const doshaLines = ZONE_DOSHAS.map(d => `- ${d.name}: ${doshaIndication(d.zone, zones) === 'indicated' ? 'indicated by the chart' : 'not indicated'}`)
+  const focus = dashaVastuFocus(chart.dashas?.vimshottari, zones)
+  const day = (d: Date) => d.toISOString().slice(0, 10)
+  const focusLines = focus
+    ? [
+        `- Mahadasha ${focus.maha.lord} → ${focus.maha.zone} (${focus.maha.zoneScore}%, ${focus.maha.action}) until ${day(focus.maha.end)}`,
+        ...(focus.antar ? [`- Antardasha ${focus.antar.lord} → ${focus.antar.zone} (${focus.antar.zoneScore}%, ${focus.antar.action}) until ${day(focus.antar.end)}`] : []),
+        ...focus.upcoming.map(u => `- Next: ${u.lord} → ${u.zone} (${u.zoneScore}%, ${u.action}) ${day(u.start)} to ${day(u.end)}`),
+      ]
+    : ['- Not available']
+  return [
+    '**Astro-Vastu zones (Lagna frame: 1st = East, 4th = North, 7th = West, 10th = South)**',
+    ...zoneLines,
+    `Strongest: ${sorted[0].id} (${sorted[0].score}%). Weakest: ${sorted[sorted.length - 1].id} (${sorted[sorted.length - 1].score}%).`,
+    `Main door favoured by the Lagna sign: ${lagnaDirection(asc)}.`,
+    '',
+    '**Dig Bala (directional strength, shashtiamsa)**',
+    ...digLines,
+    '',
+    '**Zone doshas from the chart**',
+    ...doshaLines,
+    '',
+    '**Dasha focus (Vimshottari lord → zone)**',
+    ...focusLines,
+  ].join('\n')
 }
 
 function lalKitabData(chart: ChartOutput): string {

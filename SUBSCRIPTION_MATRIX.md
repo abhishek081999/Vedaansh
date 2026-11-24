@@ -22,8 +22,10 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `src/proxy.ts` (`/api/chart/export`) — includes Gochar Phala and Lal Kitab chapters |
 | Lal Kitab (Teva, Learn, Nishaniyan, current-year Varshphal summary, 1 remedy) | Yes | Full reading + Teva check | Full reading + Teva check | UI: `LalKitabPanel` / `/lal-kitab` (`planMeetsUiGate`, Gold+ for gated tabs; Teva correction Gold) |
 | Lal Kitab PDF export | No | Yes | Yes | `POST /api/lal-kitab/export` — `requirePlanGate('gold')`, `src/proxy.ts` |
+| Astro-Vastu PDF report | No | Yes | Yes | `POST /api/vastu/export` — `requirePlanGate('gold')`, `src/proxy.ts` |
+| Astro-Vastu household view (owner + up to 5 saved charts) | No | No | Yes | UI gate in `HouseholdView`; member charts via `GET /api/chart/list` + `POST /api/chart/calculate`, scored in the browser |
 | Lal Kitab 43-day remedy tracker | No | Yes (saved) | Yes | `GET/POST /api/lal-kitab/remedies`, `PATCH/DELETE /api/lal-kitab/remedies/[id]` — Gold+ |
-| Planetary remedy tracker (daily mantra japa, weekly fast) | Teaser | Yes (saved) | Yes | `GET/POST /api/remedies/practices`, `PATCH/DELETE /api/remedies/practices/[id]` — Gold+ |
+| Planetary remedy tracker (daily mantra japa, weekly fast) and Vastu zone practices (`vastu.<zone>`, daily 21/40 days) | Teaser | Yes (saved) | Yes | `GET/POST /api/remedies/practices`, `PATCH/DELETE /api/remedies/practices/[id]` — Gold+ |
 | Festival & vrat calendar export (.ics), eclipse impact on chart, business & friendship compatibility | Yes | Yes | Yes | `GET /api/panchang/festivals`, `GET /api/transit/eclipses`; partner compatibility is computed in the browser |
 | Export chart (XLSX) | No | Yes | Yes | `src/app/api/chart/export-xlsx/route.ts` (`requirePlanGate`), `src/proxy.ts` |
 | Marriage gochar windows | No | Yes | Yes | `GET /api/marriage/gochar-windows` — `requirePlanGate('gold')`. Not listed in `src/proxy.ts` `GOLD_API` |

@@ -15,7 +15,7 @@ import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { lkChartKey } from '@/lib/engine/lalKitab/chartKey'
 import type { RemedyGrahaId } from '@/lib/engine/planetaryRemedies'
-import { describePractice, getRemedyPractice, practiceGrahaName, remedyPracticesFor } from '@/lib/engine/remedyPractices'
+import { describePractice, getRemedyPractice, isVastuPractice, practiceGrahaName, remedyPracticesFor } from '@/lib/engine/remedyPractices'
 
 interface PracticeRow {
   _id: string
@@ -77,7 +77,8 @@ export function RemedyPracticeTracker({ chart, userPlan, order }: Props) {
       const res = await fetch(`/api/remedies/practices?chartKey=${encodeURIComponent(chartKey)}`)
       const data = await res.json()
       if (!data.success) { setError(data.error || t('loadFail')); return }
-      setRows(data.practices ?? [])
+      // Vastu zone practices have their own tracker on the Vastu page
+      setRows(((data.practices ?? []) as PracticeRow[]).filter((r) => !isVastuPractice(r.practiceId)))
     } catch {
       setError(t('loadFail'))
     }
