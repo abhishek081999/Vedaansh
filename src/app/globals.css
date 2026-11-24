@@ -2958,6 +2958,18 @@ select.input {
   height: 32px;
 }
 
+.chart-mobile-actions-collapsed .chart-mobile-action-btn--ai {
+  width: auto;
+  padding: 0 0.5rem;
+  gap: 0.22rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  color: var(--text-gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border-soft));
+  background: var(--gold-faint);
+}
+
 .chart-mobile-action-btn--primary {
   background: linear-gradient(135deg, #9d7c35 0%, var(--gold) 60%, #e2c97e 100%);
   color: var(--text-on-gold);

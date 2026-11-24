@@ -22,6 +22,8 @@ import ui from './AiPromptPopup.module.css'
 interface Props {
   chart: ChartOutput
   compact?: boolean
+  /** `chip`: small "✦ AI" pill for the collapsed phone chart header. */
+  variant?: 'default' | 'chip'
 }
 
 // Mirrors AI_TOPICS in aiPromptTopics (kept here so the engines load only when the popup opens).
@@ -36,7 +38,7 @@ const AI_LINKS = [
   { name: 'Gemini', href: 'https://gemini.google.com/app' },
 ]
 
-export function AiPromptButton({ chart, compact = false }: Props) {
+export function AiPromptButton({ chart, compact = false, variant = 'default' }: Props) {
   const t = useTranslations('chart.aiPrompt')
   const locale = useLocale()
   const { data: session } = useSession()
@@ -220,10 +222,13 @@ export function AiPromptButton({ chart, compact = false }: Props) {
         aria-expanded={open}
         aria-haspopup="dialog"
         title={t('title')}
-        className="btn btn-secondary btn-sm"
-        style={{ whiteSpace: 'nowrap', transition: interactiveTransition('0.15s'), fontSize: compact ? '0.7rem' : undefined }}
+        aria-label={variant === 'chip' ? t('button') : undefined}
+        className={variant === 'chip' ? 'chart-mobile-action-btn chart-mobile-action-btn--ai' : 'btn btn-secondary btn-sm'}
+        style={variant === 'chip'
+          ? undefined
+          : { whiteSpace: 'nowrap', transition: interactiveTransition('0.15s'), fontSize: compact ? '0.7rem' : undefined }}
       >
-        ✦ {t('button')}
+        {variant === 'chip' ? <><Sparkles size={13} aria-hidden />AI</> : <>✦ {t('button')}</>}
       </button>
 
       {open && (isPhone && portalReady

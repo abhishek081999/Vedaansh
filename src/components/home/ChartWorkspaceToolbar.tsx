@@ -198,6 +198,7 @@ export function ChartWorkspaceToolbar({
             >
               {shareCopied ? <span style={{ fontSize: '0.85rem' }}>✓</span> : <ShareLinkIcon />}
             </button>
+            <AiPromptButton chart={chart} variant="chip" />
             {authenticated ? (
               <button
                 type="button"
@@ -261,7 +262,6 @@ export function ChartWorkspaceToolbar({
               {saving ? '…' : saveDone ? '✓' : isSavedChart ? tw('update') : tw('save')}
             </button>
           ) : null}
-          <AiPromptButton chart={chart} compact />
           <button type="button" onClick={onEdit} className="btn btn-secondary btn-sm">
             {tw('edit')}
           </button>

@@ -1752,7 +1752,7 @@ function HomeContent() {
                 tags={chartTags}
                 isMobile={isPhone}
                 mobileReserveRight={isPhone
-                  ? (mobileChartActionsOpen ? '2.5rem' : `calc(2.5rem + ${phoneQuickActionCount} * 2.15rem)`)
+                  ? (mobileChartActionsOpen ? '2.5rem' : `calc(4rem + ${phoneQuickActionCount} * 2.15rem)`)
                   : undefined}
                 showDefaultStar={status === 'authenticated'}
                 isDefaultChart={isDefaultChart}
