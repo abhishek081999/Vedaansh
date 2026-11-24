@@ -1,0 +1,362 @@
+.chrome {
+  margin: 0.35rem 0 0.55rem;
+  padding: 0.5rem 0.7rem 0.55rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.chromeCollapsed {
+  padding-bottom: 0.45rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.titleBlock {
+  min-width: 0;
+  flex: 1;
+}
+
+.kicker {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.titleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.06rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+.lockPill,
+.clientPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.08rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+}
+
+.clientPill {
+  color: var(--text-gold);
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border-soft));
+  background: var(--gold-faint);
+  text-transform: none;
+  letter-spacing: 0;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.chevron {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.upgrade {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: var(--gold-faint);
+  color: var(--text-gold);
+  font-size: 0.64rem;
+  font-weight: 650;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+}
+
+.body {
+  margin-top: 0.5rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.lockedCopy {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  font-weight: 650;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.tabOn {
+  border-color: var(--gold);
+  background: var(--gold-faint);
+  color: var(--text-gold);
+}
+
+.panel {
+  min-width: 0;
+}
+
+.error {
+  margin: 0 0 0.4rem;
+  font-size: 0.66rem;
+  color: var(--danger, #b91c1c);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.55rem 0.15rem;
+}
+
+.empty p,
+.muted {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.primaryBtn,
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 0.7rem;
+  border-radius: var(--r-sm);
+  font-size: 0.68rem;
+  font-weight: 650;
+  font-family: var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: #fff;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.linkBtn {
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.linkBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.sessionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 650;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.noteList {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 180px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.noteItem {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--surface-3) 80%, transparent);
+}
+
+.noteCat {
+  display: inline-block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+  margin-bottom: 0.15rem;
+}
+
+.noteText {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  line-height: 1.35;
+}
+
+.noteTime {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.58rem;
+  color: var(--text-muted);
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-1, #fff);
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-family: var(--font-body);
+}
+
+.remedyBlock {
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.remedyBlock:last-of-type {
+  border-bottom: none;
+}
+
+.remedyHead {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+  margin-bottom: 0.2rem;
+}
+
+.remedyLine {
+  margin: 0.1rem 0;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.remedyLine span {
+  font-weight: 650;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.crmRemedies {
+  margin-top: 0.35rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.clientCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.clientName {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-family: var(--font-display, var(--font-body));
+}

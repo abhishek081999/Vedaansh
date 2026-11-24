@@ -2766,25 +2766,23 @@ select.input {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding-top: 0.15rem;
-  padding-bottom: 0.35rem;
-  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.45rem;
   border-bottom: 1px solid var(--border-soft);
+  overflow: visible;
 }
 
 .chart-sticky-toolbar .chart-header-row {
   border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.4rem;
 }
 
-.kundali-snapshot-strip,
-.jaimini-snapshot-strip {
-  position: sticky;
-  top: 0;
-  z-index: 85;
+/* Data strip scrolls with content — only chart-sticky-toolbar stays pinned */
+.kundali-snapshot-strip {
+  position: relative;
+  z-index: 1;
   background: var(--header-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 1px 0 var(--border-soft);
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
@@ -2794,9 +2792,19 @@ select.input {
 }
 
 .jaimini-snapshot-strip {
+  position: sticky;
+  top: 0;
+  z-index: 85;
+  background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  max-width: 100%;
+  min-width: 0;
   margin-top: 0;
   margin-bottom: 0;
-  box-shadow: none;
 }
 
 .jaimini-panel {

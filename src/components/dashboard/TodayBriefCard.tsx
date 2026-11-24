@@ -50,7 +50,13 @@ function readOpenPreference(): boolean {
   }
 }
 
-export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
+export function TodayBriefCard({
+  chart,
+  embedded = false,
+}: {
+  chart: ChartOutput
+  embedded?: boolean
+}) {
   const t = useTranslations('chart.workspace.todayBrief')
   const { tag } = useLang()
   const { openWorkspace } = useAppLayout()
@@ -100,7 +106,7 @@ export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
 
   return (
     <section
-      className={`${styles.card}${open ? '' : ` ${styles.cardCollapsed}`}`}
+      className={`${styles.card}${open ? '' : ` ${styles.cardCollapsed}`}${embedded ? ` ${styles.cardEmbedded}` : ''}`}
       aria-label={t('aria')}
       style={{ ['--tone' as string]: color }}
     >
@@ -114,8 +120,8 @@ export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
           aria-label={open ? t('collapse') : t('expand')}
         >
           <span className={styles.titleBlock}>
-            <span className={styles.kicker}>{t('kicker')}</span>
             <span className={styles.titleRow}>
+              <span className={styles.live}>{t('kicker')}</span>
               <span className={styles.title}>{t('title')}</span>
               {reading ? (
                 <span className={styles.scorePill} style={{ color }}>
@@ -142,7 +148,7 @@ export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
             )}
           </span>
           <ChevronDown
-            size={16}
+            size={14}
             className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}
             aria-hidden
           />
@@ -180,49 +186,51 @@ export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
 
         {reading ? (
           <div className={styles.body}>
-            <div className={styles.scoreCol}>
-              <div className={styles.scoreRing} aria-hidden>
-                <span className={styles.scoreNum}>{reading.score}</span>
-              </div>
-              <span className={styles.scoreLabel}>{reading.labelText}</span>
-            </div>
-
-            <div className={styles.story}>
-              <p className={styles.headline}>{reading.headline}</p>
-            <div className={styles.metaRow}>
-              <button type="button" className={styles.metaChipBtn} onClick={() => openWorkspace('dasha')}>
-                <span className={styles.metaLabel}>{t('dasha')}</span>
-                {dashaLine}
-              </button>
-              {hora ? (
-                <span className={styles.metaChip}>
-                  <span className={styles.metaLabel}>{t('hora')}</span>
-                  {hora.label}
-                  {hora.current ? ` · ${t('now')}` : ''}
-                </span>
-              ) : null}
-              <button
-                type="button"
-                className={styles.metaChipBtn}
-                onClick={() => openWorkspace('planets', { type: 'planet', planet: 'Mo' })}
-              >
-                <span className={styles.metaLabel}>{t('tara')}</span>
-                {reading.tara.name}
-              </button>
-            </div>
-              {topGochar.length > 0 ? (
-                <div className={styles.gochar}>
-                  <span className={styles.metaLabel}>{t('gochar')}</span>
-                  <div className={styles.gocharList}>
-                    {topGochar.map((g) => (
-                      <span key={g.planet} className={styles.gocharItem}>
-                        {g.planetName} · {g.rashiName}
-                        <span className={styles.gocharHouse}>{t('fromLagna', { n: g.fromLagna })}</span>
-                      </span>
-                    ))}
-                  </div>
+            <div className={styles.lead}>
+              <div className={styles.scoreCol}>
+                <div className={styles.scoreRing} aria-hidden>
+                  <span className={styles.scoreNum}>{reading.score}</span>
                 </div>
-              ) : null}
+                <span className={styles.scoreLabel}>{reading.labelText}</span>
+              </div>
+
+              <div className={styles.story}>
+                <p className={styles.headline}>{reading.headline}</p>
+                <div className={styles.metaRow}>
+                  <button type="button" className={styles.metaChipBtn} onClick={() => openWorkspace('dasha')}>
+                    <span className={styles.metaLabel}>{t('dasha')}</span>
+                    {dashaLine}
+                  </button>
+                  {hora ? (
+                    <span className={styles.metaChip}>
+                      <span className={styles.metaLabel}>{t('hora')}</span>
+                      {hora.label}
+                      {hora.current ? ` · ${t('now')}` : ''}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={styles.metaChipBtn}
+                    onClick={() => openWorkspace('planets', { type: 'planet', planet: 'Mo' })}
+                  >
+                    <span className={styles.metaLabel}>{t('tara')}</span>
+                    {reading.tara.name}
+                  </button>
+                </div>
+                {topGochar.length > 0 ? (
+                  <div className={styles.gochar}>
+                    <span className={styles.metaLabel}>{t('gochar')}</span>
+                    <div className={styles.gocharList}>
+                      {topGochar.map((g) => (
+                        <span key={g.planet} className={styles.gocharItem}>
+                          {g.planetName} · {g.rashiName}
+                          <span className={styles.gocharHouse}>{t('fromLagna', { n: g.fromLagna })}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             <div className={styles.areas} aria-label={t('areasAria')}>
@@ -232,7 +240,7 @@ export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
                   <div key={a.id} className={styles.areaRow}>
                     <div className={styles.areaHead}>
                       <span>{a.label}</span>
-                      <span style={{ color: toneColor(aTone) }}>{a.score}</span>
+                      <span className={styles.areaScore} style={{ color: toneColor(aTone) }}>{a.score}</span>
                     </div>
                     <div className={styles.areaTrack}>
                       <div
@@ -247,7 +255,6 @@ export function TodayBriefCard({ chart }: { chart: ChartOutput }) {
           </div>
         ) : loading ? (
           <div className={styles.skeleton} aria-hidden>
-            <div className={styles.skelBlock} />
             <div className={styles.skelBlock} />
             <div className={styles.skelBlock} />
           </div>

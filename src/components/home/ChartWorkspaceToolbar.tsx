@@ -1,12 +1,13 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/home/ChartWorkspaceToolbar.tsx
-//  Chart header actions — primary Save / Share / Edit / New;
+//  Chart header actions — primary Save / Share / AI / Edit / New;
 //  secondary tools live in a More menu (desktop) or expand row (phone).
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { createPortal } from 'react-dom'
 import { Link } from '@/i18n/navigation'
 import { ChevronDown, Library, MoreHorizontal, Pencil, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -69,6 +70,7 @@ function SecondaryTools({
   crmDone,
   onCrm,
   onNavigate,
+  includeAi = false,
 }: {
   chart: ChartOutput
   authenticated: boolean
@@ -77,6 +79,7 @@ function SecondaryTools({
   crmDone: boolean
   onCrm: () => void
   onNavigate?: () => void
+  includeAi?: boolean
 }) {
   const tAct = useTranslations('chart.actions')
   return (
@@ -87,7 +90,7 @@ function SecondaryTools({
         </Link>
       ) : null}
       <ExportPdfButton chart={chart} compact />
-      <AiPromptButton chart={chart} compact />
+      {includeAi ? <AiPromptButton chart={chart} compact /> : null}
       <EmailChartButton chart={chart} compact />
       {authenticated && userPlan === 'platinum' ? (
         <button
@@ -129,12 +132,41 @@ export function ChartWorkspaceToolbar({
   const tw = useTranslations('chart.workspace')
   const tAct = useTranslations('chart.actions')
   const [moreOpen, setMoreOpen] = useState(false)
-  const moreRef = useRef<HTMLDivElement>(null)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const moreBtnRef = useRef<HTMLButtonElement>(null)
+  const moreMenuRef = useRef<HTMLDivElement>(null)
+  const [portalReady, setPortalReady] = useState(false)
+
+  useEffect(() => setPortalReady(true), [])
+
+  useLayoutEffect(() => {
+    if (!moreOpen || !moreBtnRef.current) {
+      setMenuPos(null)
+      return
+    }
+    const place = () => {
+      const r = moreBtnRef.current!.getBoundingClientRect()
+      setMenuPos({
+        top: r.bottom + 6,
+        right: Math.max(8, window.innerWidth - r.right),
+      })
+    }
+    place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [moreOpen])
 
   useEffect(() => {
     if (!moreOpen) return
     const onDoc = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
+      const t = e.target as Node
+      if (moreBtnRef.current?.contains(t)) return
+      if (moreMenuRef.current?.contains(t)) return
+      setMoreOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMoreOpen(false)
@@ -229,6 +261,7 @@ export function ChartWorkspaceToolbar({
               {saving ? '…' : saveDone ? '✓' : isSavedChart ? tw('update') : tw('save')}
             </button>
           ) : null}
+          <AiPromptButton chart={chart} compact />
           <button type="button" onClick={onEdit} className="btn btn-secondary btn-sm">
             {tw('edit')}
           </button>
@@ -244,11 +277,65 @@ export function ChartWorkspaceToolbar({
             crmSaving={crmSaving}
             crmDone={crmDone}
             onCrm={onCrm}
+            includeAi={false}
           />
         </div>
       </>
     )
   }
+
+  const moreMenu =
+    moreOpen && menuPos && portalReady
+      ? createPortal(
+          <div
+            ref={moreMenuRef}
+            className={styles.moreMenu}
+            role="menu"
+            style={{ top: menuPos.top, right: menuPos.right }}
+          >
+            {authenticated ? (
+              <Link
+                href="/my/charts"
+                className={styles.moreItem}
+                role="menuitem"
+                onClick={() => setMoreOpen(false)}
+              >
+                <Library size={14} aria-hidden />
+                {tAct('myCharts')}
+              </Link>
+            ) : null}
+            <div className={styles.moreToolRow} role="none">
+              <ExportPdfButton
+                chart={chart}
+                compact
+                style={{ width: '100%', justifyContent: 'flex-start' }}
+              />
+            </div>
+            <div className={styles.moreToolRow} role="none">
+              <EmailChartButton
+                chart={chart}
+                compact
+                style={{ width: '100%', justifyContent: 'flex-start' }}
+              />
+            </div>
+            {authenticated && userPlan === 'platinum' ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={styles.moreItem}
+                onClick={() => {
+                  onCrm()
+                  setMoreOpen(false)
+                }}
+                disabled={crmSaving || crmDone}
+              >
+                {crmSaving ? '…' : crmDone ? tAct('crmDone') : tAct('crm')}
+              </button>
+            ) : null}
+          </div>,
+          document.body,
+        )
+      : null
 
   return (
     <div className={`chart-actions-compact ${styles.desktop}`}>
@@ -273,6 +360,8 @@ export function ChartWorkspaceToolbar({
         {shareCopied ? '✓' : <ShareLinkIcon />}
       </button>
 
+      <AiPromptButton chart={chart} compact />
+
       <button type="button" onClick={onEdit} className="btn btn-secondary btn-sm" aria-label={tw('editBirth')} title={tw('editBirth')}>
         <Pencil size={14} strokeWidth={2} aria-hidden />
         <span className={styles.btnLabel}>{tw('edit')}</span>
@@ -282,8 +371,9 @@ export function ChartWorkspaceToolbar({
         {tAct('newChart')}
       </button>
 
-      <div className={styles.moreWrap} ref={moreRef}>
+      <div className={styles.moreWrap}>
         <button
+          ref={moreBtnRef}
           type="button"
           className={`btn btn-secondary btn-sm ${styles.moreBtn}`}
           aria-expanded={moreOpen}
@@ -294,35 +384,7 @@ export function ChartWorkspaceToolbar({
           <MoreHorizontal size={16} strokeWidth={2} aria-hidden />
           <span className={styles.btnLabel}>{tw('more')}</span>
         </button>
-        {moreOpen ? (
-          <div className={styles.moreMenu} role="menu">
-            {authenticated ? (
-              <Link href="/my/charts" className={styles.moreItem} role="menuitem" onClick={() => setMoreOpen(false)}>
-                <Library size={14} aria-hidden />
-                {tAct('myCharts')}
-              </Link>
-            ) : null}
-            <div className={styles.moreTools} role="none">
-              <ExportPdfButton chart={chart} compact />
-              <AiPromptButton chart={chart} compact />
-              <EmailChartButton chart={chart} compact />
-            </div>
-            {authenticated && userPlan === 'platinum' ? (
-              <button
-                type="button"
-                role="menuitem"
-                className={styles.moreItem}
-                onClick={() => {
-                  onCrm()
-                  setMoreOpen(false)
-                }}
-                disabled={crmSaving || crmDone}
-              >
-                {crmSaving ? '…' : crmDone ? tAct('crmDone') : tAct('crm')}
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        {moreMenu}
       </div>
     </div>
   )

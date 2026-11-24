@@ -95,7 +95,13 @@ import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
 import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } from '@/components/home/MobileDashboardNav'
 import { WorkspaceChartDock } from '@/components/home/WorkspaceChartDock'
 import dockStyles from '@/components/home/WorkspaceChartDock.module.css'
+import { useWorkspacePin } from '@/components/home/useWorkspacePin'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+
+const SavedChartSelector = dynamic(
+  () => import('@/components/ui/SavedChartSelector').then((m) => m.SavedChartSelector),
+  { ssr: false },
+)
 import { useMasonryGrid, masonryGridStyle } from '@/hooks/useMasonryGrid'
 
 import { ChartContextBar, PanelShell } from '@/components/ui/patterns'
@@ -592,6 +598,19 @@ function HomeContent() {
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
+  const [pinLibraryOpen, setPinLibraryOpen] = useState(false)
+  const {
+    pin,
+    loading: pinLoading,
+    error: pinError,
+    pickerOpen: pinPickerOpen,
+    setPickerOpen: setPinPickerOpen,
+    pinTransit,
+    pinPartner,
+    clear: clearPin,
+    comparisonGrahas: pinComparisonGrahas,
+    pinTransitGrahas,
+  } = useWorkspacePin(chart)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
   const [dashaView, setDashaView] = useState<'graphics' | 'table'>('graphics')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
@@ -1831,7 +1850,20 @@ function HomeContent() {
                     moonNakIndex={moonNakIndex}
                     tithiNumber={tithiNumber}
                     varaNumber={varaNumber}
-                    transitGrahas={transitGrahas}
+                    transitGrahas={pinTransitGrahas ?? transitGrahas}
+                    comparisonGrahas={pinComparisonGrahas}
+                    pin={pin}
+                    pinLoading={pinLoading}
+                    pinError={pinError}
+                    pickerOpen={pinPickerOpen}
+                    onTogglePicker={() => setPinPickerOpen((o) => !o)}
+                    onClosePicker={() => setPinPickerOpen(false)}
+                    onPinTransit={() => { void pinTransit() }}
+                    onOpenLibrary={() => {
+                      setPinPickerOpen(false)
+                      setPinLibraryOpen(true)
+                    }}
+                    onClearPin={clearPin}
                     compact={isMobile}
                   />
                 )}
@@ -1902,7 +1934,8 @@ function HomeContent() {
                      mobileSelectedVarga={chartActiveVarga}
                      onMobileSelectedVargaChange={setChartActiveVarga}
                      hideMobileSelector={isMobile}
-                     transitGrahas={transitGrahas ?? undefined}
+                     transitGrahas={(pinTransitGrahas ?? transitGrahas) ?? undefined}
+                     comparisonGrahas={pinComparisonGrahas}
                      chart={chart}
                      transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                   />
@@ -3204,6 +3237,16 @@ function HomeContent() {
               />
             )}
       </ChartFormDrawer>
+
+      {pinLibraryOpen && (
+        <SavedChartSelector
+          onClose={() => setPinLibraryOpen(false)}
+          onSelect={(saved) => {
+            setPinLibraryOpen(false)
+            void pinPartner(saved)
+          }}
+        />
+      )}
 
       <MobileDashboardNav
         showMainNav={showMainDashBottomNav}

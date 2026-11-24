@@ -421,7 +421,15 @@
       "md": "महादशा",
       "ad": "अंतर्दशा",
       "openDasha": "दशा",
-      "openPlanets": "ग्रह"
+      "openPlanets": "ग्रह",
+      "pin": "पिन",
+      "pinning": "पिन हो रहा है…",
+      "unpin": "हटाएँ",
+      "pinAria": "पिन की गई तुलना कुंडली",
+      "pinTransit": "अभी का गोचर",
+      "pinLibrary": "सहेजी कुंडली…",
+      "pinTransitKicker": "गोचर",
+      "pinPartnerKicker": "साथी"
     },
     "todayBrief": {
       "aria": "इस कुंडली के लिए आज",

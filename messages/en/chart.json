@@ -421,7 +421,15 @@
       "md": "MD",
       "ad": "AD",
       "openDasha": "Dasha",
-      "openPlanets": "Planets"
+      "openPlanets": "Planets",
+      "pin": "Pin",
+      "pinning": "Pinning…",
+      "unpin": "Unpin",
+      "pinAria": "Pinned comparison chart",
+      "pinTransit": "Transit now",
+      "pinLibrary": "Saved chart…",
+      "pinTransitKicker": "Transit",
+      "pinPartnerKicker": "Partner"
     },
     "todayBrief": {
       "aria": "Today for this chart",

@@ -30,6 +30,123 @@
   gap: 0.5rem;
 }
 
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.pinWrap {
+  position: relative;
+}
+
+.pinBtn,
+.pinClear {
+  height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  font-size: 0.64rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.pinBtn:hover,
+.pinClear:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.pinBtn:disabled,
+.pinClear:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pinMenu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 20;
+  min-width: 9.5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--text-primary) 12%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pinMenuItem {
+  height: 28px;
+  padding: 0 0.55rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.pinMenuItem:hover {
+  background: var(--gold-faint);
+  color: var(--gold);
+}
+
+.pinMenuItem:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pinError {
+  margin: 0;
+  font-size: 0.64rem;
+  color: var(--danger, #b91c1c);
+}
+
+.pinSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.pinHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.pinTitle {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  font-family: var(--font-display, var(--font-body));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 10rem;
+}
+
+.pinLagna {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-top: 0.15rem;
+}
+
 .titleBlock {
   display: flex;
   flex-direction: column;

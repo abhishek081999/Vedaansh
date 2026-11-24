@@ -1,7 +1,7 @@
 .card {
   --tone: var(--gold);
   margin: 0.45rem 0 0.75rem;
-  padding: 0.55rem 0.75rem 0.6rem;
+  padding: 0.6rem 0.8rem 0.7rem;
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   background:
@@ -11,6 +11,10 @@
 
 .cardCollapsed {
   padding-bottom: 0.5rem;
+}
+
+.cardEmbedded {
+  margin: 0;
 }
 
 .head {
@@ -26,7 +30,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.55rem;
+  gap: 0.5rem;
   padding: 0;
   border: none;
   background: transparent;
@@ -43,36 +47,42 @@
   flex: 1;
 }
 
-.kicker {
-  display: block;
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
 .titleRow {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.08rem;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.45rem;
   min-width: 0;
+}
+
+.live {
+  flex-shrink: 0;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 0.12rem 0.38rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  line-height: 1;
 }
 
 .title {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-primary);
   font-family: var(--font-body);
-  line-height: 1.2;
-  letter-spacing: 0.02em;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
 .scorePill {
   flex-shrink: 0;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 0.62rem;
   font-weight: 800;
   padding: 0.05rem 0.32rem;
@@ -84,10 +94,10 @@
 .sub,
 .summary {
   display: block;
-  margin: 0.15rem 0 0;
-  font-size: 0.62rem;
-  color: var(--text-muted);
-  line-height: 1.3;
+  margin: 0.2rem 0 0;
+  font-size: 0.64rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
 }
 
 .summary {
@@ -98,8 +108,8 @@
 
 .chevron {
   flex-shrink: 0;
-  margin-top: 0.35rem;
-  color: var(--text-muted);
+  margin-top: 0.2rem;
+  color: var(--text-secondary);
   transition: transform 0.18s ease;
 }
 
@@ -108,7 +118,9 @@
 }
 
 .collapse {
-  margin-top: 0.65rem;
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--border-soft) 85%, transparent);
 }
 
 .collapse[hidden] {
@@ -118,7 +130,7 @@
 .headActions {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-shrink: 0;
 }
 
@@ -152,13 +164,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  height: 24px;
-  padding: 0 0.55rem;
+  height: 28px;
+  padding: 0 0.65rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border-soft));
   background: var(--gold-faint);
   color: var(--text-gold);
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   font-weight: 700;
   text-decoration: none;
   font-family: var(--font-body);
@@ -168,82 +180,97 @@
   border-color: var(--gold);
 }
 
+/* Verdict + life areas: two columns, no empty middle fr */
 .body {
   display: grid;
-  grid-template-columns: auto minmax(0, 1.4fr) minmax(140px, 0.9fr);
-  gap: 0.85rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
+  gap: 0.85rem 1.1rem;
+  align-items: stretch;
+}
+
+.lead {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  min-width: 0;
 }
 
 .scoreCol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  min-width: 72px;
+  gap: 0.28rem;
+  flex-shrink: 0;
+  width: 4.25rem;
 }
 
 .scoreRing {
-  width: 64px;
-  height: 64px;
+  width: 3.75rem;
+  height: 3.75rem;
   border-radius: 50%;
   display: grid;
   place-items: center;
   border: 3px solid color-mix(in srgb, var(--tone) 70%, var(--border-soft));
   background: color-mix(in srgb, var(--tone) 12%, var(--surface-1));
-  box-shadow: inset 0 0 0 6px var(--surface-2);
+  box-shadow: inset 0 0 0 5px var(--surface-2);
 }
 
 .scoreNum {
   font-family: var(--font-mono);
-  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--tone);
   line-height: 1;
 }
 
 .scoreLabel {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--tone);
   text-align: center;
+  line-height: 1.2;
+  max-width: 4.5rem;
 }
 
 .story {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
+  flex: 1;
 }
 
 .headline {
   margin: 0;
-  font-size: 0.84rem;
-  line-height: 1.45;
+  font-size: 0.88rem;
+  line-height: 1.4;
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 650;
+  max-width: 42ch;
 }
 
 .metaRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .metaChip,
 .metaChipBtn {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.3rem;
-  padding: 0.22rem 0.45rem;
+  gap: 0.28rem;
+  padding: 0.2rem 0.42rem;
   border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--surface-3) 90%, transparent);
+  background: var(--surface-3);
   border: 1px solid var(--border-soft);
   font-size: 0.68rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   max-width: 100%;
+  line-height: 1.3;
 }
 
 .metaChipBtn {
@@ -254,67 +281,82 @@
 
 .metaChipBtn:hover {
   border-color: var(--gold);
-  color: var(--text-primary);
 }
 
 .metaLabel {
-  font-size: 0.52rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .gochar {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.22rem;
 }
 
 .gocharList {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .gocharItem {
-  font-size: 0.68rem;
-  color: var(--text-secondary);
-  padding: 0.15rem 0.4rem;
-  border-radius: 999px;
+  font-size: 0.66rem;
+  color: var(--text-primary);
+  padding: 0.16rem 0.4rem;
+  border-radius: var(--r-sm);
   border: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--surface-1) 70%, var(--surface-3));
+  line-height: 1.3;
 }
 
 .gocharHouse {
-  margin-left: 0.25rem;
-  color: var(--text-muted);
+  margin-left: 0.22rem;
+  color: var(--text-secondary);
   font-size: 0.6rem;
 }
 
 .areas {
   display: flex;
   flex-direction: column;
-  gap: 0.32rem;
+  justify-content: space-between;
+  gap: 0.38rem;
   min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--surface-1) 55%, var(--surface-3));
 }
 
 .areaRow {
   display: flex;
   flex-direction: column;
-  gap: 0.12rem;
+  gap: 0.14rem;
 }
 
 .areaHead {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 0.35rem;
-  font-size: 0.62rem;
-  color: var(--text-secondary);
+  font-size: 0.64rem;
+  color: var(--text-primary);
   font-weight: 600;
+  line-height: 1.2;
+}
+
+.areaScore {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.64rem;
 }
 
 .areaTrack {
-  height: 3px;
+  height: 4px;
   border-radius: 999px;
   background: var(--surface-3);
   overflow: hidden;
@@ -333,12 +375,12 @@
 
 .skeleton {
   display: grid;
-  grid-template-columns: 72px 1fr 1fr;
-  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
+  gap: 0.85rem 1.1rem;
 }
 
 .skelBlock {
-  height: 72px;
+  height: 7.5rem;
   border-radius: var(--r-sm);
   background: linear-gradient(90deg, var(--surface-3), var(--surface-2), var(--surface-3));
   background-size: 200% 100%;
@@ -352,11 +394,14 @@
 
 @media (max-width: 1023px) {
   .body {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .areas {
-    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem 0.75rem;
+    justify-content: stretch;
   }
 
   .skeleton {
@@ -374,13 +419,29 @@
     justify-content: flex-end;
   }
 
-  .body {
-    grid-template-columns: 1fr;
+  .lead {
+    flex-direction: column;
+    gap: 0.55rem;
   }
 
   .scoreCol {
     flex-direction: row;
+    width: auto;
     justify-content: flex-start;
     gap: 0.65rem;
+  }
+
+  .scoreLabel {
+    max-width: none;
+    text-align: left;
+  }
+
+  .headline {
+    max-width: none;
+    font-size: 0.84rem;
+  }
+
+  .areas {
+    grid-template-columns: 1fr;
   }
 }

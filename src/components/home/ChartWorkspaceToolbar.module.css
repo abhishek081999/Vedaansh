@@ -3,6 +3,7 @@
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
+  overflow: visible;
 }
 
 .btnLabel {
@@ -11,6 +12,7 @@
 
 .moreWrap {
   position: relative;
+  overflow: visible;
 }
 
 .moreBtn {
@@ -19,19 +21,18 @@
 }
 
 .moreMenu {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  right: 0;
-  z-index: var(--z-dropdown, 40);
-  min-width: 220px;
-  padding: 0.45rem;
+  position: fixed;
+  z-index: 200;
+  min-width: 11.5rem;
+  max-width: min(16rem, calc(100vw - 1rem));
+  padding: 0.35rem;
   border-radius: var(--r-md);
   border: 1px solid var(--border-soft);
-  background: var(--surface-1);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  background: var(--surface-1, #fff);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.2rem;
 }
 
 .moreItem {
@@ -39,7 +40,8 @@
   align-items: center;
   gap: 0.45rem;
   width: 100%;
-  padding: 0.45rem 0.55rem;
+  min-height: 34px;
+  padding: 0.4rem 0.55rem;
   border: none;
   border-radius: var(--r-sm);
   background: transparent;
@@ -61,13 +63,19 @@
   cursor: default;
 }
 
-.moreTools {
+.moreToolRow {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  padding: 0.2rem 0.15rem 0.35rem;
-  border-top: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
+  width: 100%;
+}
+
+.moreToolRow > * {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.moreToolRow button {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 @media (max-width: 720px) {
