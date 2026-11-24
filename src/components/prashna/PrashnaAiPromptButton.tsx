@@ -8,8 +8,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
-import type { ChartOutput, GrahaId } from '@/types/astrology'
+import { useSession } from 'next-auth/react'
+import type { ChartOutput, GrahaId, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
+import { Download, ExternalLink, Lock, Sparkles, X } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
+import ui from '@/components/ui/AiPromptPopup.module.css'
 
 type Builder = typeof import('@/lib/engine/prashnaAiPrompt').buildPrashnaAiPrompt
 
@@ -34,10 +38,13 @@ export function PrashnaAiPromptButton({ chart, at, question, place, lat, lng, tz
   const t = useTranslations('prashna.m1.ai')
   const tc = useTranslations('chart.aiPrompt')
   const { lang } = useLang()
+  const { data: session } = useSession()
+  const plan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
+  // Free: short prompt only. Full is Gold+ (the builder enforces this too).
+  const isFree = plan === 'free'
   const [open, setOpen] = useState(false)
   const [hideQuestion, setHideQuestion] = useState(false)
   const [detail, setDetail] = useState<'full' | 'short'>('full')
-  const [copied, setCopied] = useState(false)
   const [build, setBuild] = useState<Builder | null>(null)
   const [isPhone, setIsPhone] = useState(false)
   const [portalReady, setPortalReady] = useState(false)
@@ -60,9 +67,10 @@ export function PrashnaAiPromptButton({ chart, at, question, place, lat, lng, tz
     return () => { alive = false }
   }, [open, build])
 
+  const effDetail = isFree ? 'short' : detail
   const prompt = useMemo(
-    () => (open && build ? build(chart, { question, at, place, lat, lng, tz, hora, lang, hideQuestion, detail }) : ''),
-    [open, build, chart, question, at, place, lat, lng, tz, hora, lang, hideQuestion, detail],
+    () => (open && build ? build(chart, { question, at, place, lat, lng, tz, hora, lang, hideQuestion, detail: effDetail, plan }) : ''),
+    [open, build, chart, question, at, place, lat, lng, tz, hora, lang, hideQuestion, effDetail, plan],
   )
 
   useEffect(() => {
@@ -81,101 +89,103 @@ export function PrashnaAiPromptButton({ chart, at, question, place, lat, lng, tz
     }
   }, [open])
 
-  async function copy() {
-    if (!prompt) return
-    try {
-      await navigator.clipboard.writeText(prompt)
-    } catch {
-      const ta = document.createElement('textarea')
-      ta.value = prompt
-      document.body.appendChild(ta)
-      ta.select()
-      document.execCommand('copy')
-      ta.remove()
-    }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   function download() {
     if (!prompt) return
     const url = URL.createObjectURL(new Blob([prompt], { type: 'text/markdown;charset=utf-8' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `prashna-${at.toISOString().slice(0, 10)}-ai-prompt${detail === 'short' ? '-short' : ''}.md`
+    a.download = `prashna-${at.toISOString().slice(0, 10)}-ai-prompt${effDetail === 'short' ? '-short' : ''}.md`
     a.click()
     setTimeout(() => URL.revokeObjectURL(url), 5000)
   }
 
   const kb = prompt ? Math.max(1, Math.round(new Blob([prompt]).size / 1024)) : 0
-  const small: React.CSSProperties = { margin: 0, fontSize: '0.68rem', lineHeight: 1.4, color: 'var(--text-muted)' }
 
   const dialog = (
-    <div ref={dialogRef} role="dialog" aria-label={t('heading')}
-      style={{
-        position: isPhone ? 'fixed' : 'absolute',
-        top: isPhone ? 'auto' : 'calc(100% + 8px)',
-        bottom: isPhone ? 'calc(12px + env(safe-area-inset-bottom, 0px))' : 'auto',
-        left: isPhone ? 12 : 'auto', right: isPhone ? 12 : 0,
-        width: isPhone ? 'auto' : 330, maxHeight: isPhone ? 'calc(100dvh - 96px)' : 'min(80vh, 560px)',
-        overflowY: 'auto', overscrollBehavior: 'contain',
-        background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)',
-        padding: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', zIndex: isPhone ? 10001 : 100,
-        display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left',
-      }}>
-      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{t('heading')}</div>
-      <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.45, color: 'var(--text-secondary)' }}>{t('body')}</p>
-      {!question.trim() && !hideQuestion && <p style={{ ...small, color: 'var(--rose)' }}>{t('noQuestion')}</p>}
-
-      <div role="radiogroup" aria-label={tc('lengthLabel')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{tc('lengthLabel')}</div>
-        <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 999, padding: 2, gap: 2 }}>
-          {(['short', 'full'] as const).map(d => {
-            const on = detail === d
-            return (
-              <button key={d} type="button" role="radio" aria-checked={on} onClick={() => setDetail(d)}
-                style={{
-                  flex: 1, padding: '4px 8px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem',
-                  border: `1px solid ${on ? 'var(--gold)' : 'transparent'}`, background: on ? 'var(--gold-faint)' : 'transparent',
-                  color: on ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: on ? 600 : 500,
-                }}>
-                {tc(d === 'short' ? 'lengthShort' : 'lengthFull')}
-              </button>
-            )
-          })}
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-labelledby="prashna-ai-title"
+      className={`${ui.dialog} ${isPhone ? ui.sheet : ui.anchored}`}
+    >
+      <header className={ui.header}>
+        <span className={ui.badge} aria-hidden><Sparkles size={17} /></span>
+        <div className={ui.headText}>
+          <h2 id="prashna-ai-title" className={ui.title}>{t('heading')}</h2>
+          <p className={ui.lede}>{t('body')}</p>
         </div>
-        <div style={small}>{t(detail === 'short' ? 'shortHint' : 'fullHint')}</div>
-      </div>
-
-      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-        <input type="checkbox" checked={hideQuestion} onChange={e => setHideQuestion(e.target.checked)} />
-        {t('hideQuestion')}
-      </label>
-
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button type="button" onClick={() => void copy()} disabled={!prompt} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
-          {copied ? tc('copied') : tc('copy')}
+        <button type="button" className={ui.close} onClick={() => setOpen(false)} aria-label={tc('close')}>
+          <X size={16} aria-hidden />
         </button>
-        <button type="button" onClick={download} disabled={!prompt} className="btn btn-secondary btn-sm">{tc('download')}</button>
+      </header>
+
+      <div className={ui.body}>
+        {isFree && (
+          <p className={ui.notice}>
+            {tc('freeNotePrashna')} <Link href="/pricing" className={ui.noticeLink}>{tc('viewPlans')}</Link>
+          </p>
+        )}
+        {!question.trim() && !hideQuestion && <p className={`${ui.notice} ${ui.warn}`}>{t('noQuestion')}</p>}
+
+        <section className={ui.step}>
+          <div className={ui.stepHead} id="prashna-ai-length"><span className={ui.stepNum}>1</span>{tc('lengthLabel')}</div>
+          <div role="radiogroup" aria-labelledby="prashna-ai-length" className={ui.segment}>
+            {(['short', 'full'] as const).map(d => {
+              const locked = isFree && d === 'full'
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  role="radio"
+                  aria-checked={effDetail === d}
+                  aria-disabled={locked || undefined}
+                  onClick={() => { if (!locked) setDetail(d) }}
+                  className={`${ui.segBtn} ${effDetail === d ? ui.segOn : ''} ${locked ? ui.locked : ''}`}
+                >
+                  {locked && <Lock size={11} aria-hidden />}
+                  {tc(d === 'short' ? 'lengthShort' : 'lengthFull')}
+                  {locked && <span className={ui.goldTag}>{tc('goldTag')}</span>}
+                </button>
+              )
+            })}
+          </div>
+          <p className={ui.hint}>{t(effDetail === 'short' ? 'shortHint' : 'fullHint')}</p>
+        </section>
+
+        <label className={ui.check}>
+          <input type="checkbox" checked={hideQuestion} onChange={e => setHideQuestion(e.target.checked)} />
+          {t('hideQuestion')}
+        </label>
       </div>
-      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{prompt ? tc('size', { kb }) : tc('preparing')}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: '0.75rem' }}>
-        <span style={{ color: 'var(--text-muted)' }}>{tc('openIn')}</span>
-        {AI_LINKS.map(l => <a key={l.name} href={l.href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)' }}>{l.name} ↗</a>)}
-      </div>
-      <p style={small}>{t('privacy')}</p>
+
+      <footer className={ui.footer}>
+        <button type="button" onClick={download} disabled={!prompt} className={`btn btn-primary ${ui.download}`}>
+          <Download size={16} aria-hidden />
+          {tc('download')}
+          <small>{prompt ? `· ${kb} KB` : tc('preparing')}</small>
+        </button>
+        <div className={ui.attachRow}>
+          <span>{tc('openIn')}</span>
+          {AI_LINKS.map(l => (
+            <a key={l.name} href={l.href} target="_blank" rel="noopener noreferrer" className={ui.aiLink}>
+              {l.name} <ExternalLink size={11} aria-hidden />
+            </a>
+          ))}
+        </div>
+        <p className={ui.privacy}><Lock size={11} aria-hidden />{t('privacy')}</p>
+      </footer>
     </div>
   )
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-flex' }}>
-      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} title={t('title')} className="btn btn-sm btn-secondary" style={{ whiteSpace: 'nowrap' }}>
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-haspopup="dialog" title={t('title')} className="btn btn-sm btn-secondary" style={{ whiteSpace: 'nowrap' }}>
         ✦ {tc('button')}
       </button>
       {open && (isPhone && portalReady
         ? createPortal(
             <>
-              <div aria-hidden="true" onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.42)', zIndex: 10000 }} />
+              <div aria-hidden="true" onClick={() => setOpen(false)} className={ui.backdrop} />
               {dialog}
             </>,
             document.body,

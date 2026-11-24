@@ -34,7 +34,8 @@ export function LalKitabChartRail({
   const teva = tevaOverride ?? (basis === 'lagna' ? reading.teva : reading.chandra)
   const grahas = useMemo(() => tevaGrahas(chart, teva), [chart, teva])
   const locked = Boolean(tevaOverride)
-  const size = compact ? 200 : 248
+  // compact = phone: the rail spans the screen, so the wheel can be larger.
+  const size = compact ? 280 : 248
 
   return (
     <aside className={styles.chartRail} aria-label={t('chartTitle')}>

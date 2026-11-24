@@ -89,7 +89,7 @@ export function LalKitabPanel({ chart, userPlan }: LalKitabPanelProps) {
   useEffect(() => {
     const el = rootRef.current
     if (!el) return
-    const apply = (width: number) => setIsMobile(width < BREAKPOINTS.lg)
+    const apply = (width: number) => setIsMobile(width < BREAKPOINTS.md)
     apply(el.getBoundingClientRect().width)
     const ro = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width
