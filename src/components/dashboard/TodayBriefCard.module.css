@@ -445,3 +445,39 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Collapsed: one slim line (title · score · summary · link) so the Kundali sits higher. */
+.cardCollapsed {
+  margin: 0 0 0.6rem;
+  padding: 0.32rem 0.45rem 0.32rem 0.7rem;
+}
+
+.cardCollapsed .head,
+.cardCollapsed .toggle {
+  align-items: center;
+}
+
+.cardCollapsed .titleBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.cardCollapsed .titleRow {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.cardCollapsed .summary {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.cardCollapsed .chevron {
+  margin-top: 0;
+}
+
+.cardCollapsed .fullLink {
+  height: 24px;
+}

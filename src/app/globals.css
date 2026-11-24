@@ -2778,17 +2778,31 @@ select.input {
   padding-bottom: 0.4rem;
 }
 
-/* Data strip scrolls with content — only chart-sticky-toolbar stays pinned */
+/* Data strip stays pinned under the app header while the workspace scrolls */
 .kundali-snapshot-strip {
-  position: relative;
-  z-index: 1;
+  position: sticky;
+  top: 0;
+  z-index: 85;
   background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 1px 0 var(--border-soft);
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
   max-width: 100%;
   min-width: 0;
   margin-bottom: 0.75rem;
+}
+
+/* Hint that the strip scrolls sideways: fade the right edge, pad so the last item clears it. */
+.kundali-snapshot-strip {
+  scrollbar-width: none;
+  padding-right: 2rem !important;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+.kundali-snapshot-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .jaimini-snapshot-strip {

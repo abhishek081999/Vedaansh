@@ -1624,7 +1624,7 @@ function HomeContent() {
             </button>
           </div>
           <div style={{ maxHeight: expandAstro ? 'none' : '220px', overflow: 'hidden', position: 'relative', padding: '0.4rem 0.5rem' }}>
-            <AstroDetailsPanel chart={dashboardChart} />
+            <AstroDetailsPanel chart={dashboardChart} hideIdentity />
             {!expandAstro && (
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '48px', background: 'linear-gradient(transparent, var(--surface-1))', pointerEvents: 'none' }} />
             )}
