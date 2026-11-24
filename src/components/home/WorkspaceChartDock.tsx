@@ -362,3 +362,49 @@ export function WorkspaceChartDock({
     </aside>
   )
 }
+
+/**
+ * Shown above the main chart on tabs without the dock, where a pinned chart is
+ * still overlaid — so the overlay is visible and can be removed from there too.
+ */
+export function PinnedOverlayChip({
+  pin,
+  timeZone,
+  loading = false,
+  onClear,
+}: {
+  pin: WorkspacePin
+  timeZone: string
+  loading?: boolean
+  onClear: () => void
+}) {
+  const t = useTranslations('chart.workspace.dock')
+  const { tag } = useLang()
+  const detail = useMemo(() => {
+    if (pin.kind === 'partner') return pin.name ?? t('pinPartnerKicker')
+    try {
+      const time = new Intl.DateTimeFormat(tag, {
+        timeZone,
+        day: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+      }).format(new Date(pin.asOf))
+      return t('asOf', { time })
+    } catch {
+      return ''
+    }
+  }, [pin, tag, timeZone, t])
+
+  return (
+    <div className={styles.overlayChip} role="status" aria-label={t('pinAria')}>
+      <span className={styles.kicker}>
+        {pin.kind === 'transit' ? t('pinTransitKicker') : t('pinPartnerKicker')}
+      </span>
+      <span className={styles.overlayChipText}>{detail}</span>
+      <button type="button" className={styles.pinClear} onClick={onClear} disabled={loading}>
+        {t('unpin')}
+      </button>
+    </div>
+  )
+}

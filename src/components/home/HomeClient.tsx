@@ -93,7 +93,7 @@ import { LandingExplore } from '@/components/home/LandingExplore'
 import landingStyles from '@/components/home/LandingSections.module.css'
 import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
 import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } from '@/components/home/MobileDashboardNav'
-import { WorkspaceChartDock } from '@/components/home/WorkspaceChartDock'
+import { PinnedOverlayChip, WorkspaceChartDock } from '@/components/home/WorkspaceChartDock'
 import dockStyles from '@/components/home/WorkspaceChartDock.module.css'
 import { useWorkspacePin } from '@/components/home/useWorkspacePin'
 import { useChartActions } from '@/components/home/useChartActions'
@@ -1831,6 +1831,14 @@ function HomeContent() {
                  gap: '0.75rem',
                  order: 1
                }}>
+                  {pin && (
+                    <PinnedOverlayChip
+                      pin={pin}
+                      timeZone={chart.meta.timezone}
+                      loading={pinLoading}
+                      onClear={clearPin}
+                    />
+                  )}
                   <TransitOverlay natalChart={chart} onTransitLoad={setTransitGrahas} />
                   <VargaSwitcher
                      vargas={chart.vargas}
