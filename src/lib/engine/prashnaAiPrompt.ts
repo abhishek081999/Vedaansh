@@ -10,7 +10,7 @@
 //  Pure: no React / DB / Redis.
 // ─────────────────────────────────────────────────────────────
 
-import { type ChartOutput, type GrahaData, type GrahaId, type Rashi } from '@/types/astrology'
+import { type ChartOutput, type GrahaData, type GrahaId, type Rashi, type UserPlan } from '@/types/astrology'
 import type { EngineLang } from './lang'
 import { getDashaPathAt } from './dasha/current'
 import { CLASSICAL, aspectersOf, cell, day, gname, houseFrom, signOfHouse, table, time, DRISHTI_NOTE } from './aiPromptFormat'
@@ -35,6 +35,8 @@ export interface PrashnaAiPromptOptions {
   /** Leave the question text out (the AI is told to ask for it). */
   hideQuestion?: boolean
   detail?: 'full' | 'short'
+  /** Free gets the short prompt only; 'full' is Gold+. Default 'free'. */
+  plan?: UserPlan
 }
 
 const SHADVARGA = ['D1', 'D2', 'D3', 'D9', 'D12', 'D30'] as const
@@ -234,7 +236,8 @@ export function buildPrashnaAiPrompt(chart: ChartOutput, opts: PrashnaAiPromptOp
     summarySection(glance, planetaryWars(planets)),
     dashaSection(chart, opts.at),
   ]
-  if (opts.detail !== 'short') parts.push(houseReference())
+  const full = (opts.plan ?? 'free') !== 'free' && opts.detail !== 'short'
+  if (full) parts.push(houseReference())
   parts.push([
     '---',
     hasQuestion

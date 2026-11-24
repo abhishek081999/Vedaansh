@@ -53,6 +53,9 @@ import {
   shadbalaRupas,
 } from '@/lib/engine/aiPromptFormat'
 
+/** Focus studies open to the Free plan; the rest are Gold+. */
+export const FREE_AI_TOPICS: readonly AiTopic[] = ['personality']
+
 export interface AiPromptOptions {
   plan?: UserPlan
   lang?: EngineLang
@@ -577,21 +580,26 @@ function suggestedQuestions(): string {
 
 /**
  * Build a Markdown prompt with every calculation and reading for this chart.
- * Gold+ gets the full Interpretation hub notes; Free gets calculations plus the
- * rule-based overview (the same content it already sees on screen).
+ * Free gets the short teaser only (no focus studies). Gold+ gets the full
+ * prompt, focus studies and the Interpretation hub notes.
  */
 export function buildAiPrompt(chart: ChartOutput, opts: AiPromptOptions = {}): string {
   const plan = opts.plan ?? 'free'
   const lang = opts.lang ?? 'en'
   const now = opts.now ?? Date.now()
-  const topics = AI_TOPICS.filter((t) => opts.topics?.includes(t))
-  if (opts.detail === 'short') {
+  const free = plan === 'free'
+  // Free plan: short teaser with the Personality focus only. Full and other topics are Gold+.
+  const allowed = free ? FREE_AI_TOPICS : AI_TOPICS
+  const topics = allowed.filter((t) => opts.topics?.includes(t))
+  if (free || opts.detail === 'short') {
     return [
       shortInstructions(lang, topics),
       shortChart(chart, !!opts.hideName, now),
       ucchaNeechaSection(chart, true),
       ...topics.map((t) => buildTopicStudy(chart, t, { plan, lang, now, short: true })),
-      '_Short version from Vedaansh. Ask for the full prompt if you need every varga, dasha system and reading._',
+      free
+        ? '_Free preview from Vedaansh. Gold unlocks the full prompt: every varga, dasha system and reading, plus all focus studies._'
+        : '_Short version from Vedaansh. Ask for the full prompt if you need every varga, dasha system and reading._',
     ].filter((p) => p && p.trim()).join('\n\n') + '\n'
   }
   const parts = [
@@ -609,7 +617,7 @@ export function buildAiPrompt(chart: ChartOutput, opts: AiPromptOptions = {}): s
     specialPointsSection(chart),
     panchangSection(chart),
     interpretationSection(chart),
-    plan !== 'free' ? hubSection(chart, now, lang) : '',
+    hubSection(chart, now, lang),
     ...topics.map((t) => buildTopicStudy(chart, t, { plan, lang, now })),
     topics.length ? '' : suggestedQuestions(),
     '---\n_Calculated by Vedaansh (Swiss Ephemeris). Data is shared by the user for personal analysis._',

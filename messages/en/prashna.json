@@ -787,14 +787,14 @@
     "orManual": "or choose a date, time and place",
     "nowHint": "Fill in the current date and time",
     "ai": {
-      "title": "Copy this prashna as a prompt for Claude, ChatGPT or any AI",
+      "title": "Download this prashna as a prompt file for Claude, ChatGPT or any AI",
       "heading": "Ask any AI about this prashna",
-      "body": "Copies the question, the moment, panchang and hora, the chart, and every Prashna Essentials reading (Lagna traits, avasthas, dignities, dhatu-mula-jeeva, mrityu and pushkara bhaga) as one prompt, with praśna rules for the AI to follow.",
+      "body": "Downloads the question, the moment, panchang and hora, the chart, and every Prashna Essentials reading (Lagna traits, avasthas, dignities, dhatu-mula-jeeva, mrityu and pushkara bhaga) as one Markdown file to attach in an AI chat, with praśna rules for the AI to follow.",
       "noQuestion": "No question is written. Type it in the question box first, or the AI will ask you for it.",
-      "shortHint": "The chart and readings only (a few KB). Use this if the AI says the message is too long.",
+      "shortHint": "The chart and readings only (a few KB). Use this if the AI says the file is too long.",
       "fullHint": "Adds what each house covers in praśna, so the AI can pick the right house for your question.",
       "hideQuestion": "Leave out the question (tell the AI yourself)",
-      "privacy": "The prompt includes the date, time, place and your question. It goes to the AI provider you paste it into, under their privacy terms."
+      "privacy": "The prompt includes the date, time, place and your question. It goes to the AI provider you upload it to, under their privacy terms."
     }
   }
 }

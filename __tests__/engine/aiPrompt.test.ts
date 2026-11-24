@@ -38,10 +38,29 @@ describe('buildAiPrompt', () => {
     expect(buildAiPrompt(roundTripped, { plan: 'gold', now: NOW })).toBe(buildAiPrompt(chart, { plan: 'gold', now: NOW }))
   })
 
-  it('keeps Gold hub notes out of the Free prompt', () => {
-    const p = buildAiPrompt(chart, { plan: 'free', now: NOW })
+  it('gives Free only the short teaser, even when Full and topics are asked for', () => {
+    const p = buildAiPrompt(chart, { plan: 'free', now: NOW, detail: 'full', topics: ['marriage'] })
+    const short = buildAiPrompt(chart, { plan: 'gold', now: NOW, detail: 'short' })
     expect(p).not.toContain('Detailed interpretation notes')
-    expect(p).toContain('## 3. Planets')
+    expect(p).not.toContain('## 3. Planets')
+    expect(p).not.toContain('## Focus study:')
+    expect(p).toContain('Gold unlocks the full prompt')
+    expect(p.length).toBeLessThan(short.length + 400)
+  })
+
+  it('lets Free add only the Personality focus study', () => {
+    const p = buildAiPrompt(chart, { plan: 'free', now: NOW, topics: ['personality', 'career', 'marriage'] })
+    expect(p.match(/^## Focus: /gm)).toHaveLength(1)
+    expect(p).toContain('## Focus: Personality')
+    expect(p).not.toContain('## Focus: Career')
+  })
+
+  it('gives Gold and Platinum the full prompt with hub notes', () => {
+    for (const plan of ['gold', 'platinum'] as const) {
+      const p = buildAiPrompt(chart, { plan, now: NOW })
+      expect(p).toContain('## 3. Planets')
+      expect(p).toContain('Detailed interpretation notes')
+    }
   })
 
   it('hides the name on request and asks for Hindi answers when lang=hi', () => {
@@ -64,13 +83,6 @@ describe('buildAiPrompt', () => {
     expect(p).not.toContain('## Questions you can ask')
   })
 
-  it('keeps Gold topic readings out of the Free prompt but still gives method and data', () => {
-    const p = buildAiPrompt(chart, { plan: 'free', now: NOW, topics: ['marriage'] })
-    expect(p).toContain('## Focus study: Marriage and married life')
-    expect(p).toContain('### Key houses for marriage')
-    expect(p).not.toContain('### Vedaansh reading:')
-  })
-
   it('renderReading turns nested engine objects into readable bullets', () => {
     const out = renderReading({ id: 'x', title: 'Seventh lord', sign: 7, lord: 'Ve', notes: [{ title: 'A', text: 'Strong' }], tags: ['a', 'b'] })
     expect(out).toContain('**Seventh lord**')
@@ -81,7 +93,7 @@ describe('buildAiPrompt', () => {
   })
 
   it('includes graha drishti on planets, houses and house lords', () => {
-    const p = buildAiPrompt(chart, { plan: 'free', now: NOW, topics: ['career'] })
+    const p = buildAiPrompt(chart, { plan: 'gold', now: NOW, topics: ['career'] })
     expect(p).toContain('### Graha drishti (planetary aspects)')
     expect(p).toContain('| Lord aspected by |')
     expect(p).toContain('| House aspected by |')
@@ -96,7 +108,7 @@ describe('buildAiPrompt', () => {
   })
 
   it('quotes Shadbala in rupas against the BPHS minimum, not as a bare ratio', () => {
-    const p = buildAiPrompt(chart, { plan: 'free', now: NOW, topics: ['career'] })
+    const p = buildAiPrompt(chart, { plan: 'gold', now: NOW, topics: ['career'] })
     expect(p).toContain('### Shadbala (all values in rupas)')
     expect(p).toContain('| Total rupas | Minimum rupas | % of minimum |')
     expect(p).not.toContain('Shadbala ratio')

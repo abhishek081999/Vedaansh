@@ -46,8 +46,8 @@ Canonical plan names: `free` | `gold` | `platinum`.
 
 | Plan | Chart saves | Default price (INR) | Notable gates |
 |------|-------------|---------------------|---------------|
-| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser, AI prompt (data + method), Lal Kitab Teva/overview teasers |
-| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows, full AI prompt (hub notes + topic engine readings), Lal Kitab full reading + PDF + 43-day tracker |
+| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser, AI prompt (short teaser), Lal Kitab Teva/overview teasers |
+| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows, full AI prompt (Full length, focus studies, hub notes + topic engine readings), Lal Kitab full reading + PDF + 43-day tracker |
 | Platinum | Unlimited charts and Kundali Milan matches | ₹336/mo · ₹2,888/yr | Email charts (incl. Lal Kitab chapter), bulk ZIP, client CRM, white-label, full 41 vargas |
 
 Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).

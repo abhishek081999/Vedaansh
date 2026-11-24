@@ -28,7 +28,7 @@ beforeAll(async () => {
 
 describe('buildPrashnaAiPrompt', () => {
   it('carries the question, the moment and every reading section', () => {
-    const p = buildPrashnaAiPrompt(chart, { ...base, question: 'Will I get the job?' })
+    const p = buildPrashnaAiPrompt(chart, { ...base, plan: 'gold', question: 'Will I get the job?' })
     expect(p).toContain('**Question:** Will I get the job?')
     expect(p).toContain('asked at night')
     expect(p).toContain('**Hora lord:** Saturn')
@@ -51,10 +51,16 @@ describe('buildPrashnaAiPrompt', () => {
   })
 
   it('short drops the house reference and asks for Hindi when lang=hi', () => {
-    const full = buildPrashnaAiPrompt(chart, base)
-    const short = buildPrashnaAiPrompt(chart, { ...base, detail: 'short', lang: 'hi' })
+    const full = buildPrashnaAiPrompt(chart, { ...base, plan: 'platinum' })
+    const short = buildPrashnaAiPrompt(chart, { ...base, plan: 'gold', detail: 'short', lang: 'hi' })
     expect(short).not.toContain('## 8. Reference')
     expect(short.length).toBeLessThan(full.length)
     expect(short).toContain('Answer in Hindi')
+  })
+
+  it('gives Free only the short prompt, even when Full is asked for', () => {
+    const free = buildPrashnaAiPrompt(chart, { ...base, plan: 'free', detail: 'full' })
+    expect(free).not.toContain('## 8. Reference')
+    expect(free).toBe(buildPrashnaAiPrompt(chart, { ...base, plan: 'gold', detail: 'short' }))
   })
 })
