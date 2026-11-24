@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import {
   LK_GRAHAS, LK_HOUSES, LK_PARHEZ, LK_PROBLEMS, LK_UPAY,
-  lkFindRemedies, lkParhezFor, lkUpayFor, readLalKitab,
+  lkFindRemedies, lkParhezFor, lkUpayFor, lkUpayText, readLalKitab,
   type LkGraha, type LkProblemId,
 } from '@/lib/engine/lalKitab'
 import { LK_PARHEZ_HI, LK_UPAY_HI } from '@/lib/engine/locale/lalKitabUpay.hi'
@@ -120,5 +120,18 @@ describe('problem finder', () => {
       const res = lkFindRemedies(p, r.remedies, r.areas)
       expect(res.supported || res.remedies.length > 0, p).toBe(true)
     }
+  })
+})
+
+describe('lkUpayText', () => {
+  it('finds every catalogue remedy by id, in English and Hindi', () => {
+    for (const u of LK_UPAY) {
+      expect(lkUpayText(u.id)).toBe(u.text)
+      expect(lkUpayText(u.id, 'hi')).toBe(LK_UPAY_HI[u.id] ?? u.text)
+    }
+  })
+
+  it('returns undefined for an unknown id', () => {
+    expect(lkUpayText('Xx.none')).toBeUndefined()
   })
 })

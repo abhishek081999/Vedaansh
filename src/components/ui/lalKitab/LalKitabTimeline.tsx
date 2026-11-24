@@ -25,8 +25,13 @@ const CYCLE_COLORS: Record<string, string> = {
   Mo: '#64748b', Ve: '#db2777', Ma: '#dc2626', Me: '#059669',
 }
 
+// The band is drawn on a plain number line, not calendar dates:
+// Date.UTC maps years 0–99 to 1900–1999, which broke the axis.
+// Year of life y covers ages y-1 to y, so x = age in years.
+const YEAR = 1000
+
 function yearStart(y: number): number {
-  return Date.UTC(y, 0, 1)
+  return (y - 1) * YEAR
 }
 
 export function LalKitabTimeline({
@@ -114,11 +119,12 @@ export function LalKitabTimeline({
           laneLabels={[t('cycleLane'), t('maturityLane'), t('toneLane')]}
           from={yearStart(1)}
           to={yearStart(121)}
-          now={yearStart(currentYear) + 180 * 86_400_000}
-          ticks={10}
-          tickFormat={(ms) => String(new Date(ms).getUTCFullYear())}
+          now={yearStart(currentYear) + YEAR / 2}
+          ticks={12}
+          tickFormat={(ms) => String(Math.round(ms / YEAR))}
           ariaLabel={t('aria')}
         />
+        <p className={styles.note}>{t('axis')}</p>
       </div>
       <ul className={styles.list}>
         {LK_CYCLE.map((s) => (
