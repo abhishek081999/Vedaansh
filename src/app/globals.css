@@ -20,6 +20,8 @@
 
 /* Scan app + components for utility classes */
 @source "../../src/**/*.{js,ts,jsx,tsx}";
+/* Playwright MCP writes logs here on every page load; scanning them caused a dev rebuild/reload loop. */
+@source not "../../.playwright-mcp";
 
 /* Theme tokens → CSS variables (dark/light switch via :root / data-theme) */
 @theme inline {
@@ -10031,6 +10033,21 @@ html:root .app-header .app-header-signin {
   padding: 0 1.05rem;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* Below 1024px the label hides and Sign in is an icon circle like its neighbours;
+   the pill padding above would squeeze the icon to 0px wide. */
+@media (max-width: 1023px) {
+  html:root .app-header .app-header-signin {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    padding: 0;
+  }
+
+  html:root .app-header .app-header-signin svg {
+    flex-shrink: 0;
+  }
 }
 
 /* Brand: slightly larger mark, tighter wordmark */

@@ -79,3 +79,6 @@ docs/APP_CATALOG.md
 docs/BUSINESS_PLAN.md
 docs/INFRA_COST_PLAN.md
 src/components/legal/LegalDocument.tsx
+
+# Playwright MCP session output (snapshots, console logs, screenshots)
+.playwright-mcp/
