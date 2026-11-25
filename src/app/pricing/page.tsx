@@ -208,7 +208,10 @@ export default function PricingPage() {
       const data = await res.json().catch(() => ({ success: false, error: t('coupon.validateFailed') }))
       if (!data.success) {
         setAppliedCoupon(null)
-        setCouponMessage({ type: 'error', text: data.error ?? t('coupon.invalid') })
+        setCouponMessage({
+          type: 'error',
+          text: data.code === 'coupon_invalid' ? t('coupon.invalid') : (data.error ?? t('coupon.invalid')),
+        })
         return
       }
 

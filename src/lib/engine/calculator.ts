@@ -265,6 +265,11 @@ function releaseChartCalc(): void {
   if (next) next()
 }
 
+/** Number of chart calculations waiting for a free slot on this instance. */
+export function getChartCalcQueueDepth(): number {
+  return chartCalcWaiters.length
+}
+
 // ── Main export ───────────────────────────────────────────────
 
 export async function calculateChart(

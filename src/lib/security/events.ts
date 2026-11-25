@@ -8,6 +8,7 @@ export type SecurityEventName =
   | 'auth_signin_rate_limited'
   | 'login_account_locked'
   | 'body_too_large'
+  | 'chart_calc_shed'
   | 'webhook_activation_rejected'
   | 'payment_plan_unchanged'
   | 'payment_revoke_unmatched'

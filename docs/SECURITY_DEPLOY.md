@@ -6,13 +6,15 @@ Use this before merging to `main` or after rotating secrets. CI already runs `np
 
 | Variable | Why |
 |----------|-----|
-| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Enables rate limits for abuse protection; **all paths fail open** if Redis is missing, over quota, or down (strict buckets log an error so the gap is visible) |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Shared rate limits across instances. If Redis is missing, over quota, or down, limits fall back to a **per-instance in-memory counter** (strict buckets log an error so the gap is visible) |
 | `AUTH_SECRET` | NextAuth session signing (rotate after incidents) |
 | `AUTH_URL` | Must be `https://vedaansh.com` in production |
 | `RAZORPAY_WEBHOOK_SECRET` | Webhooks return **503** if missing in production |
 | `MONGODB_URI` | Atlas with IP allowlist + backups enabled |
 
 Also set: `AUTH_GOOGLE_*`, `RAZORPAY_KEY_*`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, `RESEND_API_KEY`, `FROM_EMAIL`, `NEXT_PUBLIC_BASE_URL`.
+
+Optional: `TRUSTED_IP_HEADER` — header used as the client IP for rate limits. Defaults to `cf-connecting-ip`, which Cloudflare (in front of both `vedaansh.com` and `*.onrender.com`) overwrites, so clients cannot spoof it. Set `x-forwarded-for` only on a host without Cloudflare; the rightmost hop is used. Never trust `x-real-ip`, `true-client-ip` or the leftmost `x-forwarded-for` entry.
 
 Optional: `SECURITY_CONTACT_EMAIL` (defaults to `FROM_EMAIL`) for `/.well-known/security.txt`.
 
@@ -55,7 +57,7 @@ Filter production logs for:
 | `csrf_blocked` | Cross-origin POST without valid Origin/Referer |
 | `body_too_large` | Oversized payload rejected (413) |
 | `webhook_signature_invalid` | Bad Razorpay webhook call |
-| `login_account_locked` | 10 failed password attempts / 15 min |
+| `login_account_locked` | 10 failed password attempts for one email from one IP, or 100 from any IP / 15 min |
 | `payment_verify_failed` | HMAC or payment verification issue |
 
 ## 5. Platform hardening (recommended)
