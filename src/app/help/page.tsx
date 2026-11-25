@@ -6,6 +6,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import styles from '@/components/help/Help.module.css'
 import { CategoryIcon, TopicIcon } from '@/components/help/guideIcons'
 import { GuideSearch, type GuideSearchItem } from '@/components/help/GuideSearch'
+import { HeroPhone } from '@/components/help/HeroPhone'
 import { HELP_CATEGORIES, HELP_TOPICS, helpTopicsIn, helpShotSize } from '@/lib/help/topics'
 import { pageLocale } from '@/lib/seo/i18nMeta'
 import { breadcrumbJsonLd, faqJsonLd } from '@/lib/seo/site'
@@ -17,7 +18,6 @@ interface TopicText {
 }
 
 const FEATURED_SHOT = 'workspace.jpg'
-const HERO_SHOT = 'ws-mobile.jpg'
 
 export default async function HelpIndexPage() {
   const locale = await pageLocale()
@@ -42,7 +42,6 @@ export default async function HelpIndexPage() {
   const workspaceTopics = helpTopicsIn('workspace')
   const otherCategories = HELP_CATEGORIES.filter((c) => c !== 'workspace')
   const featured = helpShotSize(FEATURED_SHOT)
-  const phone = helpShotSize(HERO_SHOT)
 
   return (
     <div className={styles.page}>
@@ -69,9 +68,7 @@ export default async function HelpIndexPage() {
           </p>
         </div>
         {/* Decorative: the Workspace on a phone. */}
-        <div className={styles.heroPhone} aria-hidden>
-          <Image src={`/help/${HERO_SHOT}`} alt="" width={phone.width} height={phone.height} sizes="15rem" priority />
-        </div>
+        <HeroPhone priority />
       </header>
 
       {/* ── Section jump links ───────────────────────────── */}

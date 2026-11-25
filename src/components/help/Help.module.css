@@ -145,9 +145,16 @@
   }
 
   .heroPhone img {
-    display: block;
+    display: none;
     width: 100%;
     height: auto;
+  }
+
+  /* One screenshot per theme (HeroPhone.tsx); <html> always carries data-theme. */
+  :global(html[data-theme='classic']) .heroPhone img.heroShotClassic,
+  :global(html[data-theme='light']) .heroPhone img.heroShotLight,
+  :global(html[data-theme='dark']) .heroPhone img.heroShotDark {
+    display: block;
   }
 }
 

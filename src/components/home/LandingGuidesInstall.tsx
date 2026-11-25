@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import styles from '@/components/home/LandingSections.module.css'
 import guide from '@/components/help/Help.module.css'
+import { HeroPhone } from '@/components/help/HeroPhone'
 import { HELP_CATEGORIES, HELP_TOPICS, helpShotSize } from '@/lib/help/topics'
 
 // Titles: messages/<locale>/home.json → guides.items.<slug> (shortened from src/lib/seo/guides.ts).
@@ -77,11 +78,8 @@ const APP_GUIDE_PICKS = [
   { id: 'matching', icon: HeartHandshake },
 ] as const
 
-const HERO_PHONE = 'ws-mobile.jpg'
-
 export function LandingAppGuide({ trackLandingCta }: TrackProps) {
   const t = useTranslations('home.appGuide')
-  const phone = helpShotSize(HERO_PHONE)
 
   return (
     <div className="landing-section-row-content">
@@ -97,9 +95,7 @@ export function LandingAppGuide({ trackLandingCta }: TrackProps) {
           </p>
         </div>
         {/* Decorative: the Workspace on a phone. */}
-        <div className={guide.heroPhone} aria-hidden>
-          <Image src={`/help/${HERO_PHONE}`} alt="" width={phone.width} height={phone.height} sizes="15rem" />
-        </div>
+        <HeroPhone />
       </header>
 
       <div className={styles.appGuide} data-stagger>
