@@ -14,6 +14,8 @@ export const userLimits = {
   atlasSearchPerMinute: 500,
   chartCalculateAnonPerMinute: 120,
   chartCalculateAuthPerMinute: 180,
+  /** Anonymous cache misses are turned away (503) once this many calcs are already waiting. */
+  chartCalculateAnonMaxQueue: 8,
   chartReadPerMinute: 500,
   chartWritePerMinute: 200,
   chartHeavyPerMinute: 120,
@@ -39,6 +41,7 @@ export const abuseLimits = {
   paymentCheckoutPerMinute: 40,
   paymentVerifyPerMinute: 60,
   paymentRequestPerHour: 5,
+  couponValidatePerQuarterHour: 20,
   featureRequestPerHour: 5,
   featureVotePerMinute: 30,
   adminReadPerMinute: 300,

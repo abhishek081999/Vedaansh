@@ -35,10 +35,11 @@ export async function GET(request: Request) {
       data: transits,
       currentPositions,
     })
-  } catch (error: any) {
+  } catch (error) {
+    console.error('[transit]', error)
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: 'Failed to calculate transits'
     }, { status: 500 })
   }
 }

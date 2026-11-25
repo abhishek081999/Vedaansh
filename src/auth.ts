@@ -18,6 +18,7 @@ import {
   recordFailedLogin,
 } from '@/lib/security/loginThrottle'
 import { logSecurityEvent } from '@/lib/security/events'
+import { getClientIp } from '@/lib/security/rateLimit'
 import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 
 // NextAuth adapter needs raw MongoClient (shared singleton with API routes)
@@ -32,13 +33,15 @@ const CredentialsSchema = z.object({
 
 async function verifyCredentials(
   credentials: Partial<Record<string, unknown>>,
+  request: Request,
 ) {
   const parsed = CredentialsSchema.safeParse(credentials)
   if (!parsed.success) return null
 
   const { email, password } = parsed.data
+  const ip = getClientIp(request)
 
-  if (await isLoginLocked(email)) {
+  if (await isLoginLocked(email, ip)) {
     logSecurityEvent('login_account_locked', { emailDomain: email.split('@')[1] ?? 'unknown' })
     return null
   }
@@ -60,11 +63,11 @@ async function verifyCredentials(
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {
-      await recordFailedLogin(email)
+      await recordFailedLogin(email, ip)
       return null
     }
 
-    await clearFailedLogin(email)
+    await clearFailedLogin(email, ip)
 
     return {
       id:    user._id.toString(),

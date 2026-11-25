@@ -108,8 +108,8 @@ export async function GET(req: NextRequest) {
     })
 
     return NextResponse.json({ success: true, date: dateStr, ayanamsha: ayanMode, julianDay: jd, grahas })
-  } catch (err: any) {
+  } catch (err) {
     console.error('[transits/planets]', err)
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to load planet positions' }, { status: 500 })
   }
 }

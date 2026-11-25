@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: 'Default chart updated' })
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('API Error (default-chart):', err)
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to set default chart' }, { status: 500 })
   }
 }
 
@@ -73,8 +73,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, defaultChartId: user.defaultChartId })
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('API Error (GET default-chart):', err)
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to load default chart' }, { status: 500 })
   }
 }

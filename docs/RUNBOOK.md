@@ -109,7 +109,7 @@ Filter production logs for `[security-event]`:
 | `csrf_blocked` | Cross-origin mutating request |
 | `body_too_large` | 413 oversized body |
 | `webhook_signature_invalid` | Bad Razorpay webhook |
-| `login_account_locked` | 10 failed passwords / 15 min |
+| `login_account_locked` | 10 failed passwords for one email from one IP, or 100 from any IP / 15 min |
 | `payment_verify_failed` | HMAC / payment verify issue |
 
 ---

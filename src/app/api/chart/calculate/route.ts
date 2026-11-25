@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { fromZonedTime } from 'date-fns-tz'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
-import { calculateChart } from '@/lib/engine/calculator'
+import { calculateChart, getChartCalcQueueDepth } from '@/lib/engine/calculator'
 import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
 import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { redis, chartCacheKey } from '@/lib/redis'
@@ -153,6 +153,7 @@ function localToUTC(date: string, time: string, tz: string): { utcDate: string; 
 
 import { CHART_JSON_BODY_BYTES } from '@/lib/security/bodyLimit'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { logSecurityEvent } from '@/lib/security/events'
 import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 import { rateLimitMessages, RATE_LIMIT_WINDOWS, userLimits } from '@/lib/security/rateLimitPolicy'
 
@@ -237,6 +238,17 @@ export async function POST(req: NextRequest) {
         data: filterChartVargasForPlan(finalData, plan),
         fromCache: true,
       })
+    }
+
+    // Load shedding: calcs run one at a time, so an anonymous flood would make
+    // signed-in users wait behind it. Turn anonymous cache misses away once a
+    // backlog has built up; signed-in users still queue.
+    if (!isAuthenticated && getChartCalcQueueDepth() >= userLimits.chartCalculateAnonMaxQueue) {
+      logSecurityEvent('chart_calc_shed', { queueDepth: getChartCalcQueueDepth() })
+      return NextResponse.json(
+        { success: false, error: rateLimitMessages.chartCalculate },
+        { status: 503, headers: { 'Retry-After': '5' } },
+      )
     }
 
     // Run calculation and connect DB (for warming) in parallel
