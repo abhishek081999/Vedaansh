@@ -294,7 +294,7 @@ export const redis = {
 // ── Cache key helpers ─────────────────────────────────────────
 
 /** Bump when ChartOutput calc semantics change (invalidates Redis chart entries). */
-export const CHART_CACHE_VERSION = 23
+export const CHART_CACHE_VERSION = 24  // 24: classical Yogi point (Sun + Moon + 93°20', nakshatra lords)
 /** Bump when panchang payload shape / guides change. */
 export const PANCHANG_CACHE_VERSION = 10
 /** Bump when atlas search/reverse payload shape changes. */

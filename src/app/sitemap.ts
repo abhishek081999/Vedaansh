@@ -14,7 +14,7 @@ const CONTENT_REV = new Date('2026-03-14T00:00:00.000Z')
 const NAKSHATRA_TABS = [
   'overview', 'planet', 'starlords', 'degrees', 'gandmool',
   'special', 'journey', 'navtara', 'taramandal', 'compat',
-  'bestdays', 'birthday', 'slowtransits', 'muhurta', 'panchaka', 'latta', 'ghatak',
+  'bestdays', 'birthday', 'slowtransits', 'kota', 'muhurta', 'panchaka', 'latta', 'ghatak',
   'profession', 'medical', 'remedies', 'namakshar',
 ] as const
 

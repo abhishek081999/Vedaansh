@@ -95,6 +95,11 @@ const TAB_META_EN: Record<string, { title: string; description: string; crumb: s
     description: 'The naming syllable for your birth pada, all 108 nakshatra syllables, and a checker that shows which star a name belongs to and its tara.',
     crumb: 'Name Letters',
   },
+  kota: {
+    title: 'Kota Chakra — The Fortress of 28 Stars',
+    description: 'Your birth star at the gate of a four-walled fort: which planets are entering or leaving the Stambha, Madhya, Prakara and Bahya, the Kota Swami, and whether the fort holds today.',
+    crumb: 'Kota Chakra',
+  },
   ghatak: {
     title: 'Ghatak Chakra — Unfavourable Days by Moon Sign',
     description: 'The Ghatak Moon sign, month, tithi, weekday and nakshatra for your Moon sign, and whether today hits any of them.',

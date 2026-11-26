@@ -61,7 +61,6 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
   
   // Find planets conjunct each point
   const conjunctYogi = grahas.filter(g => isConjunct(g.lonSidereal, yogiPoint.yogiPoint))
-  const conjunctSahayogi = grahas.filter(g => isConjunct(g.lonSidereal, yogiPoint.sahayogiPoint))
   const conjunctAvayogi = grahas.filter(g => isConjunct(g.lonSidereal, yogiPoint.avayogiPoint))
   
   return (
@@ -139,11 +138,6 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
           <div style={{ fontSize: '0.7rem', color: COLORS.sahayogi.text, marginTop: '0.35rem' }}>
             {t('lord')} <strong>{grahaLabel(yogiPoint.sahayogiGraha, hi)}</strong>
           </div>
-          {conjunctSahayogi.length > 0 && (
-            <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              {t('conjunct')} {names(conjunctSahayogi)}
-            </div>
-          )}
         </div>
         
         {/* Avayogi Point */}

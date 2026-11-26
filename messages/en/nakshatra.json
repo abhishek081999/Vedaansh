@@ -11,6 +11,11 @@
     "keywords": ["Nakshatra", "Vedic nakshatra", "birth star", "Pada", "Yogini dasha", "nakshatra compatibility", "Ashwini", "Rohini", "Hasta"]
   },
   "tabMeta": {
+    "kota": {
+      "title": "Kota Chakra — The Fortress of 28 Stars",
+      "description": "Your birth star at the gate of a four-walled fort: planets entering or leaving the Stambha, Madhya, Prakara and Bahya, Kota Swami and Kota Pala, and whether the fort holds today.",
+      "crumb": "Kota Chakra"
+    },
     "journey": {
       "title": "Nakshatra Life Journey — 27 Stages from Ashwini to Revati",
       "description": "The 27 nakshatras read in order as a lifetime, from first breath to release, with this chart's planets marked on the stages they occupy.",
@@ -174,12 +179,14 @@
     "namakshar": "Name Letters",
     "ghatak": "Ghatak",
     "slowtransits": "Slow Transits",
-    "journey": "Life Journey"
+    "journey": "Life Journey",
+    "kota": "Kota Chakra"
   },
   "groups": {
     "aria": "Nakshatra groups",
     "birth": "Birth Star",
-    "patterns": "Patterns",
+    "chakras": "Chakras",
+    "transits": "Transits",
     "timing": "Timing",
     "guidance": "Guidance"
   },
@@ -320,6 +327,24 @@
       "gana": "Gana",
       "nadi": "Nadi",
       "yoni": "Yoni"
+    },
+    "nadiTitle": "Nadi roles between the two stars",
+    "nadi": {
+      "theirForMe": "Their star is #{count} from yours ({tara}):",
+      "mineForThem": "Your star is #{count} from theirs ({tara}):",
+      "noRole": "no special nadi role."
+    },
+    "nadiRole": {
+      "janma": "a shared rulership — a strong bond, but family members on the same star feel the same hard transits.",
+      "jati": "supportive, like family and community.",
+      "matru": "mother-like care, sensitive to hard transits.",
+      "karma": "helps your work and career.",
+      "sanghatika": "a close tie that can wound; usually hard.",
+      "samudaya": "brings rise and good fortune.",
+      "adhana": "creative and fatherly, seeds new projects.",
+      "vainashika": "draining; tends to bring loss.",
+      "manasa": "touches the mind deeply, for good or ill.",
+      "abhisheka": "raises status and opportunity."
     }
   },
   "remedies": {
@@ -1037,6 +1062,102 @@
         "to": "Until"
       },
       "retro": "retrograde"
+    },
+    "yogi": {
+      "title": "Yogi and Avayogi stars",
+      "lead": "The Yogi point (Sun + Moon + 93°20') falls in a star whose lord, the Yogi, brings wealth and ease. The point 186°40' later marks the Avayogi, whose lord works against prosperity. Planets in their stars, or ruled by them, carry that influence.",
+      "yogiStar": "Yogi star",
+      "avayogiStar": "Avayogi star",
+      "yogiGraha": "Yogi: {graha}",
+      "sahayogi": "Duplicate Yogi (sign lord): {graha}",
+      "avayogiGraha": "Avayogi: {graha}",
+      "inStar": "In this star: {list}",
+      "ruledBy": "In {graha}'s stars: {list}",
+      "none": "none",
+      "note": "Strengthen the Yogi graha; its periods and the planets in its stars tend to bring prosperity. Periods of the Avayogi call for care with money."
+    },
+    "kota": {
+      "title": "Kota Chakra — the fortress",
+      "lead": "Your birth star stands at the north-east gate of a fort with four walls: Stambha (the core), Madhya, Prakara and Bahya (outside). Each side holds seven of the 28 stars, Abhijit included. Planets move in through a corner (NE, SE, SW, NW) toward the core and out toward a cardinal point (E, S, W, N). Malefics coming in or sitting in the core threaten the fort; benefics coming in defend it.",
+      "viewLabel": "Planets",
+      "views": {
+        "transit": "Today",
+        "moment": "Chosen time",
+        "natal": "Birth"
+      },
+      "transitGold": "Transit and chosen-time readings of the fort are a Gold feature; the birth positions are shown.",
+      "loading": "Loading today's transits…",
+      "failed": "Could not load today's transits; the birth positions are shown.",
+      "verdict": {
+        "bhanga": "The fort is breached (Durga Bhanga)",
+        "vijaya": "The fort holds (Vijaya)",
+        "mixed": "Mixed pressure on the fort"
+      },
+      "verdictText": {
+        "bhanga": "Malefics are moving in while benefics are moving out. Tradition reads this as a time of setbacks, illness or disputes; check it against the running dasha.",
+        "vijaya": "Benefics are moving in and malefics are leaving. Tradition reads this as protection and success in contests.",
+        "mixed": "Neither the breach nor the victory pattern is complete. Read individual planets below."
+      },
+      "swamiInside": "Kota Swami {swami} sits in the {layer} (Madhya or Stambha), where the lord of the fort should be — a sign of strength.",
+      "swamiOutside": "Kota Swami {swami} is in the {layer}, away from the Madhya and Stambha where the lord of the fort should sit.",
+      "palaOnWall": "Kota Pala {pala} (Moon pada {pada}) stands on the Prakara, where the guard should be.",
+      "palaInside": "Kota Pala {pala} (Moon pada {pada}) has come inside to the {layer} — the guard has left the wall.",
+      "palaElsewhere": "Kota Pala {pala} (Moon pada {pada}) is in the {layer}, not on the Prakara guard wall.",
+      "invertedSeats": "Seats are inverted: the Swami is outside the palace while the Pala sits inside. Tradition reads this as weak protection — carelessness with medicine, diet, or risky choices can add harm. This is a classical caution, not a medical diagnosis.",
+      "dualRoleOk": "{planet} is both Kota Swami and Kota Pala, and sits in the {layer} — a natural fit for its nature.",
+      "dualRoleOff": "{planet} is both Kota Swami and Kota Pala, but sits in the {layer}. A natural malefic prefers the Prakara or Bahya; a natural benefic prefers the Madhya or Stambha.",
+      "twelfth": {
+        "twelfthLord": "Running dasha of {list} (lord of the 12th from the Moon) sharpens the fort's stress toward loss, hospitalisation, or drain — weigh it with the dasha, not alone.",
+        "inTwelfth": "Running dasha of {list}, sitting in the 12th from the Moon, sharpens the fort's stress toward loss or bodily strain — weigh it with the dasha, not alone.",
+        "both": "Running dasha of {list} ties to the 12th from the Moon (lord {lord} and/or occupant), sharpening the fort's stress — weigh it with the dasha, not alone."
+      },
+      "fortTitle": "The fort",
+      "fortCaption": "Drawn the traditional way, with East on top and the birth star ({star}) at the top-left (north-east) gate, ringed in gold. Coloured dots are planets: rose for danger, amber for caution, teal for support.",
+      "layers": {
+        "stambha": "Stambha",
+        "madhya": "Madhya",
+        "prakara": "Prakara",
+        "bahya": "Bahya"
+      },
+      "paths": {
+        "entering": "Entering",
+        "stambha": "In the core",
+        "exiting": "Leaving"
+      },
+      "retroSwap": "retrograde: reversed",
+      "tones": {
+        "alert": "Danger",
+        "caution": "Caution",
+        "support": "Support",
+        "neutral": "Neutral"
+      },
+      "headers": {
+        "planet": "Planet",
+        "star": "Star",
+        "layer": "Wall",
+        "path": "Direction",
+        "reading": "Reading"
+      },
+      "swamiTag": "Kota Swami",
+      "palaTag": "Kota Pala",
+      "abhijit": "Abhijit",
+      "abhijitShort": "Abh",
+      "note": "Kota Swami is the lord of the Moon's sign. Kota Pala is the Avakahada letter-class lord of the Moon's pada (Abhijit → Venus; Ketu never guards). Prefer the Swami in Madhya or Stambha and the Pala on the Prakara. Today's view uses mean Rahu and Ketu, always retrograde; their entering and leaving are swapped, as for any retrograde planet. Like any transit, the fort's reading works within the running dasha.",
+      "birthTitle": "Birth snapshot",
+      "birthNote": "Your birth planets placed in the fort. Malefics deep inside at birth show lasting weak points that tend to surface in their own dashas; the breach or victory verdict is read from transits. Kota Swami is {swami}; Kota Pala is {pala} (Moon pada {pada}).",
+      "natureReason": {
+        "waningMoon": "Waning Moon, read as a malefic",
+        "mercuryWithMalefic": "Mercury in a malefic's nakshatra, read as a malefic"
+      },
+      "stambhaWeak": "The core is exposed: malefics hold the Stambha with no benefic there to guard it. Defences against illness and trouble are weak while this lasts.",
+      "stambhaGuarded": "A benefic in the Stambha guards the core of the fort.",
+      "gounaSwami": "The Moon and {swami} exchange signs, so {swami} is the main Kota Swami and the {moon} a secondary one.",
+      "momentLabel": "Date and time",
+      "momentHint": "For a Prashna, use the moment the question is asked; for a Muhurta, the planned start. The time is in your device's time zone.",
+      "natalInner": "Inside the fort at birth: {list}. These are lasting vulnerabilities — health, conflict or setbacks — that tend to surface in their dashas.",
+      "natalNone": "No malefic sits inside the fort at birth.",
+      "natalActive": "{count, plural, one {{list} is running as a dasha lord now} other {{list} are running as dasha lords now}}, so this is a period to watch.",
+      "natalGuard": "{list} in the Stambha at birth gives lasting protection."
     }
   },
   "journey": {

@@ -468,3 +468,95 @@ export function SlowTransitTimeline({
     </svg>
   )
 }
+
+// ── 7. Kota Chakra fortress ──────────────────────────────────
+
+export interface KotaFortCell {
+  star28: number
+  count: number
+  side: 'ne-e' | 'se-s' | 'sw-w' | 'nw-n'
+  pos: number
+  layer: 'stambha' | 'madhya' | 'prakara' | 'bahya'
+  bodies: Array<{ id: string; tone: 'alert' | 'caution' | 'support' | 'neutral' }>
+}
+
+const KOTA_HALF: Record<KotaFortCell['layer'], number> = { bahya: 0.9, prakara: 0.66, madhya: 0.42, stambha: 0.2 }
+const KOTA_CORNER: Record<KotaFortCell['side'], [number, number]> = { 'ne-e': [1, -1], 'se-s': [1, 1], 'sw-w': [-1, 1], 'nw-n': [-1, -1] }
+const KOTA_EXIT: Record<KotaFortCell['side'], [number, number]> = { 'ne-e': [1, 0], 'se-s': [0, 1], 'sw-w': [-1, 0], 'nw-n': [0, -1] }
+const KOTA_TONE: Record<KotaFortCell['bodies'][number]['tone'], string> = {
+  alert: 'var(--rose)', caution: 'var(--amber)', support: 'var(--teal)', neutral: 'var(--text-gold)',
+}
+
+export const KOTA_RING_FILL: Record<KotaFortCell['layer'], string> = {
+  bahya: 'var(--surface-2)',
+  prakara: 'color-mix(in srgb, var(--gold) 6%, var(--surface-2))',
+  madhya: 'color-mix(in srgb, var(--gold) 12%, var(--surface-2))',
+  stambha: 'color-mix(in srgb, var(--gold) 22%, var(--surface-2))',
+}
+
+export function KotaFort({
+  cells,
+  label,
+  layerLabel,
+  janma28,
+}: {
+  cells: KotaFortCell[]
+  label: (star28: number) => string
+  layerLabel: (layer: KotaFortCell['layer']) => string
+  janma28: number
+}) {
+  const S = 420
+  const C = S / 2
+  const R = 180
+  // Offsets are worked out with North up, then turned a quarter-turn so East
+  // sits on top and the janma (north-east) corner at the top-left — the
+  // traditional layout of Kota Chakra (also used by Jagannatha Hora).
+  const place = (dx: number, dy: number): [number, number] => [C + dy, C - dx]
+  const pt = (cell: KotaFortCell): [number, number] => {
+    const h = KOTA_HALF[cell.layer] * R
+    if (cell.pos < 3) {
+      const [cx, cy] = KOTA_CORNER[cell.side]
+      return place(cx * h, cy * h)
+    }
+    if (cell.pos === 3) {
+      const [cx, cy] = KOTA_CORNER[cell.side]
+      const [ex, ey] = KOTA_EXIT[cell.side]
+      return place(((cx + ex) / 2) * h * 1.25, ((cy + ey) / 2) * h * 1.25)
+    }
+    const [ex, ey] = KOTA_EXIT[cell.side]
+    return place(ex * h, ey * h)
+  }
+  const layers: KotaFortCell['layer'][] = ['bahya', 'prakara', 'madhya', 'stambha']
+  const ringFill = KOTA_RING_FILL
+  const edge = (layer: KotaFortCell['layer']) => (layer === 'bahya' ? 1 : layer === 'prakara' ? 0.78 : layer === 'madhya' ? 0.54 : 0.31) * R
+
+  return (
+    <svg viewBox={`0 0 ${S} ${S}`} className={styles.vizSvg} role="img" aria-label={layers.map(layerLabel).join(', ')}>
+      {layers.map(l => {
+        const e = edge(l)
+        return <rect key={l} x={C - e} y={C - e} width={e * 2} height={e * 2} rx={6} fill={ringFill[l]} stroke="var(--border)" strokeWidth={1} />
+      })}
+      {['E', 'S', 'W', 'N'].map((d, i) => {
+        const [x, y] = [[C, C - R - 22], [C + R + 22, C], [C, C + R + 26], [C - R - 22, C]][i]
+        return <text key={d} x={x} y={y} textAnchor="middle" dominantBaseline="central" className={styles.vizAxisStrong}>{d}</text>
+      })}
+      {cells.map(cell => {
+        const [x, y] = pt(cell)
+        const janma = cell.star28 === janma28
+        return (
+          <g key={cell.star28}>
+            <circle cx={x} cy={y} r={15} fill="var(--surface-1)" stroke={janma ? 'var(--gold)' : 'var(--border)'} strokeWidth={janma ? 2.5 : 1} />
+            <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className={styles.vizSliceLabel}>{label(cell.star28)}</text>
+            {cell.bodies.map((b, i) => (
+              <g key={b.id}>
+                <circle cx={x + 15 + i * 15} cy={y - 13} r={7.5} fill={KOTA_TONE[b.tone]} />
+                <text x={x + 15 + i * 15} y={y - 13} textAnchor="middle" dominantBaseline="central" className={styles.vizGlyph} style={{ fill: 'var(--surface-1)', fontSize: 7.5 }}>{b.id}</text>
+              </g>
+            ))}
+            <title>{`${cell.count}. ${label(cell.star28)} · ${layerLabel(cell.layer)}${cell.bodies.length ? ` · ${cell.bodies.map(b => b.id).join(', ')}` : ''}`}</title>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}

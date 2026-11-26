@@ -495,3 +495,55 @@ export function analyzeSensitiveDegrees(chart: ChartOutput): SensitiveDegreeRow[
     return row
   })
 }
+
+// ─────────────────────────────────────────────────────────────
+//  5. Yogi and Avayogi stars
+// ─────────────────────────────────────────────────────────────
+
+export interface YogiStars {
+  yogiNak: number
+  avayogiNak: number
+  yogiGraha: GrahaId
+  sahayogiGraha: GrahaId
+  avayogiGraha: GrahaId
+  /** Bodies sitting in the Yogi / Avayogi star itself. */
+  inYogiStar: NakBody[]
+  inAvayogiStar: NakBody[]
+  /** Bodies whose star lord is the Yogi / Avayogi graha — they carry its influence. */
+  ruledByYogi: NakBody[]
+  ruledByAvayogi: NakBody[]
+}
+
+/** Uses the chart's Yogi point (Sun + Moon + 93°20'; see yogiPoint.ts). */
+export function analyzeYogiStars(chart: ChartOutput): YogiStars | null {
+  const y = chart.yogiPoint
+  if (!y || !Number.isFinite(y.yogiPoint)) return null
+  const bodies = chartBodies(chart)
+  const yogiNak = nakIndexOf(y.yogiPoint)
+  const avayogiNak = nakIndexOf(y.avayogiPoint)
+  const lordOf = (b: BodyPos) => NAKSHATRA_LORDS[b.nakshatraIndex]
+  return {
+    yogiNak,
+    avayogiNak,
+    yogiGraha: y.yogiGraha,
+    sahayogiGraha: y.sahayogiGraha,
+    avayogiGraha: y.avayogiGraha,
+    inYogiStar: bodies.filter(b => b.nakshatraIndex === yogiNak).map(b => b.id),
+    inAvayogiStar: bodies.filter(b => b.nakshatraIndex === avayogiNak).map(b => b.id),
+    ruledByYogi: bodies.filter(b => lordOf(b) === y.yogiGraha).map(b => b.id),
+    ruledByAvayogi: bodies.filter(b => lordOf(b) === y.avayogiGraha).map(b => b.id),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  6. Nadi roles between two people
+// ─────────────────────────────────────────────────────────────
+
+/** Each partner's Moon star seen as a nadi role from the other's janma star. */
+export function nadiCompatibility(
+  myNak: number,
+  theirNak: number,
+  vainashika: VainashikaCount = 23,
+): { theirStarForMe: TaraFix; myStarForThem: TaraFix } {
+  return { theirStarForMe: taraFix(myNak, theirNak, vainashika), myStarForThem: taraFix(theirNak, myNak, vainashika) }
+}

@@ -30,12 +30,25 @@ import {
 } from '@/lib/engine/nakshatraExtras'
 import type { SlowPlanet, StarStay } from '@/lib/engine/nakshatraReturns'
 import { SectionHead, useNames, useTodayTransits } from '@/components/ui/NakshatraAdvancedTab'
-import { SlowTransitTimeline, type TimelineStay } from '@/components/ui/NakshatraAdvancedViz'
+import { KOTA_RING_FILL, KotaFort, SlowTransitTimeline, type KotaFortCell, type TimelineStay } from '@/components/ui/NakshatraAdvancedViz'
+import {
+  kotaCells,
+  kotaMoonTwelfthCaution,
+  readKota,
+  readNatalKota,
+  star27Of,
+  star28Of,
+  type KotaPlacement,
+} from '@/lib/engine/nakshatraKota'
+import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { analyzeYogiStars } from '@/lib/engine/nakshatraSystem'
+import { NAKSHATRA_SHORT } from '@/types/astrology'
+import { NAKSHATRA_SHORT_HI } from '@/i18n/jyotish'
 import panel from './NakshatraPanel.module.css'
 import styles from './NakshatraAdvancedTab.module.css'
 import x from './NakshatraExtrasTab.module.css'
 
-export type NakshatraExtrasSection = 'gandmool' | 'namakshar' | 'ghatak' | 'slowtransits'
+export type NakshatraExtrasSection = 'gandmool' | 'namakshar' | 'ghatak' | 'slowtransits' | 'kota'
 
 export function NakshatraExtrasTab({
   chart,
@@ -49,6 +62,7 @@ export function NakshatraExtrasTab({
   if (section === 'gandmool') return <GandmoolSection chart={chart} />
   if (section === 'namakshar') return <NamaksharSection chart={chart} />
   if (section === 'ghatak') return <GhatakSection chart={chart} />
+  if (section === 'kota') return <KotaSection chart={chart} userPlan={userPlan} />
   return <SlowTransitsSection chart={chart} userPlan={userPlan} />
 }
 
@@ -438,4 +452,272 @@ function SlowTransitsSection({ chart, userPlan }: { chart: ChartOutput; userPlan
       </PlanGate>
     </div>
   )
+}
+
+// ── Yogi and Avayogi stars ───────────────────────────────────
+
+export function YogiStarsCard({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('nakshatra.extras.yogi')
+  const names = useNames()
+  const y = useMemo(() => analyzeYogiStars(chart), [chart])
+  if (!y) return null
+  const list = (ids: string[]) => (ids.length ? ids.map(id => names.body(id as GrahaId | 'As')).join(', ') : t('none'))
+  return (
+    <div className={panel.stack}>
+      <SectionHead title={t('title')} />
+      <p className={panel.lead}>{t('lead')}</p>
+      <div className={x.ghatakGrid}>
+        <div className={cn(x.ghatakCard, x.tone_auspicious)}>
+          <span className={styles.controlLabel}>{t('yogiStar')}</span>
+          <span className={x.ghatakValue}>{names.nak(y.yogiNak)}</span>
+          <span className={x.ghatakToday}>{t('yogiGraha', { graha: names.body(y.yogiGraha) })}</span>
+          <span className={x.ghatakToday}>{t('sahayogi', { graha: names.body(y.sahayogiGraha) })}</span>
+          <span className={x.ghatakToday}>{t('inStar', { list: list(y.inYogiStar) })}</span>
+          <span className={x.ghatakToday}>{t('ruledBy', { graha: names.body(y.yogiGraha), list: list(y.ruledByYogi) })}</span>
+        </div>
+        <div className={cn(x.ghatakCard, x.tone_inauspicious)}>
+          <span className={styles.controlLabel}>{t('avayogiStar')}</span>
+          <span className={x.ghatakValue}>{names.nak(y.avayogiNak)}</span>
+          <span className={x.ghatakToday}>{t('avayogiGraha', { graha: names.body(y.avayogiGraha) })}</span>
+          <span className={x.ghatakToday}>{t('inStar', { list: list(y.inAvayogiStar) })}</span>
+          <span className={x.ghatakToday}>{t('ruledBy', { graha: names.body(y.avayogiGraha), list: list(y.ruledByAvayogi) })}</span>
+        </div>
+      </div>
+      <p className={styles.footnote}>{t('note')}</p>
+    </div>
+  )
+}
+
+// ── Kota Chakra ──────────────────────────────────────────────
+
+function KotaSection({ chart, userPlan }: { chart: ChartOutput; userPlan: UserPlan }) {
+  const t = useTranslations('nakshatra.extras.kota')
+  const names = useNames()
+  const { hi } = useLang()
+  const gold = planMeetsUiGate(userPlan, 'gold')
+  const moon = moonOf(chart)
+  const natalMoonLon = moon?.lonSidereal ?? 0
+  const janma28 = star28Of(natalMoonLon)
+  const moonSign = (moon?.rashi ?? 1) as Rashi
+  // Views: today's sky, a chosen moment (Prashna: when the question is asked;
+  // Muhurta: a planned start), or the birth positions.
+  const [view, setView] = useState<'transit' | 'moment' | 'natal'>('transit')
+  const [moment, setMoment] = useState(() => toLocalInput(new Date()))
+  const momentIso = useMemo(() => {
+    const d = new Date(moment)
+    return Number.isFinite(d.getTime()) ? d.toISOString() : undefined
+  }, [moment])
+  // Kota Chakra reads mean Rahu/Ketu, always retrograde (true nodes can sit still or turn direct).
+  const transits = useTodayTransits(chart, gold && view !== 'natal', 'mean', view === 'moment' ? momentIso : undefined)
+  const useTransit = view !== 'natal' && gold && Boolean(transits.rows)
+
+  const planets = useMemo(() => {
+    if (useTransit && transits.rows) {
+      return transits.rows.map(r => ({ id: r.id, lonSidereal: r.lonSidereal, isRetro: r.isRetro }))
+    }
+    return chart.grahas.map(g => ({ id: g.id, lonSidereal: g.lonSidereal, isRetro: g.isRetro }))
+  }, [useTransit, transits.rows, chart.grahas])
+
+  const runningLords = useMemo(
+    () => getDashaPathAt(chart.dashas?.vimshottari ?? []).slice(0, 2).map(n => n.lord as GrahaId),
+    [chart.dashas],
+  )
+  const swamiNatalSign = useMemo(() => {
+    const lordOfMoonSign = readKota(janma28, moonSign, [], undefined, natalMoonLon).kotaSwami
+    return chart.grahas.find(g => g.id === lordOfMoonSign)?.rashi as Rashi | undefined
+  }, [janma28, moonSign, natalMoonLon, chart.grahas])
+  const reading = useMemo(
+    () => readKota(janma28, moonSign, planets, swamiNatalSign, natalMoonLon),
+    [janma28, moonSign, planets, swamiNatalSign, natalMoonLon],
+  )
+  const natal = useMemo(() => readNatalKota(reading, runningLords), [reading, runningLords])
+  const twelfth = useMemo(
+    () => kotaMoonTwelfthCaution(
+      moonSign,
+      chart.grahas.map(g => ({ id: g.id, rashi: g.rashi as Rashi })),
+      runningLords,
+    ),
+    [moonSign, chart.grahas, runningLords],
+  )
+  const label28 = (k: number) => {
+    const n = star27Of(k)
+    if (n == null) return t('abhijitShort')
+    return hi ? NAKSHATRA_SHORT_HI[n] : NAKSHATRA_SHORT[n]
+  }
+  const name28 = (k: number) => {
+    const n = star27Of(k)
+    return n == null ? t('abhijit') : names.nak(n)
+  }
+  const cells: KotaFortCell[] = useMemo(() => kotaCells(janma28).map(c => ({
+    ...c,
+    bodies: reading.placements.filter(p => p.star28 === c.star28).map(p => ({ id: p.id, tone: p.tone })),
+  })), [janma28, reading])
+  const verdict = reading.durgaBhanga ? 'bhanga' : reading.vijaya ? 'vijaya' : 'mixed'
+  const fortStressed = reading.durgaBhanga || reading.stambhaWeak || reading.invertedSeats
+  const roleTags = (id: GrahaId) => {
+    const tags: string[] = []
+    if (id === reading.kotaSwami) tags.push(t('swamiTag'))
+    if (id === reading.kotaPala) tags.push(t('palaTag'))
+    return tags.length ? ` · ${tags.join(' · ')}` : ''
+  }
+  const row = (p: KotaPlacement) => (
+    <tr key={p.id}>
+      <td><strong>{p.id}</strong> {names.body(p.id)}{roleTags(p.id)}</td>
+      <td>{name28(p.star28)}</td>
+      <td>{t(`layers.${p.cell.layer}`)}</td>
+      <td>{t(`paths.${p.effectivePath}`)}{p.retro && p.cell.path !== 'stambha' ? ` (${t('retroSwap')})` : ''}</td>
+      <td className={p.tone === 'support' ? panel.inkGood : p.tone === 'alert' ? panel.inkBad : panel.inkMid}>
+        {t(`tones.${p.tone}`)}
+        {p.natureReason && <small className={x.natureReason}>{t(`natureReason.${p.natureReason}`)}</small>}
+      </td>
+    </tr>
+  )
+  const seatNotes = (
+    <>
+      <p className={x.statusNote}>
+        {t(reading.swamiInside ? 'swamiInside' : 'swamiOutside', {
+          swami: names.body(reading.kotaSwami),
+          layer: reading.swamiPlacement ? t(`layers.${reading.swamiPlacement.cell.layer}`) : '—',
+        })}
+      </p>
+      <p className={x.statusNote}>
+        {t(
+          reading.palaOnPrakara ? 'palaOnWall' : reading.palaInside ? 'palaInside' : 'palaElsewhere',
+          {
+            pala: names.body(reading.kotaPala),
+            layer: reading.palaPlacement ? t(`layers.${reading.palaPlacement.cell.layer}`) : '—',
+            pada: reading.janmaPada,
+          },
+        )}
+      </p>
+      {reading.dualRole && (
+        <p className={x.statusNote}>
+          {t(reading.dualRoleSeatOk ? 'dualRoleOk' : 'dualRoleOff', {
+            planet: names.body(reading.kotaSwami),
+            layer: reading.swamiPlacement ? t(`layers.${reading.swamiPlacement.cell.layer}`) : '—',
+          })}
+        </p>
+      )}
+      {reading.invertedSeats && <p className={x.statusNote}><strong>{t('invertedSeats')}</strong></p>}
+      {reading.stambhaWeak && <p className={x.statusNote}><strong>{t('stambhaWeak')}</strong></p>}
+      {reading.stambhaGuarded && <p className={x.statusNote}>{t('stambhaGuarded')}</p>}
+      {reading.gounaSwami && (
+        <p className={x.statusNote}>
+          {t('gounaSwami', { swami: names.body(reading.kotaSwami), moon: names.body(reading.gounaSwami) })}
+        </p>
+      )}
+      {fortStressed && twelfth.active && twelfth.reason && (
+        <p className={x.statusNote}>
+          <strong>
+            {t(`twelfth.${twelfth.reason}`, {
+              list: twelfth.lords.map(names.body).join(', '),
+              lord: names.body(twelfth.twelfthLord),
+            })}
+          </strong>
+        </p>
+      )}
+    </>
+  )
+
+  return (
+    <div className={panel.stack}>
+      <SectionHead title={t('title')} />
+      <p className={panel.lead}>{t('lead')}</p>
+
+      <div className={styles.inlineControl}>
+        <span className={styles.controlLabel}>{t('viewLabel')}</span>
+        <div className={panel.viewToggle} role="group" aria-label={t('viewLabel')}>
+          {(['transit', 'moment', 'natal'] as const).map(v => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={view === v}
+              className={cn(panel.viewBtn, view === v && panel.viewBtnOn)}
+              onClick={() => setView(v)}
+            >
+              {t(`views.${v}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+      {view === 'moment' && (
+        <label className={x.checker}>
+          <span className={styles.controlLabel}>{t('momentLabel')}</span>
+          <input
+            type="datetime-local"
+            className={x.input}
+            value={moment}
+            onChange={e => setMoment(e.target.value)}
+          />
+          <span className={styles.footnote}>{t('momentHint')}</span>
+        </label>
+      )}
+      {view !== 'natal' && !gold && <p className={styles.teaser}>{t('transitGold')}</p>}
+      {view !== 'natal' && gold && transits.loading && <p className={panel.lead}>{t('loading')}</p>}
+      {view !== 'natal' && gold && transits.error && <p className={panel.lead}>{t('failed')}</p>}
+
+      {useTransit ? (
+        <div className={cn(x.statusCard, verdict === 'bhanga' ? x.statusHard : verdict === 'vijaya' ? x.statusSoft : x.statusMid)}>
+          <h4 className={x.statusTitle}>{t(`verdict.${verdict}`)}</h4>
+          <p className={x.statusNote}>{t(`verdictText.${verdict}`)}</p>
+          {seatNotes}
+        </div>
+      ) : (
+        <div className={x.statusCard}>
+          <h4 className={x.statusTitle}>{t('birthTitle')}</h4>
+          <p className={x.statusNote}>
+            {t('birthNote', {
+              swami: names.body(reading.kotaSwami),
+              pala: names.body(reading.kotaPala),
+              pada: reading.janmaPada,
+            })}
+          </p>
+          {natal.innerMalefics.length > 0 ? (
+            <p className={x.statusNote}><strong>{t('natalInner', { list: natal.innerMalefics.map(names.body).join(', ') })}</strong></p>
+          ) : (
+            <p className={x.statusNote}>{t('natalNone')}</p>
+          )}
+          {natal.activeNow.length > 0 && (
+            <p className={x.statusNote}>{t('natalActive', { list: natal.activeNow.map(names.body).join(', '), count: natal.activeNow.length })}</p>
+          )}
+          {natal.guards.length > 0 && (
+            <p className={x.statusNote}>{t('natalGuard', { list: natal.guards.map(names.body).join(', ') })}</p>
+          )}
+          {seatNotes}
+        </div>
+      )}
+
+      <VizCard
+        title={t('fortTitle')}
+        caption={t('fortCaption', { star: name28(janma28) })}
+        legend={[
+          { label: t('layers.stambha'), color: KOTA_RING_FILL.stambha },
+          { label: t('layers.madhya'), color: KOTA_RING_FILL.madhya },
+          { label: t('layers.prakara'), color: KOTA_RING_FILL.prakara },
+          { label: t('layers.bahya'), color: KOTA_RING_FILL.bahya },
+          { label: t('tones.alert'), color: 'var(--rose)' },
+          { label: t('tones.caution'), color: 'var(--amber)' },
+          { label: t('tones.support'), color: 'var(--teal)' },
+        ]}
+      >
+        <KotaFort cells={cells} label={label28} layerLabel={l => t(`layers.${l}`)} janma28={janma28} />
+      </VizCard>
+
+      <div className={panel.tableWrap}>
+        <table className={panel.table}>
+          <thead>
+            <tr>{(['planet', 'star', 'layer', 'path', 'reading'] as const).map(k => <th key={k}>{t(`headers.${k}`)}</th>)}</tr>
+          </thead>
+          <tbody>{reading.placements.map(row)}</tbody>
+        </table>
+      </div>
+      <p className={styles.footnote}>{t('note')}</p>
+    </div>
+  )
+}
+
+/** Date → value for <input type="datetime-local"> in the viewer's time zone. */
+function toLocalInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }

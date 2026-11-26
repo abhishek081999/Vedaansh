@@ -8,9 +8,11 @@ import {
   analyzeSpecialStars,
   analyzeStarLords,
   buildSpecialStars,
+  analyzeYogiStars,
   computeLattas,
   countFrom,
   dashaNadi,
+  nadiCompatibility,
   navataraGrid,
   povNakshatra,
   taraFix,
@@ -115,6 +117,29 @@ describe('navatara grid and nadi roles', () => {
     expect(d!.antars.length).toBe(9)
     expect(d!.antars.filter(a => a.current)).toHaveLength(1)
     for (const a of d!.antars) expect(a.count).toBe(countFrom(d!.maha.nakshatraIndex, a.nakshatraIndex))
+  })
+})
+
+describe('yogi stars', () => {
+  it('Yogi and Avayogi grahas are the lords of their points\' nakshatras', () => {
+    const y = analyzeYogiStars(chart)!
+    expect(NAKSHATRA_LORDS[y.yogiNak]).toBe(y.yogiGraha)
+    expect(NAKSHATRA_LORDS[y.avayogiNak]).toBe(y.avayogiGraha)
+    // Avayogi point is 186°40' (14 stars) after the Yogi point
+    expect((y.avayogiNak - y.yogiNak + 27) % 27).toBe(14)
+    for (const b of y.ruledByYogi) {
+      const nak = b === 'As' ? Math.floor(chart.lagnas.ascDegree / (360 / 27)) : chart.grahas.find(g => g.id === b)!.nakshatraIndex
+      expect(NAKSHATRA_LORDS[nak]).toBe(y.yogiGraha)
+    }
+  })
+})
+
+describe('nadi compatibility', () => {
+  it('reads each partner\'s star from the other side', () => {
+    const r = nadiCompatibility(0, 15) // Vishakha is Ashwini's 16th → Sanghatika
+    expect(r.theirStarForMe.role).toBe('sanghatika')
+    expect(r.myStarForThem.count).toBe(13)
+    expect(nadiCompatibility(6, 15).theirStarForMe.role).toBe('karma') // Punarvasu → Vishakha is the 10th
   })
 })
 

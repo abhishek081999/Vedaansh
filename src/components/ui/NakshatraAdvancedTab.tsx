@@ -42,7 +42,7 @@ import type { TimedWindow, VedicBirthday } from '@/lib/engine/nakshatraReturns'
 import panel from './NakshatraPanel.module.css'
 import styles from './NakshatraAdvancedTab.module.css'
 
-export type TransitPos = { id: GrahaId; nakshatraIndex: number; lonSidereal: number; rashi: Rashi }
+export type TransitPos = { id: GrahaId; nakshatraIndex: number; lonSidereal: number; rashi: Rashi; isRetro: boolean }
 
 export function useNames() {
   const { hi } = useLang()
@@ -66,16 +66,21 @@ export function useNames() {
 }
 
 /** Today's grahas from the transit API (shared by special stars and Latta). */
-export function useTodayTransits(chart: ChartOutput, enabled: boolean) {
+/**
+ * Grahas for today (or for `atIso`, an exact instant). `nodeMode` overrides the
+ * chart's node setting (Kota Chakra reads mean nodes).
+ */
+export function useTodayTransits(chart: ChartOutput, enabled: boolean, nodeMode?: 'mean' | 'true', atIso?: string) {
   const [rows, setRows] = useState<TransitPos[] | null>(null)
   const [error, setError] = useState(false)
   const ayanamsha = chart.meta?.settings?.ayanamsha ?? DEFAULT_AYANAMSHA
-  const node = chart.meta?.settings?.nodeMode ?? 'true'
+  const node = nodeMode ?? chart.meta?.settings?.nodeMode ?? 'true'
 
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
-    const now = new Date()
+    const now = atIso ? new Date(atIso) : new Date()
+    setRows(null)
     const qs = new URLSearchParams({
       date: now.toISOString().slice(0, 10),
       at: now.toISOString(),
@@ -88,11 +93,11 @@ export function useTodayTransits(chart: ChartOutput, enabled: boolean) {
       .then(({ ok, j }) => {
         if (cancelled) return
         if (!ok || !j.success) throw new Error('FETCH_FAILED')
-        setRows((j.grahas as TransitPlanetRow[]).map(g => ({ id: g.id as GrahaId, nakshatraIndex: g.nakshatraIndex, lonSidereal: g.lonSidereal, rashi: g.rashi as Rashi })))
+        setRows((j.grahas as TransitPlanetRow[]).map(g => ({ id: g.id as GrahaId, nakshatraIndex: g.nakshatraIndex, lonSidereal: g.lonSidereal, rashi: g.rashi as Rashi, isRetro: g.isRetro })))
       })
       .catch(() => { if (!cancelled) setError(true) })
     return () => { cancelled = true }
-  }, [enabled, ayanamsha, node])
+  }, [enabled, ayanamsha, node, atIso])
 
   return { rows, error, loading: enabled && !rows && !error }
 }

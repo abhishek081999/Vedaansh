@@ -11,7 +11,7 @@ const NakshatraEmpty = dynamic(() => import('@/components/ui/NakshatraPanel').th
 const TABS = new Set<NakshatraSubTab>([
   'overview', 'planet', 'starlords', 'degrees', 'gandmool',
   'special', 'journey', 'navtara', 'taramandal', 'compat',
-  'bestdays', 'birthday', 'slowtransits', 'muhurta', 'panchaka', 'latta', 'ghatak',
+  'bestdays', 'birthday', 'slowtransits', 'kota', 'muhurta', 'panchaka', 'latta', 'ghatak',
   'profession', 'medical', 'remedies', 'namakshar',
 ])
 

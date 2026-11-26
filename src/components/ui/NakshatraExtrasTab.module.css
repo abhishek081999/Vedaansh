@@ -323,3 +323,10 @@
 @media (prefers-reduced-motion: reduce) {
   .jCard { transition: none; }
 }
+
+.natureReason {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}

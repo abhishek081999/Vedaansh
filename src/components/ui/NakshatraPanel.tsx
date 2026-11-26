@@ -11,38 +11,21 @@ import {
   Activity,
   BookOpen,
   Briefcase,
-  CalendarDays,
   Check,
   ChevronDown,
   Coins,
-  Compass,
-  Flame,
   Gem,
   Heart,
   Home,
-  Info,
   Leaf,
   Lightbulb,
-  Link2,
   Moon,
-  Anchor,
-  Route,
-  Hourglass,
-  ShieldAlert,
-  Type,
-  CalendarHeart,
-  Crosshair,
-  Footprints,
-  GitBranch,
-  Orbit,
   Plane,
   Sparkles,
-  Star,
   Sun,
   Target,
   Trophy,
   TrendingDown,
-  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
@@ -51,7 +34,8 @@ import { NakshatraMedicalTab } from '@/components/ui/NakshatraMedicalTab'
 import { NakshatraTaramandalTab } from '@/components/ui/NakshatraTaramandalTab'
 import { NakshatraNavtaraTab } from '@/components/ui/NakshatraNavtaraTab'
 import { NakshatraSystemTab, type NakshatraSystemSection } from '@/components/ui/NakshatraAdvancedTab'
-import { NakshatraExtrasTab, type NakshatraExtrasSection } from '@/components/ui/NakshatraExtrasTab'
+import { NakshatraExtrasTab, YogiStarsCard, type NakshatraExtrasSection } from '@/components/ui/NakshatraExtrasTab'
+import { nadiCompatibility, roleNature } from '@/lib/engine/nakshatraSystem'
 import { NakshatraJourneyTab } from '@/components/ui/NakshatraJourneyTab'
 import {
   getNakshatraCharacteristics, checkPanchaka,
@@ -80,6 +64,7 @@ import { NakshatraWheel } from '@/components/ui/NakshatraWheel'
 import { Button } from '@/components/ui/primitives/Button'
 import { cn } from '@/lib/ui/cn'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { NAKSHATRA_GROUPS, nakshatraSlug } from '@/lib/ui/navConfig'
 import { useLang } from '@/i18n/useLang'
 import { termHi } from '@/i18n/jyotish'
 import styles from './NakshatraPanel.module.css'
@@ -87,65 +72,28 @@ import styles from './NakshatraPanel.module.css'
 export type NakshatraSubTab =
   | 'overview' | 'planet' | 'starlords' | 'degrees' | 'gandmool'
   | 'special' | 'journey' | 'navtara' | 'taramandal' | 'compat'
-  | 'bestdays' | 'birthday' | 'slowtransits' | 'muhurta' | 'panchaka' | 'latta' | 'ghatak'
+  | 'bestdays' | 'birthday' | 'slowtransits' | 'kota' | 'muhurta' | 'panchaka' | 'latta' | 'ghatak'
   | 'profession' | 'medical' | 'remedies' | 'namakshar'
 type SubTab = NakshatraSubTab
-type GroupId = 'birth' | 'patterns' | 'timing' | 'guidance'
+type GroupId = 'birth' | 'chakras' | 'transits' | 'timing' | 'guidance'
 
-/** Tabs grouped by purpose; label keys are `nakshatra.tabs.<id>` and `nakshatra.groups.<id>`. */
-export const NAKSHATRA_TAB_GROUPS: { id: GroupId; Icon: LucideIcon; tabs: { id: SubTab; Icon: LucideIcon }[] }[] = [
-  {
-    id: 'birth',
-    Icon: Moon,
-    tabs: [
-      { id: 'overview', Icon: Info },
-      { id: 'planet', Icon: Star },
-      { id: 'starlords', Icon: GitBranch },
-      { id: 'degrees', Icon: Crosshair },
-      { id: 'gandmool', Icon: Anchor },
-    ],
-  },
-  {
-    id: 'patterns',
-    Icon: Orbit,
-    tabs: [
-      { id: 'special', Icon: Sparkles },
-      { id: 'journey', Icon: Route },
-      { id: 'navtara', Icon: Compass },
-      { id: 'taramandal', Icon: Orbit },
-      { id: 'compat', Icon: Link2 },
-    ],
-  },
-  {
-    id: 'timing',
-    Icon: CalendarDays,
-    tabs: [
-      { id: 'bestdays', Icon: CalendarDays },
-      { id: 'birthday', Icon: CalendarHeart },
-      { id: 'slowtransits', Icon: Hourglass },
-      { id: 'muhurta', Icon: Zap },
-      { id: 'panchaka', Icon: Flame },
-      { id: 'latta', Icon: Footprints },
-      { id: 'ghatak', Icon: ShieldAlert },
-    ],
-  },
-  {
-    id: 'guidance',
-    Icon: Compass,
-    tabs: [
-      { id: 'profession', Icon: Briefcase },
-      { id: 'medical', Icon: Activity },
-      { id: 'remedies', Icon: Heart },
-      { id: 'namakshar', Icon: Type },
-    ],
-  },
-]
+/**
+ * Tabs grouped by purpose, derived from NAKSHATRA_GROUPS in navConfig (the
+ * same list drives the header menu). Label keys are
+ * `nakshatra.groups.<id>` and `nakshatra.tabs.<id>`.
+ */
+export const NAKSHATRA_TAB_GROUPS: { id: GroupId; Icon: LucideIcon; tabs: { id: SubTab; Icon: LucideIcon }[] }[] =
+  NAKSHATRA_GROUPS.map(g => ({
+    id: g.id.replace('nakshatra-', '') as GroupId,
+    Icon: g.icon ?? Moon,
+    tabs: g.tabs.map(tab => ({ id: nakshatraSlug(tab) as SubTab, Icon: tab.icon })),
+  }))
 
 const groupOf = (tab: SubTab): GroupId =>
   NAKSHATRA_TAB_GROUPS.find(g => g.tabs.some(t => t.id === tab))?.id ?? 'birth'
 
 const SYSTEM_TABS = new Set<SubTab>(['special', 'starlords', 'birthday', 'degrees', 'latta'])
-const EXTRA_TABS = new Set<SubTab>(['gandmool', 'namakshar', 'ghatak', 'slowtransits'])
+const EXTRA_TABS = new Set<SubTab>(['gandmool', 'namakshar', 'ghatak', 'slowtransits', 'kota'])
 
 const ACTIVITY_DEFS: { id: ActivityType; labelKey: string; Icon: LucideIcon }[] = [
   { id: 'marriage', labelKey: 'marriage', Icon: Gem },
@@ -267,6 +215,9 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const openTab = (tab: SubTab) => {
     setSubTab(tab)
     setLastInGroup(prev => ({ ...prev, [groupOf(tab)]: tab }))
+    // Keep the address bar (and so the sidenav / header highlight) on the open tab.
+    const path = `${hi ? '/hi' : ''}/nakshatra/${tab}`
+    if (window.location.pathname !== path) window.history.replaceState(window.history.state, '', path)
   }
   const openGroup = (id: GroupId) => {
     const group = NAKSHATRA_TAB_GROUPS.find(g => g.id === id)!
@@ -1249,6 +1200,7 @@ function PlanetTab({ positions, chart, moonNakIdx }: { positions: Placement[]; c
 
   return (
     <div className={styles.stack}>
+      <YogiStarsCard chart={chart} />
       {shadbala && (
         <>
           <div className={styles.strengthGrid}>
@@ -1343,6 +1295,8 @@ function CompatTab({ birthNakIdx }: { birthNakIdx: number }) {
   const [cmp, setCmp] = useState(0)
   const compat = useMemo(() => getNakCompatibility(birthNakIdx, cmp, lang), [birthNakIdx, cmp, lang])
   const relation = useMemo(() => getRelationshipNavtara(birthNakIdx, cmp, 'You', 'Other', lang), [birthNakIdx, cmp, lang])
+  const nadi = useMemo(() => nadiCompatibility(birthNakIdx, cmp), [birthNakIdx, cmp])
+  const tRole = useTranslations('nakshatra.advanced.special')
   const miniGrid = useMemo(() => NAK_NAMES.map((_, i) => ({ idx: i, ...getNakCompatibility(birthNakIdx, i, lang) })), [birthNakIdx, lang])
   const tone = scoreTone(compat.score)
 
@@ -1367,6 +1321,24 @@ function CompatTab({ birthNakIdx }: { birthNakIdx: number }) {
           {t('otherToYou')}<strong className={relation.bToA.profile.isHard ? styles.emRose : styles.emTeal}>{nm(relation.bToA.tara)}</strong>
         </div>
         <div className={styles.relationAdvice}>{relation.advice}</div>
+      </div>
+
+      <div className={styles.relationCard}>
+        <div className={styles.relationTitle}>{t('nadiTitle')}</div>
+        {([
+          ['theirForMe', nadi.theirStarForMe],
+          ['mineForThem', nadi.myStarForThem],
+        ] as const).map(([key, fix]) => (
+          <div key={key} className={styles.relationAdvice}>
+            {t(`nadi.${key}`, { count: fix.count, tara: nm(fix.tara) })}{' '}
+            {fix.role ? (
+              <strong className={roleNature(fix.role) === 'benefic' ? styles.emTeal : roleNature(fix.role) === 'malefic' ? styles.emRose : styles.emGold}>
+                {tRole(`stars.${fix.role}.name`)}
+              </strong>
+            ) : null}
+            {fix.role ? ` — ${t(`nadiRole.${fix.role}`)}` : ` ${t('nadi.noRole')}`}
+          </div>
+        ))}
       </div>
 
       <div className={styles.scoreCard}>

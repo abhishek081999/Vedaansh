@@ -6,6 +6,13 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
+  Anchor,
+  CalendarHeart,
+  Castle,
+  Flame,
+  Footprints,
+  GitBranch,
+  Type,
   BarChart3,
   BookMarked,
   BookOpen,
@@ -71,6 +78,8 @@ export interface NavTab {
 export interface NavGroup {
   id: string
   label: string
+  /** Optional group icon (Nakshatra groups use it in the page's group bar). */
+  icon?: LucideIcon
   tabs: NavTab[]
 }
 
@@ -80,7 +89,7 @@ export const TOP_TABS: NavTab[] = [
   { id: 'my-charts', label: 'My Charts', icon: Library, path: '/my/charts' },
 ]
 
-/** Sidenav entry. Navtara and the other tools live inside the Nakshatra page. */
+/** Sidenav entry: one link; the grouped tabs live on the page and in the header menu. */
 export const NAKSHATRA_LINK: NavTab = {
   id: 'nakshatra',
   label: 'Nakshatra',
@@ -89,19 +98,75 @@ export const NAKSHATRA_LINK: NavTab = {
   match: 'prefix',
 }
 
-export const NAKSHATRA_TABS: NavTab[] = [
-  { id: 'nakshatra-overview', label: 'Overview', icon: Star, path: '/nakshatra/overview' },
-  { id: 'nakshatra-navtara', label: 'Navtara', icon: Sparkles, path: '/nakshatra/navtara' },
-  { id: 'nakshatra-taramandal', label: 'Taramandal', icon: Orbit, path: '/nakshatra/taramandal' },
-  { id: 'nakshatra-bestdays', label: 'Best Days', icon: CalendarDays, path: '/nakshatra/bestdays' },
-  { id: 'nakshatra-muhurta', label: 'Muhurta', icon: Zap, path: '/nakshatra/muhurta' },
-  { id: 'nakshatra-panchaka', label: 'Panchaka', icon: Target, path: '/nakshatra/panchaka' },
-  { id: 'nakshatra-planet', label: 'Planet', icon: Star, path: '/nakshatra/planet' },
-  { id: 'nakshatra-compat', label: 'Compat', icon: HeartHandshake, path: '/nakshatra/compat' },
-  { id: 'nakshatra-remedies', label: 'Remedies', icon: Sparkles, path: '/nakshatra/remedies' },
-  { id: 'nakshatra-profession', label: 'Profession', icon: Briefcase, path: '/nakshatra/profession' },
-  { id: 'nakshatra-medical', label: 'Medical', icon: Activity, path: '/nakshatra/medical' },
+/**
+ * Nakshatra page tabs, grouped — the single source of truth for the page's
+ * own group/tab bars and the header mega-menu.
+ * The tab slug is the last path segment (/nakshatra/<slug>).
+ */
+export const NAKSHATRA_GROUPS: NavGroup[] = [
+  {
+    id: 'nakshatra-birth',
+    label: 'Birth Star',
+    icon: Moon,
+    tabs: [
+      { id: 'nakshatra-overview', label: 'Profile', icon: Info, path: '/nakshatra/overview' },
+      { id: 'nakshatra-planet', label: 'Planets', icon: Star, path: '/nakshatra/planet' },
+      { id: 'nakshatra-starlords', label: 'Star Lords', icon: GitBranch, path: '/nakshatra/starlords' },
+      { id: 'nakshatra-degrees', label: 'Sensitive Degrees', icon: Crosshair, path: '/nakshatra/degrees' },
+      { id: 'nakshatra-gandmool', label: 'Gandmool', icon: Anchor, path: '/nakshatra/gandmool' },
+    ],
+  },
+  {
+    id: 'nakshatra-chakras',
+    label: 'Chakras',
+    icon: Orbit,
+    tabs: [
+      { id: 'nakshatra-special', label: 'Nadi Nakshatras', icon: Sparkles, path: '/nakshatra/special' },
+      { id: 'nakshatra-navtara', label: 'Navtara', icon: Compass, path: '/nakshatra/navtara' },
+      { id: 'nakshatra-taramandal', label: 'Taramandal', icon: Orbit, path: '/nakshatra/taramandal' },
+      { id: 'nakshatra-journey', label: 'Life Journey', icon: Route, path: '/nakshatra/journey' },
+    ],
+  },
+  {
+    id: 'nakshatra-transits',
+    label: 'Transits',
+    icon: Hourglass,
+    tabs: [
+      { id: 'nakshatra-slowtransits', label: 'Slow Transits', icon: Hourglass, path: '/nakshatra/slowtransits' },
+      { id: 'nakshatra-kota', label: 'Kota Chakra', icon: Castle, path: '/nakshatra/kota' },
+      { id: 'nakshatra-birthday', label: 'Star Birthday', icon: CalendarHeart, path: '/nakshatra/birthday' },
+    ],
+  },
+  {
+    id: 'nakshatra-timing',
+    label: 'Timing',
+    icon: CalendarDays,
+    tabs: [
+      { id: 'nakshatra-bestdays', label: 'Best Days', icon: CalendarDays, path: '/nakshatra/bestdays' },
+      { id: 'nakshatra-muhurta', label: 'Muhurta', icon: Zap, path: '/nakshatra/muhurta' },
+      { id: 'nakshatra-panchaka', label: 'Panchaka', icon: Flame, path: '/nakshatra/panchaka' },
+      { id: 'nakshatra-latta', label: 'Latta', icon: Footprints, path: '/nakshatra/latta' },
+      { id: 'nakshatra-ghatak', label: 'Ghatak', icon: ShieldAlert, path: '/nakshatra/ghatak' },
+    ],
+  },
+  {
+    id: 'nakshatra-guidance',
+    label: 'Guidance',
+    icon: Compass,
+    tabs: [
+      { id: 'nakshatra-compat', label: 'Compatibility', icon: HeartHandshake, path: '/nakshatra/compat' },
+      { id: 'nakshatra-profession', label: 'Career', icon: Briefcase, path: '/nakshatra/profession' },
+      { id: 'nakshatra-medical', label: 'Health', icon: Activity, path: '/nakshatra/medical' },
+      { id: 'nakshatra-remedies', label: 'Remedies', icon: Heart, path: '/nakshatra/remedies' },
+      { id: 'nakshatra-namakshar', label: 'Name Letters', icon: Type, path: '/nakshatra/namakshar' },
+    ],
+  },
 ]
+
+export const NAKSHATRA_TABS: NavTab[] = NAKSHATRA_GROUPS.flatMap(g => g.tabs)
+
+/** Slug of a Nakshatra tab (/nakshatra/<slug>). */
+export const nakshatraSlug = (tab: NavTab) => (tab.path ?? '').split('/').pop() ?? ''
 
 /**
  * Consultation-first astrology sections.

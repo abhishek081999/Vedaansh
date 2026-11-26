@@ -3,7 +3,7 @@
     "dashboard": "कार्यक्षेत्र",
     "today": "आज",
     "my-charts": "मेरी कुंडलियाँ",
-    "nakshatra-overview": "परिचय",
+    "nakshatra-overview": "प्रोफ़ाइल",
     "nakshatra-navtara": "नवतारा",
     "nakshatra-taramandal": "तारामंडल",
     "nakshatra-bestdays": "शुभ दिन",
@@ -12,7 +12,7 @@
     "nakshatra-planet": "ग्रह",
     "nakshatra-compat": "अनुकूलता",
     "nakshatra-remedies": "उपाय",
-    "nakshatra-profession": "व्यवसाय",
+    "nakshatra-profession": "करियर",
     "nakshatra-medical": "स्वास्थ्य",
     "transit-scrubber": "लाइव गोचर",
     "transit-forecast": "गोचर पूर्वानुमान",
@@ -68,7 +68,18 @@
     "about": "हमारे बारे में",
     "pricing": "योजनाएँ एवं मूल्य",
     "nakshatra": "नक्षत्र",
-    "feature-requests": "सुविधा का अनुरोध"
+    "feature-requests": "सुविधा का अनुरोध",
+    "nakshatra-starlords": "नक्षत्र स्वामी",
+    "nakshatra-degrees": "संवेदनशील अंश",
+    "nakshatra-gandmool": "गंडमूल",
+    "nakshatra-special": "नाड़ी नक्षत्र",
+    "nakshatra-journey": "जीवन यात्रा",
+    "nakshatra-slowtransits": "धीमा गोचर",
+    "nakshatra-kota": "कोट चक्र",
+    "nakshatra-birthday": "नक्षत्र जन्मदिन",
+    "nakshatra-latta": "लत्ता",
+    "nakshatra-ghatak": "घातक",
+    "nakshatra-namakshar": "नामाक्षर"
   },
   "groups": {
     "consult": "परामर्श",
@@ -76,7 +87,12 @@
     "transit": "गोचर",
     "core-analysis": "मूल विश्लेषण",
     "divisional-charts": "वर्ग कुंडली",
-    "strength-analytics": "बल एवं विश्लेषण"
+    "strength-analytics": "बल एवं विश्लेषण",
+    "nakshatra-birth": "जन्म तारा",
+    "nakshatra-chakras": "चक्र",
+    "nakshatra-transits": "गोचर",
+    "nakshatra-timing": "समय",
+    "nakshatra-guidance": "मार्गदर्शन"
   },
   "sections": {
     "astrology": "ज्योतिष",
