@@ -617,7 +617,7 @@ export async function calculateChart(
       return {
         significators: calculateKPSignificators(grahas, kpHouses),
         cusps:         calculateKPCusps(kpHouses),
-        rulingPlanets: calculateRulingPlanets(jd, input.latitude, input.longitude, ayanamshaVal),
+        rulingPlanets: calculateRulingPlanets(jd, input.latitude, input.longitude, ayanamshaVal, vara.number),
         houseSystem,
       }
     })(),

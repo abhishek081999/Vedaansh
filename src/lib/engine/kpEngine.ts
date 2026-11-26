@@ -132,18 +132,18 @@ export function calculateRulingPlanets(
   jd: number,
   lat: number,
   lng: number,
-  ayanValue: number
+  ayanValue: number,
+  /** Vedic weekday (0=Sun), sunrise to sunrise. If omitted, approximated from local mean time. */
+  varaNumber?: number,
 ): KPRulingPlanets {
-  // 1. Day Lord
-  // Standard Vara logic
-  const days = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
-  // JD 0 was a Monday? sweph.day_of_week
-  const dOfWeek = (Math.floor(jd + 1.5) % 7) // 0=Mon, 1=Tue, ... 6=Sun
-  const dayLordId = ['Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Su'][dOfWeek] as GrahaId
-  
-  // 2. Moon Star/Sign Lords
-  const moonPos = getPlanetPosition(jd, SWISSEPH_IDS.Mo, true)
-  const moonStellar = getKPStellar(moonPos.longitude)
+  // 1. Day Lord — Math.floor(jd + 1.5) % 7 is the UTC weekday with 0 = Sunday.
+  // Without a known vara, shift to local mean time and start the day ~6 am.
+  const dOfWeek = varaNumber ?? Math.floor(jd + 1.5 + lng / 360 - 0.25) % 7
+  const dayLordId = (['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const)[((dOfWeek % 7) + 7) % 7] as GrahaId
+
+  // 2. Moon Star/Sign Lords — same ayanamsha value as the chart
+  const moonTrop = getPlanetPosition(jd, SWISSEPH_IDS.Mo).longitude
+  const moonStellar = getKPStellar((moonTrop - ayanValue + 360) % 360)
   
   // 3. Lagna Star/Sign Lords
   // We need to calculate Ascendant for this JD

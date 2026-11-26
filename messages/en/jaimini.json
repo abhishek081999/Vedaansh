@@ -238,6 +238,7 @@
     "corrected": "BPHS corrected · D1 AL {d1} · D9 AL {d9}",
     "raw": "Raw pada · D1 AL {d1} · D9 AL {d9}",
     "hidden": "Arudha labels hidden on charts",
+    "rawNote": "Note: JHora and most apps apply the BPHS exceptions (an Arudha never falls in the 1st or 7th from its house). Turn them on to match.",
     "matrix": "{varga} Arudha Matrix"
   },
   "argala": {

@@ -366,6 +366,7 @@ export function ChakraSelector({
                         label={t('toggles.bphs')}
                         value={arudhaBphsMode}
                         onChange={setArudhaBphsMode}
+                        hint={t('toggles.bphsHint')}
                       />
                     )}
                   </>
@@ -589,10 +590,10 @@ export function ChakraSelector({
 // ── Toggle widget ─────────────────────────────────────────────
 
 function Toggle({
-  label, value, onChange,
-}: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  label, value, onChange, hint,
+}: { label: string; value: boolean; onChange: (v: boolean) => void; hint?: string }) {
   return (
-    <label style={{
+    <label title={hint} style={{
       display: 'flex', alignItems: 'center', gap: '0.35rem',
       cursor: 'pointer', userSelect: 'none',
     }}>

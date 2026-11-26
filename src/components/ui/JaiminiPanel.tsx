@@ -1649,6 +1649,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           : t('arudhaPanel.raw', { d1: rashiShort(d1EffectiveArudhas.AL), d9: rashiShort(d9EffectiveArudhas.AL) }))
                         : t('arudhaPanel.hidden')}
                     </span>
+                    {showArudhaOverlay && !arudhaBphsMode && (
+                      <span style={{ flexBasis: '100%', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                        {t('arudhaPanel.rawNote')}
+                      </span>
+                    )}
                   </div>
 
                   {(['D1', 'D9'] as const).map((varga) => {

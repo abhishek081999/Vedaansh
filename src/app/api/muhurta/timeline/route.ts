@@ -120,8 +120,8 @@ export async function GET(req: NextRequest) {
       lastStage = `interval-${i}-positions`
       let sunPos, moonPos
       try {
-        sunPos = getPlanetPosition(jd, SWISSEPH_IDS.Su, true)
-        moonPos = getPlanetPosition(jd, SWISSEPH_IDS.Mo, true)
+        sunPos = getPlanetPosition(jd, SWISSEPH_IDS.Su, true, false, false, ayanMode)
+        moonPos = getPlanetPosition(jd, SWISSEPH_IDS.Mo, true, false, false, ayanMode)
       } catch (epheError) {
         console.error(`[muhurta/timeline] Ephemeris error at interval ${i}:`, epheError)
         continue

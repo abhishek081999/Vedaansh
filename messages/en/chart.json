@@ -127,6 +127,7 @@
       "karaka": "Karaka",
       "arudha": "Arudha",
       "bphs": "BPHS exceptions",
+      "bphsHint": "Note: JHora and most apps apply the BPHS exceptions (an Arudha never falls in the 1st or 7th from its house). Turn them on to match.",
       "natal": "Show Natal",
       "tooltip": "Tooltip",
       "chara": "Chara Drishti",

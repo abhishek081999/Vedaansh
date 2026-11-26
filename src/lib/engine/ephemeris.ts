@@ -1,7 +1,7 @@
 import sweph from 'sweph'
 import fs from 'fs'
 import path from 'path'
-import type { GrahaId, AyanamshaMode, PlanetPosition } from '@/types/astrology'
+import { DEFAULT_AYANAMSHA, type GrahaId, type AyanamshaMode, type PlanetPosition } from '@/types/astrology'
 
 const ephePath = process.env.EPHE_PATH
   ? path.resolve(process.env.EPHE_PATH)
@@ -84,7 +84,23 @@ function hasPlanetCalcData(r: { data?: unknown }): boolean {
   return Array.isArray(r?.data) && r.data.length >= 4 && Number.isFinite(Number(r.data[0]))
 }
 
-export function getPlanetPosition(jd: number, planetId: number, isSidereal = false, isEquatorial = false, isHeliocentric = false): PlanetPosition {
+/**
+ * Planet position. With `isSidereal`, the longitude is tropical − the given
+ * ayanamsha (default: app default) — never Swiss Ephemeris' global sidereal
+ * mode, which holds whatever ayanamsha the last request set.
+ */
+export function getPlanetPosition(
+  jd: number,
+  planetId: number,
+  isSidereal = false,
+  isEquatorial = false,
+  isHeliocentric = false,
+  ayanamshaMode: AyanamshaMode = DEFAULT_AYANAMSHA,
+): PlanetPosition {
+  if (isSidereal && !isEquatorial) {
+    const trop = getPlanetPosition(jd, planetId, false, false, isHeliocentric)
+    return { ...trop, longitude: toSidereal(trop.longitude, getAyanamsha(jd, ayanamshaMode)) }
+  }
   let flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
   if (isEquatorial) flags |= C.SEFLG_EQUATORIAL
   if (isHeliocentric) flags |= C.SEFLG_HELCTR
