@@ -16,7 +16,7 @@
 import { useState, useMemo, useCallback, CSSProperties } from 'react'
 import { useTranslations } from 'next-intl'
 import type { SBCCell, PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
-import { PLANET_SYMBOL, PLANET_COLOR, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
+import { PLANET_SYMBOL, PLANET_COLOR, DIAGONAL_PLANETS, frontVedhaKeys } from '@/lib/engine/sarvatobhadra'
 import type { GrahaId } from '@/types/astrology'
 
 // ─── Types ────────────────────────────────────────────────────
@@ -136,11 +136,8 @@ export function SarvatobhadraChakra({
 
     const [hr, hc] = hovered
 
-    // Row + column (all cells)
-    for (let i = 0; i < 9; i++) {
-      if (i !== hc) vedha.add(`${hr},${i}`)
-      if (i !== hr) vedha.add(`${i},${hc}`)
-    }
+    // Front line across the chakra (not along the cell's own side)
+    for (const [r, c] of frontVedhaKeys(hr, hc)) vedha.add(`${r},${c}`)
 
     // Diagonal — only show if any diagonal planet is in the hovered cell
     if (showDiagonalVedha) {
