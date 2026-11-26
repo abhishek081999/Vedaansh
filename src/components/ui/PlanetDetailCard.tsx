@@ -96,7 +96,8 @@ export function PlanetDetailCard({
   grahas,
   birthDate,
   userPlan = 'free',
-}: PlanetDetailCardProps) {
+  planetCodes = false,
+}: PlanetDetailCardProps & { /** Show Su / Mo / Me instead of astrological symbols. */ planetCodes?: boolean }) {
   const t = useTranslations('planetsA.card')
   const { lang, hi } = useLang()
   const isAsc = p.grahaId === 'As'
@@ -212,8 +213,8 @@ export function PlanetDetailCard({
       {/* Card Header & Status */}
       <div style={{padding:'0.85rem',borderBottom:'1px solid var(--border-soft)',display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.02)'}}>
         <div style={{display:'flex',gap:'0.75rem',alignItems:'center'}}>
-          <div style={{width:32,height:32,borderRadius:'50%',background:'var(--surface-3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',border:'1px solid var(--border-soft)'}}>
-            {ICON[p.grahaId] || p.grahaId.substring(0, 2)}
+          <div style={{width:32,height:32,borderRadius:'50%',background:'var(--surface-3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:planetCodes?'0.72rem':'1.2rem',fontWeight:planetCodes?700:undefined,border:'1px solid var(--border-soft)'}}>
+            {planetCodes ? p.grahaId : (ICON[p.grahaId] || p.grahaId.substring(0, 2))}
           </div>
           <div>
             <div style={{fontWeight:700,fontSize:'0.9rem',color:'var(--text-primary)',lineHeight:1.1}}>{displayName}</div>

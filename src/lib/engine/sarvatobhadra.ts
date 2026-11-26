@@ -137,20 +137,25 @@ export const SBC_NAK_POS: [number, number][] = [
   [0, 5], // 26 Revati
 ]
 
-/** rashiIndex (1-12) → [row, col] in the interior (classical SBC layout variant) */
+/**
+ * rashiIndex (1-12) → [row, col] in the interior ring. Each side carries the
+ * rashis of its own nakshatras, clockwise like the outer ring:
+ * East (right, T→B) Ta Ge Cn · South (bottom, R→L) Le Vi Li ·
+ * West (left, B→T) Sc Sg Cp · North (top, L→R) Aq Pi Ar.
+ */
 export const SBC_RASHI_POS: Record<number, [number, number]> = {
-  1:  [5,2],   // Aries
+  1:  [2,5],   // Aries
   2:  [3,6],   // Taurus
   3:  [4,6],   // Gemini
   4:  [5,6],   // Cancer
   5:  [6,5],   // Leo
   6:  [6,4],   // Virgo
   7:  [6,3],   // Libra
-  8:  [2,5],   // Scorpio
-  9:  [2,4],   // Sagittarius
-  10: [2,3],   // Capricorn
-  11: [3,2],   // Aquarius
-  12: [4,2],   // Pisces
+  8:  [5,2],   // Scorpio
+  9:  [4,2],   // Sagittarius
+  10: [3,2],   // Capricorn
+  11: [2,3],   // Aquarius
+  12: [2,4],   // Pisces
 }
 
 const RASHI_LABEL: Record<number, string> = {
@@ -204,7 +209,7 @@ const INTERIOR: Record<string, Pick<SBCCell, 'type' | 'label' | 'sublabel' | 'va
 
   '6,1': { type: 'consonant', label: 'n न' },
   '6,2': { type: 'vowel',     label: 'e ए' },
-  '6,6': { type: 'vowel',     label: 'lri लॄ' },
+  '6,6': { type: 'vowel',     label: 'lrii लॄ' },
   '6,7': { type: 'consonant', label: 'd ड' },
 
   '7,1': { type: 'vowel',     label: 'ri ऋ' },
@@ -313,7 +318,23 @@ export const PLANET_SYMBOL: Record<GrahaId, string> = {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * A planet at [row, col] casts vedha on every cell in its row AND column.
+ * Cells on the straight (front) vedha line of [row, col]: for a perimeter
+ * nakshatra, the line across the chakra to the opposite side (e.g. Krittika ↔
+ * Shravana) — never along its own side. Interior cells use row + column.
+ */
+export function frontVedhaKeys(row: number, col: number): Array<[number, number]> {
+  const onTopOrBottom = row === 0 || row === 8
+  const onLeftOrRight = col === 0 || col === 8
+  const out: Array<[number, number]> = []
+  for (let i = 0; i < 9; i++) {
+    if (!onLeftOrRight && i !== row) out.push([i, col])  // vertical line
+    if (!onTopOrBottom && i !== col) out.push([row, i])  // horizontal line
+  }
+  return out
+}
+
+/**
+ * A planet at [row, col] casts straight vedha along its front line.
  * Returns the nakshatras, rashis, and vara-lords affected.
  */
 export function getVedhaCells(
@@ -325,10 +346,7 @@ export function getVedhaCells(
   affectedRashis:     number[]
   affectedVaras:      GrahaId[]
 } {
-  const affected: SBCCell[] = [
-    ...grid[row].filter(c => c.col !== col),      // same row
-    ...grid.map(r => r[col]).filter(c => c.row !== row), // same col
-  ]
+  const affected: SBCCell[] = frontVedhaKeys(row, col).map(([r, c]) => grid[r][c])
 
   const affectedNakshatras = affected
     .filter(c => c.type === 'nakshatra' && c.nakshatraIndex !== undefined)
@@ -346,17 +364,14 @@ export function getVedhaCells(
 }
 
 /**
- * Get body parts from cells in the same row/col as [row, col]
+ * Get body parts from cells on the front vedha line of [row, col]
  */
 export function getBodyPartsInVedha(
   row: number,
   col: number,
   grid: SBCCell[][],
 ): string[] {
-  const affected: SBCCell[] = [
-    ...grid[row].filter(c => c.col !== col),
-    ...grid.map(r => r[col]).filter(c => c.row !== row),
-  ]
+  const affected: SBCCell[] = frontVedhaKeys(row, col).map(([r, c]) => grid[r][c])
   return affected
     .filter(c => c.bodyPart)
     .map(c => c.bodyPart!)
@@ -578,7 +593,7 @@ export const DIAGONAL_PLANETS = new Set<GrahaId>(['Ma', 'Ju', 'Sa', 'Ra', 'Ke'])
 
 /**
  * Full vedha for a planet at [row, col]:
- *   - All planets: row + column
+ *   - All planets: front line across the chakra
  *   - Ma, Ju, Sa, Ra, Ke additionally: all four diagonals
  * Returns affected nakshatras, rashis, varas, plus a Set of diagonal cell keys.
  */
@@ -597,16 +612,10 @@ export function getFullVedhaCells(
   const cells:      SBCCell[] = []
   const diagonalKeys = new Set<string>()
 
-  // Row + column (all planets)
-  for (let i = 0; i < 9; i++) {
-    if (i !== col) {
-      const k = `${row},${i}`
-      if (!seen.has(k)) { seen.add(k); cells.push(grid[row][i]) }
-    }
-    if (i !== row) {
-      const k = `${i},${col}`
-      if (!seen.has(k)) { seen.add(k); cells.push(grid[i][col]) }
-    }
+  // Front line (all planets)
+  for (const [r, c] of frontVedhaKeys(row, col)) {
+    const k = `${r},${c}`
+    if (!seen.has(k)) { seen.add(k); cells.push(grid[r][c]) }
   }
 
   // Diagonals — only for special planets

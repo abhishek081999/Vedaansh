@@ -53,12 +53,67 @@ const TAB_META_EN: Record<string, { title: string; description: string; crumb: s
   profession: {
     title: 'Nakshatra Profession — Career Star Profile',
     description: 'Profession groups, formulas, and natal star career profile from your birth Moon nakshatra.',
-    crumb: 'Profession',
+    crumb: 'Career',
   },
   medical: {
     title: 'Nakshatra Medical — Body Map & Dosha',
     description: 'Body-part map, dosha tendencies, and medical reference keyed to your birth nakshatra.',
-    crumb: 'Medical',
+    crumb: 'Health',
+  },
+  special: {
+    title: 'Navatara & Nadi Nakshatras — Janma, Karma, Manasa, Abhisheka',
+    description: 'The navatara grid in three paryays and the nadi nakshatras (Jati, Matru, Karma, Sanghatika, Samudaya, Adhana, Vainashika, Manasa, Abhisheka) from the Moon, Lagna, Sun or dasha lord, with planet roles, dasha and transits.',
+    crumb: 'Nadi Nakshatras',
+  },
+  starlords: {
+    title: 'Nakshatra Star Lords — What Each Planet Delivers',
+    description: 'Each planet gives the results of its nakshatra lord: star-lord houses, lordships, chains, key star lords and nakshatra exchanges.',
+    crumb: 'Star Lords',
+  },
+  birthday: {
+    title: 'Vedic Star Birthday — Janma Nakshatra Dates',
+    description: 'Your Vedic birthday by nakshatra for the next five years and the monthly days the Moon returns to your birth star, from Swiss Ephemeris.',
+    crumb: 'Star Birthday',
+  },
+  degrees: {
+    title: 'Sensitive Degrees — Gandanta, Pushkara & Mrityu Bhaga',
+    description: 'Gandanta knots, Pushkara Navamsha and Bhaga, Mrityu Bhaga and nakshatra-edge checks for every planet and the Lagna.',
+    crumb: 'Sensitive Degrees',
+  },
+  journey: {
+    title: 'Nakshatra Life Journey — 27 Stages from Ashwini to Revati',
+    description: 'The 27 nakshatras read in order as a lifetime, from first breath to release, with this chart’s planets marked on the stages they occupy.',
+    crumb: 'Life Journey',
+  },
+  gandmool: {
+    title: 'Gandmool Dosha — Birth in Ashwini, Ashlesha, Magha, Jyeshtha, Mula or Revati',
+    description: 'Whether the birth Moon falls in a Gandmool star, which pada, what it affects, how strong it is, Abhukta Mula, and the Shanti remedy.',
+    crumb: 'Gandmool',
+  },
+  namakshar: {
+    title: 'Name Letters (Namakshar) — Naming Syllables by Nakshatra',
+    description: 'The naming syllable for your birth pada, all 108 nakshatra syllables, and a checker that shows which star a name belongs to and its tara.',
+    crumb: 'Name Letters',
+  },
+  kota: {
+    title: 'Kota Chakra — The Fortress of 28 Stars',
+    description: 'Your birth star at the gate of a four-walled fort: which planets are entering or leaving the Stambha, Madhya, Prakara and Bahya, the Kota Swami, and whether the fort holds today.',
+    crumb: 'Kota Chakra',
+  },
+  ghatak: {
+    title: 'Ghatak Chakra — Unfavourable Days by Moon Sign',
+    description: 'The Ghatak Moon sign, month, tithi, weekday and nakshatra for your Moon sign, and whether today hits any of them.',
+    crumb: 'Ghatak',
+  },
+  slowtransits: {
+    title: 'Saturn, Jupiter, Rahu & Ketu Nakshatra Transits',
+    description: 'When Saturn, Jupiter, Rahu and Ketu enter and leave each nakshatra over the coming years, with the tara each stay gives from your birth star.',
+    crumb: 'Slow Transits',
+  },
+  latta: {
+    title: 'Latta — Stars Kicked by Each Planet',
+    description: 'Muhurta Chintamani’s Latta: which star each planet kicks, and whether natal or today’s planets strike your Janma or Lagna star.',
+    crumb: 'Latta',
   },
 }
 

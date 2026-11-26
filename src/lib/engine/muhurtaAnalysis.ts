@@ -4,7 +4,7 @@
  */
 
 import { NakshatraResult, TithiResult, YogaResult, KaranaResult, VaraResult } from './nakshatra'
-import { GrahaId } from '@/types/astrology'
+import { GrahaId, NAKSHATRA_NAMES } from '@/types/astrology'
 import { fill, type EngineLang } from '@/lib/engine/lang'
 import { termHi, GRAHA_HI } from '@/i18n/jyotish'
 import {
@@ -105,7 +105,7 @@ export function analyzeMuhurta(
     choghadiya?: { type: ChoghadiyaType; quality: 'Good' | 'Neutral' | 'Bad' }
     panchaka?: { isAuspicious: boolean; label: string; remainder: number }
   },
-  natal: { moonNak: number; moonSign: number },
+  natal: { moonNak: number; moonSign: number } | null,
   lang: EngineLang = 'en',
 ): MuhurtaScore {
   let score = 50 // Base score
@@ -172,64 +172,67 @@ export function analyzeMuhurta(
     )
   }
 
-  // --- Tara Bala (Natal Alignment) ---
-  const diff = ((panchang.nakshatra.index - natal.moonNak + 27) % 27) + 1
-  const tara = diff % 9 || 9
-  const taraScores: Record<number, { score: number; name: string; favorable: boolean }> = {
-    1: { score: 0, name: 'Janma', favorable: false },
-    2: { score: 20, name: 'Sampat (Wealth)', favorable: true },
-    3: { score: -20, name: 'Vipat (Caution)', favorable: false },
-    4: { score: 15, name: 'Kshem (Safety)', favorable: true },
-    5: { score: -15, name: 'Pratyari (Obstacles)', favorable: false },
-    6: { score: 20, name: 'Sadhaka (Success)', favorable: true },
-    7: { score: -25, name: 'Vadha (Major obstacles)', favorable: false },
-    8: { score: 10, name: 'Mitra (Friend)', favorable: true },
-    9: { score: 15, name: 'Ati-Mitra (Best Friend)', favorable: true },
-  }
-  score += taraScores[tara].score
-  const taraDisplay =
-    lang === 'hi' ? (TARA_FACTORS_HI[tara] ?? taraScores[tara].name) : taraScores[tara].name
-  factors.push(lang === 'hi' ? fill(MA_HI.taraBala, { name: taraDisplay }) : `Tara Bala: ${taraScores[tara].name}`)
-  diag.taraBala = {
-    name: taraDisplay,
-    score: taraScores[tara].score,
-    favorable: taraScores[tara].favorable,
-  }
+  // Tara / Chandra Bala need the person's Moon; skipped when no chart is loaded.
+  if (natal) {
+    // --- Tara Bala (Natal Alignment) ---
+    const diff = ((panchang.nakshatra.index - natal.moonNak + 27) % 27) + 1
+    const tara = diff % 9 || 9
+    const taraScores: Record<number, { score: number; name: string; favorable: boolean }> = {
+      1: { score: 0, name: 'Janma', favorable: false },
+      2: { score: 20, name: 'Sampat (Wealth)', favorable: true },
+      3: { score: -20, name: 'Vipat (Caution)', favorable: false },
+      4: { score: 15, name: 'Kshem (Safety)', favorable: true },
+      5: { score: -15, name: 'Pratyari (Obstacles)', favorable: false },
+      6: { score: 20, name: 'Sadhaka (Success)', favorable: true },
+      7: { score: -25, name: 'Vadha (Major obstacles)', favorable: false },
+      8: { score: 10, name: 'Mitra (Friend)', favorable: true },
+      9: { score: 15, name: 'Ati-Mitra (Best Friend)', favorable: true },
+    }
+    score += taraScores[tara].score
+    const taraDisplay =
+      lang === 'hi' ? (TARA_FACTORS_HI[tara] ?? taraScores[tara].name) : taraScores[tara].name
+    factors.push(lang === 'hi' ? fill(MA_HI.taraBala, { name: taraDisplay }) : `Tara Bala: ${taraScores[tara].name}`)
+    diag.taraBala = {
+      name: taraDisplay,
+      score: taraScores[tara].score,
+      favorable: taraScores[tara].favorable,
+    }
 
-  // --- Chandra Bala (Moon Sign Alignment) ---
-  // Favourable houses 1, 3, 6, 10, 11 from natal Moon (Drik-style; house 7 omitted — see tara-chandra-bala.ts)
-  const transitSign = Math.floor(panchang.nakshatra.exactDegree / 30) + 1
-  const dist = ((transitSign - natal.moonSign + 12) % 12) + 1
-  const favorableDist = [1, 3, 6, 10, 11]
-  const challengingDist = [4, 8, 12]
-  const isChandraFavorable = favorableDist.includes(dist)
-  const isChandraChallenging = challengingDist.includes(dist)
-  diag.chandraBala = {
-    house: dist,
-    isFavorable: isChandraFavorable,
-    isChallenging: isChandraChallenging,
-  }
+    // --- Chandra Bala (Moon Sign Alignment) ---
+    // Favourable houses 1, 3, 6, 10, 11 from natal Moon (Drik-style; house 7 omitted — see tara-chandra-bala.ts)
+    const transitSign = Math.floor(panchang.nakshatra.exactDegree / 30) + 1
+    const dist = ((transitSign - natal.moonSign + 12) % 12) + 1
+    const favorableDist = [1, 3, 6, 10, 11]
+    const challengingDist = [4, 8, 12]
+    const isChandraFavorable = favorableDist.includes(dist)
+    const isChandraChallenging = challengingDist.includes(dist)
+    diag.chandraBala = {
+      house: dist,
+      isFavorable: isChandraFavorable,
+      isChallenging: isChandraChallenging,
+    }
 
-  if (isChandraFavorable) {
-    score += 15
-    factors.push(
-      lang === 'hi'
-        ? fill(MA_HI.chandraFav, { house: dist })
-        : `Chandra Bala: ${dist}th House (Favorable)`,
-    )
-  } else if (isChandraChallenging) {
-    score -= 20
-    factors.push(
-      lang === 'hi'
-        ? fill(MA_HI.chandraHard, { house: dist })
-        : `Chandra Bala: ${dist}th House (Challenging)`,
-    )
-  } else {
-    factors.push(
-      lang === 'hi'
-        ? fill(MA_HI.chandraNeutral, { house: dist })
-        : `Chandra Bala: ${dist}th House (Neutral)`,
-    )
+    if (isChandraFavorable) {
+      score += 15
+      factors.push(
+        lang === 'hi'
+          ? fill(MA_HI.chandraFav, { house: dist })
+          : `Chandra Bala: ${dist}th House (Favorable)`,
+      )
+    } else if (isChandraChallenging) {
+      score -= 20
+      factors.push(
+        lang === 'hi'
+          ? fill(MA_HI.chandraHard, { house: dist })
+          : `Chandra Bala: ${dist}th House (Challenging)`,
+      )
+    } else {
+      factors.push(
+        lang === 'hi'
+          ? fill(MA_HI.chandraNeutral, { house: dist })
+          : `Chandra Bala: ${dist}th House (Neutral)`,
+      )
+    }
   }
 
   // --- Choghadiya ---
@@ -298,19 +301,24 @@ export function analyzeMuhurta(
   }
 
   const varaDay = jyotishTerm(panchang.vara.name, lang)
+  // Compare by index / number, never by display name (names may be localised or spelled differently)
+  const nakIs = (names: string[]) => names.includes(NAKSHATRA_NAMES[panchang.nakshatra.index] ?? '')
+  const VARA_NUM: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 }
+  const varaIs = (...days: string[]) => days.some(d => VARA_NUM[d] === panchang.vara.number)
+  const pakshaTithi = panchang.tithi.number % 15 || 15
 
   // --- Activity Specific Logic ---
   switch (activity) {
     case 'BUSINESS':
-      if ([2, 3, 5, 7, 10, 11, 13].includes(panchang.tithi.number % 15 || 15)) {
+      if ([2, 3, 5, 7, 10, 11, 13].includes(pakshaTithi)) {
         score += 15
         factors.push(lang === 'hi' ? MA_HI.commerceTithi : 'Favorable Tithi for Commerce')
       }
-      if (['Ashwini', 'Pushya', 'Hasta', 'Chitra', 'Revati'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Ashwini', 'Pushya', 'Hasta', 'Chitra', 'Revati'])) {
         score += 15
         factors.push(lang === 'hi' ? MA_HI.prosperityNak : 'Prosperity Nakshatra')
       }
-      if (panchang.vara.name === 'Wednesday' || panchang.vara.name === 'Thursday') {
+      if (varaIs('Wednesday', 'Thursday')) {
         score += 10
         factors.push(
           lang === 'hi'
@@ -321,81 +329,81 @@ export function analyzeMuhurta(
       break
 
     case 'TRAVEL':
-      if (['Ashwini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana', 'Dhanishta', 'Shatabhisha'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Ashwini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana', 'Dhanishtha', 'Shatabhisha'])) {
         score += 20
         factors.push(lang === 'hi' ? MA_HI.travelNak : 'Excellent Nakshatra for Journey')
       }
-      if (panchang.tithi.number === 4 || panchang.tithi.number === 9 || panchang.tithi.number === 14) {
+      if (pakshaTithi === 4 || pakshaTithi === 9 || pakshaTithi === 14) { // Rikta, both pakshas
         score -= 20
         factors.push(lang === 'hi' ? MA_HI.riktaTravel : 'Rikta Tithi (Avoid Travel)')
       }
       break
 
     case 'REAL_ESTATE':
-      if (['Rohini', 'Mrigashira', 'Chitra', 'Anuradha', 'Revati'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Rohini', 'Mrigashira', 'Chitra', 'Anuradha', 'Revati'])) {
         score += 20
         factors.push(lang === 'hi' ? MA_HI.stabilityNak : 'Stability Nakshatra')
       }
-      if (panchang.vara.name === 'Thursday' || panchang.vara.name === 'Friday') {
+      if (varaIs('Thursday', 'Friday')) {
         score += 10
         factors.push(lang === 'hi' ? MA_HI.auspiciousWeekday : 'Auspicious Weekday')
       }
       break
 
     case 'SPIRITUAL':
-      if (panchang.nakshatra.name === 'Pushya' || panchang.nakshatra.name === 'Shravana') {
+      if (nakIs(['Pushya', 'Shravana'])) {
         score += 25
         factors.push(lang === 'hi' ? MA_HI.divineNak : 'Divine Nakshatra')
       }
-      if (panchang.tithi.name === 'Purnima' || panchang.tithi.number === 11) {
+      if (panchang.tithi.number === 15 || pakshaTithi === 11) { // Purnima, or Ekadashi in either paksha
         score += 20
         factors.push(lang === 'hi' ? MA_HI.soulTithi : 'Soul-Cleaning Tithi')
       }
       break
 
     case 'HEALTH':
-      if (['Ashwini', 'Pushya', 'Hasta'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Ashwini', 'Pushya', 'Hasta'])) {
         score += 20
         factors.push(lang === 'hi' ? MA_HI.healthNak : 'Vibrant Health Nakshatra')
       }
-      if (panchang.vara.name === 'Sunday') {
+      if (varaIs('Sunday')) {
         score += 10
         factors.push(lang === 'hi' ? MA_HI.sunVitalityDay : 'Sun (Vitality) Day')
       }
       break
 
     case 'RELATIONSHIP':
-      if (['Rohini', 'Mrigashira', 'Anuradha', 'Revati'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Rohini', 'Mrigashira', 'Anuradha', 'Revati'])) {
         score += 20
         factors.push(lang === 'hi' ? MA_HI.harmonyNak : 'Connection Harmony Nakshatra')
       }
-      if (panchang.vara.name === 'Friday' || panchang.vara.name === 'Monday') {
+      if (varaIs('Friday', 'Monday')) {
         score += 10
         factors.push(lang === 'hi' ? MA_HI.loveEmotionDay : 'Love/Emotion Day')
       }
       break
 
     case 'MARRIAGE':
-      if (['Rohini', 'Mrigashira', 'Magha', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Mula', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Rohini', 'Mrigashira', 'Magha', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Mula', 'Uttara Ashadha', 'Uttara Bhadra', 'Revati'])) {
         score += 25
         factors.push(lang === 'hi' ? MA_HI.vivahaNak : 'Classical Vivaha Nakshatra')
       }
-      if ([2, 3, 5, 7, 10, 11, 13].includes(panchang.tithi.number % 15 || 15)) {
+      if ([2, 3, 5, 7, 10, 11, 13].includes(pakshaTithi)) {
         score += 15
         factors.push(lang === 'hi' ? MA_HI.marriageTithi : 'Strong Marriage Tithi')
       }
-      if (panchang.vara.name === 'Friday' || panchang.vara.name === 'Thursday') {
+      if (varaIs('Friday', 'Thursday')) {
         score += 10
         factors.push(lang === 'hi' ? MA_HI.weddingDay : 'Auspicious Wedding Day')
       }
       break
 
     case 'EDUCATION':
-      if (['Rohini', 'Mrigashira', 'Punarvasu', 'Hasta', 'Chitra', 'Swati', 'Anuradha', 'Shravana'].includes(panchang.nakshatra.name)) {
+      if (nakIs(['Rohini', 'Mrigashira', 'Punarvasu', 'Hasta', 'Chitra', 'Swati', 'Anuradha', 'Shravana'])) {
         score += 20
         factors.push(lang === 'hi' ? MA_HI.knowledgeNak : 'Knowledge Seeker Nakshatra')
       }
-      if ([2, 5, 6, 7, 10, 11].includes(panchang.tithi.number % 15 || 15)) {
+      if ([2, 5, 6, 7, 10, 11].includes(pakshaTithi)) {
         score += 10
         factors.push(lang === 'hi' ? MA_HI.learningTithi : 'Good Tithi for Learning')
       }

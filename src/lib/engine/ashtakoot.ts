@@ -233,7 +233,8 @@ function calcVashya(
 ): Omit<KootaScore, 'meaning' | 'insight'> {
   const b = getVashyaName(bSign, boyDeg)
   const g = getVashyaName(gSign, girlDeg)
-  if (b === g) return { points: 2, max: 2, p1: b, p2: g }
+  const notes = [VASHYA_TRADITION_NOTE]
+  if (b === g) return { points: 2, max: 2, p1: b, p2: g, notes }
   const compatibility: Record<string, Record<string, number>> = {
     Quadruped: { Human: 1, Water: 1, Wild: 0, Insect: 1 },
     Human: { Quadruped: 1, Water: 1, Wild: 0, Insect: 1 },
@@ -241,7 +242,7 @@ function calcVashya(
     Wild: { Quadruped: 0, Human: 0, Water: 0, Insect: 0 },
     Insect: { Quadruped: 1, Human: 1, Water: 1, Wild: 0 },
   }
-  return { points: compatibility[b]?.[g] ?? 0, max: 2, p1: b, p2: g }
+  return { points: compatibility[b]?.[g] ?? 0, max: 2, p1: b, p2: g, notes }
 }
 
 function calcTara(bNak: number, gNak: number): Omit<KootaScore, 'meaning' | 'insight'> & { notes?: string[] } {
@@ -270,27 +271,27 @@ function calcTara(bNak: number, gNak: number): Omit<KootaScore, 'meaning' | 'ins
 }
 
 /**
- * Full 14×14 Yoni point matrix (1–14), classical Muhurta-style bands:
+ * Full 14×14 Yoni point matrix (1–14), the standard table (PyJHora / AstroSage):
  * 4 same, 3 friend, 2 neutral, 1 unfriendly, 0 enemy.
  * Index 0 unused; rows/cols = Horse…Mongoose.
  */
 const YONI_MATRIX: number[][] = [
   [], // 0
   //     1  2  3  4  5  6  7  8  9 10 11 12 13 14
-  [0, 4, 2, 3, 1, 2, 3, 3, 3, 0, 1, 3, 2, 1, 2], // 1 Horse
-  [0, 2, 4, 2, 1, 3, 2, 2, 3, 1, 1, 2, 2, 0, 3], // 2 Elephant
-  [0, 3, 2, 4, 2, 2, 3, 2, 3, 1, 1, 3, 0, 1, 2], // 3 Sheep
-  [0, 1, 1, 2, 4, 2, 2, 2, 1, 2, 2, 2, 2, 1, 0], // 4 Serpent
-  [0, 2, 3, 2, 2, 4, 2, 2, 3, 2, 1, 0, 2, 1, 2], // 5 Dog
-  [0, 3, 2, 3, 2, 2, 4, 0, 3, 2, 1, 3, 2, 1, 2], // 6 Cat
-  [0, 3, 2, 2, 2, 2, 0, 4, 3, 2, 1, 3, 2, 1, 2], // 7 Rat
-  [0, 3, 3, 3, 1, 3, 3, 3, 4, 2, 0, 3, 2, 1, 2], // 8 Cow
-  [0, 0, 1, 1, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2], // 9 Buffalo
-  [0, 1, 1, 1, 2, 1, 1, 1, 0, 2, 4, 2, 3, 3, 2], // 10 Tiger
-  [0, 3, 2, 3, 2, 0, 3, 3, 3, 2, 2, 4, 2, 1, 2], // 11 Hare
-  [0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 3, 2, 4, 2, 3], // 12 Monkey
-  [0, 1, 0, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 4, 2], // 13 Lion
-  [0, 2, 3, 2, 0, 2, 2, 2, 2, 2, 2, 2, 3, 2, 4], // 14 Mongoose
+  [0, 4, 2, 2, 3, 2, 2, 2, 1, 0, 1, 1, 3, 1, 2], // 1 Horse
+  [0, 2, 4, 3, 3, 2, 2, 2, 2, 3, 1, 2, 3, 0, 2], // 2 Elephant
+  [0, 2, 3, 4, 2, 1, 2, 1, 3, 3, 1, 2, 0, 1, 3], // 3 Sheep
+  [0, 3, 3, 2, 4, 2, 1, 1, 1, 1, 2, 2, 2, 2, 0], // 4 Serpent
+  [0, 2, 2, 1, 2, 4, 2, 1, 2, 2, 1, 0, 2, 1, 1], // 5 Dog
+  [0, 2, 2, 2, 1, 2, 4, 0, 2, 2, 1, 3, 3, 1, 2], // 6 Cat
+  [0, 2, 2, 1, 1, 1, 0, 4, 2, 2, 2, 2, 2, 2, 1], // 7 Rat
+  [0, 1, 2, 3, 1, 2, 2, 2, 4, 3, 0, 3, 2, 1, 2], // 8 Cow
+  [0, 0, 3, 3, 1, 2, 2, 2, 3, 4, 1, 2, 2, 1, 2], // 9 Buffalo
+  [0, 1, 1, 1, 2, 1, 1, 2, 0, 1, 4, 1, 1, 1, 2], // 10 Tiger
+  [0, 1, 2, 2, 2, 0, 3, 2, 3, 2, 1, 4, 2, 1, 2], // 11 Hare
+  [0, 3, 3, 0, 2, 2, 3, 2, 2, 2, 1, 2, 4, 2, 3], // 12 Monkey
+  [0, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 4, 2], // 13 Lion
+  [0, 2, 2, 3, 0, 1, 2, 1, 2, 2, 2, 2, 3, 2, 4], // 14 Mongoose
 ]
 
 function calcYoni(bNak: number, gNak: number): Omit<KootaScore, 'meaning' | 'insight'> {
@@ -330,11 +331,12 @@ function calcMaitri(bSign: number, gSign: number): Omit<KootaScore, 'meaning' | 
     return { points: 4, max: 5, p1: lB, p2: lG }
   }
   if (relB === 'Neutral' && relG === 'Neutral') return { points: 3, max: 5, p1: lB, p2: lG }
+  // Standard Graha Maitri table (PyJHora / AstroSage): friend–enemy 1, neutral–enemy ½
   if ((relB === 'Friend' && relG === 'Enemy') || (relB === 'Enemy' && relG === 'Friend')) {
-    return { points: 2, max: 5, p1: lB, p2: lG }
+    return { points: 1, max: 5, p1: lB, p2: lG }
   }
   if ((relB === 'Neutral' && relG === 'Enemy') || (relB === 'Enemy' && relG === 'Neutral')) {
-    return { points: 1, max: 5, p1: lB, p2: lG }
+    return { points: 0.5, max: 5, p1: lB, p2: lG }
   }
   return { points: 0, max: 5, p1: lB, p2: lG }
 }
@@ -373,6 +375,14 @@ function calcGana(
   if (b === 'Deva' && g === 'Rakshasa') return { points: 0, max: 6, p1: b, p2: g, notes }
   return { points: 0, max: 6, p1: b, p2: g, notes }
 }
+
+/** Shown when this app restores points that mainstream apps score 0. */
+export const BHAKOOT_RESTORED_NOTE =
+  'Scoring note: JHora and most other apps give Bhakoot 0 here and list the cancellation separately, so this total can be 7 points higher than theirs.'
+export const NADI_RESTORED_NOTE =
+  'Scoring note: JHora and most other apps give Nadi 0 here and list the cancellation separately, so this total can be 8 points higher than theirs.'
+export const VASHYA_TRADITION_NOTE =
+  'Scoring note: Vashya tables differ between traditions, so other apps may score this koota up to 2 points differently.'
 
 /** Sign pairs where 2–12 is cancelled (friendly lords). */
 const DWI_DWADASH_OK = new Set([
@@ -427,6 +437,7 @@ function calcBhakoot(
     if (DWI_DWADASH_OK.has(pairKey) || areNaturalFriends(getLord(bSign), getLord(gSign))) {
       points = 7
       notes.push('Dwi-Dwadash (2–12, Moon signs next to each other) cancelled: the sign lords are natural friends or an exempt pair.')
+      notes.push(BHAKOOT_RESTORED_NOTE)
       dosha = false
     } else if (boyFromGirl === 2) {
       // Boy's rashi 2nd from girl = Ashubh; girl 2nd from boy more acceptable
@@ -443,6 +454,7 @@ function calcBhakoot(
       points = 7
       dosha = false
       notes.push("Nav-Pancham (5–9): the groom's Moon is 5th from the bride's, treated as an acceptable exception (the concern about children is reduced).")
+      notes.push(BHAKOOT_RESTORED_NOTE)
     } else {
       points = 0
       notes.push("Nav-Pancham (5–9): the groom's Moon is 9th from the bride's. Classically this touches Santana (children) and scores 0; it is a tendency, not a prediction.")
@@ -453,6 +465,7 @@ function calcBhakoot(
       points = 7
       dosha = false
       notes.push('Shadashtak (6–8) cancelled: the sign lords are the same or friendly, so the usual health and serious-loss themes of this pairing are set aside.')
+      notes.push(BHAKOOT_RESTORED_NOTE)
     } else {
       points = 0
       notes.push('Shadashtak (6–8): the two moons sit 6/8 apart, a pull that can feel like constant friction. Classically it is linked with health and serious-loss themes and scores 0.')
@@ -527,6 +540,7 @@ function calcNadi(
     notes.push('Nadi Dosha cancelled: same nakshatra, different charan/pada.')
   }
 
+  if (cancelled) notes.push(NADI_RESTORED_NOTE)
   if (!cancelled) {
     notes.push('Same Nadi (Nadi Dosha): the two vital-energy types are alike rather than complementary, which tradition links with concern for children’s vitality. Cancellation rules and a routine health check are worth considering.')
   }

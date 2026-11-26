@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi, GrahaId, YogiPointResult } from '@/types/astrology'
+import { NAKSHATRA_LORDS } from '@/types/astrology'
 import { fill, type EngineLang } from '@/lib/engine/lang'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { YOGI_TEXT_HI } from '@/lib/engine/locale/yogiPoint.hi'
@@ -30,20 +31,6 @@ import { YOGI_TEXT_HI } from '@/lib/engine/locale/yogiPoint.hi'
  * - Spiritual progress assessment
  */
 
-// Natural friendship matrix for determining Yogi/Avayogi
-const NATURAL_FRIENDS: Record<GrahaId, GrahaId[]> = {
-  Su: ['Mo', 'Ma', 'Ju'],
-  Mo: ['Su', 'Me'],
-  Ma: ['Su', 'Mo', 'Ju'],
-  Me: ['Su', 'Ve'],
-  Ju: ['Su', 'Mo', 'Ma'],
-  Ve: ['Me', 'Sa'],
-  Sa: ['Me', 'Ve'],
-  Ra: ['Ve', 'Sa'],
-  Ke: ['Ve', 'Sa'],
-  Ur: [], Ne: [], Pl: [],
-}
-
 // Sign lords
 const SIGN_LORDS: Record<Rashi, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo',
@@ -52,14 +39,16 @@ const SIGN_LORDS: Record<Rashi, GrahaId> = {
 }
 
 /**
- * Calculate Yogi Point and related points
- * 
- * Algorithm:
- * 1. Add Sun and Moon longitudes to get Yogi Point
- * 2. Add 93°20' (one sign + 3°20') to get Sahayogi
- * 3. Add 186°40' (six signs + 6°40') to get Avayogi
- * 4. Determine Yogi and Avayogi grahas based on sign lords
- * 
+ * Calculate Yogi Point and related points (classical rule, as taught by
+ * Sanjay Rath / P.V.R. Narasimha Rao and used by Jagannatha Hora):
+ * 1. Yogi Point = Sun + Moon + 93°20'
+ * 2. Yogi graha = lord of the NAKSHATRA the Yogi Point falls in
+ * 3. Sahayogi (duplicate Yogi) = lord of the SIGN the Yogi Point falls in
+ * 4. Avayogi Point = Yogi Point + 186°40'; Avayogi graha = its nakshatra lord
+ *
+ * `sahayogiPoint` equals `yogiPoint`: the duplicate Yogi is a planet, not a
+ * separate point; the field stays for the existing result shape.
+ *
  * @param sunLon - Sidereal longitude of Sun
  * @param moonLon - Sidereal longitude of Moon
  * @returns YogiPointResult with all calculated points
@@ -67,43 +56,24 @@ const SIGN_LORDS: Record<Rashi, GrahaId> = {
 export function calculateYogiPoint(sunLon: number, moonLon: number): YogiPointResult {
   const sunNorm = ((sunLon % 360) + 360) % 360
   const moonNorm = ((moonLon % 360) + 360) % 360
-  
-  // Yogi Point = Sun + Moon
-  const yogiPoint = (sunNorm + moonNorm) % 360
+  const nakLord = (lon: number) => NAKSHATRA_LORDS[Math.min(26, Math.floor(lon / (360 / 27)))]
+
+  const yogiPoint = (sunNorm + moonNorm + 93 + 1 / 3) % 360
   const yogiRashi = (Math.floor(yogiPoint / 30) + 1) as Rashi
   const yogiDegreeInSign = yogiPoint % 30
-  
-  // Sahayogi Point = Yogi Point + 93°20' (one sign + 3°20')
-  // This is 93.333... degrees
-  const sahayogiPoint = (yogiPoint + 93 + 1/3) % 360
-  const sahayogiRashi = (Math.floor(sahayogiPoint / 30) + 1) as Rashi
-  const sahayogiDegreeInSign = sahayogiPoint % 30
-  
-  // Avayogi Point = Yogi Point + 186°40' (six signs + 6°40')
-  // This is 186.666... degrees
-  const avayogiPoint = (yogiPoint + 186 + 2/3) % 360
+
+  const sahayogiPoint = yogiPoint
+  const sahayogiRashi = yogiRashi
+  const sahayogiDegreeInSign = yogiDegreeInSign
+
+  const avayogiPoint = (yogiPoint + 186 + 2 / 3) % 360
   const avayogiRashi = (Math.floor(avayogiPoint / 30) + 1) as Rashi
   const avayogiDegreeInSign = avayogiPoint % 30
-  
-  // Determine Yogi Graha (lord of Yogi sign)
-  const yogiGraha = SIGN_LORDS[yogiRashi]
-  
-  // Determine Sahayogi Graha (lord of Sahayogi sign)
-  const sahayogiGraha = SIGN_LORDS[sahayogiRashi]
-  
-  // Determine Avayogi Graha
-  // This is the planet that is the enemy of the Yogi Graha
-  // OR the 6th sign lord from Yogi sign (depending on tradition)
-  const avayogiGraha = SIGN_LORDS[avayogiRashi]
-  
-  // Alternative Avayogi: Find enemy of Yogi Graha
-  const yogiEnemies = Object.entries(NATURAL_FRIENDS)
-    .filter(([_, friends]) => !friends.includes(yogiGraha) && !friends.includes('Su')) // simplified
-    .map(([graha]) => graha as GrahaId)
-  
-  // Check if Avayogi Graha is a friend or enemy of Yogi Graha
-  const isYogiGrahaFriend = NATURAL_FRIENDS[yogiGraha]?.includes(avayogiGraha) ?? false
-  
+
+  const yogiGraha = nakLord(yogiPoint)
+  const sahayogiGraha = SIGN_LORDS[yogiRashi]
+  const avayogiGraha = nakLord(avayogiPoint)
+
   return {
     yogiPoint,
     yogiRashi,
@@ -121,9 +91,9 @@ export function calculateYogiPoint(sunLon: number, moonLon: number): YogiPointRe
     avayogiGraha,
     
     interpretation: {
-      yogi: `Yogi Point at ${yogiDegreeInSign.toFixed(2)}° in sign ${yogiRashi}. Lord ${yogiGraha} is the Yogi Graha. This point indicates wealth and prosperity.`,
-      sahayogi: `Sahayogi Point at ${sahayogiDegreeInSign.toFixed(2)}° in sign ${sahayogiRashi}. Lord ${sahayogiGraha} supports prosperity.`,
-      avayogi: `Avayogi Point at ${avayogiDegreeInSign.toFixed(2)}° in sign ${avayogiRashi}. Lord ${avayogiGraha} may create obstacles to prosperity.`,
+      yogi: `Yogi Point at ${yogiDegreeInSign.toFixed(2)}° in sign ${yogiRashi}. Its nakshatra lord ${yogiGraha} is the Yogi Graha. This point indicates wealth and prosperity.`,
+      sahayogi: `The sign lord of the Yogi Point, ${sahayogiGraha}, is the Sahayogi (duplicate Yogi) and supports prosperity.`,
+      avayogi: `Avayogi Point at ${avayogiDegreeInSign.toFixed(2)}° in sign ${avayogiRashi}. Its nakshatra lord ${avayogiGraha} may create obstacles to prosperity.`,
     },
     
     remedy: `Strengthen ${yogiGraha} (Yogi Graha) for prosperity. Be mindful of ${avayogiGraha} (Avayogi Graha) periods.`,
@@ -156,15 +126,13 @@ export function getPlanetsAtYogiPoints(
   conjunctAvayogi: string[]
 } {
   const conjunctYogi: string[] = []
+  // The duplicate Yogi (Sahayogi) is a planet, not a separate point, so no conjunctions.
   const conjunctSahayogi: string[] = []
   const conjunctAvayogi: string[] = []
   
   for (const g of grahas) {
     if (isConjunctYogiPoint(g.lonSidereal, yogiResult.yogiPoint, orb)) {
       conjunctYogi.push(g.id)
-    }
-    if (isConjunctYogiPoint(g.lonSidereal, yogiResult.sahayogiPoint, orb)) {
-      conjunctSahayogi.push(g.id)
     }
     if (isConjunctYogiPoint(g.lonSidereal, yogiResult.avayogiPoint, orb)) {
       conjunctAvayogi.push(g.id)

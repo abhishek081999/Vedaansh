@@ -71,23 +71,25 @@ export const ELECTIONAL_LAGNA: Record<
 }
 
 /**
- * Tyajya (visha-style) start ghati within each nakshatra (0–26), from classical
- * almanac tables used by many North Indian panchangs. Span ≈ 4 ghatis.
- * 1 ghati = 1/60 of nakshatra ≈ 0.222…°.
+ * Tyajya / Varjyam start ghati(s) within each nakshatra (0–26), out of 60 ghatis
+ * per nakshatra (Muhurta Chintamani table; matches PyJHora's varjyam factors × 2.5).
+ * Each window lasts 4 ghatis. Mula has two windows.
  */
-const TYAJYA_START_GHATI: number[] = [
-  50, 24, 30, 40, 50, 20, 36, 40, 48, 20, 15, 30,
-  16, 24, 36, 24, 40, 20, 20, 15, 20, 14, 10, 14,
-  36, 24, 30,
+const TYAJYA_START_GHATI: number[][] = [
+  [50], [24], [30], [40], [14], [21], [30], [20], [32], // Ashwini … Ashlesha
+  [30], [20], [18], [21], [20], [14], [14], [10], [14], // Magha … Jyeshtha
+  [20, 56], [24], [20], [10], [10], [18], [16], [24], [30], // Mula … Revati
 ]
 const TYAJYA_SPAN_GHATI = 4
 const NAK_SPAN = 360 / 27
 
 export function isTyajyaPortion(nakIndex: number, degreeInNak: number): boolean {
   const idx = ((nakIndex % 27) + 27) % 27
-  const startDeg = (TYAJYA_START_GHATI[idx] / 60) * NAK_SPAN
-  const endDeg = startDeg + (TYAJYA_SPAN_GHATI / 60) * NAK_SPAN
-  return degreeInNak >= startDeg && degreeInNak < endDeg
+  return TYAJYA_START_GHATI[idx].some(start => {
+    const startDeg = (start / 60) * NAK_SPAN
+    const endDeg = startDeg + (TYAJYA_SPAN_GHATI / 60) * NAK_SPAN
+    return degreeInNak >= startDeg && degreeInNak < endDeg
+  })
 }
 
 /** Approximate grahan yoga: Sun–Moon conjunction/opposition within orb (not a Swiss-Ephemeris eclipse). */
@@ -341,7 +343,7 @@ export function lagnaRashiName(r: number, lang: EngineLang = 'en'): string {
 export function scoreMuhurtaFull(
   activity: MuhurtaActivity,
   panchang: Parameters<typeof analyzeMuhurta>[1],
-  natal: { moonNak: number; moonSign: number },
+  natal: { moonNak: number; moonSign: number } | null,
   adv?: MuhurtaAdvancedInput,
   lang: EngineLang = 'en',
 ): MuhurtaScore {

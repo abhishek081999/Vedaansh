@@ -11,7 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 const CONTENT_REV = new Date('2026-03-14T00:00:00.000Z')
 
 /** Nakshatra tab slugs — keep in sync with nakshatra/[tab]/layout.tsx TAB_META */
-const NAKSHATRA_TABS = ['overview', 'compatibility', 'remedies', 'transits', 'muhurta'] as const
+const NAKSHATRA_TABS = [
+  'overview', 'planet', 'starlords', 'degrees', 'gandmool',
+  'special', 'journey', 'navtara', 'taramandal', 'compat',
+  'bestdays', 'birthday', 'slowtransits', 'kota', 'muhurta', 'panchaka', 'latta', 'ghatak',
+  'profession', 'medical', 'remedies', 'namakshar',
+] as const
 
 function page(
   path: string,

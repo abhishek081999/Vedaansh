@@ -21,7 +21,7 @@ import type { GrahaId, Rashi } from '@/types/astrology'
 // Keep shapes aligned with src/lib/redis.ts versioned prefixes. ──
 
 function chartCacheKey(d: string, t: string, lat: number, lng: number, ay: string, nm: string, hs: string) {
-  return `v22:chart:${d}:${t}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ay}:${nm}:${hs}:7:phaladipika:0`
+  return `v23:chart:${d}:${t}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ay}:${nm}:${hs}:7:phaladipika:0`
 }
 function panchangCacheKey(d: string, lat: number, lng: number) {
   return `panchang:v9:${d}:${lat.toFixed(2)}:${lng.toFixed(2)}`

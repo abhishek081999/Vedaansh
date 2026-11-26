@@ -1,0 +1,332 @@
+/* NakshatraExtrasTab — Gandmool, Name letters, Ghatak, Slow transits */
+
+.statusCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.statusHard {
+  border-color: color-mix(in srgb, var(--rose) 38%, var(--border-soft));
+  background: color-mix(in srgb, var(--rose) 6%, var(--surface-2));
+}
+
+.statusMid {
+  border-color: color-mix(in srgb, var(--amber) 38%, var(--border-soft));
+  background: color-mix(in srgb, var(--amber) 6%, var(--surface-2));
+}
+
+.statusSoft {
+  border-color: color-mix(in srgb, var(--teal) 38%, var(--border-soft));
+  background: color-mix(in srgb, var(--teal) 6%, var(--surface-2));
+}
+
+.statusTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+.statusTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.statusLine {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.statusNote {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.3rem;
+  padding: 0.08rem 0.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.chipBad { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 40%, var(--border)); }
+.chipMid { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 40%, var(--border)); }
+.chipGold { color: var(--text-gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); background: var(--gold-faint); }
+
+.remedyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* Gandmool 6 × 4 grid */
+.gmGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.gmHead,
+.gmRow {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 1.1fr) repeat(4, minmax(4.5rem, 1fr));
+  gap: 4px;
+  min-width: 26rem;
+}
+
+.gmHead span {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.gmStar {
+  align-self: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gmCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.3rem 0.35rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.gmHard { background: color-mix(in srgb, var(--rose) 16%, var(--surface-2)); }
+.gmSoft { background: color-mix(in srgb, var(--teal) 14%, var(--surface-2)); }
+.gmStrong { border-color: var(--text-muted); border-style: dashed; }
+.gmMine { border: 2px solid var(--gold); box-shadow: 0 2px 8px color-mix(in srgb, var(--gold) 25%, transparent); }
+
+/* Name letters */
+.syllableHero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border-soft));
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--gold) 5%, var(--surface-2));
+}
+
+.syllableBig {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: var(--text-gold);
+}
+
+.syllableLatin {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.checker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.input {
+  min-height: 42px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.input::placeholder { color: var(--text-muted); }
+
+.matchRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-left: -1.1rem;
+  padding: 0.55rem 0.75rem;
+  list-style: none;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.verdict_exact,
+.verdict_sameStar,
+.verdict_good { border-color: color-mix(in srgb, var(--teal) 40%, var(--border-soft)); background: color-mix(in srgb, var(--teal) 6%, var(--surface-2)); }
+.verdict_neutral { border-color: color-mix(in srgb, var(--amber) 40%, var(--border-soft)); background: color-mix(in srgb, var(--amber) 6%, var(--surface-2)); }
+.verdict_avoid { border-color: color-mix(in srgb, var(--rose) 40%, var(--border-soft)); background: color-mix(in srgb, var(--rose) 6%, var(--surface-2)); }
+
+.akGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: 4px 12px;
+}
+
+.akRow {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 1.2fr) repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  border-radius: var(--r-sm);
+}
+
+.akRowMine { background: var(--gold-faint); }
+
+.akStar {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.akCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.2rem 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.akCell small {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.akCellMine { border-color: var(--gold); background: var(--surface-1); color: var(--text-gold); }
+.akCellMatch { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 12%, var(--surface-1)); }
+
+/* Ghatak + slow-transit cards */
+.ghatakGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+  gap: 0.5rem;
+}
+
+.ghatakCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.ghatakHit {
+  border-color: color-mix(in srgb, var(--rose) 45%, var(--border-soft));
+  background: color-mix(in srgb, var(--rose) 7%, var(--surface-2));
+}
+
+.tone_auspicious { border-color: color-mix(in srgb, var(--teal) 40%, var(--border-soft)); }
+.tone_neutral { border-color: color-mix(in srgb, var(--amber) 40%, var(--border-soft)); }
+.tone_inauspicious { border-color: color-mix(in srgb, var(--rose) 40%, var(--border-soft)); }
+
+.ghatakValue {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.ghatakToday {
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.ghatakHit .ghatakToday { color: var(--rose); font-weight: 700; }
+
+.rowMine td { background: var(--gold-faint); }
+
+/* Life journey */
+.jNode { cursor: pointer; outline: none; }
+.jNode:hover circle:nth-of-type(2),
+.jNode:hover circle:last-of-type { stroke: var(--gold); }
+.jNode:focus-visible circle:first-of-type { stroke: var(--gold); stroke-width: 2; stroke-dasharray: 3 2; }
+
+.jCard {
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.jCard:hover { border-color: color-mix(in srgb, var(--gold) 40%, var(--border-soft)); }
+.jCard:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+.jCardOn {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--border-soft));
+  background: var(--gold-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jCard { transition: none; }
+}
+
+.natureReason {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}

@@ -80,6 +80,12 @@ export const ASHTAKOOT_NOTES_HI: Record<string, string> = {
     'नाड़ी स्पष्ट, तारा शुभ या वश्य–नाड़ी मजबूत होने पर भकूट दोष अक्सर टाला जाता है; चरण 2 आगे देखता है।',
   "The groom's nakshatra is immediately after the bride's, which traditions treat as a sensitive pairing at the nakshatra level.":
     'वर का नक्षत्र वधू के ठीक बाद — परंपरा में नक्षत्र-स्तर पर संवेदनशील युग्म।',
+  'Scoring note: JHora and most other apps give Bhakoot 0 here and list the cancellation separately, so this total can be 7 points higher than theirs.':
+    'अंक टिप्पणी: JHora और अधिकांश अन्य ऐप यहाँ भकूट को 0 देते हैं और निरस्तीकरण अलग बताते हैं, इसलिए यह योग उनसे 7 अंक अधिक हो सकता है।',
+  'Scoring note: JHora and most other apps give Nadi 0 here and list the cancellation separately, so this total can be 8 points higher than theirs.':
+    'अंक टिप्पणी: JHora और अधिकांश अन्य ऐप यहाँ नाड़ी को 0 देते हैं और निरस्तीकरण अलग बताते हैं, इसलिए यह योग उनसे 8 अंक अधिक हो सकता है।',
+  'Scoring note: Vashya tables differ between traditions, so other apps may score this koota up to 2 points differently.':
+    'अंक टिप्पणी: वश्य तालिकाएँ परंपरा के अनुसार भिन्न हैं, इसलिए अन्य ऐप इस कूट को 2 अंक तक अलग दे सकते हैं।',
   'Nadi Dosha cancelled: same Moon rashi, different nakshatra.':
     'नाड़ी दोष निरस्त: समान चंद्र-राशि, भिन्न नक्षत्र।',
   'Nadi Dosha cancelled: same nakshatra, different rashi.':

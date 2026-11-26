@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import sweph from 'sweph'
-import { toJulianDay, getPlanetPosition, getAyanamsha, PLANET_IDS } from './ephemeris'
+import { toJulianDay, getPlanetPosition, PLANET_IDS } from './ephemeris'
 import type { AyanamshaMode } from '@/types/astrology'
 
 export const runtime = 'nodejs'
@@ -61,8 +61,7 @@ export function findSolarReturnJD(
 }
 
 function getSunSidereal(jd: number, mode: AyanamshaMode): number {
-  getAyanamsha(jd, mode) // ensuring the global sidereal mode is set
-  const planet = getPlanetPosition(jd, PLANET_IDS.Su ?? 0, true)
+  const planet = getPlanetPosition(jd, PLANET_IDS.Su ?? 0, true, false, false, mode)
   return planet.longitude
 }
 

@@ -26,6 +26,7 @@ import {
   ASTRO_NAV,
   ASTROLOGY_HOME_PATH,
   MAIN_TABS,
+  NAKSHATRA_GROUPS,
   NAKSHATRA_LINK,
   NAKSHATRA_TABS,
   PANCHANG_TABS,
@@ -576,10 +577,17 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           )}
           {renderHeaderDropdown(
             tNav('headerSections.nakshatra'),
-            <div className="app-header-menu-list app-header-menu-list--split">
-              {NAKSHATRA_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+            <div className="app-header-mega-menu">
+              {NAKSHATRA_GROUPS.map((group) => (
+                <div key={group.id} className="app-header-menu-group">
+                  <div className="app-header-menu-group-title">{groupLabel(group)}</div>
+                  <div className="app-header-menu-group-links">
+                    {group.tabs.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+                  </div>
+                </div>
+              ))}
             </div>,
-            { active: NAKSHATRA_TABS.some((tab) => tab.path === pathname), align: 'right' },
+            { active: pathname === '/nakshatra' || NAKSHATRA_TABS.some((tab) => tab.path === pathname), wide: true },
           )}
           {renderHeaderDropdown(
             tNav('headerSections.panchang'),

@@ -151,62 +151,39 @@ describe('Mrityu Bhaga Detection', () => {
 // ── Yogi Point Tests ──────────────────────────────────────────
 
 describe('Yogi Point System', () => {
+  // Classical rule: Yogi Point = Sun + Moon + 93°20'; Yogi = its nakshatra lord,
+  // Sahayogi (duplicate Yogi) = its sign lord, Avayogi = nakshatra lord of Yogi + 186°40'.
   describe('Yogi Point Calculation', () => {
-    it('Should calculate Yogi Point as Sun + Moon', () => {
-      const sunLon = 100  // 10° Cancer
-      const moonLon = 50  // 20° Taurus
-      const result = calculateYogiPoint(sunLon, moonLon)
-
-      expect(result.yogiPoint).toBeCloseTo(150, 1) // 100 + 50 = 150
+    it('Should calculate Yogi Point as Sun + Moon + 93°20\'', () => {
+      const result = calculateYogiPoint(100, 50)
+      expect(result.yogiPoint).toBeCloseTo(243.33, 1) // 150 + 93.33
     })
 
     it('Should wrap Yogi Point around 360°', () => {
-      const sunLon = 200
-      const moonLon = 200
-      const result = calculateYogiPoint(sunLon, moonLon)
-
-      expect(result.yogiPoint).toBeCloseTo(40, 1) // 400 - 360 = 40
+      const result = calculateYogiPoint(200, 200)
+      expect(result.yogiPoint).toBeCloseTo(133.33, 1) // 400 + 93.33 − 360
     })
 
     it('Should calculate correct Yogi Rashi', () => {
-      const sunLon = 100  // Cancer (sign 4)
-      const moonLon = 50  // Taurus (sign 2)
-      const result = calculateYogiPoint(sunLon, moonLon)
-
-      // Yogi Point = 150° = 0° Virgo (sign 6)
-      // 150 / 30 = 5, so sign 6 (0-indexed floor)
-      expect(result.yogiRashi).toBe(6)
+      // 243.33° = 3°20' Sagittarius
+      expect(calculateYogiPoint(100, 50).yogiRashi).toBe(9)
     })
 
-    it('Should identify correct Yogi Graha (sign lord)', () => {
-      const sunLon = 100  // 10° Cancer
-      const moonLon = 50  // 20° Taurus
-      const result = calculateYogiPoint(sunLon, moonLon)
-
-      // Yogi Point = 150° = Virgo, lord = Mercury
-      expect(result.yogiGraha).toBe('Me')
-    })
-  })
-
-  describe('Sahayogi Point Calculation', () => {
-    it('Should calculate Sahayogi as Yogi + 93°20\'', () => {
-      const sunLon = 100
-      const moonLon = 50
-      const result = calculateYogiPoint(sunLon, moonLon)
-
-      // Yogi = 150, Sahayogi = 150 + 93.33 = 243.33
-      expect(result.sahayogiPoint).toBeCloseTo(243.33, 1)
+    it('Should take the Yogi Graha from the nakshatra, the Sahayogi from the sign', () => {
+      const result = calculateYogiPoint(100, 50)
+      // 243.33° lies in Mula (Ketu) inside Sagittarius (Jupiter)
+      expect(result.yogiGraha).toBe('Ke')
+      expect(result.sahayogiGraha).toBe('Ju')
+      expect(result.sahayogiPoint).toBeCloseTo(result.yogiPoint, 6)
     })
   })
 
   describe('Avayogi Point Calculation', () => {
-    it('Should calculate Avayogi as Yogi + 186°40\'', () => {
-      const sunLon = 100
-      const moonLon = 50
-      const result = calculateYogiPoint(sunLon, moonLon)
-
-      // Yogi = 150, Avayogi = 150 + 186.67 = 336.67
-      expect(result.avayogiPoint).toBeCloseTo(336.67, 1)
+    it('Should calculate Avayogi as Yogi + 186°40\' and take its nakshatra lord', () => {
+      const result = calculateYogiPoint(100, 50)
+      // 243.33 + 186.67 − 360 = 70° (10° Gemini, Ardra → Rahu)
+      expect(result.avayogiPoint).toBeCloseTo(70, 1)
+      expect(result.avayogiGraha).toBe('Ra')
     })
   })
 
@@ -227,22 +204,24 @@ describe('Yogi Point System', () => {
     it('Should identify planets conjunct Yogi points', () => {
       const grahas = [
         { id: 'Su', lonSidereal: 150 },
-        { id: 'Mo', lonSidereal: 50 },
         { id: 'Ju', lonSidereal: 243 },
+        { id: 'Sa', lonSidereal: 72 },
       ]
 
-      const yogiResult = calculateYogiPoint(100, 50) // Yogi = 150
+      const yogiResult = calculateYogiPoint(100, 50) // Yogi ≈ 243.33, Avayogi = 70
       const conjunct = getPlanetsAtYogiPoints(grahas, yogiResult, 5)
 
-      expect(conjunct.conjunctYogi).toContain('Su')
-      expect(conjunct.conjunctSahayogi).toContain('Ju')
+      expect(conjunct.conjunctYogi).toEqual(['Ju'])
+      expect(conjunct.conjunctAvayogi).toEqual(['Sa'])
+      // The duplicate Yogi is a planet, not a point
+      expect(conjunct.conjunctSahayogi).toEqual([])
     })
   })
 
   describe('Wealth Score Calculation', () => {
     it('Should calculate wealth score based on Yogi factors', () => {
       const grahas = [
-        { id: 'Su', lonSidereal: 150, rashi: 6 as const, dignity: 'own' },
+        { id: 'Ju', lonSidereal: 243, rashi: 9 as const, dignity: 'own' },
         { id: 'Mo', lonSidereal: 50, rashi: 2 as const, dignity: 'neutral' },
       ]
 
@@ -292,15 +271,15 @@ describe('Edge Cases', () => {
   describe('Yogi Point Edge Cases', () => {
     it('Should handle Sun and Moon at same longitude', () => {
       const result = calculateYogiPoint(180, 180)
-      expect(result.yogiPoint).toBeCloseTo(0, 1)
-      expect(result.yogiRashi).toBe(1) // Aries
+      expect(result.yogiPoint).toBeCloseTo(93.33, 1) // 360 + 93.33 − 360
+      expect(result.yogiRashi).toBe(4) // Cancer
     })
 
     it('Should handle very large longitudes', () => {
       const result = calculateYogiPoint(1000, 500)
       // 1000 % 360 = 280, 500 % 360 = 140
-      // Yogi = 280 + 140 = 420 % 360 = 60
-      expect(result.yogiPoint).toBeCloseTo(60, 1)
+      // Yogi = 280 + 140 + 93.33 = 513.33 % 360 = 153.33
+      expect(result.yogiPoint).toBeCloseTo(153.33, 1)
     })
   })
 })

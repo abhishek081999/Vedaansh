@@ -294,7 +294,7 @@ export const redis = {
 // ── Cache key helpers ─────────────────────────────────────────
 
 /** Bump when ChartOutput calc semantics change (invalidates Redis chart entries). */
-export const CHART_CACHE_VERSION = 22
+export const CHART_CACHE_VERSION = 24  // 24: classical Yogi point (Sun + Moon + 93°20', nakshatra lords)
 /** Bump when panchang payload shape / guides change. */
 export const PANCHANG_CACHE_VERSION = 10
 /** Bump when atlas search/reverse payload shape changes. */
@@ -337,6 +337,7 @@ export function chartCacheKey(
   // caches that still held pre-fix D20/D24/D27 (and related) signs.
   // v21: Placidus/Equal/Sripati cusps parsed from sweph data.houses; KP always on Placidus; 249-sub horary
   // v22: first-dasha antardashas over the full period, Jagradadi avastha, Gulika Kalam, Abhijit, local-date vara
+  // v23: KP ruling-planet day lord (was a day off) and Moon on the chart's ayanamsha
   return `v${CHART_CACHE_VERSION}:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 

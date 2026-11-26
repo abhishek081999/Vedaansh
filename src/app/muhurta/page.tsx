@@ -142,7 +142,7 @@ const AVOID_FACTOR_RE =
 function scorePanchang(
   p: DayPanchang,
   purpose: MuhurtaActivity,
-  natal: { moonNak: number; moonSign: number },
+  natal: { moonNak: number; moonSign: number } | null,
   lang: import('@/lib/engine/lang').EngineLang,
 ): MuhurtaResult {
   const moonLon = p.moonLongitudeSidereal ?? (p.nakshatra.index * (360 / 27) + (p.nakshatra.degree ?? 0))
@@ -210,15 +210,28 @@ function scorePanchang(
   const windows = assembled.favorable.map(w => formatWindowLabel(w, fmtTimeFromDate))
   const avoid = assembled.avoid.map(w => formatWindowLabel(w, fmtTimeFromDate))
 
-  const tara = calcTaraBala(natal.moonNak, p.nakshatra.index, lang)
   const transitSign = Math.floor(moonLon / 30) + 1
-  const chandra = calcChandraBala(natal.moonSign, transitSign, lang)
-  const booking = checkPersonalMuhurtaBooking(
-    natal.moonNak,
-    p.nakshatra.index,
-    lang === 'hi' ? 'यह मुहूर्त' : 'this muhurta',
-    lang,
-  )
+  const personal = natal
+    ? (() => {
+        const tara = calcTaraBala(natal.moonNak, p.nakshatra.index, lang)
+        const chandra = calcChandraBala(natal.moonSign, transitSign, lang)
+        const booking = checkPersonalMuhurtaBooking(
+          natal.moonNak,
+          p.nakshatra.index,
+          lang === 'hi' ? 'यह मुहूर्त' : 'this muhurta',
+          lang,
+        )
+        return {
+          taraBala: { name: tara.name, score: tara.score, desc: tara.desc },
+          chandraBala: { position: chandra.position, score: chandra.score, desc: chandra.desc },
+          navtaraBooking: {
+            verdict: booking.verdict,
+            advice: booking.advice,
+            isHardTara: booking.isHardTara,
+          },
+        }
+      })()
+    : undefined
 
   return {
     date: p.date,
@@ -228,15 +241,7 @@ function scorePanchang(
     avoid,
     reasons: result.factors,
     panchang: p,
-    personal: {
-      taraBala: { name: tara.name, score: tara.score, desc: tara.desc },
-      chandraBala: { position: chandra.position, score: chandra.score, desc: chandra.desc },
-      navtaraBooking: {
-        verdict: booking.verdict,
-        advice: booking.advice,
-        isHardTara: booking.isHardTara,
-      },
-    },
+    personal,
   }
 }
 
@@ -416,19 +421,18 @@ export default function MuhurtaPage() {
     setTimelineLoading(true)
     setTimelineError(null)
     try {
-      const natalNak = chart?.grahas.find(g => g.id === 'Mo')?.nakshatraIndex
-        ?? chart?.panchang?.nakshatra?.index
-        ?? 0
-      const natalSign = chart?.grahas.find(g => g.id === 'Mo')?.rashi ?? 1
+      const moon = chart?.grahas.find(g => g.id === 'Mo')
 
       const params = new URLSearchParams({
         lat: String(location.lat),
         lng: String(location.lng),
         tz: location.tz,
-        natalNak: String(natalNak),
-        natalSign: String(natalSign),
         lang,
       })
+      if (moon) {
+        params.set('natalNak', String(moon.nakshatraIndex))
+        params.set('natalSign', String(moon.rashi))
+      }
 
       if (chart?.dashas?.vimshottari?.length) {
         const path = getDashaPathAt(chart.dashas.vimshottari, Date.now())
@@ -602,10 +606,9 @@ export default function MuhurtaPage() {
     setProgress(0)
     setSearched(true)
 
-    const natal = {
-      moonNak: chart?.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0,
-      moonSign: chart?.grahas.find(g => g.id === 'Mo')?.rashi ?? 1,
-    }
+    // No chart → no personal Tara / Chandra Bala (never assume an Ashwini Moon)
+    const moon = chart?.grahas.find(g => g.id === 'Mo')
+    const natal = moon ? { moonNak: moon.nakshatraIndex, moonSign: moon.rashi } : null
 
     const dates: string[] = []
     let d = fromDate
