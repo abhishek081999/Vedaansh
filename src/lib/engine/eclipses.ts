@@ -8,6 +8,7 @@
 //  eclipse is visible at the place; none for penumbral lunar eclipses.
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import sweph from 'sweph'
 import type { Rashi } from '@/types/astrology'
 import { SWISSEPH_IDS, dateToJD, getAyanamsha, getPlanetPosition, jdToDate, signOf, toSidereal } from '@/lib/engine/ephemeris'
@@ -63,7 +64,7 @@ function typeOf(kind: EclipseKind, flag: number): EclipseType {
 const iso = (jd: number | undefined) => (jd && jd > 0 ? jdToDate(jd).toISOString() : undefined)
 
 function moonAt(jd: number): { sign: Rashi; nakshatra: string; longitude: number } {
-  const ayan = getAyanamsha(jd, 'lahiri')
+  const ayan = getAyanamsha(jd, DEFAULT_AYANAMSHA)
   const lon = toSidereal(getPlanetPosition(jd, SWISSEPH_IDS.Mo).longitude, ayan)
   return { sign: signOf(lon) as Rashi, nakshatra: getNakshatra(lon).name, longitude: Math.round(lon * 1000) / 1000 }
 }

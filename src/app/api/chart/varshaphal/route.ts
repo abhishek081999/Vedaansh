@@ -3,6 +3,7 @@
 //  Given a natal chart, returns the Solar Return chart for a year
 //  Body: { natalSunSidereal, returnYear, latitude, longitude, timezone, settings }
 // ─────────────────────────────────────────────────────────────
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { findSolarReturnJD, jdToDate } from '@/lib/engine/varshaphal'
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { natalSunSidereal, returnYear, latitude, longitude, timezone, birthPlace, settings, natalName, gender } = parsed.data
-    const ayanamsha = (settings as any).ayanamsha ?? 'lahiri'
+    const ayanamsha = (settings as any).ayanamsha ?? DEFAULT_AYANAMSHA
 
     // 1. Find the exact JD of Solar Return
     const returnJD   = findSolarReturnJD(natalSunSidereal, returnYear, ayanamsha)

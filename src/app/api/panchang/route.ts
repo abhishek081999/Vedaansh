@@ -4,6 +4,7 @@
 //  Returns full Panchang for a given date and location
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import type { Rashi } from '@/types/astrology'
@@ -24,8 +25,8 @@ const QuerySchema = z.object({
   tz:   z.string().default('Asia/Kolkata'),
   ayanamsha: z.enum([
     'lahiri','true_chitra','true_revati','true_pushya',
-    'raman','usha_shashi','yukteshwar','krishnamurti'
-  ]).default('lahiri'),
+    'raman','usha_shashi','yukteshwar','krishnamurti','lahiri_vp285'
+  ]).default(DEFAULT_AYANAMSHA),
   birthNak: z.preprocess(
     (v) => (v === '' || v === undefined || v === null ? undefined : v),
     z.coerce.number().int().min(0).max(26).optional(),
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest) {
     const { date, lat, lng, tz, ayanamsha, birthNak, birthMoonRashi } = query.data
 
     // Check cache
-    const cacheKey = panchangCacheKey(date, lat, lng)
+    const cacheKey = panchangCacheKey(date, lat, lng, ayanamsha)
     const cached   = await redis.get(cacheKey)
     if (cached) {
       const data = mergePersonalBala(cached as Record<string, unknown>, birthNak, birthMoonRashi)

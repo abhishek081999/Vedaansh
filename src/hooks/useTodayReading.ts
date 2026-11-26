@@ -7,6 +7,7 @@
 //  ~0.5° per hour, hora / choghadiya windows roll over).
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLang } from '@/i18n/useLang'
 import type { ChartOutput } from '@/types/astrology'
@@ -82,7 +83,7 @@ export function useTodayReading(chart: ChartOutput | null, location: TodayLocati
   const requestId = useRef(0)
 
   const { lat, lng, tz } = location
-  const ayanamsha = chart?.meta.settings.ayanamsha ?? 'lahiri'
+  const ayanamsha = chart?.meta.settings.ayanamsha ?? DEFAULT_AYANAMSHA
   const nodeMode = chart?.meta.settings.nodeMode ?? 'true'
 
   const load = useCallback(async () => {

@@ -20,8 +20,7 @@ import {
   type GrahaData,
   type GrahaId,
   type Rashi,
-  type UserPlan,
-} from '@/types/astrology'
+  type UserPlan, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import type { EngineLang } from '@/lib/engine/lang'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { buildInterpretationHub } from '@/lib/engine/interpretationHub'
@@ -103,7 +102,7 @@ function shortChart(chart: ChartOutput, hideName: boolean, now: number): string 
   const out: string[] = [
     '## Chart',
     '',
-    `${hideName ? 'Native' : m.name}, ${m.gender}, born ${m.birthDate} ${m.birthTime} (${m.timezone}), ${m.birthPlace}. Ayanamsha ${m.settings?.ayanamsha ?? 'lahiri'} ${dms(m.ayanamshaValue)}.`,
+    `${hideName ? 'Native' : m.name}, ${m.gender}, born ${m.birthDate} ${m.birthTime} (${m.timezone}), ${m.birthPlace}. Ayanamsha ${m.settings?.ayanamsha ?? DEFAULT_AYANAMSHA} ${dms(m.ayanamshaValue)}.`,
     `**Lagna:** ${RASHI_NAMES[asc]} ${dms(chart.lagnas.ascDegreeInRashi)}, lord ${gname(RASHI_LORD[asc])}.`,
     '',
     table(['Planet', 'Sign', 'House', 'Nakshatra', 'Dignity', 'Shadbala', 'Karaka', 'Notes'], grahas.map((g) => [
@@ -219,7 +218,7 @@ function birthDetails(chart: ChartOutput, hideName: boolean): string {
       ['Place', m.birthPlace],
       ['Latitude / Longitude', `${num(m.latitude, 4)}, ${num(m.longitude, 4)}`],
       ['Time zone', m.timezone],
-      ['Ayanamsha', `${s.ayanamsha ?? 'lahiri'} (${dms(m.ayanamshaValue)})`],
+      ['Ayanamsha', `${s.ayanamsha ?? DEFAULT_AYANAMSHA} (${dms(m.ayanamshaValue)})`],
       ['House system', s.houseSystem ?? 'whole_sign'],
       ['Rahu/Ketu', s.nodeMode === 'mean' ? 'Mean node' : 'True node'],
       ['Chara karaka scheme', `${s.karakaScheme ?? 7} karakas`],

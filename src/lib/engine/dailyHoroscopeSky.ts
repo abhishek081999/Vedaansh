@@ -6,6 +6,7 @@
 //  Geocentric longitudes are location-independent for this use.
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import {
   dateToJD,
   getAyanamsha,
@@ -75,7 +76,7 @@ const BODIES: Array<Exclude<GocharPlanet, 'Ke'>> = ['Su', 'Mo', 'Ma', 'Me', 'Ju'
 
 function moonSiderealAt(when: Date): number {
   const jd = dateToJD(when)
-  return toSidereal(getPlanetPosition(jd, SWISSEPH_IDS.Mo).longitude, getAyanamsha(jd, 'lahiri'))
+  return toSidereal(getPlanetPosition(jd, SWISSEPH_IDS.Mo).longitude, getAyanamsha(jd, DEFAULT_AYANAMSHA))
 }
 
 /** 06:00 IST on `date` (= 00:30 UTC). */
@@ -87,7 +88,7 @@ export function buildDailyHoroscopeSky(date: string): DailyHoroscopeSky {
   const start = horoscopeDayStart(date)
   const end = new Date(start.getTime() + DAY_MS)
   const jd = dateToJD(start)
-  const ayan = getAyanamsha(jd, 'lahiri')
+  const ayan = getAyanamsha(jd, DEFAULT_AYANAMSHA)
 
   const grahas: SkyGraha[] = BODIES.map((id) => {
     const pos = getPlanetPosition(jd, id === 'Ra' ? NODE_IDS.mean : SWISSEPH_IDS[id])

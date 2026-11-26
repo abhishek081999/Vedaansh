@@ -6,6 +6,7 @@
 //  events, gochar interpretations and Moorthy (ingress metal).
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { addDays, format as formatDate, parseISO } from 'date-fns'
@@ -97,10 +98,10 @@ export async function GET(req: NextRequest) {
     const city = CITY_PRESETS.find((c) => c.id === cityId) ?? CITY_PRESETS[0]
 
     // Same cache key as /api/panchang (Lahiri), so both routes share entries.
-    const key = panchangCacheKey(date, city.lat, city.lng)
+    const key = panchangCacheKey(date, city.lat, city.lng, DEFAULT_AYANAMSHA)
     let panchang = (await redis.get(key)) as PanchangApiData | null
     if (!panchang) {
-      const built = buildPanchangDay({ date, lat: city.lat, lng: city.lng, tz: city.tz, ayanamsha: 'lahiri' })
+      const built = buildPanchangDay({ date, lat: city.lat, lng: city.lng, tz: city.tz, ayanamsha: DEFAULT_AYANAMSHA })
       await redis.set(key, built, CACHE_TTL.PANCHANG)
       panchang = built as unknown as PanchangApiData
     }

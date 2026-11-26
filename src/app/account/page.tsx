@@ -4,6 +4,7 @@
 //  User account page with editable preferences
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { Link, useRouter } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
@@ -36,7 +37,7 @@ interface PersonalChart {
 type TFn = (key: string) => string
 
 function ayanamshaOptions(t: TFn) {
-  return (['lahiri', 'true_chitra', 'true_revati', 'raman', 'yukteshwar'] as const).map(value => ({
+  return (['lahiri_vp285', 'lahiri', 'true_chitra', 'true_revati', 'raman', 'yukteshwar'] as const).map(value => ({
     value,
     label: t(`prefs.ayanOptions.${value}`),
   }))
@@ -299,7 +300,7 @@ function AccountContent() {
             setPersonalChart(meData.personalChart)
             setHasPassword(Boolean(meData.hasPassword))
             setPrefs(meData.user.preferences ?? {
-              defaultAyanamsha:   'lahiri',
+              defaultAyanamsha:   DEFAULT_AYANAMSHA,
               defaultChartStyle:  'south',
               defaultHouseSystem: 'whole_sign',
               defaultNodeMode:    'true',

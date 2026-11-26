@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import React, { useEffect, useMemo, useState } from 'react'
 import {
   Compass,
@@ -100,7 +101,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
   useEffect(() => {
     let cancelled = false
-    const ayan = chart.meta?.settings?.ayanamsha ?? 'lahiri'
+    const ayan = chart.meta?.settings?.ayanamsha ?? DEFAULT_AYANAMSHA
     const date = new Date().toISOString().slice(0, 10)
     fetch(`/api/transits/planets?date=${date}&ayanamsha=${encodeURIComponent(ayan)}`)
       .then((r) => r.json())

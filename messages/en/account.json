@@ -81,6 +81,7 @@
     "showKaraka": "Show Chara Karaka",
     "showKarakaDesc": "Show AK/AmK/BK labels on planets",
     "ayanOptions": {
+      "lahiri_vp285": "Lahiri VP285 (true)",
       "lahiri": "Lahiri (Chitrapaksha)",
       "true_chitra": "True Chitra",
       "true_revati": "True Revati",

@@ -5,6 +5,7 @@
 //  are no-ops — the app works without cache (Phase 2 dev mode)
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { Redis } from '@upstash/redis'
 import * as zlib from 'zlib'
 import { promisify } from 'util'
@@ -295,11 +296,11 @@ export const redis = {
 /** Bump when ChartOutput calc semantics change (invalidates Redis chart entries). */
 export const CHART_CACHE_VERSION = 22
 /** Bump when panchang payload shape / guides change. */
-export const PANCHANG_CACHE_VERSION = 9
+export const PANCHANG_CACHE_VERSION = 10
 /** Bump when atlas search/reverse payload shape changes. */
 export const ATLAS_CACHE_VERSION = 2
 /** Bump when daily rashi horoscope report shape changes. */
-export const HOROSCOPE_CACHE_VERSION = 7
+export const HOROSCOPE_CACHE_VERSION = 8
 
 /** Prefixes admin cleanup must wipe — current + known legacy chart versions. */
 export const CACHE_CLEANUP_PREFIXES = {
@@ -343,10 +344,12 @@ export function panchangCacheKey(
   date: string,
   lat: number,
   lng: number,
+  ayanamsha: string = DEFAULT_AYANAMSHA,
 ): string {
   // v8: merged timeline segments + per-row guides
   // v9: Gulika Kalam = Saturn portion, Abhijit = one muhurta, Purnima lord, local-date vara
-  return `panchang:v${PANCHANG_CACHE_VERSION}:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}`
+  // v10: default ayanamsha Lahiri VP285 (true); ayanamsha now part of the key
+  return `panchang:v${PANCHANG_CACHE_VERSION}:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}:${ayanamsha}`
 }
 
 export function atlasCacheKey(query: string): string {

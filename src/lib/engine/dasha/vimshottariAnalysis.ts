@@ -991,12 +991,23 @@ export function mahaProgressAt(node: DashaNode, nowMs: number): number | null {
   return Math.min(Math.max((nowMs - start) / (end - start), 0), 1)
 }
 
-/** Age at the start of `maha`, taking the first level-1 node as birth. */
-export function ageAtMahaStart(nodes: DashaNode[], maha: DashaNode): number | null {
+/**
+ * Age at the start of `maha` (clamped at 0). The first mahadasha starts before
+ * birth, so birth = its start + the elapsed part of the Moon's nakshatra.
+ */
+export function ageAtMahaStart(nodes: DashaNode[], maha: DashaNode, moonLonSidereal?: number): number | null {
   const first = nodes.find(n => n.level === 1 || n.level === undefined)
   if (!first) return null
-  const ms = new Date(maha.start).getTime() - new Date(first.start).getTime()
-  return Number.isFinite(ms) ? ms / YEAR_MS : null
+  let birthMs = new Date(first.start).getTime()
+  if (moonLonSidereal !== undefined && Number.isFinite(moonLonSidereal)) {
+    const span = 360 / 27
+    const lon = ((moonLonSidereal % 360) + 360) % 360
+    if (NAKSHATRA_LORDS[Math.floor(lon / span)] === first.lord) {
+      birthMs += ((lon % span) / span) * first.durationMs
+    }
+  }
+  const ms = new Date(maha.start).getTime() - birthMs
+  return Number.isFinite(ms) ? Math.max(0, ms / YEAR_MS) : null
 }
 
 /**
@@ -1281,7 +1292,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     antarIndexInMaha: antarNode ? antardashaIndexInMaha(mahaNode.lord, antarNode.lord) : -1,
     navamshaGrahas,
     mahaProgress: mahaProgressAt(mahaNode, Date.now()),
-    ageAtMahaStartYears: ageAtMahaStart(nodes, mahaNode),
+    ageAtMahaStartYears: ageAtMahaStart(nodes, mahaNode, grahas.find(g => g.id === 'Mo')?.lonSidereal),
     shadbala,
     ashtakavarga,
     lang: input.lang,
