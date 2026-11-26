@@ -5,7 +5,7 @@
 
 import type { AyanamshaMode } from '@/types/astrology'
 import { getPlanetPosition, getAyanamsha, toSidereal, SWISSEPH_IDS } from '@/lib/engine/ephemeris'
-import { getTithi, getNakshatra, getYoga, getKarana, getVara } from '@/lib/engine/nakshatra'
+import { getTithi, getNakshatra, getYoga, getKarana, getVara, varaFromNumber } from '@/lib/engine/nakshatra'
 import {
   findNextTithiEnd,
   findNextNakshatraEnd,
@@ -142,11 +142,13 @@ export function buildPanchangDayTimeline(
   nextSunrise: Date,
   sunset: Date,
   mode: AyanamshaMode,
+  /** Weekday of the local date of `sunrise` (0=Sun). Defaults to its UTC date. */
+  varaNumber?: number,
 ): PanchangDayTimeline {
   const jdStart = dateToJulianDayUtc(sunrise)
   const jdEnd = dateToJulianDayUtc(nextSunrise)
   const boundaries = collectBoundaryJds(jdStart, jdEnd, mode)
-  const v = getVara(jdStart)
+  const v = varaNumber !== undefined ? varaFromNumber(varaNumber) : getVara(jdStart)
 
   const windowEndIso = nextSunrise.toISOString()
 

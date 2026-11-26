@@ -45,7 +45,7 @@ import { calcMandookDasha, calcSthirDasha, calcNavamshaDasha, calcBrahmaDasha } 
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
   getKarana, getNakshatra, getTithi,
-  getVara, getYoga,
+  getYoga, varaFromDateStr, varaFromNumber,
   getRahuKalam, getGulikaKalam, getYamaganda, getAbhijitMuhurta,
   type GulikaMode,
 } from '@/lib/engine/nakshatra'
@@ -315,10 +315,13 @@ export async function calculateChart(
   // Real sunrise/sunset via swisseph rise_trans
   const birthDateStr = input.birthDate  // 'YYYY-MM-DD'
   const { sunrise, sunset } = getSunriseSunset(birthDateStr, input.latitude, input.longitude, input.timezone)
-  const vara = getVara(jd)
-  const rahuKalam = getRahuKalam(sunrise, sunset, vara.number)
-  const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number, (settings.gulikaMode ?? 'phaladipika') as GulikaMode)
-  const yamaganda = getYamaganda(sunrise, sunset, vara.number)
+  // Kalams belong to the local birth date's daytime; the Vedic vara runs
+  // sunrise → sunrise, so a pre-sunrise birth falls on the previous weekday.
+  const civilVara = varaFromDateStr(birthDateStr)
+  const vara = birthUtc.getTime() < sunrise.getTime() ? varaFromNumber(civilVara.number - 1) : civilVara
+  const rahuKalam = getRahuKalam(sunrise, sunset, civilVara.number)
+  const gulikaKalam = getGulikaKalam(sunrise, sunset, civilVara.number, (settings.gulikaMode ?? 'phaladipika') as GulikaMode)
+  const yamaganda = getYamaganda(sunrise, sunset, civilVara.number)
   const abhijit = getAbhijitMuhurta(sunrise, sunset)
 
   // ── Special Lagnas (BPHS; Sun at applicable sunrise) ─────────────────────

@@ -25,7 +25,7 @@ export const VARGA_HI: Record<string, { full: string; topic: string }> = {
   D2_Parivritti: { full: 'होरा (परिवृत्ति)', topic: 'धन — परिवृत्ति द्वय होरा पद्धति' },
   D2_Kasinath: { full: 'होरा (काशीनाथ)', topic: 'धन — काशीनाथ होरा पद्धति' },
   D2_Samasaptama: { full: 'होरा (समसप्तम)', topic: 'धन — समसप्तम होरा पद्धति' },
-  D2_Somanath: { full: 'होरा (सोमनाथ)', topic: 'धन — सोमनाथ चंद्र-आधारित होरा' },
+  D2_Somanath: { full: 'होरा (सोमनाथ)', topic: 'धन — सोमनाथ (एकांतर परिवृत्ति) होरा' },
   D2_Raman: { full: 'होरा (रमन)', topic: 'धन — रमन होरा पद्धति' },
   D3_Jagannath: { full: 'द्रेष्काण (जगन्नाथ)', topic: 'भाई-बहन — जगन्नाथ द्रेष्काण' },
   D3_Somanath: { full: 'द्रेष्काण (सोमनाथ)', topic: 'भाई-बहन — सोमनाथ द्रेष्काण' },

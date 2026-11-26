@@ -209,13 +209,13 @@ describe('Named variant varga schemes', () => {
     expect(D3_Jagannath(81)).toBe(3)    // Ge 3rd → Ge
   })
 
-  it('D3_Somanath odd forward / even reverse hybrid', () => {
+  it('D3_Somanath parivritti alternate (odd fwd from Ar, even back from Pi)', () => {
     expect(D3_Somanath(0.1)).toBe(1)
     expect(D3_Somanath(11)).toBe(2)
     expect(D3_Somanath(21)).toBe(3)
-    expect(D3_Somanath(30.1)).toBe(9)
-    expect(D3_Somanath(41)).toBe(8)
-    expect(D3_Somanath(51)).toBe(7)
+    expect(D3_Somanath(30.1)).toBe(12)
+    expect(D3_Somanath(41)).toBe(11)
+    expect(D3_Somanath(51)).toBe(10)
   })
 
   it('D4_Parivritti cycles consecutive quarters from Aries', () => {
@@ -232,12 +232,13 @@ describe('Named variant varga schemes', () => {
     }
   })
 
-  it('D9_Nadi / D9_Somanatha: Uniform Krishna Mishra table', () => {
+  it('D9_Somanatha parivritti alternate; D9_Nadi Rangacharya (PyJHora)', () => {
     expect(D9_Somanatha(0.1)).toBe(1)     // Ar → Ar
-    expect(D9_Somanatha(30.1)).toBe(6)    // Ta → Vi
-    expect(D9_Somanatha(33.4)).toBe(5)    // Ta 2nd → Le
-    expect(D9_Somanatha(60.1)).toBe(7)    // Ge → Li
-    expect(D9_Somanatha(90.1)).toBe(12)   // Cn → Pi
-    expect(D9_Nadi(30.1)).toBe(D9_Somanatha(30.1))
+    expect(D9_Somanatha(30.1)).toBe(12)   // Ta → Pi (backward)
+    expect(D9_Somanatha(33.4)).toBe(11)   // Ta 2nd → Aq
+    expect(D9_Somanatha(60.1)).toBe(10)   // Ge → Cp (continues after Ar…Sg)
+    expect(D9_Nadi(30.1)).toBe(10)        // earth → Cp backward
+    expect(D9_Nadi(90.1)).toBe(4)         // water → Cn backward
+    expect(D9_Nadi(60.1)).toBe(7)         // air → Li forward
   })
 })

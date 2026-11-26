@@ -69,7 +69,7 @@ const TITHI_NAMES = [
 
 const TITHI_LORDS: string[] = [
   'Agni','Brahma','Gauri','Ganesha','Naga','Kartikeya','Surya','Shiva',
-  'Durga','Yama','Vishwedeva','Vishnu','Kamadeva','Shiva','Pitrus',
+  'Durga','Yama','Vishwedeva','Vishnu','Kamadeva','Shiva','Chandra',
   'Agni','Brahma','Gauri','Ganesha','Naga','Kartikeya','Surya','Shiva',
   'Durga','Yama','Vishwedeva','Vishnu','Kamadeva','Shiva','Pitrus',
 ]
@@ -243,9 +243,27 @@ export interface VaraResult {
   lord:     GrahaId
 }
 
+/** Vara for a weekday number (0=Sun … 6=Sat). */
+export function varaFromNumber(n: number): VaraResult {
+  const dow = ((Math.floor(n) % 7) + 7) % 7
+  return {
+    number:   dow,
+    name:     VARA_NAMES[dow],
+    sanskrit: VARA_SANSKRIT[dow],
+    lord:     VARA_LORDS[dow],
+  }
+}
+
+/** Vara of a local civil date 'YYYY-MM-DD' (the weekday of that date's sunrise). */
+export function varaFromDateStr(dateStr: string): VaraResult {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return varaFromNumber(new Date(Date.UTC(y, m - 1, d)).getUTCDay())
+}
+
 /**
- * Get Vara (weekday) from Julian Day
- * JD 0 = Monday (Jan 1, 4713 BC)
+ * Weekday of the UTC calendar date of a Julian Day.
+ * Not timezone-aware: for a Vedic day (sunrise → sunrise) at a place, prefer
+ * varaFromDateStr(localDate) of the governing sunrise.
  */
 export function getVara(jd: number): VaraResult {
   // JD 2451545.0 = Jan 1 2000 = Saturday
@@ -325,12 +343,12 @@ export function getHoraTable(
 // Expressed as 8ths of the day (daytime)
 const RAHU_KALAM_PORTIONS: number[] = [8, 2, 7, 5, 6, 4, 3] // portion index (1-8)
 
-// Gulika Kalam — standard (Phaladipika) portion by weekday
-const GULIKA_KALAM_PORTIONS: number[] = [6, 7, 5, 6, 6, 5, 6]
+// Gulika Kalam = Saturn's 1/8 portion of the day (BPHS / Phaladipika):
+// Sun 7th, Mon 6th, Tue 5th, Wed 4th, Thu 3rd, Fri 2nd, Sat 1st
+const GULIKA_KALAM_PORTIONS: number[] = [7, 6, 5, 4, 3, 2, 1]
 
-// Gulika Kalam — Kaala Hora method (different tradition)
-// Gulika = Son of Saturn, appears at specific hora windows
-const GULIKA_KALAM_HORA: number[] = [5, 4, 3, 2, 1, 7, 6]
+// begin/middle/end modes: same Saturn portion, offset within the slot
+const GULIKA_KALAM_HORA: number[] = GULIKA_KALAM_PORTIONS
 
 const YAMAGANDA_PORTIONS: number[]  = [4, 3, 2, 1, 0, 6, 5]
 
@@ -395,15 +413,15 @@ export function getYamaganda(
 }
 
 /**
- * Get Abhijit Muhurta — the auspicious period around solar noon
- * It spans 24 minutes centered on local solar noon
+ * Get Abhijit Muhurta — the 8th of the 15 daytime muhurtas,
+ * i.e. one muhurta (day length ÷ 15, ~48 min) centred on local solar noon.
  */
 export function getAbhijitMuhurta(
   sunrise: Date,
   sunset:  Date,
 ): { start: Date; end: Date } | null {
   const solarNoon = new Date((sunrise.getTime() + sunset.getTime()) / 2)
-  const halfWidth = 12 * 60 * 1000  // 12 minutes
+  const halfWidth = (sunset.getTime() - sunrise.getTime()) / 30  // half a muhurta
 
   // Not available on Wednesdays (traditionally)
   return {

@@ -35,6 +35,19 @@ const isOdd = (sign: number): boolean => sign % 2 === 1
 const part = (lon: number, n: number): number =>
   Math.floor(degInSign(lon) / (30 / n))
 
+/**
+ * Somanatha "parivritti alternate" (PyJHora / JHora): odd signs take
+ * consecutive signs forward from Aries, even signs consecutive signs
+ * backward from Pisces, each sign pair continuing where the last stopped.
+ * D2: Ar→(Ar,Ta), Ta→(Pi,Aq), Ge→(Ge,Cn), Cn→(Cp,Sg) …
+ */
+const parivrittiAlternate = (lon: number, n: number): number => {
+  const sign = signOf(lon)
+  const p = part(lon, n)
+  const k = Math.floor((sign - 1) / 2) // sign-pair index 0–5
+  return isOdd(sign) ? mod12(1 + n * k + p) : mod12(12 - n * k - p)
+}
+
 // ── Tier 1 — Core Vargas (Kala: D1, D9, D60) ─────────────────
 
 /** D1 — Rashi (direct) */
@@ -266,11 +279,8 @@ export const D2_Samasaptama = (lon: number): number => {
   return deg < 15 ? mod12(sign + 6) : sign
 }
 
-/** D2 — Somanath (simplified Moon/Sun hora as Cancer/Leo only). */
-export const D2_Somanath = (lon: number): number => {
-  const deg = degInSign(lon)
-  return deg < 15 ? 4 : 5
-}
+/** D2 — Somanatha hora (parivritti alternate). */
+export const D2_Somanath = (lon: number): number => parivrittiAlternate(lon, 2)
 
 /** D2 — Raman Suprajarama hora table (day/night × 11th-lord hybrid). */
 const RAMAN_HORA: Record<number, [number, number]> = {
@@ -294,17 +304,8 @@ export const D3_Jagannath = (lon: number): number => {
   return [mod12(sign + 4), mod12(sign + 8), sign][p]  // 5th, 9th, 1st
 }
 
-/** D3 — Somanath Drekkana (odd forward / even reverse hybrid cycle). */
-const SOMANATH_D3: Record<number, [number, number, number]> = {
-  1: [1, 2, 3], 2: [9, 8, 7], 3: [4, 5, 6], 4: [12, 11, 10],
-  5: [7, 8, 9], 6: [3, 2, 1], 7: [10, 11, 12], 8: [6, 5, 4],
-  9: [1, 2, 3], 10: [9, 8, 7], 11: [4, 5, 6], 12: [12, 11, 10],
-}
-export const D3_Somanath = (lon: number): number => {
-  const sign = signOf(lon)
-  const p = part(lon, 3)
-  return SOMANATH_D3[sign][p]
-}
+/** D3 — Somanatha drekkana (parivritti alternate). */
+export const D3_Somanath = (lon: number): number => parivrittiAlternate(lon, 3)
 
 /** D3 — Nadi Drekkana (elemental trine cycle). */
 export const D3_Nadi = (lon: number): number => {
@@ -327,24 +328,21 @@ export const D9_Pada = (lon: number): number =>
   (Math.floor(norm(lon) / (360 / 108)) % 12) + 1
 
 /**
- * Uniform Krishna Mishra / Somanatha Navamsha:
- * Fire→Ar fwd, Earth→Vi rev, Air→Li fwd, Water→Pi rev.
+ * D9 — Nadi Navamsha (Rangacharya Krishna Mishra / Sanjay Rath, as PyJHora):
+ * Fire→Ar fwd, Water→Cn rev, Air→Li fwd, Earth→Cp rev.
  */
-function krishnaMishraNavamsha(lon: number): number {
+export const D9_Nadi = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 9)
   const element = (sign - 1) % 4 // 0 fire, 1 earth, 2 air, 3 water
-  if (element === 0) return mod12(1 + p)       // Ar forward
-  if (element === 1) return mod12(6 - p)       // Vi reverse
-  if (element === 2) return mod12(7 + p)       // Li forward
-  return mod12(12 - p)                        // Pi reverse
+  if (element === 0) return mod12(1 + p)
+  if (element === 1) return mod12(10 - p)
+  if (element === 2) return mod12(7 + p)
+  return mod12(4 - p)
 }
 
-/** D9 — Nadi Navamsha (Uniform Krishna Mishra). */
-export const D9_Nadi = (lon: number): number => krishnaMishraNavamsha(lon)
-
-/** D9 — Somanatha Navamsha (same Uniform Krishna Mishra / Kalpalata table). */
-export const D9_Somanatha = (lon: number): number => krishnaMishraNavamsha(lon)
+/** D9 — Somanatha Navamsha (parivritti alternate). */
+export const D9_Somanatha = (lon: number): number => parivrittiAlternate(lon, 9)
 
 /** D12 — Ganaamsha (groups of 12) */
 export const D12_Ganaamsha = (lon: number): number => {
@@ -410,10 +408,11 @@ export const D144 = (lon: number): number => {
   return D12(d12Lon)
 }
 
-/** D150 — Nadi Panchadeshamsha */
+/** D150 — Nadiamsha (PVR / JHora): 150 equal parts counted forward from the sign itself. */
 export const D150 = (lon: number): number => {
+  const sign = signOf(lon)
   const p = part(lon, 150)
-  return mod12(p % 12 + 1)
+  return mod12(sign + p)
 }
 
 // ── Registry ───────────────────────────────────────────────────
@@ -590,7 +589,7 @@ export const VARGA_META: Record<string, { full: string; topic: string; tier: 'fr
   D2_Parivritti:  { full: 'Hora (Parivritti)',     topic: 'Wealth — Parivritti Dvaya Hora scheme',           tier: 'platinum' },
   D2_Kasinath:    { full: 'Hora (Kasinath)',       topic: 'Wealth — Kasinath Hora scheme',                   tier: 'platinum' },
   D2_Samasaptama: { full: 'Hora (Samasaptama)',    topic: 'Wealth — Samasaptama Hora scheme',                tier: 'platinum' },
-  D2_Somanath:    { full: 'Hora (Somanath)',       topic: 'Wealth — Somanath Moon-based Hora',               tier: 'platinum' },
+  D2_Somanath:    { full: 'Hora (Somanath)',       topic: 'Wealth — Somanatha alternate-parivritti Hora',               tier: 'platinum' },
   D2_Raman:       { full: 'Hora (Raman)',          topic: 'Wealth — Raman Hora scheme',                      tier: 'platinum' },
   D3_Jagannath:   { full: 'Drekkana (Jagannath)',  topic: 'Siblings — Jagannath Drekkana',                   tier: 'platinum' },
   D3_Somanath:    { full: 'Drekkana (Somanath)',   topic: 'Siblings — Somanath Drekkana',                    tier: 'platinum' },

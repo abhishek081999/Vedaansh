@@ -3,8 +3,10 @@ import { auth } from '@/auth'
 import { requirePlanGate } from '@/lib/security/planAccess'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { getSunriseSunset } from '@/lib/engine/sunrise'
+import { formatInTimeZone } from 'date-fns-tz'
+import { shiftDateStr } from '@/lib/engine/upagrahas'
 import {
-  getVara,
+  varaFromDateStr,
   getTithi,
   getNakshatra,
   getYoga,
@@ -88,13 +90,27 @@ export async function GET(req: NextRequest) {
     const intervals = 48
     const timelineData: { time: string; scores: Record<MuhurtaActivity, MuhurtaScore> }[] = []
 
-    const dateToday = startDate.toISOString().split('T')[0]
-    const nextDate = new Date(startDate.getTime() + 86400000).toISOString().split('T')[0]
+    // Local civil dates at the requested place (not UTC)
+    const dateToday = formatInTimeZone(startDate, tz, 'yyyy-MM-dd')
+    const prevDate = shiftDateStr(dateToday, -1)
+    const nextDate = shiftDateStr(dateToday, 1)
+    const afterNextDate = shiftDateStr(dateToday, 2)
 
+    lastStage = 'sunInfoPrev'
+    const sunInfoPrev = getSunriseSunset(prevDate, lat, lng, tz)
     lastStage = 'sunInfoToday'
     const sunInfoToday = getSunriseSunset(dateToday, lat, lng, tz)
     lastStage = 'sunInfoNext'
     const sunInfoNext = getSunriseSunset(nextDate, lat, lng, tz)
+    lastStage = 'sunInfoAfterNext'
+    const sunInfoAfterNext = getSunriseSunset(afterNextDate, lat, lng, tz)
+
+    // Vedic days run sunrise → next sunrise
+    const vedicDays = [
+      { dateStr: prevDate, sun: sunInfoPrev, nextSunrise: sunInfoToday.sunrise },
+      { dateStr: dateToday, sun: sunInfoToday, nextSunrise: sunInfoNext.sunrise },
+      { dateStr: nextDate, sun: sunInfoNext, nextSunrise: sunInfoAfterNext.sunrise },
+    ]
 
     for (let i = 0; i < intervals; i++) {
       const currentTime = new Date(startDate.getTime() + i * 30 * 60 * 1000)
@@ -115,10 +131,11 @@ export async function GET(req: NextRequest) {
       const nakshatra = getNakshatra(moonPos.longitude)
       const yoga = getYoga(sunPos.longitude, moonPos.longitude)
       const karana = getKarana(moonPos.longitude, sunPos.longitude)
-      const vara = getVara(jd)
-
       lastStage = `interval-${i}-kalam`
-      const sunInfo = currentTime < sunInfoNext.sunrise ? sunInfoToday : sunInfoNext
+      const day = vedicDays.find(d => currentTime >= d.sun.sunrise && currentTime < d.nextSunrise)
+        ?? (currentTime < sunInfoToday.sunrise ? vedicDays[0] : vedicDays[2])
+      const sunInfo = day.sun
+      const vara = varaFromDateStr(day.dateStr)
 
       const rahu = getRahuKalam(sunInfo.sunrise, sunInfo.sunset, vara.number)
       const gulika = getGulikaKalam(sunInfo.sunrise, sunInfo.sunset, vara.number)
@@ -146,9 +163,9 @@ export async function GET(req: NextRequest) {
 
       const choghadiyaRes = getChoghadiya(
         currentTime,
-        sunInfoToday.sunrise,
-        sunInfoToday.sunset,
-        sunInfoNext.sunrise,
+        sunInfo.sunrise,
+        sunInfo.sunset,
+        day.nextSunrise,
         vara.number,
       )
 
@@ -163,12 +180,10 @@ export async function GET(req: NextRequest) {
         horaLord = getHoraLord(vara.lord, horaIndex)
       } else {
         const nightStart = sunInfo.sunset.getTime()
-        const nightEnd = sunInfoNext.sunrise.getTime()
-        const nightDuration = nightEnd - nightStart
-        const horaDuration = nightDuration / 12
-        let diff = currentTime.getTime() - nightStart
-        if (diff < 0) diff += 24 * 3600000
-        const horaIndex = 12 + Math.floor(diff / horaDuration)
+        const nightEnd = day.nextSunrise.getTime()
+        const horaDuration = (nightEnd - nightStart) / 12
+        const diff = Math.max(0, currentTime.getTime() - nightStart)
+        const horaIndex = 12 + Math.min(11, Math.floor(diff / horaDuration))
         horaLord = getHoraLord(vara.lord, horaIndex)
       }
 
