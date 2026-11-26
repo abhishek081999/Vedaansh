@@ -55,8 +55,14 @@ export async function GET(req: NextRequest) {
     const lat = parseFloat(searchParams.get('lat') || '28.6139')
     const lng = parseFloat(searchParams.get('lng') || '77.2090')
     const tz = searchParams.get('tz') || 'Asia/Kolkata'
-    const natalNak = parseInt(searchParams.get('natalNak') || '0')
-    const natalSign = parseInt(searchParams.get('natalSign') || '1')
+    // Personal Tara / Chandra Bala only when the caller sends a natal Moon
+    const natalNakRaw = Number(searchParams.get('natalNak'))
+    const natalSignRaw = Number(searchParams.get('natalSign'))
+    const natal = searchParams.has('natalNak') && searchParams.has('natalSign')
+      && Number.isInteger(natalNakRaw) && natalNakRaw >= 0 && natalNakRaw <= 26
+      && Number.isInteger(natalSignRaw) && natalSignRaw >= 1 && natalSignRaw <= 12
+      ? { moonNak: natalNakRaw, moonSign: natalSignRaw }
+      : null
     const ayanMode = (searchParams.get('ayan') || DEFAULT_AYANAMSHA) as Parameters<typeof getAyanamsha>[1]
     const mahaLord = (searchParams.get('maha') || '') as GrahaId | ''
     const antarLord = (searchParams.get('antar') || '') as GrahaId | ''
@@ -212,7 +218,7 @@ export async function GET(req: NextRequest) {
               choghadiya: choghadiyaRes,
               panchaka,
             },
-            { moonNak: natalNak, moonSign: natalSign },
+            natal,
             {
               lagnaRashi: lagnaIndex,
               moonLonSidereal: moonSid,
