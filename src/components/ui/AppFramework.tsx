@@ -99,7 +99,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
+  const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab } = useAppLayout()
   const { chart, isFormOpen, setIsFormOpen, setChart, setPendingDestination, clearToLanding } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
   const [astroGroupOpen, setAstroGroupOpen] = useState<Record<string, boolean>>(defaultAstroGroupOpen)

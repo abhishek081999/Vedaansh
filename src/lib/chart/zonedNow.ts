@@ -47,3 +47,23 @@ export function zonedDateTime(timeZone: string | undefined, at: Date = new Date(
 export function zonedToday(timeZone: string | undefined, at: Date = new Date()): string {
   return zonedDateTime(timeZone, at).date
 }
+
+/**
+ * The instant at which the wall clock in `timeZone` reads `date` `time`.
+ * Inverse of zonedDateTime (to the second). For a time skipped by a DST
+ * jump, returns the instant one offset later.
+ */
+export function zonedWallToDate(date: string, time: string, timeZone: string | undefined): Date {
+  const [y, mo, d] = date.split('-').map(Number)
+  const [h = 0, mi = 0, s = 0] = time.split(':').map(Number)
+  const wallUtc = Date.UTC(y, (mo || 1) - 1, d || 1, h, mi, s)
+  const offsetAt = (instant: number) => {
+    const z = zonedDateTime(timeZone, new Date(instant))
+    const [zy, zmo, zd] = z.date.split('-').map(Number)
+    const [zh, zmi, zs] = z.time.split(':').map(Number)
+    return Date.UTC(zy, zmo - 1, zd, zh, zmi, zs) - instant
+  }
+  let instant = wallUtc - offsetAt(wallUtc)
+  instant = wallUtc - offsetAt(instant)
+  return new Date(instant)
+}

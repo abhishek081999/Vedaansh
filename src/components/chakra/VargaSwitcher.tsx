@@ -6,7 +6,8 @@ import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { getDashaLordPlacementHouses } from '@/lib/engine/activeHouses'
-import { getVargaPosition, VARGA_FUNCTIONS, VARGA_UI_LIST, vargaUiList, type VargaName } from '@/lib/engine/vargas'
+import { VARGA_UI_LIST, vargaUiList } from '@/lib/engine/vargas'
+import { projectGrahasToVarga } from '@/lib/chart/projectVarga'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 
@@ -32,22 +33,6 @@ function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=t
 
 function hasVargaData(name: string, vargas: Record<string, GrahaData[]>) {
   return name === 'D1' || name in vargas
-}
-
-/** Place grahas in the selected divisional chart. D1 keeps the original signs. */
-function projectGrahasToVarga(grahas: GrahaData[], vargaName: string): GrahaData[] {
-  if (grahas.length === 0 || vargaName === 'D1') return grahas
-  if (!(vargaName in VARGA_FUNCTIONS)) return []
-  return grahas.map(g => {
-    const lon = g.lonSidereal || g.totalDegree
-    const pos = getVargaPosition(lon, vargaName as VargaName)
-    return {
-      ...g,
-      rashi: pos.rashi as Rashi,
-      degree: pos.degree,
-      totalDegree: pos.totalDegree,
-    }
-  })
 }
 
 function VargaOptions({

@@ -9,9 +9,10 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { createPortal } from 'react-dom'
 import { Link } from '@/i18n/navigation'
-import { ChevronDown, Library, MoreHorizontal, Pencil, Plus } from 'lucide-react'
+import { Check, ChevronDown, Library, MoreHorizontal, Pencil, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
+import { useShortcutsEnabled } from '@/lib/ui/shortcutPrefs'
 import styles from './ChartWorkspaceToolbar.module.css'
 
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then((m) => m.ExportPdfButton), { ssr: false })
@@ -136,6 +137,7 @@ export function ChartWorkspaceToolbar({
   const moreBtnRef = useRef<HTMLButtonElement>(null)
   const moreMenuRef = useRef<HTMLDivElement>(null)
   const [portalReady, setPortalReady] = useState(false)
+  const [shortcutsOn, setShortcutsOn] = useShortcutsEnabled()
 
   useEffect(() => setPortalReady(true), [])
 
@@ -178,15 +180,23 @@ export function ChartWorkspaceToolbar({
     // arrow / Tab / Escape handling here — otherwise it is unreachable by keyboard.
     const focusables = () =>
       Array.from(
-        moreMenuRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not(:disabled), [role="menuitem"]:not([aria-disabled="true"])',
-        ) ?? [],
+        moreMenuRef.current?.querySelectorAll<HTMLElement>('a[href], button:not(:disabled)') ?? [],
       )
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Tab') {
-        if (e.key === 'Tab') e.preventDefault()
+      if (e.key === 'Escape') {
         setMoreOpen(false)
         moreBtnRef.current?.focus()
+        return
+      }
+      // Tab / Shift+Tab cycle through the popover (it is portalled to <body>,
+      // so leaving it would drop focus at the end of the page).
+      if (e.key === 'Tab') {
+        const list = focusables()
+        if (!list.length) return
+        e.preventDefault()
+        const i = list.indexOf(document.activeElement as HTMLElement)
+        const next = e.shiftKey ? (i - 1 + list.length) % list.length : (i + 1) % list.length
+        list[next]?.focus()
         return
       }
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return
@@ -219,14 +229,9 @@ export function ChartWorkspaceToolbar({
               onClick={onShare}
               aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
               title={shareCopied ? tw('copied') : tw('copyFree')}
-              className="chart-mobile-action-btn"
-              style={{
-                borderColor: shareCopied ? 'var(--accent)' : undefined,
-                background: shareCopied ? 'rgba(34,197,94,0.1)' : undefined,
-                color: shareCopied ? 'var(--accent)' : undefined,
-              }}
+              className={`chart-mobile-action-btn${shareCopied ? ' chart-mobile-action-btn--done' : ''}`}
             >
-              {shareCopied ? <span style={{ fontSize: '0.85rem' }}>✓</span> : <ShareLinkIcon />}
+              {shareCopied ? <Check size={15} strokeWidth={2.5} aria-hidden /> : <ShareLinkIcon />}
             </button>
             <AiPromptButton chart={chart} variant="chip" />
             {authenticated ? (
@@ -235,22 +240,27 @@ export function ChartWorkspaceToolbar({
                 onClick={onSave}
                 disabled={saving || saveDone}
                 aria-label={isSavedChart ? tw('updateSaved') : tw('saveChart')}
-                className="chart-mobile-action-btn"
-                style={{
-                  borderColor: saveDone ? 'var(--accent)' : undefined,
-                  background: saveDone ? 'rgba(34,197,94,0.1)' : undefined,
-                  color: saveDone ? 'var(--accent)' : undefined,
-                }}
+                aria-keyshortcuts={shortcutsOn ? 'S' : undefined}
+                className={`chart-mobile-action-btn${saveDone ? ' chart-mobile-action-btn--done' : ''}`}
               >
                 {saving ? (
-                  <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>…</span>
+                  <span className="chart-mobile-action-busy" aria-hidden>…</span>
                 ) : saveDone ? (
-                  <span style={{ fontSize: '0.85rem' }}>✓</span>
+                  <Check size={15} strokeWidth={2.5} aria-hidden />
                 ) : (
                   <SaveIcon />
                 )}
               </button>
             ) : null}
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label={tw('editBirth')}
+              title={tw('editBirth')}
+              className="chart-mobile-action-btn"
+            >
+              <Pencil size={15} strokeWidth={2} aria-hidden />
+            </button>
             <button
               type="button"
               onClick={onNew}
@@ -280,7 +290,7 @@ export function ChartWorkspaceToolbar({
       <>
         <div className="chart-mobile-actions-row">
           <button type="button" onClick={onShare} className="btn btn-secondary btn-sm" aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}>
-            {shareCopied ? '✓' : tw('share')}
+            {shareCopied ? <Check size={14} strokeWidth={2.5} aria-hidden /> : tw('share')}
           </button>
           {authenticated ? (
             <button
@@ -289,7 +299,7 @@ export function ChartWorkspaceToolbar({
               disabled={saving || saveDone}
               className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
             >
-              {saving ? '…' : saveDone ? '✓' : isSavedChart ? tw('update') : tw('save')}
+              {saving ? '…' : saveDone ? <Check size={14} strokeWidth={2.5} aria-hidden /> : isSavedChart ? tw('update') : tw('save')}
             </button>
           ) : null}
           <button type="button" onClick={onEdit} className="btn btn-secondary btn-sm">
@@ -320,7 +330,7 @@ export function ChartWorkspaceToolbar({
           <div
             ref={moreMenuRef}
             className={styles.moreMenu}
-            role="menu"
+            role="dialog"
             aria-label={tw('moreActions')}
             style={{ top: menuPos.top, right: menuPos.right }}
           >
@@ -328,21 +338,20 @@ export function ChartWorkspaceToolbar({
               <Link
                 href="/my/charts"
                 className={styles.moreItem}
-                role="menuitem"
                 onClick={() => setMoreOpen(false)}
               >
                 <Library size={14} aria-hidden />
                 {tAct('myCharts')}
               </Link>
             ) : null}
-            <div className={styles.moreToolRow} role="none">
+            <div className={styles.moreToolRow}>
               <ExportPdfButton
                 chart={chart}
                 compact
                 style={{ width: '100%', justifyContent: 'flex-start' }}
               />
             </div>
-            <div className={styles.moreToolRow} role="none">
+            <div className={styles.moreToolRow}>
               <EmailChartButton
                 chart={chart}
                 compact
@@ -352,7 +361,6 @@ export function ChartWorkspaceToolbar({
             {authenticated && userPlan === 'platinum' ? (
               <button
                 type="button"
-                role="menuitem"
                 className={styles.moreItem}
                 onClick={() => {
                   onCrm()
@@ -363,6 +371,24 @@ export function ChartWorkspaceToolbar({
                 {crmSaving ? '…' : crmDone ? tAct('crmDone') : tAct('crm')}
               </button>
             ) : null}
+            <div className={styles.moreShortcuts}>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={shortcutsOn}
+                aria-describedby={shortcutsOn ? 'chart-shortcuts-hint' : undefined}
+                className={styles.moreSwitch}
+                onClick={() => setShortcutsOn(!shortcutsOn)}
+              >
+                <span>{tw('shortcutsToggle')}</span>
+                <span className={styles.switchTrack} data-on={shortcutsOn} aria-hidden>
+                  <span className={styles.switchThumb} />
+                </span>
+              </button>
+              {shortcutsOn ? (
+                <p id="chart-shortcuts-hint" className={styles.moreHint}>{tw('shortcutsHint')}</p>
+              ) : null}
+            </div>
           </div>,
           document.body,
         )
@@ -375,9 +401,10 @@ export function ChartWorkspaceToolbar({
           type="button"
           onClick={onSave}
           disabled={saving || saveDone}
+          aria-keyshortcuts={shortcutsOn ? 'S' : undefined}
           className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
         >
-          {saving ? '…' : saveDone ? '✓' : isSavedChart ? tw('update') : tw('save')}
+          {saving ? '…' : saveDone ? <Check size={14} strokeWidth={2.5} aria-label={tw('save')} /> : isSavedChart ? tw('update') : tw('save')}
         </button>
       ) : null}
 
@@ -388,7 +415,7 @@ export function ChartWorkspaceToolbar({
         title={shareCopied ? tw('copied') : tw('copyFree')}
         aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
       >
-        {shareCopied ? '✓' : <ShareLinkIcon />}
+        {shareCopied ? <Check size={14} strokeWidth={2.5} aria-hidden /> : <ShareLinkIcon />}
         <span className={styles.btnLabel}>{shareCopied ? tw('copied') : tw('share')}</span>
       </button>
 
@@ -410,7 +437,7 @@ export function ChartWorkspaceToolbar({
           type="button"
           className={`btn btn-secondary btn-sm ${styles.moreBtn}`}
           aria-expanded={moreOpen}
-          aria-haspopup="menu"
+          aria-haspopup="dialog"
           aria-label={tw('moreActions')}
           onClick={() => setMoreOpen((v) => !v)}
         >

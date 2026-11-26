@@ -294,23 +294,6 @@
   color: var(--gold);
 }
 
-.transitSlot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.4rem 0.5rem;
-  border-radius: var(--r-sm);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-}
-
-.transitAsOf {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .overlayChip {
   display: flex;
   align-items: center;
@@ -358,4 +341,69 @@
   .layout {
     grid-template-columns: 1fr;
   }
+}
+
+.vargaRow {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+}
+
+.vargaBtn {
+  height: 22px;
+  min-width: 34px;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.vargaBtn:hover:not(:disabled) {
+  color: var(--gold);
+}
+
+.vargaBtnOn {
+  background: var(--surface-1);
+  color: var(--gold);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+.vargaBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pinIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.pinIconBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.overlayStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
 }

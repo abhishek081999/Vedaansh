@@ -30,6 +30,39 @@ export type ChartTabId =
   | 'panchang'
   | 'arudhas'
 
+/** Every chart tab, in sidenav order (used for `?tab=` and `[` / `]` shortcuts). */
+export const CHART_TAB_ORDER: readonly ChartTabId[] = [
+  'dashboard',
+  'astro-details',
+  'planets',
+  'dasha',
+  'dasha-interpretation',
+  'house',
+  'yogas',
+  'interpretation',
+  'kp-stellar',
+  'tattva',
+  'naamkaran',
+  'varshaphal',
+  'panchang',
+  'navamsha',
+  'chaturthamsa',
+  'saptamsha',
+  'dashamsa',
+  'dwadashamsha',
+  'drekkana',
+  'nakshatramsha',
+  'ashtakavarga',
+  'shadbala',
+  'bhava-bala',
+  'vimsopaka',
+  'arudhas',
+]
+
+export function isChartTabId(tab: string | null | undefined): tab is ChartTabId {
+  return !!tab && (CHART_TAB_ORDER as readonly string[]).includes(tab)
+}
+
 /** Tabs that use a full-width workspace (no two-column chart grid). */
 export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'varshaphal',

@@ -1,0 +1,154 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--r-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.kicker {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.kicker:lang(hi) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.asOf {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stepBtn,
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  height: 24px;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.iconBtn {
+  width: 24px;
+  padding: 0;
+  flex: none;
+}
+
+.stepBtn:hover,
+.iconBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.stepBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.nowBtn {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.on {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.input {
+  flex: 1 1 10.5rem;
+  min-width: 0;
+  height: 24px;
+  padding: 0 0.4rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  font-family: var(--font-body);
+  color-scheme: light dark;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation: none; }
+}
+
+.compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.compact .head {
+  flex: 1 1 12rem;
+}
+
+/* Six step buttons share the row evenly so it never wraps in the dock. */
+.steps {
+  flex-wrap: nowrap;
+}
+
+.steps .stepBtn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 0.15rem;
+}
+
+.compact .steps {
+  flex: 0 1 auto;
+}
+
+.compact .steps .stepBtn {
+  flex: none;
+  padding: 0 0.4rem;
+}
+
+.nowBtn {
+  flex: none;
+}

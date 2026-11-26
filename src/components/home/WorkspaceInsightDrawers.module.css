@@ -38,3 +38,10 @@
 .lock {
   opacity: 0.7;
 }
+
+.hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.66rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}

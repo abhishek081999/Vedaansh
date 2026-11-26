@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom'
 
 import {
   GrahaData, LagnaData, UpagrahaData, RASHI_SHORT, RASHI_NAMES, NAKSHATRA_SHORT, NAKSHATRA_NAMES,
-  GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_SANSKRIT, Rashi, GrahaId
+  GRAHA_NAMES, Rashi, GrahaId
 } from '@/types/astrology'
 import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
@@ -140,11 +140,10 @@ interface GrahaTableProps {
 // ── Component ────────────────────────────────────────────
 
 export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, defaultVarga = 'D1', arudhas }: GrahaTableProps) {
-  const { language, openWorkspace } = useAppLayout()
+  const { openWorkspace } = useAppLayout()
   const t = useTranslations('chart.grahaTable')
   const { hi } = useLang()
-  const isSa = language === 'sa' && !hi
-  const rashiShort = (r: Rashi) => (hi ? RASHI_HI[r] : isSa ? RASHI_SANSKRIT[r] : RASHI_SHORT[r])
+  const rashiShort = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r])
   const nakLabel = (totalDeg: number, en: string) => (hi ? NAKSHATRA_HI[Math.floor(totalDeg / (360 / 27)) % 27] : en)
   // Independent of VargaSwitcher — only changes via this table's own dropdown
   const [selectedVarga, setSelectedVarga] = React.useState<string>(defaultVarga)
@@ -177,7 +176,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       .forEach(g => {
         list.push({
           id:       g.id,
-          name:     hi ? GRAHA_HI[g.id] : isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
+          name:     hi ? GRAHA_HI[g.id] : GRAHA_NAMES[g.id],
           totalDeg: g.totalDegree,
           isRetro:  g.isRetro,
           karaka:   g.charaKaraka,
@@ -233,7 +232,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     }
 
     return list
-  }, [selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited, arudhas, vargas, hi, t])
+  }, [selectedVarga, lagnas, upagrahas, vargaLagnas, limited, arudhas, vargas, hi, t])
 
   const vargaOptions = vargas ? Object.keys(vargas)
     .sort((a, b) => {
@@ -445,14 +444,14 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                   <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>
                     {selectedVarga === 'D1' ? (
                       <>
-                        <b style={{ color: 'var(--text-gold)' }}>{hi || isSa ? rashiShort(rashiIdx) : rshort}</b>
+                        <b style={{ color: 'var(--text-gold)' }}>{hi ? rashiShort(rashiIdx) : rshort}</b>
                         <span style={{ fontSize: '0.6rem', color: 'var(--primary-brand)', marginLeft: 3 }}>({rashiShort(nav)})</span>
                       </>
                     ) : (
                       <>
                         <span style={{ color: 'var(--text-muted)' }}>{natalGraha ? rashiShort(natalGraha.rashi) : '—'}</span>
                         <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>›</span>
-                        <b style={{ color: 'var(--text-gold)' }}>{hi || isSa ? rashiShort(rashiIdx) : rshort}</b>
+                        <b style={{ color: 'var(--text-gold)' }}>{hi ? rashiShort(rashiIdx) : rshort}</b>
                       </>
                     )}
                   </td>

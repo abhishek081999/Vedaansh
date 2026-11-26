@@ -15,6 +15,9 @@ export type ChartActionNotice =
   | { kind: 'crmFailed'; message?: string }
   | { kind: 'crmExisting' }
 
+/** Short-lived success confirmation (rendered as a toast). */
+export type ChartActionToast = { kind: 'saved' | 'updated' | 'linkCopied' | 'crmDone'; id: number }
+
 /** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
 export function buildChartShareUrl(chart: ChartOutput, hindi = false): string {
   const m = chart.meta
@@ -76,7 +79,9 @@ export function useChartActions({
   const [crmSaving, setCrmSaving] = useState(false)
   const [crmDone, setCrmDone] = useState(false)
   const [notice, setNotice] = useState<ChartActionNotice | null>(null)
+  const [toast, setToast] = useState<ChartActionToast | null>(null)
   const timers = useRef<number[]>([])
+  const toastSeq = useRef(0)
 
   useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), [])
   const later = (fn: () => void, ms: number) => {
@@ -91,6 +96,12 @@ export function useChartActions({
   }, [chartKey])
 
   const dismissNotice = useCallback(() => setNotice(null), [])
+  const dismissToast = useCallback(() => setToast(null), [])
+  const showToast = (kind: ChartActionToast['kind']) => {
+    const id = ++toastSeq.current
+    setToast({ kind, id })
+    later(() => setToast((cur) => (cur?.id === id ? null : cur)), 3500)
+  }
 
   async function handleSave(type: 'regular' | 'personal' = 'regular'): Promise<string | null> {
     if (!chart || saving) return savedChartId
@@ -135,6 +146,7 @@ export function useChartActions({
         : (json.chartId ? String(json.chartId) : null)
       if (!isSavedChart && nextId) onSavedNew?.(nextId)
       setSaveDone(true)
+      showToast(isSavedChart ? 'updated' : 'saved')
       later(() => setSaveDone(false), 4000)
       return nextId
     } catch (e) {
@@ -164,6 +176,7 @@ export function useChartActions({
     }
     if (await copyText(url)) {
       setShareCopied(true)
+      showToast('linkCopied')
       later(() => setShareCopied(false), 2500)
     } else {
       setNotice({ kind: 'shareFailed' })
@@ -195,6 +208,7 @@ export function useChartActions({
         // Stays "done" for this chart — adding the same client again is a no-op.
         setCrmDone(true)
         if (json.existing) setNotice({ kind: 'crmExisting' })
+        else showToast('crmDone')
       } else {
         setNotice({ kind: 'crmFailed', message: typeof json.error === 'string' ? json.error : undefined })
       }
@@ -214,6 +228,8 @@ export function useChartActions({
     crmDone,
     notice,
     dismissNotice,
+    toast,
+    dismissToast,
     handleSave,
     handleShare,
     handleSaveToCRM,
