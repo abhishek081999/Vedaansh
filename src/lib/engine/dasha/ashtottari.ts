@@ -128,17 +128,17 @@ export function calcAshtottari(
 
   const birthLord = LORD_MAP[groupIdx].lord
   const fractionElapsed = elapsedInGroup / totalGroupSpan
-  const remainingFraction = Math.max(0, 1 - fractionElapsed)
-  const balanceYears = remainingFraction * ASHTOTTARI_YEARS[birthLord]
+  const elapsedYears = Math.min(1, Math.max(0, fractionElapsed)) * ASHTOTTARI_YEARS[birthLord]
 
-  // 2. Build Sequence
+  // 2. Build Sequence — the first dasha is backdated to its true start so its
+  // antardashas fall over the full period (balance at birth = full − elapsed).
   const nodes: DashaNode[] = []
-  let cursor = birthDate.getTime()
+  let cursor = birthDate.getTime() - yearsToMs(elapsedYears)
 
   for (let i = 0; i < 8; i++) {
     const lordIdx = (groupIdx + i) % 8
     const lord = ASHTOTTARI_SEQUENCE[lordIdx]
-    const years = (i === 0) ? balanceYears : ASHTOTTARI_YEARS[lord]
+    const years = ASHTOTTARI_YEARS[lord]
     const durationMs = yearsToMs(years)
 
     const start = new Date(cursor)

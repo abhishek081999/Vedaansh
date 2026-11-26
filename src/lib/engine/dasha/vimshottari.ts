@@ -142,27 +142,23 @@ export function calcVimshottari(
   // ── Step 2: Calculate Dasha balance at birth ─────────────
   const withinNakshatra = normalized % NAKSHATRA_SPAN
   const traversedFraction = withinNakshatra / NAKSHATRA_SPAN
-  const remainingFraction = 1 - traversedFraction
-
-  const balanceYears = remainingFraction * yearsMap[birthLord]
+  // Balance at birth = (1 − traversedFraction) × yearsMap[birthLord]; the first
+  // mahadasha is backdated by the elapsed part, so it ends at birth + balance.
 
   // ── Step 3: Build Maha Dasha sequence ────────────────────
   const birthLordIdx = dashaIndex(birthLord)
   const nodes: DashaNode[] = []
   const elapsedYears = traversedFraction * yearsMap[birthLord]
-  let cursor = tribhagi
-    ? birthDate.getTime() - yearsToMs(elapsedYears, true)
-    : birthDate.getTime()
+  // The first mahadasha starts before birth (JHora): its antardashas must be
+  // laid over the full period, not compressed into the balance.
+  let cursor = birthDate.getTime() - yearsToMs(elapsedYears, useSiderealYear)
   const now  = Date.now()
   let globalMahaIndex = 0
 
   for (let cycle = 0; cycle < cycles; cycle++) {
     for (let i = 0; i < 9; i++) {
       const lord = DASHA_SEQUENCE[(birthLordIdx + i) % 9]
-      // Tribhagi/JHora: backdated start + full slice per lord; standard: balance on first row only
-      const years = tribhagi
-        ? yearsMap[lord]
-        : (cycle === 0 && i === 0 ? balanceYears : yearsMap[lord])
+      const years = yearsMap[lord]
       const durationMs = yearsToMs(years, useSiderealYear)
 
       const start = new Date(cursor)

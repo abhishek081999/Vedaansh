@@ -1,11 +1,12 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/home/WorkspaceChartDock.tsx
-//  Sticky mini D1 Kundali for full-width reading tabs + pin slot
+//  Sticky mini Kundali (D1 / D9 / D10) for full-width reading tabs
+//  with pinned transit and partner slots
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { X } from 'lucide-react'
 import type { ChartOutput, GrahaData, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
@@ -14,7 +15,8 @@ import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
-import type { WorkspacePin, WorkspacePinError } from '@/components/home/useWorkspacePin'
+import { TransitControls, type WorkspacePins } from '@/components/home/TransitControls'
+import { projectGrahasToVarga } from '@/lib/chart/projectVarga'
 import styles from './WorkspaceChartDock.module.css'
 
 export interface WorkspaceChartDockProps {
@@ -23,22 +25,20 @@ export interface WorkspaceChartDockProps {
   moonNakIndex: number
   tithiNumber?: number
   varaNumber?: number
+  /** Live transit overlay when no transit is pinned. */
   transitGrahas?: GrahaData[] | null
-  comparisonGrahas?: GrahaData[] | null
-  pin?: WorkspacePin | null
-  pinLoading?: boolean
-  pinError?: WorkspacePinError | null
-  pickerOpen?: boolean
-  onTogglePicker?: () => void
-  onClosePicker?: () => void
-  onPinTransit?: () => void
+  pins: WorkspacePins
   onOpenLibrary?: () => void
-  onClearPin?: () => void
   /** Extra controls under the dock (e.g. Today / Consult drawers). */
   footer?: React.ReactNode
   /** Compact top strip on phone; sticky sidebar on desktop. */
   compact?: boolean
 }
+
+/** Divisional charts the dock can show (all free-tier). */
+const DOCK_VARGAS = ['D1', 'D9', 'D10'] as const
+type DockVarga = (typeof DOCK_VARGAS)[number]
+const DOCK_VARGA_KEY = 'vedaansh-dock-varga'
 
 const CHART_OPEN_KEY = 'vedaansh-dock-chart-open'
 
@@ -61,21 +61,17 @@ export function WorkspaceChartDock({
   tithiNumber = 1,
   varaNumber = 0,
   transitGrahas = null,
-  comparisonGrahas = null,
-  pin = null,
-  pinLoading = false,
-  pinError = null,
-  pickerOpen = false,
-  onTogglePicker,
-  onClosePicker,
-  onPinTransit,
+  pins,
   onOpenLibrary,
-  onClearPin,
   footer,
   compact = false,
 }: WorkspaceChartDockProps) {
   const t = useTranslations('chart.workspace.dock')
-  const { hi, tag } = useLang()
+  const { hi } = useLang()
+  const { transit, partner, pickerOpen, error: pinError } = pins
+  const pinLoading = pins.loading
+  const onClosePicker = pins.setPickerOpen
+
   const { openWorkspace } = useAppLayout()
   const menuRef = useRef<HTMLDivElement>(null)
   const pinBtnRef = useRef<HTMLButtonElement>(null)
@@ -98,6 +94,23 @@ export function WorkspaceChartDock({
     })
   }
   const showChart = !compact || chartOpen
+  const [varga, setVarga] = useState<DockVarga>('D1')
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(DOCK_VARGA_KEY)
+      if (v && (DOCK_VARGAS as readonly string[]).includes(v)) setVarga(v as DockVarga)
+    } catch { /* storage unavailable */ }
+  }, [])
+  const chooseVarga = (v: DockVarga) => {
+    setVarga(v)
+    try { localStorage.setItem(DOCK_VARGA_KEY, v) } catch { /* ignore */ }
+  }
+  const hasVarga = (v: DockVarga) => v === 'D1' || Boolean(chart.vargas?.[v]?.length)
+  const shownVarga: DockVarga = hasVarga(varga) ? varga : 'D1'
+  const vargaGrahas = shownVarga === 'D1' ? chart.grahas : chart.vargas[shownVarga]
+  const vargaAsc = shownVarga === 'D1' ? chart.lagnas.ascRashi : (chart.vargaLagnas?.[shownVarga] ?? chart.lagnas.ascRashi)
+  const overlayTransit = transit?.chart.grahas ?? transitGrahas ?? undefined
+  const overlayPartner = partner?.chart.grahas
   const md = getCurrentMahaDashaLord(chart)
   const ad = useMemo(() => currentAntardashaLord(chart), [chart])
   const graha = (id: GrahaId | null) => {
@@ -107,27 +120,13 @@ export function WorkspaceChartDock({
   const sign = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r]) ?? String(r)
   const lagna = `${sign(chart.lagnas.ascRashi)} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°`
 
-  const pinMoonNak = pin?.chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
-  const pinTithi = pin?.chart.panchang?.tithi?.number ?? 1
-  const pinVara = pin?.chart.panchang?.vara?.number ?? 0
-  const pinLagna = pin
-    ? `${sign(pin.chart.lagnas.ascRashi)} ${pin.chart.lagnas.ascDegreeInRashi.toFixed(1)}°`
+  const pinMoonNak = partner?.chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
+  const pinTithi = partner?.chart.panchang?.tithi?.number ?? 1
+  const pinVara = partner?.chart.panchang?.vara?.number ?? 0
+  const pinLagna = partner
+    ? `${sign(partner.chart.lagnas.ascRashi)} ${partner.chart.lagnas.ascDegreeInRashi.toFixed(1)}°`
     : ''
-  const pinName = pin?.name ?? t('pinPartnerKicker')
-  const pinAsOf = useMemo(() => {
-    if (!pin) return ''
-    try {
-      return new Intl.DateTimeFormat(tag, {
-        timeZone: chart.meta.timezone,
-        day: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(new Date(pin.asOf))
-    } catch {
-      return new Date(pin.asOf).toLocaleString(tag)
-    }
-  }, [pin, tag, chart.meta.timezone])
+  const pinName = partner?.name ?? t('pinPartnerKicker')
 
   useEffect(() => {
     if (!pickerOpen) return
@@ -135,16 +134,16 @@ export function WorkspaceChartDock({
       Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ?? [])
     items()[0]?.focus()
     const onDoc = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) onClosePicker?.()
+      if (!menuRef.current?.contains(e.target as Node)) onClosePicker(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClosePicker?.()
+        onClosePicker(false)
         pinBtnRef.current?.focus()
         return
       }
       if (e.key === 'Tab') {
-        onClosePicker?.()
+        onClosePicker(false)
         return
       }
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
@@ -175,49 +174,43 @@ export function WorkspaceChartDock({
         </div>
         <div className={styles.headActions}>
           <div className={styles.pinWrap} ref={menuRef}>
-            {pin ? (
-              <button
-                type="button"
-                className={styles.pinClear}
-                onClick={onClearPin}
-                disabled={pinLoading}
-                title={t('unpin')}
-              >
-                {t('unpin')}
-              </button>
-            ) : (
+            {!(transit && partner) && (
               <button
                 ref={pinBtnRef}
                 type="button"
                 className={styles.pinBtn}
-                onClick={onTogglePicker}
-                disabled={pinLoading || !onTogglePicker}
+                onClick={() => pins.setPickerOpen((o) => !o)}
+                disabled={pinLoading}
                 aria-expanded={pickerOpen}
                 aria-haspopup="menu"
               >
                 {pinLoading ? t('pinning') : t('pin')}
               </button>
             )}
-            {pickerOpen && !pin && (
+            {pickerOpen && (
               <div className={styles.pinMenu} role="menu" aria-label={t('pinMenuAria')}>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className={styles.pinMenuItem}
-                  onClick={onPinTransit}
-                  disabled={pinLoading}
-                >
-                  {t('pinTransit')}
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className={styles.pinMenuItem}
-                  onClick={onOpenLibrary}
-                  disabled={pinLoading}
-                >
-                  {t('pinLibrary')}
-                </button>
+                {!transit && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.pinMenuItem}
+                    onClick={() => { void pins.pinTransit() }}
+                    disabled={pinLoading}
+                  >
+                    {t('pinTransit')}
+                  </button>
+                )}
+                {!partner && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.pinMenuItem}
+                    onClick={onOpenLibrary}
+                    disabled={pinLoading || !onOpenLibrary}
+                  >
+                    {t('pinLibrary')}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -233,7 +226,11 @@ export function WorkspaceChartDock({
 
       {pinError && (
         <p className={styles.pinError} role="alert">
-          {pinError === 'transit' ? t('pinTransitFailed') : t('pinPartnerFailed')}
+          {pinError === 'transit'
+            ? t('pinTransitFailed')
+            : pinError === 'location'
+              ? t('locationFailed')
+              : t('pinPartnerFailed')}
         </p>
       )}
 
@@ -276,47 +273,48 @@ export function WorkspaceChartDock({
       )}
 
       {showChart && (
-        <div className={styles.chart}>
-          <ChakraSelector
-            ascRashi={chart.lagnas.ascRashi}
-            grahas={chart.grahas}
-            lagnas={chart.lagnas}
-            arudhas={chart.arudhas}
-            moonNakIndex={moonNakIndex}
-            tithiNumber={tithiNumber}
-            varaNumber={varaNumber}
-            transitGrahas={transitGrahas ?? undefined}
-            comparisonGrahas={comparisonGrahas ?? undefined}
-            userPlan={userPlan}
-            vargaName="D1"
-            defaultStyle={chart.meta.settings?.chartStyle ?? 'north'}
-            size={compact ? 260 : pin?.kind === 'partner' ? 240 : 280}
-            hideInternalSettingsToggle
-          />
-        </div>
+        <>
+          <div className={styles.vargaRow} role="radiogroup" aria-label={t('vargaAria')}>
+            {DOCK_VARGAS.map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={shownVarga === v}
+                className={`${styles.vargaBtn}${shownVarga === v ? ` ${styles.vargaBtnOn}` : ''}`}
+                onClick={() => chooseVarga(v)}
+                disabled={!hasVarga(v)}
+                title={t(`varga_${v}`)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+          <div className={styles.chart}>
+            <ChakraSelector
+              ascRashi={vargaAsc}
+              grahas={vargaGrahas}
+              lagnas={chart.lagnas}
+              arudhas={shownVarga === 'D1' ? chart.arudhas : undefined}
+              moonNakIndex={moonNakIndex}
+              tithiNumber={tithiNumber}
+              varaNumber={varaNumber}
+              transitGrahas={overlayTransit ? projectGrahasToVarga(overlayTransit, shownVarga) : undefined}
+              comparisonGrahas={overlayPartner ? projectGrahasToVarga(overlayPartner, shownVarga) : undefined}
+              userPlan={userPlan}
+              vargaName={shownVarga}
+              defaultStyle={chart.meta.settings?.chartStyle ?? 'north'}
+              size={compact ? 260 : partner ? 240 : 280}
+              hideInternalSettingsToggle
+            />
+          </div>
+        </>
       )}
 
       {/* Transit: planets are overlaid on the natal chart above — no second wheel. */}
-      {pin?.kind === 'transit' && (
-        <div className={styles.transitSlot} aria-label={t('pinAria')}>
-          <div className={styles.titleBlock}>
-            <span className={styles.kicker}>{t('pinTransitKicker')}</span>
-            <span className={styles.transitAsOf}>{t('asOf', { time: pinAsOf })}</span>
-          </div>
-          <button
-            type="button"
-            className={styles.pinBtn}
-            onClick={onPinTransit}
-            disabled={pinLoading}
-            aria-label={t('refreshTransit')}
-            title={t('refreshTransit')}
-          >
-            <RefreshCw size={12} aria-hidden />
-          </button>
-        </div>
-      )}
+      {transit && <TransitControls pins={pins} natalTimeZone={chart.meta.timezone} />}
 
-      {pin?.kind === 'partner' && (
+      {partner && (
         <div className={styles.pinSlot} aria-label={t('pinAria')}>
           <div className={styles.pinHead}>
             <div className={styles.titleBlock}>
@@ -324,14 +322,23 @@ export function WorkspaceChartDock({
               <strong className={styles.pinTitle}>{pinName}</strong>
             </div>
             <span className={styles.pinLagna}>{pinLagna}</span>
+            <button
+              type="button"
+              className={styles.pinIconBtn}
+              onClick={pins.clearPartner}
+              aria-label={t('unpinPartner')}
+              title={t('unpinPartner')}
+            >
+              <X size={12} aria-hidden />
+            </button>
           </div>
           {showChart && (
             <div className={styles.chart}>
               <ChakraSelector
-                ascRashi={pin.chart.lagnas.ascRashi}
-                grahas={pin.chart.grahas}
-                lagnas={pin.chart.lagnas}
-                arudhas={pin.chart.arudhas}
+                ascRashi={partner.chart.lagnas.ascRashi}
+                grahas={partner.chart.grahas}
+                lagnas={partner.chart.lagnas}
+                arudhas={partner.chart.arudhas}
                 moonNakIndex={pinMoonNak}
                 tithiNumber={pinTithi}
                 varaNumber={pinVara}
@@ -364,47 +371,46 @@ export function WorkspaceChartDock({
 }
 
 /**
- * Shown above the main chart on tabs without the dock, where a pinned chart is
- * still overlaid — so the overlay is visible and can be removed from there too.
+ * Shown above the main chart on tabs without the dock, where pinned charts are
+ * still overlaid — so they stay visible, steerable and removable from there too.
  */
 export function PinnedOverlayChip({
-  pin,
+  pins,
   timeZone,
-  loading = false,
-  onClear,
 }: {
-  pin: WorkspacePin
+  pins: WorkspacePins
   timeZone: string
-  loading?: boolean
-  onClear: () => void
 }) {
   const t = useTranslations('chart.workspace.dock')
-  const { tag } = useLang()
-  const detail = useMemo(() => {
-    if (pin.kind === 'partner') return pin.name ?? t('pinPartnerKicker')
-    try {
-      const time = new Intl.DateTimeFormat(tag, {
-        timeZone,
-        day: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(new Date(pin.asOf))
-      return t('asOf', { time })
-    } catch {
-      return ''
-    }
-  }, [pin, tag, timeZone, t])
-
+  const { transit, partner, error } = pins
+  if (!transit && !partner && !error) return null
   return (
-    <div className={styles.overlayChip} role="status" aria-label={t('pinAria')}>
-      <span className={styles.kicker}>
-        {pin.kind === 'transit' ? t('pinTransitKicker') : t('pinPartnerKicker')}
-      </span>
-      <span className={styles.overlayChipText}>{detail}</span>
-      <button type="button" className={styles.pinClear} onClick={onClear} disabled={loading}>
-        {t('unpin')}
-      </button>
+    <div className={styles.overlayStack} aria-label={t('pinAria')}>
+      {/* The dock shows these on its own tabs; here (e.g. after the P shortcut) nothing else would. */}
+      {error && (
+        <p className={styles.pinError} role="alert">
+          {error === 'transit'
+            ? t('pinTransitFailed')
+            : error === 'location'
+              ? t('locationFailed')
+              : t('pinPartnerFailed')}
+        </p>
+      )}
+      {transit && <TransitControls pins={pins} natalTimeZone={timeZone} compact />}
+      {partner && (
+        <div className={styles.overlayChip} role="status">
+          <span className={styles.kicker}>{t('pinPartnerKicker')}</span>
+          <span className={styles.overlayChipText}>{partner.name ?? t('pinPartnerKicker')}</span>
+          <button
+            type="button"
+            className={styles.pinClear}
+            onClick={pins.clearPartner}
+            disabled={pins.partnerLoading}
+          >
+            {t('unpin')}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

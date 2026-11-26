@@ -3012,6 +3012,18 @@ body[data-drawer-open] .mobile-dash-nav {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
 }
 
+.chart-mobile-action-btn--done {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+  color: var(--accent);
+}
+
+.chart-mobile-action-busy {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
 .chart-action-wrap {
   display: flex;
   gap: 0.5rem;

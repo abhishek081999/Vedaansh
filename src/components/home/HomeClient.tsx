@@ -83,7 +83,7 @@ const DailyHoroscope = dynamic(() => import('@/components/horoscope/DailyHorosco
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
-import type { ChartOutput, DashaNode, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
+import type { ChartOutput, DashaNode, GrahaId, Rashi, ChartSettings, UserPlan } from '@/types/astrology'
 import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
@@ -96,6 +96,9 @@ import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } fro
 import { PinnedOverlayChip, WorkspaceChartDock } from '@/components/home/WorkspaceChartDock'
 import dockStyles from '@/components/home/WorkspaceChartDock.module.css'
 import { useWorkspacePin } from '@/components/home/useWorkspacePin'
+import { useTabUrlSync } from '@/components/home/useTabUrlSync'
+import { useWorkspaceShortcuts } from '@/components/home/useWorkspaceShortcuts'
+import { ChartActionToast } from '@/components/home/ChartActionToast'
 import { useChartActions } from '@/components/home/useChartActions'
 import { ChartActionNotice } from '@/components/home/ChartActionNotice'
 import { WorkspaceInsightDrawers } from '@/components/home/WorkspaceInsightDrawers'
@@ -110,6 +113,8 @@ import { useMasonryGrid, masonryGridStyle } from '@/hooks/useMasonryGrid'
 import { ChartContextBar, PanelShell } from '@/components/ui/patterns'
 import {
   isChartDockTab,
+  isChartTabId,
+  type ChartTabId,
   isFlushPaddingChartTab,
   isFullWidthChartTab,
   isStrengthAnalyticsTab,
@@ -581,24 +586,14 @@ function HomeContent() {
     skipUrlHydration,
     setSkipUrlHydration,
   } = useChart()
-  const { activeTab, setActiveTab } = useAppLayout()
+  const { activeTab, setActiveTab, openWorkspace } = useAppLayout()
 
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [pinLibraryOpen, setPinLibraryOpen] = useState(false)
-  const {
-    pin,
-    loading: pinLoading,
-    error: pinError,
-    pickerOpen: pinPickerOpen,
-    setPickerOpen: setPinPickerOpen,
-    pinTransit,
-    pinPartner,
-    clear: clearPin,
-    comparisonGrahas: pinComparisonGrahas,
-    pinTransitGrahas,
-  } = useWorkspacePin(chart)
+  const pins = useWorkspacePin(chart)
+  const { pinPartner, comparisonGrahas: pinComparisonGrahas, pinTransitGrahas } = pins
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
   const [dashaView, setDashaView] = useState<'graphics' | 'table'>('graphics')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
@@ -614,7 +609,15 @@ function HomeContent() {
   const [selectedAcgPlanets, setSelectedAcgPlanets] = useState<Set<any>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
   const [activeAcgParans, setActiveAcgParans] = useState<any[]>([])
   const [acgNatalData, setAcgNatalData] = useState<any[]>([])
-  const searchParams = useSearchParams()
+  const liveSearchParams = useSearchParams()
+  // `?tab=` is owned by useTabUrlSync. Strip it here so switching tabs does
+  // not re-run the chart-loading effects below, which depend on searchParams.
+  const searchKey = useMemo(() => {
+    const p = new URLSearchParams(liveSearchParams.toString())
+    p.delete('tab')
+    return p.toString()
+  }, [liveSearchParams])
+  const searchParams = useMemo(() => new URLSearchParams(searchKey), [searchKey])
   const router = useRouter()
   const pathname = usePathname()
   const tHome = useTranslations('home')
@@ -665,6 +668,8 @@ function HomeContent() {
     crmDone,
     notice: actionNotice,
     dismissNotice: dismissActionNotice,
+    toast: actionToast,
+    dismissToast: dismissActionToast,
     handleSave,
     handleShare,
     handleSaveToCRM,
@@ -679,6 +684,17 @@ function HomeContent() {
       params.set('chartId', chartId)
       router.replace(`?${params.toString()}`, { scroll: false })
     },
+  })
+  useTabUrlSync(activeTab, setActiveTab, Boolean(chart), searchKey)
+  useWorkspaceShortcuts({
+    enabled: Boolean(chart) && !isFormOpen,
+    activeTab,
+    openTab: openWorkspace,
+    onSave: status === 'authenticated' && !saving && !saveDone ? () => { void handleSave('regular') } : undefined,
+    // Pins show in the dock and above the two-column chart; other full-width tabs don't overlay them.
+    onPinTransit: isChartDockTab(activeTab) || !isFullWidthChartTab(activeTab)
+      ? () => { void pins.pinTransit() }
+      : undefined,
   })
   const [settingDefault, setSettingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
@@ -1728,6 +1744,7 @@ function HomeContent() {
             </div>
 
             <ChartActionNotice notice={actionNotice} onDismiss={dismissActionNotice} />
+            <ChartActionToast toast={actionToast} onDismiss={dismissActionToast} />
 
             {activeTab === 'dashboard' && (
               <>
@@ -1753,20 +1770,12 @@ function HomeContent() {
                     moonNakIndex={moonNakIndex}
                     tithiNumber={tithiNumber}
                     varaNumber={varaNumber}
-                    transitGrahas={pinTransitGrahas ?? transitGrahas}
-                    comparisonGrahas={pinComparisonGrahas}
-                    pin={pin}
-                    pinLoading={pinLoading}
-                    pinError={pinError}
-                    pickerOpen={pinPickerOpen}
-                    onTogglePicker={() => setPinPickerOpen((o) => !o)}
-                    onClosePicker={() => setPinPickerOpen(false)}
-                    onPinTransit={() => { void pinTransit() }}
+                    transitGrahas={transitGrahas}
+                    pins={pins}
                     onOpenLibrary={() => {
-                      setPinPickerOpen(false)
+                      pins.setPickerOpen(false)
                       setPinLibraryOpen(true)
                     }}
-                    onClearPin={clearPin}
                     compact={isMobile}
                     footer={
                       <WorkspaceInsightDrawers
@@ -1783,35 +1792,7 @@ function HomeContent() {
                   className={isFlushPaddingChartTab(activeTab) ? '' : 'panel'}
                   style={{ padding: isFlushPaddingChartTab(activeTab) ? '0' : '0.65rem', width: '100%', minWidth: 0 }}
                 >
-                  {activeTab === 'planets' ? (
-                      <PlanetsWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'navamsha' ? (
-                      <NavamshaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'chaturthamsa' ? (
-                      <ChaturthamsaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'saptamsha' ? (
-                      <SaptamshaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'dashamsa' ? (
-                      <DashamsaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'dwadashamsha' ? (
-                      <DwadashamshaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'drekkana' ? (
-                      <DrekkanaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'nakshatramsha' ? (
-                      <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
-                    ) : activeTab === 'house' ? (
-                      <HousePanel chart={chart} />
-                  ) : activeTab === 'interpretation' ? (
-                    <InterpretationHub chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'tattva' ? (
-                    <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'naamkaran' ? (
-                    <NaamkaranPanel chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'kp-stellar' ? (
-                    <KPStellarPanel chart={chart} userPlan={userPlan} />
-                  ) : (
-                    <VarshaphalPanel natalChart={chart} />
-                  )}
+                  {renderFullWidthPanel(activeTab, chart, userPlan)}
                 </div>
               </div>
             )}
@@ -1831,14 +1812,7 @@ function HomeContent() {
                  gap: '0.75rem',
                  order: 1
                }}>
-                  {pin && (
-                    <PinnedOverlayChip
-                      pin={pin}
-                      timeZone={chart.meta.timezone}
-                      loading={pinLoading}
-                      onClear={clearPin}
-                    />
-                  )}
+                  <PinnedOverlayChip pins={pins} timeZone={chart.meta.timezone} />
                   <TransitOverlay natalChart={chart} onTransitLoad={setTransitGrahas} />
                   <VargaSwitcher
                      vargas={chart.vargas}
@@ -3082,7 +3056,10 @@ function HomeContent() {
                   setChart(data)
                   setFreshNewChart(false)
                   setLoading(false)
-                  setActiveTab('dashboard')
+                  // A shared link (`?name=…&tab=house`) hydrates through this form:
+                  // keep its tab. A newly entered chart starts on the dashboard.
+                  const urlTab = new URLSearchParams(window.location.search).get('tab')
+                  setActiveTab(isChartTabId(urlTab) && chartMatchesSearchParams(data, searchParams) ? urlTab : 'dashboard')
                   setIsFormOpen(false)
 
                   const params = new URLSearchParams(searchParams.toString())
@@ -3190,6 +3167,31 @@ function HomeContent() {
 
     </div>
   )
+}
+
+type FullWidthPanelProps = { chart: ChartOutput; userPlan: UserPlan }
+
+/** Full-width workspace tabs → their panel. Varshaphal is the fallback. */
+const FULL_WIDTH_PANELS: Partial<Record<ChartTabId, (p: FullWidthPanelProps) => React.ReactNode>> = {
+  planets: (p) => <PlanetsWorkspace {...p} />,
+  navamsha: (p) => <NavamshaWorkspace {...p} />,
+  chaturthamsa: (p) => <ChaturthamsaWorkspace {...p} />,
+  saptamsha: (p) => <SaptamshaWorkspace {...p} />,
+  dashamsa: (p) => <DashamsaWorkspace {...p} />,
+  dwadashamsha: (p) => <DwadashamshaWorkspace {...p} />,
+  drekkana: (p) => <DrekkanaWorkspace {...p} />,
+  nakshatramsha: (p) => <NakshatramshaWorkspace {...p} />,
+  house: ({ chart }) => <HousePanel chart={chart} />,
+  interpretation: (p) => <InterpretationHub {...p} />,
+  tattva: (p) => <TattvaPredictionPanel {...p} />,
+  naamkaran: (p) => <NaamkaranPanel {...p} />,
+  'kp-stellar': (p) => <KPStellarPanel {...p} />,
+  varshaphal: ({ chart }) => <VarshaphalPanel natalChart={chart} />,
+}
+
+function renderFullWidthPanel(tab: string, chart: ChartOutput, userPlan: UserPlan): React.ReactNode {
+  const render = isChartTabId(tab) ? FULL_WIDTH_PANELS[tab] : undefined
+  return (render ?? FULL_WIDTH_PANELS.varshaphal!)({ chart, userPlan })
 }
 
 /** True when the in-memory chart already matches URL birth params (skip re-calc). */

@@ -36,7 +36,7 @@ import {
   SWISSEPH_IDS,
 } from '@/lib/engine/ephemeris'
 import {
-  getNakshatra, getTithi, getYoga, getKarana, getVara,
+  getNakshatra, getTithi, getYoga, getKarana, varaFromDateStr,
   getRahuKalam, getGulikaKalam, getYamaganda, getAbhijitMuhurta,
   getHoraTable,
 } from '@/lib/engine/nakshatra'
@@ -66,7 +66,7 @@ export function buildPanchangDay({ date, lat, lng, tz, ayanamsha }: PanchangDayI
   const sunSid  = toSidereal(sunPos.longitude,  ayan)
   const moonSid = toSidereal(moonPos.longitude, ayan)
 
-  const vara    = getVara(jd)
+  const vara    = varaFromDateStr(date)
   const tithi   = getTithi(moonSid, sunSid)
   const yoga    = getYoga(sunSid, moonSid)
   const karana  = getKarana(moonSid, sunSid)
@@ -85,7 +85,7 @@ export function buildPanchangDay({ date, lat, lng, tz, ayanamsha }: PanchangDayI
 
   const nextDateStr = formatInTimeZone(addDays(fromZonedTime(`${date}T12:00:00`, tz), 1), tz, 'yyyy-MM-dd')
   const nextSunrise = getSunrise(nextDateStr, lat, lng, tz)
-  const timeline = buildPanchangDayTimeline(sunrise, nextSunrise, sunset, ayanamsha)
+  const timeline = buildPanchangDayTimeline(sunrise, nextSunrise, sunset, ayanamsha, vara.number)
   const choghadiya  = getChoghadiyaTable(sunrise, sunset, nextSunrise, vara.number)
 
   const tithiEnd   = findNextTithiEnd(jd, ayanamsha)

@@ -21,10 +21,10 @@ import type { GrahaId, Rashi } from '@/types/astrology'
 // Keep shapes aligned with src/lib/redis.ts versioned prefixes. ──
 
 function chartCacheKey(d: string, t: string, lat: number, lng: number, ay: string, nm: string, hs: string) {
-  return `v21:chart:${d}:${t}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ay}:${nm}:${hs}:7:phaladipika:0`
+  return `v22:chart:${d}:${t}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ay}:${nm}:${hs}:7:phaladipika:0`
 }
 function panchangCacheKey(d: string, lat: number, lng: number) {
-  return `panchang:v8:${d}:${lat.toFixed(2)}:${lng.toFixed(2)}`
+  return `panchang:v9:${d}:${lat.toFixed(2)}:${lng.toFixed(2)}`
 }
 function atlasCacheKey(q: string) { return `atlas:v2:search:${q.toLowerCase().trim()}` }
 const CACHE_TTL = { CHART: 86400, PANCHANG: 86400, ATLAS: 604800, SESSION: 3600 }
@@ -401,9 +401,9 @@ describe('Full calculator integration', { timeout: 15000 }, () => {
       birthPlace:'Kolkata', latitude:22.5726, longitude:88.3639, timezone:'UTC', gender: 'male',
     }, 'free')
     expect(r.dashas.vimshottari).toHaveLength(9)
-    const yrs = r.dashas.vimshottari.reduce((s,d) => s + d.durationMs/(365.25*24*3600*1000), 0)
-    // Sum = remaining balance of birth Dasha + 8 full periods (< 120 from birth)
-    expect(yrs).toBeGreaterThan(100)
-    expect(yrs).toBeLessThan(120)
+    const yrs = r.dashas.vimshottari.reduce((s,d) => s + d.durationMs/(365.256363004*24*3600*1000), 0)
+    // Full 120-year cycle — the first Dasha is backdated to its true start (JHora)
+    expect(yrs).toBeCloseTo(120, 6)
+    expect(r.dashas.vimshottari[0].start.getTime()).toBeLessThanOrEqual(new Date('1980-01-01T12:00:00Z').getTime())
   })
 })

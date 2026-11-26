@@ -83,3 +83,80 @@
     display: none;
   }
 }
+
+.moreShortcuts {
+  margin-top: 0.25rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.moreSwitch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 34px;
+  padding: 0.35rem 0.55rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-align: left;
+}
+
+.moreSwitch:hover,
+.moreSwitch:focus-visible {
+  background: var(--surface-3);
+}
+
+.switchTrack {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--border-soft);
+  transition: background-color 0.15s ease;
+}
+
+.switchTrack[data-on='true'] {
+  background: var(--gold);
+}
+
+.switchThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--surface-1);
+  transition: transform 0.15s ease;
+}
+
+.switchTrack[data-on='true'] .switchThumb {
+  transform: translateX(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switchTrack,
+  .switchThumb { transition: none; }
+}
+
+.moreHint {
+  margin: 0;
+  padding: 0.15rem 0.55rem 0.15rem;
+  font-size: 0.66rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* Shortcuts mean nothing without a keyboard. */
+@media (hover: none) and (pointer: coarse) {
+  .moreShortcuts { display: none; }
+}

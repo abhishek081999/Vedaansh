@@ -434,9 +434,33 @@
       "pinTransitFailed": "Couldn't calculate the transit. Try again.",
       "pinPartnerFailed": "Couldn't load that chart. Try again.",
       "asOf": "As of {time}",
-      "refreshTransit": "Refresh transit to now",
+      "refreshTransit": "Jump to now",
       "showChart": "Show Kundali",
-      "hideChart": "Hide Kundali"
+      "hideChart": "Hide Kundali",
+      "live": "Live — now",
+      "now": "Now",
+      "unpinTransit": "Unpin transit",
+      "unpinPartner": "Unpin partner chart",
+      "scrubAria": "Transit time controls",
+      "stepMonth": "M",
+      "stepDay": "D",
+      "stepHour": "H",
+      "back_month": "Back one month",
+      "back_day": "Back one day",
+      "back_hour": "Back one hour",
+      "fwd_month": "Forward one month",
+      "fwd_day": "Forward one day",
+      "fwd_hour": "Forward one hour",
+      "pickMoment": "Transit date and time",
+      "placeNatal": "Birthplace",
+      "placeHere": "My location",
+      "placeHereOn": "Cast at your current location. Tap to use the birthplace.",
+      "placeHereOff": "Cast at the birthplace. Tap to use your current location.",
+      "locationFailed": "Couldn't get your location. Allow location access in the browser and try again.",
+      "vargaAria": "Divisional chart",
+      "varga_D1": "Rashi (D1)",
+      "varga_D9": "Navamsha (D9)",
+      "varga_D10": "Dashamsha (D10)"
     },
     "insights": {
       "barAria": "Today and consult tools",
@@ -445,7 +469,8 @@
       "todaySub": "Dasha, gochar and panchang against this Kundali",
       "consult": "Consult",
       "consultTitle": "Consult desk",
-      "consultSub": "Notes, sessions, remedies and client record"
+      "consultSub": "Notes, sessions, remedies and client record",
+      "consultLocked": "Client notes, sessions and remedies. Available on Platinum."
     },
     "consult": {
       "aria": "Consult desk",
@@ -574,7 +599,16 @@
     "tribhagi": "Tribhagi",
     "tribhagiTitle": "Tribhagi: each period ÷3, full sequence repeated 3× (40+40+40 years)",
     "requiresGold": "Requires Gold plan",
-    "dashaUnavailable": "Not available for this chart."
+    "dashaUnavailable": "Not available for this chart.",
+    "toast": {
+      "saved": "Chart saved to My Charts",
+      "updated": "Saved chart updated",
+      "linkCopied": "Link copied. Anyone with it can open this chart.",
+      "crmDone": "Added to your client list",
+      "dismiss": "Dismiss"
+    },
+    "shortcutsHint": "[ ] switch tab · S save · P pin transit",
+    "shortcutsToggle": "Keyboard shortcuts"
   },
   "dashaTree": {
     "tara": "Tara·{n} {name}",

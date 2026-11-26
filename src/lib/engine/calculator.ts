@@ -28,7 +28,7 @@ import { calcHouses, planetHouse } from '@/lib/engine/houses'
 import { calcSripatiBhava, planetInSripatiHouse } from '@/lib/engine/sripatiBhava'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
-import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
+import { getDignity, getJagradadiAvastha, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
 import {
   VARGA_FUNCTIONS,
   PLATINUM_VARGAS,
@@ -45,7 +45,7 @@ import { calcMandookDasha, calcSthirDasha, calcNavamshaDasha, calcBrahmaDasha } 
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
   getKarana, getNakshatra, getTithi,
-  getVara, getYoga,
+  getYoga, varaFromDateStr, varaFromNumber,
   getRahuKalam, getGulikaKalam, getYamaganda, getAbhijitMuhurta,
   type GulikaMode,
 } from '@/lib/engine/nakshatra'
@@ -147,9 +147,7 @@ function buildGrahas(
     }
 
     // Jagradadi avastha
-    let jagradadi = (dignity === 'exalted' || dignity === 'own') ? 'Jagrat'
-      : (dignity === 'neutral' || dignity === 'friend') ? 'Swapna'
-        : 'Sushupti'
+    const jagradadi = getJagradadiAvastha(id, rashi, dignity)
 
     return {
       id,
@@ -220,7 +218,7 @@ function buildGrahas(
     nakshatraName: ketuNak.name,
     pada: ketuNak.pada,
     dignity: kDig,
-    avastha: { baladi: kBaladi, jagradadi: (kDig === 'exalted' || kDig === 'own') ? 'Jagrat' : 'Swapna' },
+    avastha: { baladi: kBaladi, jagradadi: getJagradadiAvastha('Ke', ketuRashi, kDig) },
     charaKaraka: null,
     kp: getKPStellar(ketuLonSid),
     gandanta: checkGandanta(ketuLonSid),
@@ -317,10 +315,13 @@ export async function calculateChart(
   // Real sunrise/sunset via swisseph rise_trans
   const birthDateStr = input.birthDate  // 'YYYY-MM-DD'
   const { sunrise, sunset } = getSunriseSunset(birthDateStr, input.latitude, input.longitude, input.timezone)
-  const vara = getVara(jd)
-  const rahuKalam = getRahuKalam(sunrise, sunset, vara.number)
-  const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number, (settings.gulikaMode ?? 'phaladipika') as GulikaMode)
-  const yamaganda = getYamaganda(sunrise, sunset, vara.number)
+  // Kalams belong to the local birth date's daytime; the Vedic vara runs
+  // sunrise → sunrise, so a pre-sunrise birth falls on the previous weekday.
+  const civilVara = varaFromDateStr(birthDateStr)
+  const vara = birthUtc.getTime() < sunrise.getTime() ? varaFromNumber(civilVara.number - 1) : civilVara
+  const rahuKalam = getRahuKalam(sunrise, sunset, civilVara.number)
+  const gulikaKalam = getGulikaKalam(sunrise, sunset, civilVara.number, (settings.gulikaMode ?? 'phaladipika') as GulikaMode)
+  const yamaganda = getYamaganda(sunrise, sunset, civilVara.number)
   const abhijit = getAbhijitMuhurta(sunrise, sunset)
 
   // ── Special Lagnas (BPHS; Sun at applicable sunrise) ─────────────────────
@@ -383,7 +384,7 @@ export async function calculateChart(
       } else {
         if (vDeg < 6) vBaladi = 'Mrita'; else if (vDeg < 12) vBaladi = 'Vriddha'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Kumara'; else vBaladi = 'Bala'
       }
-      const vJagradadi = (vDignity === 'exalted' || vDignity === 'own') ? 'Jagrat' : (vDignity === 'neutral' || vDignity === 'friend') ? 'Swapna' : 'Sushupti'
+      const vJagradadi = getJagradadiAvastha(g.id, vRashi, vDignity)
 
       // Return optimized object (don't spread the whole natal g if not needed)
       return { 

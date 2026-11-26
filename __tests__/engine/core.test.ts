@@ -147,19 +147,20 @@ describe('Vimshottari Dasha', () => {
     const ayan    = getAyanamsha(birthJD, 'lahiri')
     const moonSid = toSidereal(moon.longitude, ayan)
     const dashas  = calcVimshottari(moonSid, birthDate, 1)
-    const totalYears = dashas.reduce((sum, d) => {
-      return sum + d.durationMs / (365.25 * 24 * 60 * 60 * 1000)
-    }, 0)
+    const YEAR_MS = 365.256363004 * 24 * 60 * 60 * 1000 // sidereal year
+    const totalYears = dashas.reduce((sum, d) => sum + d.durationMs / YEAR_MS, 0)
+    // Full 120-year cycle; the first mahadasha is backdated to its true start
+    expect(totalYears).toBeCloseTo(120, 6)
 
-    // From birth, total years include remaining part of birth dasha + 8 full maha dashas.
+    // Balance at birth = remaining part of the birth dasha
+    const balanceYears = (dashas[0].end.getTime() - birthDate.getTime()) / YEAR_MS
     const nakshatraSpan = 360 / 27
     const normalized = ((moonSid % 360) + 360) % 360
     const nakshatraIndex = Math.floor(normalized / nakshatraSpan)
     const birthLord = NAKSHATRA_LORDS[nakshatraIndex]
     const traversedFraction = (normalized % nakshatraSpan) / nakshatraSpan
-    const expectedYears = 120 - traversedFraction * VIMSHOTTARI_YEARS[birthLord]
-
-    expect(totalYears).toBeCloseTo(expectedYears, 0)
+    expect(dashas[0].lord).toBe(birthLord)
+    expect(balanceYears).toBeCloseTo((1 - traversedFraction) * VIMSHOTTARI_YEARS[birthLord], 6)
   })
 
   it('Sub-dashas should be generated to depth 4', () => {

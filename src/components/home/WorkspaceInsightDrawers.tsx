@@ -73,6 +73,8 @@ export function WorkspaceInsightDrawers({
             onClick={() => setPanel((p) => (p === 'consult' ? null : 'consult'))}
             aria-haspopup="dialog"
             aria-expanded={panel === 'consult'}
+            aria-describedby={!isPlatinum ? 'workspace-consult-locked' : undefined}
+            title={!isPlatinum ? t('consultLocked') : undefined}
           >
             <ClipboardList size={13} aria-hidden />
             <span>{t('consult')}</span>
@@ -80,6 +82,9 @@ export function WorkspaceInsightDrawers({
           </button>
         ) : null}
       </div>
+      {authenticated && !isPlatinum ? (
+        <p id="workspace-consult-locked" className={styles.hint}>{t('consultLocked')}</p>
+      ) : null}
 
       {/* Portalled: the bar sits inside animated / sticky containers whose
           transforms would otherwise trap the fixed-position drawer. */}

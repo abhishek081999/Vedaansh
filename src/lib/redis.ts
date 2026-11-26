@@ -293,9 +293,9 @@ export const redis = {
 // ── Cache key helpers ─────────────────────────────────────────
 
 /** Bump when ChartOutput calc semantics change (invalidates Redis chart entries). */
-export const CHART_CACHE_VERSION = 21
+export const CHART_CACHE_VERSION = 22
 /** Bump when panchang payload shape / guides change. */
-export const PANCHANG_CACHE_VERSION = 8
+export const PANCHANG_CACHE_VERSION = 9
 /** Bump when atlas search/reverse payload shape changes. */
 export const ATLAS_CACHE_VERSION = 2
 /** Bump when daily rashi horoscope report shape changes. */
@@ -335,6 +335,7 @@ export function chartCacheKey(
   // (D5/D6/D8/D20/D24/D27/D81/D144 and named variants). Invalidates v19
   // caches that still held pre-fix D20/D24/D27 (and related) signs.
   // v21: Placidus/Equal/Sripati cusps parsed from sweph data.houses; KP always on Placidus; 249-sub horary
+  // v22: first-dasha antardashas over the full period, Jagradadi avastha, Gulika Kalam, Abhijit, local-date vara
   return `v${CHART_CACHE_VERSION}:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
@@ -344,6 +345,7 @@ export function panchangCacheKey(
   lng: number,
 ): string {
   // v8: merged timeline segments + per-row guides
+  // v9: Gulika Kalam = Saturn portion, Abhijit = one muhurta, Purnima lord, local-date vara
   return `panchang:v${PANCHANG_CACHE_VERSION}:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}`
 }
 

@@ -134,6 +134,24 @@ export function getDignity(
   return 'neutral'  // friends/enemies calculated separately in shadbala
 }
 
+// Lord of each rashi (index 1–12)
+const RASHI_LORD: GrahaId[] = ['Su', 'Ma', 'Ve', 'Me', 'Mo', 'Su', 'Me', 'Ve', 'Ma', 'Ju', 'Sa', 'Sa', 'Ju']
+
+export type JagradadiAvastha = 'Jagrat' | 'Swapna' | 'Sushupti'
+
+/**
+ * Jagradadi avastha (BPHS ch. 45): exaltation / own sign (incl. moolatrikona)
+ * → Jagrat; friend's or neutral sign → Swapna; enemy's sign or debilitation
+ * → Sushupti. Friendship is natural (naisargika) with the sign lord.
+ */
+export function getJagradadiAvastha(graha: GrahaId, rashi: Rashi, dignity: Dignity): JagradadiAvastha {
+  if (dignity === 'exalted' || dignity === 'moolatrikona' || dignity === 'own') return 'Jagrat'
+  if (dignity === 'debilitated') return 'Sushupti'
+  const lord = RASHI_LORD[rashi]
+  if (lord === graha) return 'Jagrat'
+  return naturalRelationship(graha, lord) === 'enemy' ? 'Sushupti' : 'Swapna'
+}
+
 /**
  * Get dignity for all grahas given their rashi placements
  */
