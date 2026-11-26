@@ -3,6 +3,7 @@
 // Optimized via Server Components (SSR) for instant loading and perfect SEO.
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import connectDB from '@/lib/db/mongodb'
@@ -69,7 +70,7 @@ export default async function PublicChartPage({
     const cacheKey = chartCacheKey(
       utcDate, utcTime,
       saved.latitude, saved.longitude,
-      saved.settings?.ayanamsha    || 'lahiri',
+      saved.settings?.ayanamsha    || DEFAULT_AYANAMSHA,
       saved.settings?.nodeMode     || 'true',
       saved.settings?.houseSystem  || 'whole_sign',
       saved.settings?.karakaScheme || 7,

@@ -16,7 +16,7 @@ import { DashaTree } from '@/components/dasha/DashaTree'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { PrashnaEssentials } from '@/components/prashna/PrashnaEssentials'
 import { PrashnaAiPromptButton } from '@/components/prashna/PrashnaAiPromptButton'
-import { GRAHA_NAMES, RASHI_NAMES, type ChartOutput, type GrahaId, type UserPlan } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES, type ChartOutput, type GrahaId, type UserPlan, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { getHoraTable } from '@/lib/engine/nakshatra'
 import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
@@ -111,7 +111,7 @@ export function PrashnaM1Panel() {
           birthTime,
           birthPlace: loc.name,
           latitude: loc.lat, longitude: loc.lng, timezone: loc.tz,
-          settings: { ayanamsha: 'lahiri', houseSystem: 'whole_sign' },
+          settings: { ayanamsha: DEFAULT_AYANAMSHA, houseSystem: 'whole_sign' },
         }),
       })
       const json = await res.json()

@@ -3,6 +3,7 @@
 //  User Mongoose model with full TypeScript types
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import mongoose, { Schema, model, models, type Document, type Types } from 'mongoose'
 import type {
   UserPlan, AyanamshaMode, ChartStyle, HouseSystem, NodeMode, KarakaScheme
@@ -71,7 +72,7 @@ export interface IUser extends Document {
 // ── Schema ────────────────────────────────────────────────────
 
 const UserPreferencesSchema = new Schema<IUserPreferences>({
-  defaultAyanamsha:   { type: String, default: 'lahiri' },
+  defaultAyanamsha:   { type: String, default: DEFAULT_AYANAMSHA },
   defaultChartStyle:  { type: String, default: 'south' },
   defaultHouseSystem: { type: String, default: 'whole_sign' },
   defaultNodeMode:    { type: String, default: 'true' },

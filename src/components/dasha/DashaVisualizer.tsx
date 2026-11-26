@@ -143,7 +143,8 @@ function LifeWheel({ nodes, t0, t1, now, birth, selected, onSelect, path }: {
   const totalYears = span / YEAR_MS
   const ageStep = totalYears > 60 ? 10 : 5
   const ageTicks: number[] = []
-  for (let y = Math.ceil(((t0 - birth) / YEAR_MS) / ageStep) * ageStep; birth + y * YEAR_MS <= t1; y += ageStep) ageTicks.push(y)
+  // First mahadasha starts before birth: no negative ages on the axis
+  for (let y = Math.max(0, Math.ceil(((t0 - birth) / YEAR_MS) / ageStep) * ageStep); birth + y * YEAR_MS <= t1; y += ageStep) ageTicks.push(y)
 
   const md = path[0]
   const ad = path[1]
@@ -293,7 +294,7 @@ function Axis({ t0, t1, birth, mode }: { t0: number; t1: number; birth: number; 
   const ticks: Array<{ p: number; text: string }> = []
   if (mode === 'age') {
     const step = years > 60 ? 10 : 5
-    for (let y = Math.ceil(((t0 - birth) / YEAR_MS) / step) * step; birth + y * YEAR_MS <= t1; y += step) {
+    for (let y = Math.max(0, Math.ceil(((t0 - birth) / YEAR_MS) / step) * step); birth + y * YEAR_MS <= t1; y += step) {
       ticks.push({ p: ((birth + y * YEAR_MS - t0) / span) * 100, text: `${y}` })
     }
   } else if (years < 2.5) {

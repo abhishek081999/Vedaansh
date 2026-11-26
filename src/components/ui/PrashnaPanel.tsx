@@ -1,4 +1,5 @@
 'use client'
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, GrahaId } from '@/types/astrology'
@@ -70,7 +71,7 @@ export function PrashnaPanel({ chart: externalChart }: { chart?: ChartOutput | n
             longitude: location.lng,
             timezone: location.tz,
             prashnaNumber: kpNumber === '' ? undefined : kpNumber,
-            settings: { ayanamsha: 'lahiri', houseSystem: 'placidus' }
+            settings: { ayanamsha: DEFAULT_AYANAMSHA, houseSystem: 'placidus' }
          })
        })
        const json = await res.json()

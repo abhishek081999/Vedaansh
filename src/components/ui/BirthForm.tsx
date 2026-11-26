@@ -1229,6 +1229,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 onChange={(e) => setSettings((s) => ({ ...s, ayanamsha: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="lahiri">{t('ay.lahiri')}</option>
+                <option value="lahiri_vp285">{t('ay.lahiri_vp285')}</option>
                 <option value="true_chitra">{t('ay.true_chitra')}</option>
                 <option value="raman">{t('ay.raman')}</option>
                 <option value="true_revati">{t('ay.true_revati')}</option>

@@ -3,6 +3,7 @@
 //  GET /api/panchang?date=YYYY-MM-DD&lat=xx&lng=xx&tz=Asia/Kolkata
 //  Returns full Panchang for a given date and location
 // ───
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { fromZonedTime } from 'date-fns-tz'
@@ -21,7 +22,7 @@ export const runtime = 'nodejs'
 // ── Input schema ──────────────────────────────────────────────
 
 const SettingsSchema = z.object({
-  ayanamsha:    z.enum(['lahiri','true_chitra','true_revati','true_pushya','raman','usha_shashi','yukteshwar','krishnamurti']).default('lahiri'),
+  ayanamsha:    z.enum(['lahiri','true_chitra','true_revati','true_pushya','raman','usha_shashi','yukteshwar','krishnamurti','lahiri_vp285']).default(DEFAULT_AYANAMSHA),
   houseSystem:  z.enum(['whole_sign','placidus','equal','bhava_chalita']).default('whole_sign'),
   nodeMode:     z.enum(['mean','true']).default('true'),
   karakaScheme: z.union([z.literal(7), z.literal(8)]).default(7),
@@ -34,7 +35,7 @@ const SettingsSchema = z.object({
 })
 
 const DEFAULT_CHART_SETTINGS = {
-  ayanamsha: 'lahiri',
+  ayanamsha: DEFAULT_AYANAMSHA,
   houseSystem: 'whole_sign',
   nodeMode: 'true',
   karakaScheme: 7,

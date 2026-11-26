@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/AshtakavargaExtendedPanels'
 import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
 import { bavTransitQuality, estimateDashaResultPercent } from '@/lib/engine/ashtakavargaInsights'
-import { RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
+import { RASHI_SHORT, GRAHA_NAMES, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import type { AshtakavargaResult, GrahaData, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
@@ -517,7 +517,7 @@ function AshtakavargaInterpretation({
           const date = toYmd(d)
           const qs = new URLSearchParams({
             date,
-            ayanamsha: ayanamsha ?? 'lahiri',
+            ayanamsha: ayanamsha ?? DEFAULT_AYANAMSHA,
           })
           const res = await fetch(`/api/transits/planets?${qs.toString()}`)
           const json = await res.json()

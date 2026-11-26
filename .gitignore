@@ -82,3 +82,4 @@ src/components/legal/LegalDocument.tsx
 
 # Playwright MCP session output (snapshots, console logs, screenshots)
 .playwright-mcp/
+migration-backups/

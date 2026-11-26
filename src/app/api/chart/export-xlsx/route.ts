@@ -5,6 +5,7 @@
 //  Format matches the import template so the file can be re-imported.
 // ─────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { auth } from '@/auth'
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
     'isPublic':      c.isPublic  ? 'TRUE' : 'FALSE',
     'isPersonal':    c.isPersonal ? 'TRUE' : 'FALSE',
     // Settings (for reference)
-    'Ayanamsha':     c.settings?.ayanamsha    ?? 'lahiri',
+    'Ayanamsha':     c.settings?.ayanamsha    ?? DEFAULT_AYANAMSHA,
     'House System':  c.settings?.houseSystem  ?? 'whole_sign',
     'Node Mode':     c.settings?.nodeMode     ?? 'true',
     'Karaka Scheme': c.settings?.karakaScheme ?? 7,

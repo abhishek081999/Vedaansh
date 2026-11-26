@@ -45,7 +45,11 @@ const AYANAMSHA_IDS: Record<AyanamshaMode, number> = {
   usha_shashi: C.SE_SIDM_USHASHASHI,
   yukteshwar:  C.SE_SIDM_YUKTESHWAR,
   krishnamurti: C.SE_SIDM_KRISHNAMURTI,
+  lahiri_vp285: C.SE_SIDM_LAHIRI_VP285,
 }
+
+/** Modes returned as true ayanamsha (with nutation) instead of mean. */
+const TRUE_AYANAMSHA_MODES: ReadonlySet<AyanamshaMode> = new Set(['lahiri_vp285'])
 
 export const FLAGS_TROPICAL = C.SEFLG_SWIEPH | C.SEFLG_SPEED
 export const FLAGS_SIDEREAL = C.SEFLG_SWIEPH | C.SEFLG_SPEED | C.SEFLG_SIDEREAL
@@ -114,6 +118,10 @@ export function getPlanetPosition(jd: number, planetId: number, isSidereal = fal
 
 export function getAyanamsha(jd: number, mode: AyanamshaMode): number {
   sweph.set_sid_mode(AYANAMSHA_IDS[mode], 0, 0)
+  if (TRUE_AYANAMSHA_MODES.has(mode)) {
+    const t = sweph.get_ayanamsa_ex_ut(jd, C.SEFLG_SWIEPH) as any
+    return typeof t === 'number' ? t : t.data
+  }
   const r = sweph.get_ayanamsa_ut(jd) as any
   return typeof r === 'number' ? r : r.data?.[0] ?? r.data ?? r
 }

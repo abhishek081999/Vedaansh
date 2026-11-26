@@ -3,6 +3,7 @@
 //  Sun longitude is always at the applicable local sunrise (not birth-time Sun).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { getPlanetPosition, getAyanamsha, toSidereal, dateToJD, SWISSEPH_IDS } from '@/lib/engine/ephemeris'
 import type { AyanamshaMode } from '@/types/astrology'
 import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
@@ -66,7 +67,7 @@ export function getSunriseContext(
   lat: number,
   lng: number,
   tz: string,
-  ayanamshaMode: AyanamshaMode = 'lahiri',
+  ayanamshaMode: AyanamshaMode = DEFAULT_AYANAMSHA,
 ): { sunrise: Date; sunLonAtSunrise: number } {
   let sunriseDateStr = birthDateStr
   let sunrise = getSunrise(birthDateStr, lat, lng, tz)
@@ -166,7 +167,7 @@ export function calculateSpecialLagnas(params: {
     params.lat,
     params.lng,
     params.tz,
-    params.ayanamshaMode ?? 'lahiri',
+    params.ayanamshaMode ?? DEFAULT_AYANAMSHA,
   )
   const { ghatis, vighatikas } = getIshtaKala(params.birthUtc, sunrise)
 

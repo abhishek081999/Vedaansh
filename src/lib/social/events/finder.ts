@@ -20,7 +20,7 @@
 import { addDays, format as formatDate, parseISO } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import type { GrahaId, Rashi } from '@/types/astrology'
-import { RASHI_SANSKRIT } from '@/types/astrology'
+import { RASHI_SANSKRIT, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import {
   SWISSEPH_IDS,
   dateToJD,
@@ -88,7 +88,7 @@ const norm360 = (x: number) => ((x % 360) + 360) % 360
 const wrap180 = (x: number) => { const n = norm360(x); return n > 180 ? n - 360 : n }
 
 function sunMoonAtJd(jd: number): { sun: number; moon: number } {
-  const ayan = getAyanamsha(jd, 'lahiri')
+  const ayan = getAyanamsha(jd, DEFAULT_AYANAMSHA)
   const sun = toSidereal(getPlanetPosition(jd, SWISSEPH_IDS.Su).longitude, ayan)
   const moon = toSidereal(getPlanetPosition(jd, SWISSEPH_IDS.Mo).longitude, ayan)
   return { sun, moon }
@@ -328,7 +328,7 @@ function findTransitEvents(from: string, to: string, loc: EventLocation): Calend
   const startUtc = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()))
   const spanDays = Math.round((parseISO(to).getTime() - start.getTime()) / 86_400_000) + 3
   // calculatePersonalTransits uses SEFLG_SIDEREAL with the global sid mode — pin Lahiri.
-  getAyanamsha(dateToJD(startUtc), 'lahiri')
+  getAyanamsha(dateToJD(startUtc), DEFAULT_AYANAMSHA)
   const raw = calculatePersonalTransits(1, startUtc, spanDays / 30)
 
   const events: CalendarEvent[] = []

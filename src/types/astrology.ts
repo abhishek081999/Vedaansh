@@ -85,6 +85,7 @@ export type AyanamshaMode =
   | 'usha_shashi'
   | 'yukteshwar'
   | 'krishnamurti'
+  | 'lahiri_vp285'
 
 export const AYANAMSHA_NAMES: Record<AyanamshaMode, string> = {
   lahiri:       'Lahiri (Chitrapaksha)',
@@ -95,6 +96,7 @@ export const AYANAMSHA_NAMES: Record<AyanamshaMode, string> = {
   usha_shashi:  'Usha-Shashi',
   yukteshwar:   'Yukteshwar',
   krishnamurti: 'Krishnamurti (KP)',
+  lahiri_vp285: 'Lahiri VP285 (true)',
 }
 
 // ── House Systems ────────────────────────────────────────────
@@ -236,8 +238,11 @@ export interface ChartSettings {
   showRetro:    boolean
 }
 
+/** App-wide default ayanamsha (true Lahiri VP285, with nutation). */
+export const DEFAULT_AYANAMSHA: AyanamshaMode = 'lahiri_vp285'
+
 export const DEFAULT_SETTINGS: ChartSettings = {
-  ayanamsha:    'lahiri',
+  ayanamsha:    DEFAULT_AYANAMSHA,
   houseSystem:  'whole_sign',
   nodeMode:     'true',
   karakaScheme: 7,

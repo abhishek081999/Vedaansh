@@ -1,3 +1,4 @@
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { requirePlanGate } from '@/lib/security/planAccess'
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
     const tz = searchParams.get('tz') || 'Asia/Kolkata'
     const natalNak = parseInt(searchParams.get('natalNak') || '0')
     const natalSign = parseInt(searchParams.get('natalSign') || '1')
-    const ayanMode = (searchParams.get('ayan') || 'lahiri') as Parameters<typeof getAyanamsha>[1]
+    const ayanMode = (searchParams.get('ayan') || DEFAULT_AYANAMSHA) as Parameters<typeof getAyanamsha>[1]
     const mahaLord = (searchParams.get('maha') || '') as GrahaId | ''
     const antarLord = (searchParams.get('antar') || '') as GrahaId | ''
     const lang = parseEngineLang(searchParams.get('lang'))

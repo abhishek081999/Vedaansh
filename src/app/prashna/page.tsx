@@ -5,6 +5,7 @@
  * Based on "Krishneeyam" by Sri Krishna Acharya (~11th c. AD)
  */
 
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { Link } from '@/i18n/navigation'
 import { interactiveTransition } from '@/lib/ui/transitions'
 import { useTranslations } from 'next-intl'
@@ -333,7 +334,7 @@ function PrashnaM2() {
           birthPlace: location.name,
           latitude: location.lat, longitude: location.lng, timezone: location.tz,
           prashnaNumber: kpNumber === '' ? undefined : kpNumber,
-          settings: { ayanamsha: 'lahiri', houseSystem: 'whole_sign' }
+          settings: { ayanamsha: DEFAULT_AYANAMSHA, houseSystem: 'whole_sign' }
         })
       })
       const json = await res.json()

@@ -23,7 +23,7 @@ import {
 } from '@/lib/engine/ephemeris'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { getDignity }   from '@/lib/engine/dignity'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import type { GrahaId, AyanamshaMode } from '@/types/astrology'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     const sp = new URL(req.url).searchParams
     const dateStr  = sp.get('date') ?? new Date().toISOString().split('T')[0]
-    const ayanMode = (sp.get('ayanamsha') ?? 'lahiri') as AyanamshaMode
+    const ayanMode = (sp.get('ayanamsha') ?? DEFAULT_AYANAMSHA) as AyanamshaMode
     // Match the chart's node setting when the caller passes it; SBC keeps the 'mean' default.
     const nodeMode: 'mean' | 'true' = sp.get('node') === 'true' ? 'true' : 'mean'
 

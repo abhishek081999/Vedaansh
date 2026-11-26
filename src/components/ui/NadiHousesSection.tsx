@@ -7,7 +7,7 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { useLang } from '@/i18n/useLang'
 import { nadiOrdinal } from '@/components/ui/nadiFindings'
@@ -141,7 +141,7 @@ function NadiNow({ chart }: { chart: ChartOutput }) {
     const settings = chart.meta?.settings
     const params = new URLSearchParams({
       at: new Date().toISOString(),
-      ayanamsha: settings?.ayanamsha ?? 'lahiri',
+      ayanamsha: settings?.ayanamsha ?? DEFAULT_AYANAMSHA,
       node: settings?.nodeMode === 'mean' ? 'mean' : 'true',
     })
     fetch(`/api/transits/planets?${params}`)

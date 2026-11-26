@@ -15,7 +15,7 @@ import {
 } from '@/lib/engine/ashtakavargaKakshya'
 import { analyzeSodhyaPindas } from '@/lib/engine/ashtakavargaSodhyaGuide'
 import type { AshtakavargaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
-import { RASHI_SHORT } from '@/types/astrology'
+import { RASHI_SHORT, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
@@ -292,7 +292,7 @@ export function KakshyaTimeline({
           const d = new Date(today)
           d.setDate(today.getDate() + offset)
           const date = d.toISOString().slice(0, 10)
-          const qs = new URLSearchParams({ date, ayanamsha: ayanamsha ?? 'lahiri' })
+          const qs = new URLSearchParams({ date, ayanamsha: ayanamsha ?? DEFAULT_AYANAMSHA })
           const res = await fetch(`/api/transits/planets?${qs.toString()}`)
           const json = await res.json()
           const grahas: GrahaData[] = json?.success ? (json.grahas ?? []) : []

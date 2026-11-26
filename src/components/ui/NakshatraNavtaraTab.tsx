@@ -10,7 +10,7 @@ import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { termHi } from '@/i18n/jyotish'
-import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_NAMES, NAKSHATRA_NAMES, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import {
   getNavtaraChakra,
   TARA_NAMES,
@@ -75,7 +75,7 @@ export function NakshatraNavtaraTab({
   const [partnerNak, setPartnerNak] = useState((birthNakIdx + 8) % 27)
 
   const activeDashaKey = prediction.current.path.map(p => p.lord).join('/')
-  const ayanamsha = chart.meta?.settings?.ayanamsha ?? 'lahiri'
+  const ayanamsha = chart.meta?.settings?.ayanamsha ?? DEFAULT_AYANAMSHA
 
   useEffect(() => {
     let cancelled = false

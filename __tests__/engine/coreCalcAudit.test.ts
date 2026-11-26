@@ -2,6 +2,7 @@
 // first-dasha antardashas, Gulika Kalam, Abhijit, Purnima lord, vara helpers.
 import { describe, expect, it } from 'vitest'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
+import { ageAtMahaStart } from '@/lib/engine/dasha/vimshottariAnalysis'
 import { calcAshtottari } from '@/lib/engine/dasha/ashtottari'
 import { calcYoginiDasha } from '@/lib/engine/dasha/yogini'
 import {
@@ -113,5 +114,17 @@ describe('niche varga variants match PyJHora', () => {
     expect(D150(at(5, 0.1))).toBe(5)
     expect(D150(at(5, 0.3))).toBe(6)
     expect(D150(at(12, 29.9))).toBe(mod12(12 + 149))
+  })
+})
+
+describe('age at mahadasha start with a backdated first dasha', () => {
+  it('Bhoranj: Saturn MD starts at age ~0.2, Mercury MD at ~19.2', () => {
+    const birth = new Date('1999-08-19T04:30:00Z')
+    const md = calcVimshottari(213.162, birth, 1)
+    const sa = md.find(d => d.lord === 'Sa')!
+    const me = md.find(d => d.lord === 'Me')!
+    expect(ageAtMahaStart(md, sa, 213.162)).toBeCloseTo(0.2, 1)
+    expect(ageAtMahaStart(md, me, 213.162)).toBeCloseTo(19.2, 1)
+    expect(ageAtMahaStart(md, md[0], 213.162)).toBe(0) // first MD began before birth
   })
 })
