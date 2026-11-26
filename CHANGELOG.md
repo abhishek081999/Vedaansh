@@ -89,6 +89,10 @@ These shipped in the current tree without a version bump:
 
 ### Added
 
+- Nakshatra lab regrouped into five menu groups (Birth Star, Chakras, Transits, Timing, Guidance) with Kota Chakra, Life Journey, Slow Transits, Star Birthday, Latta, Ghatak, Name Letters, Star Lords, Sensitive Degrees, Gandmool, and Nadi Nakshatras
+- Kota Chakra: natal fort with Swami, Kota Pala (Avakahada letter-class), preferred seats, dual-role notes, and 12th-from-Moon dasha caution; Gold unlocks live transit overlays on the fort
+- Nakshatra APIs: `GET /api/nakshatra/moon-calendar` (public), `GET /api/nakshatra/returns` (Gold — star birthdays), `GET /api/nakshatra/slow-transits` (Gold — Sa/Ju/Ra/Ke nakshatra stays)
+- Homepage explore and App Guide: Lal Kitab card/topic; Nakshatra copy covers Kota, Navtara, journey, and timing
 - Interpretation hub on the chart workspace and public share: tone map, planet strip, house map, Shadbala radar/bars, and expandable theme cards (`InterpretationHub`)
 - Free teaser for that hub: overview tone map + first three themes; Gold unlocks planets, houses, rashis, strength, transit, and dasha sections (`userPlan` / `planMeetsUiGate`)
 - Hindi completion for remaining public surfaces: guides (16 articles), marketing/legal/account/clients/library, Ashtakavarga and Shadbala analysis, transit scrubber, public chart share, chart master PDF and user emails, search corpus, and route Open Graph images (`?lang=hi`)

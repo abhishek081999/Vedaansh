@@ -1,6 +1,6 @@
 # Vedaansh — testing strategy
 
-**Synced:** 2026-11-10  
+**Synced:** 2026-11-26  
 **Runner:** Vitest (`npm run test:engine` → `vitest run`, the full configured suite)  
 **Suites:** `__tests__/engine/`, `__tests__/security/`, `__tests__/admin/`, `__tests__/ui/` (verify count with `find __tests__ -name '*.test.ts*' | wc -l`)  
 **Rule:** Engine tests must **not** import redis / mongoose / next-auth (Windows Vitest segfault risk). See `__tests__/engine/phase2.test.ts` and `.cursor/rules/tests.mdc`.  
@@ -40,7 +40,7 @@ Production deploy checklist: [SECURITY_DEPLOY.md](./SECURITY_DEPLOY.md).
 
 | Layer | Location | Goal |
 |-------|----------|------|
-| **Engine** | `__tests__/engine/**` | Pure Jyotish math — dashas, yogas, muhurta, ashtakavarga, nakshatra, milan, interpretation hub aggregates (`interpretationHub.test.ts`), AI prompt builder (`aiPrompt.test.ts` — sections, topics, plan gating, drishti, Shadbala in rupas), etc. No I/O. |
+| **Engine** | `__tests__/engine/**` | Pure Jyotish math — dashas, yogas, muhurta, ashtakavarga, nakshatra (incl. Kota / returns / system), Lal Kitab, milan, interpretation hub aggregates (`interpretationHub.test.ts`), AI prompt builder (`aiPrompt.test.ts` — sections, topics, plan gating, drishti, Shadbala in rupas), etc. No I/O. |
 | **Security** | `__tests__/security/**` | Rate limits, CSP, CSRF/origin, body limits, password policy, plan access, presets, tokens, login throttle |
 | **Admin** | `__tests__/admin/**` | Admin guards, user/chart query helpers |
 | **UI** | `__tests__/ui/**` | Design-system smoke; **i18n parity** (`i18n.test.ts` — every `messages/en` key exists in `hi` with matching placeholders/list lengths); search corpus Hindi smoke where present |

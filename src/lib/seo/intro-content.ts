@@ -71,17 +71,17 @@ export const MUHURTA_SEO: SeoIntroProps = {
 
 export const NAKSHATRA_SEO: SeoIntroProps = {
   ariaLabel: 'Nakshatra Analysis — Vedaansh',
-  h1: 'Nakshatra Analysis — Birth Star, Compatibility & Remedies',
+  h1: 'Nakshatra Analysis — Birth Star, Kota Chakra & Timing',
   paragraphs: [
-    'Explore your birth Nakshatra (Janma Nakshatra) with Pada, ruling deity, planet, Gana, Nadi, and symbol. Vedaansh offers Navtara predictions (dasha decision windows, natal planet tara capacity), compatibility scoring, personalized remedies, transit activations, and Nakshatra-based Muhurta guidance.',
+    'Explore your birth Nakshatra (Janma Nakshatra) with Pada, ruling deity, planet, Gana, Nadi, and symbol. Vedaansh covers Navtara and Taramandal, Life Journey, Kota Chakra (Swami and Kota Pala), slow-planet stays, star birthdays, Latta and Ghatak, compatibility, remedies, career and health indicators, and Nakshatra-based Muhurta.',
     'All calculations use Swiss Ephemeris sidereal longitudes with Lahiri ayanamsha for precision aligned with classical Jyotish.',
   ],
   h2: 'Nakshatra tools',
   bullets: [
-    { label: 'Overview', desc: 'Birth star summary and introductory interpretation' },
-    { label: 'Compatibility', desc: 'Navtara, Rajju, Vedha, and relationship scoring' },
-    { label: 'Remedies', desc: 'Mantras, gemstones, colours, and deity worship' },
-    { label: 'Transits & Muhurta', desc: 'Planetary activations and auspicious star timings' },
+    { label: 'Birth Star', desc: 'Profile, planets, star lords, sensitive degrees, and Gandmool' },
+    { label: 'Chakras & Journey', desc: 'Nadi Nakshatras, Navtara, Taramandal, and Life Journey' },
+    { label: 'Kota & Transits', desc: 'Kota Chakra fort, slow Sa/Ju/Ra/Ke stays, and star birthday' },
+    { label: 'Timing & Guidance', desc: 'Best days, Muhurta, Latta, Ghatak, compat, career, health, remedies' },
   ],
   relatedLinks: [
     guideLink('chandra-bala-tara-bala', 'Tara Bala & Chandra Bala'),

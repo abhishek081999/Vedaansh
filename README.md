@@ -16,7 +16,7 @@ A full-featured Vedic astrology (Jyotish) web platform in TypeScript: arc-second
 
 | Layer | Technology | Version (from `package.json`) |
 |---|---|---|
-| Framework | Next.js (App Router) | 16.4.2 |
+| Framework | Next.js (App Router) | 16.4.6 |
 | UI | React | 19.2.7 |
 | Language | TypeScript | ^5.4.5 · Node ≥ 24 |
 | Ephemeris | sweph (Swiss Ephemeris) | ^2.10.3-5 |
@@ -49,7 +49,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Dashas** | Vimshottari, Yogini, Kalachakra, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
-| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Interpretation hub teaser (overview + 3 themes), AI prompt export (all calculations + topic methods), Tattva overview teaser, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), Lal Kitab (Teva, overview, signs-in-life checker, one remedy), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
+| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Interpretation hub teaser (overview + 3 themes), AI prompt export (all calculations + topic methods), Tattva overview teaser, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), Lal Kitab (Teva, overview, signs-in-life checker, one remedy), ACG, Vastu preview, Nakshatra lab (birth star, Navtara, Kota natal, timing teasers), Numerology, Naamkaran overview |
 | **Library** | Save up to **20** charts and **20** Kundali Milan matches (separate caps); public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
@@ -62,7 +62,7 @@ Everything in Free, plus:
 | **PDF / HTML export** | `/api/chart/export` (also gated in `src/proxy.ts`) |
 | **Muhurta** | Full `/muhurta` + `/api/muhurta/*` (Gold+) |
 | **AI prompt (full)** | Chart AI prompt also carries Interpretation hub notes and Vedaansh engine readings per topic (career, marriage, love, personality, wealth D4, spirituality) |
-| **UI depth** | Full Interpretation hub (planets, houses, rashis, strength charts, transit, dasha), full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels, relationship and marriage, career and profession, Tattva (full), Naamkaran (full), Kundali Milan match-making, married life, All Sections, and print (see matrix) |
+| **UI depth** | Full Interpretation hub (planets, houses, rashis, strength charts, transit, dasha), full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, Kota transit overlay, slow transits, star birthdays, planetary panels, relationship and marriage, career and profession, Tattva (full), Naamkaran (full), Kundali Milan match-making, married life, All Sections, and print (see matrix) |
 
 ### Platinum — ₹336/month or ₹2,888/year
 
@@ -85,11 +85,12 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 ## Highlights (v2.6.x)
 
 - Sarvatobhadra Chakra, Prashna, Jaimini, Nadi Astrology, KP significators, Vastu, ACG, Naamkaran (name prediction)
+- Nakshatra lab (`/nakshatra`): Kota Chakra (Swami / Pala), Life Journey, Slow Transits, Star Birthday, Latta, Ghatak, Name Letters, Navtara, Taramandal, Best Days, and guidance tabs
 - Lal Kitab (`/lal-kitab`): Teva, 108 planet-in-house readings, doshas, rin, remedies and finder, Varshphal, 35-year cycle, Teva correction, 43-day tracker (Free teasers; full on Gold+)
 - Saved Kundali Milan library on My Charts (same 20 / 200 / unlimited caps as natal charts)
 - Relationship and marriage, career and profession (Free preview; full reading on Gold+)
 - Interpretation hub (Free overview teaser; full multi-section reading on Gold+)
-- AI prompt export: copy any chart as one Markdown prompt for ChatGPT, Claude or Gemini — calculations, graha drishti, Shadbala in rupas, dashas, plus topic studies (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality). Free: data + method; Gold+: engine readings too
+- AI prompt export: copy any chart as one Markdown prompt for ChatGPT, Claude or Gemini — calculations, graha drishti, Shadbala in rupas, dashas, plus topic studies (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality, Lal Kitab). Free: data + method; Gold+: engine readings too
 - Social Studio (admin Instagram packs) + Remotion CLI for HQ Reels
 - Cosmic roadmap `/roadmap` and time scrubber `/scrubber`
 - PWA (Serwist) + Android TWA packaging
@@ -109,7 +110,7 @@ Pure TypeScript under `src/lib/engine/` (153 top-level modules, 229 files, plus 
 | Houses / structure | Whole sign / Placidus / etc., vargas, arudhas, karakas |
 | Strength | Shadbala, bhava bala, vimsopaka, ashtakavarga |
 | Time lords | Vimshottari, Yogini, Kalachakra, Chara, Ashtottari |
-| Extras | Yogas, KP, SBC, muhurta, gandanta, pushkara, ACG |
+| Extras | Yogas, KP, SBC, muhurta, gandanta, pushkara, ACG, nakshatra (Kota, returns, slow stays), Lal Kitab |
 
 Detailed module inventory lives in git history / code; prefer reading `src/lib/engine/` and `__tests__/engine/`. Architecture: [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md).
 

@@ -1,7 +1,7 @@
 # Vedaansh — System Design
 
-**Product:** `jyotish-platform` v2.6.0 · Next.js 16.4.2 · Zod 4.6.7  
-**Synced:** 2026-11-10  
+**Product:** `jyotish-platform` v2.6.0 · Next.js 16.4.6 · Zod 4.6.7  
+**Synced:** 2026-11-26  
 **App:** Vedic astrology (Jyotish) SaaS — birth charts, dashas, vargas, panchang, muhurta, CRM, admin  
 **Source of truth:** live codebase (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`)  
 **i18n:** Public Hindi via `/hi/...` (`src/proxy.ts` + `x-vedaansh-locale`); catalogues in `messages/{en,hi}/`; engine overlays in `src/lib/engine/locale/*.hi.ts`. Admin / Social Studio remain English.
@@ -64,7 +64,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16.4.2 App Router |
+| Framework | Next.js 16.4.6 App Router |
 | Language | TypeScript 5.4+ · Node ≥ 24 |
 | UI | React 19, Radix, Framer Motion, Leaflet (ACG maps), Tailwind 4 |
 | Ephemeris | `sweph` + files in `./ephe` |
@@ -101,7 +101,7 @@ Runs before matched requests, including RSC/prefetch flight requests (those skip
 2. Rate-limit sign-in POSTs (`/api/auth/callback/credentials`, `/api/auth/signin`)
 3. Admin pages/APIs → require `role === 'admin'`
 4. Protected APIs → require session
-5. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`)
+5. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`, `/api/lal-kitab`, … — see `proxyRules.ts`)
 6. Platinum APIs/pages → platinum only (`/research`, `/api/research` — **reserved; no route files and no UI**)
 7. Protected pages → login redirect
 8. `withDocumentCsp` — per-request CSP nonces
@@ -175,7 +175,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 |--------|---------|
 | Charts | `/chart/[slug]`, calculate, save, public share, notes, relocate, varshaphal, ACG |
 | Interpretation hub | Chart workspace + public share tab — Free: overview tone map + first 3 themes; Gold+: planets, houses, rashis, strength charts, transit, dasha (`InterpretationHub`) |
-| AI prompt | Chart toolbar popup — copy / download a Markdown prompt for any AI; topic chips (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality); Free: data + method; Gold+: hub notes + engine readings |
+| AI prompt | Chart toolbar popup — copy / download a Markdown prompt for any AI; topic chips (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality, Lal Kitab); Free: data + method; Gold+: hub notes + engine readings |
 | Panchang | `/panchang`, calendar, transit APIs |
 | Muhurta | `/muhurta` + `/api/muhurta/*` (Gold+) |
 | Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+. Saved matches: `/api/milan/save`, `/api/milan/list`, `/api/milan/[id]` (caps 20 / 200 / unlimited) |
@@ -183,10 +183,11 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Today | `/today` — personal daily reading for the loaded chart (noindex) |
 | Relationship and marriage | `/relationship` (noindex, needs a loaded chart) — D1 and score preview on Free; full reading on Gold+; extended divisionals on Platinum |
 | Career and profession | `/career` (noindex, needs a loaded chart) — scores on Free; full reading and professional method on Gold+ |
-| Jaimini / Nadi / KP / Prashna | `/jaimini`, `/nadi`, `/prashna` |
+| Jaimini / Nadi / Lal Kitab / KP / Prashna | `/jaimini`, `/nadi`, `/lal-kitab`, `/prashna` |
 | SBC / ACG / Vastu | `/sbc`, `/acg`, `/vastu` |
-| Nakshatra | `/nakshatra/[tab]` |
+| Nakshatra | `/nakshatra/[tab]` — five groups (Birth Star, Chakras, Transits incl. Kota, Timing, Guidance); APIs `/api/nakshatra/moon-calendar`, `/returns`, `/slow-transits` |
 | Numerology | `/numerology` |
+| App Guide | `/help`, `/help/[topic]` — includes Lal Kitab and expanded Nakshatra |
 
 ### Platform / ops
 
@@ -203,7 +204,9 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 
 ---
 
-## 7. API route inventory (63 handlers)
+## 7. API route inventory (94 handlers)
+
+Prefer [`API.md`](./API.md) for the full table. Highlights:
 
 ### Auth
 - `/api/auth/[...nextauth]`
@@ -227,6 +230,8 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 ### Ephemeris / tools
 - `/api/panchang`, `/api/transit`, `/api/transit/sade-sati`, `/api/transit/aspects`, `/api/transit/moorthy`, `/api/transit/calendar` (Gold+), `/api/transits/planets`
 - `/api/muhurta/timeline`, `/api/muhurta/report`
+- `/api/nakshatra/moon-calendar`, `/api/nakshatra/returns` (Gold+), `/api/nakshatra/slow-transits` (Gold+)
+- `/api/lal-kitab/export`, `/api/lal-kitab/remedies`, `/api/lal-kitab/remedies/[id]`
 - `/api/atlas/search`
 - `/api/clients`, `/api/clients/[id]`
 - `/api/health`

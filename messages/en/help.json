@@ -79,7 +79,7 @@
     },
     "advanced": {
       "title": "Advanced tools",
-      "desc": "Jaimini, Nadi, Vastu, AstroCartography, SBC, Prashna and numerology."
+      "desc": "Jaimini, Nadi, Lal Kitab, Vastu, AstroCartography, SBC, Prashna and numerology."
     },
     "account": {
       "title": "Account, saving and plans",
@@ -120,7 +120,7 @@
       "sections": [
         {
           "heading": "What you can do",
-          "body": "Vedaansh calculates Vedic (sidereal) birth charts with Swiss Ephemeris accuracy. From one chart you can read dashas, divisional charts, yogas, strengths, transits, relationship and career, and daily guidance. Panchang, Muhurta, Kundali Milan, Prashna and numerology are also built in.",
+          "body": "Vedaansh calculates Vedic (sidereal) birth charts with Swiss Ephemeris accuracy. From one chart you can read dashas, divisional charts, yogas, strengths, transits, relationship and career, and daily guidance. Panchang, Muhurta, Nakshatra tools, Lal Kitab, Kundali Milan, Prashna and numerology are also built in.",
           "steps": [
             "Use it free without an account.",
             "Sign in to save charts and load your own chart automatically.",
@@ -204,8 +204,8 @@
             "Today: a personal reading for today.",
             "My Charts: your saved charts (sign-in needed).",
             "Astrology: Transit, Core Analysis, Divisional charts, Strength, Relationship, Career, Dosha, Solar Return and Natal Panchang.",
-            "Advanced: Jaimini, Nadi, Astro Vastu, AstroCartography, Sarvatobhadra Chakra, Muhurta, Prashna, Numerology and Kundali Matching.",
-            "Nakshatra and Panchang: star-based tools and the Hindu calendar."
+            "Advanced: Jaimini, Nadi, Lal Kitab, Astro Vastu, AstroCartography, Sarvatobhadra Chakra, Muhurta, Prashna, Numerology and Kundali Matching.",
+            "Nakshatra and Panchang: birth-star tools (Kota Chakra, Navtara, timing) and the Hindu calendar."
           ]
         },
         {
@@ -843,21 +843,49 @@
     },
     "nakshatra": {
       "title": "Nakshatra tools",
-      "summary": "Your birth star in depth: Navtara, Taramandal, best days, remedies, profession and health.",
+      "summary": "Your birth star in depth: Kota Chakra, Navtara, life journey, slow transits, timing and guidance.",
       "shots": [
         "Nakshatra Overview."
       ],
       "sections": [
         {
-          "heading": "Tabs",
+          "heading": "How the menu is organised",
+          "body": "Open Nakshatra from the header. Tabs sit in five groups. Every page reads the chart open in the Workspace."
+        },
+        {
+          "heading": "Birth Star",
           "steps": [
-            "Overview: your Moon nakshatra, its deity, ruler and nature.",
+            "Profile: your Moon nakshatra, deity, ruler and nature.",
+            "Planets: the nakshatra of each graha in the chart.",
+            "Star Lords, Sensitive Degrees and Gandmool: lordship, pressure points and gandanta / moola flags."
+          ]
+        },
+        {
+          "heading": "Chakras",
+          "steps": [
+            "Nadi Nakshatras: special nadi groupings for the birth star.",
             "Navtara and Taramandal: the nine-star cycle from your birth star and the star map of your chart.",
-            "Best Days, Muhurta and Panchaka: favourable days based on your star.",
-            "Planet, Compat and Remedies: nakshatras of each planet, star matching and remedies.",
-            "Profession and Medical: work and health indicators (full reading on Gold)."
+            "Life Journey: how the natal stars read as stages of life."
+          ]
+        },
+        {
+          "heading": "Transits",
+          "steps": [
+            "Slow Transits: long-period graha moves across the nakshatra belt.",
+            "Kota Chakra: the fort chart with Swami, Kota Pala, seats and transit verdicts.",
+            "Star Birthday: when the Moon returns to your birth nakshatra."
+          ]
+        },
+        {
+          "heading": "Timing and Guidance",
+          "steps": [
+            "Best Days, Muhurta, Panchaka, Latta and Ghatak: favourable and caution days from your star.",
+            "Compatibility, Career, Health, Remedies and Name Letters: matching, work, body, upay and namakshar (full career and health readings on Gold)."
           ]
         }
+      ],
+      "tips": [
+        "Free opens the core birth-star and timing views. Gold unlocks the fuller career and health readings."
       ]
     },
     "advanced": {
@@ -876,6 +904,7 @@
           "steps": [
             "Jaimini: chara karakas, arudhas, rashi drishti and Chara dasha.",
             "Nadi: planet-to-planet links read in the Nadi style.",
+            "Lal Kitab: Teva, predictions, rin, remedies and the 43-day tracker — see the Lal Kitab guide.",
             "Astro Vastu: your chart mapped onto the directions of a home (full analysis on Gold).",
             "AstroCartography: a world map of planetary lines to see which places suit you.",
             "Sarvatobhadra Chakra: the 9×9 grid for transits and vedha (full on Gold)."
@@ -884,6 +913,34 @@
       ],
       "tips": [
         "All of these read the chart open in the Workspace. Load the right chart first."
+      ]
+    },
+    "lal-kitab": {
+      "title": "Lal Kitab",
+      "summary": "Read the chart the Lal Kitab way: Teva, predictions, doshas, rin, remedies, Varshphal and a saved 43-day tracker.",
+      "shots": [],
+      "sections": [
+        {
+          "heading": "Open Lal Kitab",
+          "steps": [
+            "Load a birth chart in the Workspace.",
+            "Open Advanced → Lal Kitab (or go to /lal-kitab).",
+            "Free shows Teva, overview teasers and one remedy. Gold opens the full reading, PDF export and the tracker."
+          ]
+        },
+        {
+          "heading": "What you will find",
+          "steps": [
+            "Teva: planets keep their houses; house 1 is always read as Aries. A Chandra Teva is available too.",
+            "Predictions, doshas and rin: house results, Lal Kitab doshas and family debts with their remedies.",
+            "Remedies and tracker: pick an upay and, on Gold, save a 43-day day-by-day tracker.",
+            "Varshphal and timeline: year-by-year results across the life span.",
+            "Teva check: match everyday life signs to refine or verify the chart (Gold)."
+          ]
+        }
+      ],
+      "tips": [
+        "Chart PDF and email can include a Lal Kitab chapter. The AI prompt also has a Lal Kitab focus study."
       ]
     },
     "prashna": {
@@ -991,7 +1048,7 @@
         {
           "heading": "PDF and email",
           "steps": [
-            "PDF (Gold): downloads a full chart report, in English or Hindi to match your language.",
+            "PDF (Gold): downloads a full chart report, in English or Hindi to match your language. You can include a Lal Kitab chapter.",
             "Email (Platinum): sends the report to a client's email address.",
             "Platinum branding: your business name and logo from Account → Consult branding appear on PDFs and shared charts."
           ]
@@ -999,7 +1056,7 @@
         {
           "heading": "AI prompt (ask any AI about a chart)",
           "steps": [
-            "Click ✦ AI prompt next to PDF. Personality and mind is ticked by default; tick more topics such as career, love life, marriage, wealth, health, education, children or spirituality.",
+            "Click ✦ AI prompt next to PDF. Personality and mind is ticked by default; tick more topics such as career, love life, marriage, wealth, health, education, children, spirituality or Lal Kitab.",
             "Click Copy prompt (or Download .md), open ChatGPT, Claude or Gemini, paste it, then ask your question. If the AI says the message is too long, switch Prompt length to Short and copy again.",
             "The prompt carries every calculation (planets, houses, aspects, Shadbala in rupas, vargas, dashas, yogas) and tells the AI to use these numbers rather than recalculate.",
             "Free: calculations and each topic's method. Gold and Platinum: our full readings are added too.",
@@ -1070,8 +1127,8 @@
         {
           "heading": "Plans",
           "steps": [
-            "Free: unlimited chart calculation, 16 divisional charts, Panchang, Kundali Milan, share links and previews of paid readings. 20 saved charts.",
-            "Gold: full readings (interpretation, dasha, relationship, career, dosha, transit forecast), Muhurta, PDF and XLSX export. 200 saved charts.",
+            "Free: unlimited chart calculation, 16 divisional charts, Panchang, Kundali Milan, Nakshatra teasers, Lal Kitab teasers, share links and previews of paid readings. 20 saved charts.",
+            "Gold: full readings (interpretation, dasha, relationship, career, dosha, transit forecast, Lal Kitab), Muhurta, PDF and XLSX export. 200 saved charts.",
             "Platinum: everything in Gold, plus all 41 divisional charts, email reports, bulk ZIP, client CRM and white-label branding. Unlimited saved charts."
           ]
         },

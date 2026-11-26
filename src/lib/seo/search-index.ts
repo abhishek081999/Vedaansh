@@ -79,10 +79,10 @@ const TOOL_DOCS: SearchDoc[] = [
   },
   {
     title: 'Nakshatra Analysis',
-    description: 'Birth star overview, compatibility, remedies, and muhurta.',
+    description: 'Birth star, Kota Chakra, Navtara, life journey, slow transits, timing, and remedies.',
     url: '/nakshatra',
     type: 'tool',
-    keywords: ['nakshatra', 'birth star', 'navtara'],
+    keywords: ['nakshatra', 'birth star', 'navtara', 'kota chakra', 'kota pala', 'taramandal', 'latta', 'ghatak'],
   },
   {
     title: 'Jaimini Astrology',

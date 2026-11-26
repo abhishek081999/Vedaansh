@@ -59,6 +59,7 @@ export const HELP_TOPICS: HelpTopic[] = [
 
   // Advanced tools
   { id: 'advanced', category: 'advanced', shots: ['jaimini.jpg', 'nadi.jpg', 'vastu.jpg', 'acg.jpg', 'sbc.jpg'], href: '/jaimini', plan: 'mixed' },
+  { id: 'lal-kitab', category: 'advanced', shots: [], href: '/lal-kitab', plan: 'mixed' },
   { id: 'prashna', category: 'advanced', shots: ['prashna.jpg'], href: '/prashna', plan: 'mixed' },
   { id: 'numerology', category: 'advanced', shots: ['numerology.jpg'], href: '/numerology', plan: 'mixed' },
 

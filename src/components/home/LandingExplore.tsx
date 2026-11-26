@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation'
 import { useState, type ComponentType, type MouseEvent } from 'react'
 import {
   ArrowRight,
+  BookMarked,
   BookOpen,
   Briefcase,
   Calendar,
@@ -69,6 +70,7 @@ const EXPLORE_GROUPS: { id: string; sections: ExploreSection[] }[] = [
       { id: 'nakshatra', href: '/nakshatra', ctaName: 'major_sections_nakshatra', icon: Star },
       { id: 'jaimini', href: '/jaimini', ctaName: 'major_sections_jaimini', icon: Zap },
       { id: 'nadi', href: '/nadi', ctaName: 'major_sections_nadi', icon: Waypoints },
+      { id: 'lal_kitab', href: '/lal-kitab', ctaName: 'major_sections_lal_kitab', icon: BookMarked },
       { id: 'sarvatobhadra', href: '/sbc', ctaName: 'major_sections_sarvatobhadra', icon: Layers },
       { id: 'astrocartography', href: '/acg', ctaName: 'major_sections_astrocartography', icon: Globe },
       { id: 'astro_vastu', href: '/vastu', ctaName: 'major_sections_astro_vastu', icon: Home },

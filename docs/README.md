@@ -1,7 +1,7 @@
 # Vedaansh — documentation index
 
 **Source of truth:** live code (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`). Prefer code when docs disagree.  
-**Synced:** 2026-11-19 against `jyotish-platform` v2.6.0 (Next.js 16.4.2, Zod 4.6.7). Default prices: Gold ₹168 / Platinum ₹336. Public Hindi i18n is complete (admin / Social Studio English). Interpretation hub Free teaser and AI prompt export documented in [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md).
+**Synced:** 2026-11-26 against `jyotish-platform` v2.6.0 (Next.js 16.4.6, Zod 4.6.7). Default prices: Gold ₹168 / Platinum ₹336. Public Hindi i18n is complete (admin / Social Studio English). Nakshatra lab (Kota Chakra, slow transits, returns), Lal Kitab, Interpretation hub Free teaser, and AI prompt export documented in [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md) and [`API.md`](./API.md).
 
 | Doc | Purpose |
 |-----|---------|

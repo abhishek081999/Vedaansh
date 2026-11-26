@@ -3,7 +3,7 @@
 **Store:** MongoDB Atlas via Mongoose (`src/lib/db/models/`)  
 **Cache:** Upstash Redis (ephemeral calc / atlas / rate limits — not durable domain state)  
 **Source of truth:** model files under `src/lib/db/models/`  
-**Synced:** 2026-11-10
+**Synced:** 2026-11-26 (no schema change this pass; Lal Kitab remedy tracker already documented)
 
 ---
 

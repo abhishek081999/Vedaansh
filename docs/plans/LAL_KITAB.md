@@ -17,7 +17,9 @@ Still open (no reliable source found):
 
 ## Context
 
-The user wants a full Lal Kitab (लाल किताब) section in **Advanced Astrology** covering everything the system has: every chart rule, every prediction, every remedy, and the "decoded" concepts (sleeping planets, debts, artificial planets, blind charts, signs in life, the 120-year Varshphal). Today the repo has no Lal Kitab code. The only mention is one teaching note in `src/lib/engine/vaarTeaching.ts`. This document replaces the earlier first-pass plan.
+*(Historical — written before Phase 1. Live code is under `src/lib/engine/lalKitab/` and `/lal-kitab`.)*
+
+The product goal was a full Lal Kitab (लाल किताब) section in **Advanced Astrology** covering every chart rule, prediction, remedy, and the "decoded" concepts (sleeping planets, debts, artificial planets, blind charts, signs in life, the 120-year Varshphal). This document replaced the earlier first-pass plan.
 
 Outcome: `/lal-kitab` (Hindi `/hi/lal-kitab`), a pure engine driven by a **rule catalogue stored as data**, a panel with 16 views, a remedy finder and a 43-day remedy tracker, Varshphal by year/month, full Hindi, PDF export, and an AI-prompt topic.
 
