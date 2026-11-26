@@ -11,10 +11,55 @@
     "keywords": ["Nakshatra", "Vedic nakshatra", "birth star", "Pada", "Yogini dasha", "nakshatra compatibility", "Ashwini", "Rohini", "Hasta"]
   },
   "tabMeta": {
-    "advanced": {
-      "title": "Advanced Nakshatra — Special Stars, Star Lords & Latta",
-      "description": "Nakshatra jyotish as a system: Janma, Karma, Sanghatika and Vainashika stars with transits, the star-lord chain, your Vedic star birthday, Latta and sensitive degrees.",
-      "crumb": "Advanced"
+    "journey": {
+      "title": "Nakshatra Life Journey — 27 Stages from Ashwini to Revati",
+      "description": "The 27 nakshatras read in order as a lifetime, from first breath to release, with this chart's planets marked on the stages they occupy.",
+      "crumb": "Life Journey"
+    },
+    "gandmool": {
+      "title": "Gandmool Dosha — Birth in Ashwini, Ashlesha, Magha, Jyeshtha, Mula or Revati",
+      "description": "Whether the birth Moon falls in a Gandmool star, which pada, what it affects, how strong it is, Abhukta Mula, and the Shanti remedy.",
+      "crumb": "Gandmool"
+    },
+    "namakshar": {
+      "title": "Name Letters (Namakshar) — Naming Syllables by Nakshatra",
+      "description": "The naming syllable for your birth pada, all 108 nakshatra syllables, and a checker that shows which star a name belongs to and its tara.",
+      "crumb": "Name Letters"
+    },
+    "ghatak": {
+      "title": "Ghatak Chakra — Unfavourable Days by Moon Sign",
+      "description": "The Ghatak Moon sign, month, tithi, weekday and nakshatra for your Moon sign, and whether today hits any of them.",
+      "crumb": "Ghatak"
+    },
+    "slowtransits": {
+      "title": "Saturn, Jupiter, Rahu & Ketu Nakshatra Transits",
+      "description": "When Saturn, Jupiter, Rahu and Ketu enter and leave each nakshatra over the coming years, with the tara each stay gives from your birth star.",
+      "crumb": "Slow Transits"
+    },
+    "special": {
+      "title": "Navatara & Nadi Nakshatras — Janma, Karma, Manasa, Abhisheka",
+      "description": "The navatara grid in three paryays and the nadi nakshatras (Jati, Matru, Karma, Sanghatika, Samudaya, Adhana, Vainashika, Manasa, Abhisheka) from the Moon, Lagna, Sun or dasha lord, with planet roles, dasha and transits.",
+      "crumb": "Nadi Nakshatras"
+    },
+    "starlords": {
+      "title": "Nakshatra Star Lords — What Each Planet Delivers",
+      "description": "Each planet gives the results of its nakshatra lord: star-lord houses, lordships, chains, key star lords and nakshatra exchanges.",
+      "crumb": "Star Lords"
+    },
+    "birthday": {
+      "title": "Vedic Star Birthday — Janma Nakshatra Dates",
+      "description": "Your Vedic birthday by nakshatra for the next five years and the monthly days the Moon returns to your birth star, from Swiss Ephemeris.",
+      "crumb": "Star Birthday"
+    },
+    "degrees": {
+      "title": "Sensitive Degrees — Gandanta, Pushkara & Mrityu Bhaga",
+      "description": "Gandanta knots, Pushkara Navamsha and Bhaga, Mrityu Bhaga and nakshatra-edge checks for every planet and the Lagna.",
+      "crumb": "Sensitive Degrees"
+    },
+    "latta": {
+      "title": "Latta — Stars Kicked by Each Planet",
+      "description": "Muhurta Chintamani’s Latta: which star each planet kicks, and whether natal or today’s planets strike your Janma or Lagna star.",
+      "crumb": "Latta"
     },
     "overview": {
       "title": "Nakshatra Overview — Birth Star Analysis",
@@ -64,12 +109,12 @@
     "profession": {
       "title": "Nakshatra Profession — Career Star Profile",
       "description": "Profession groups, career formulas and a career star profile drawn from your birth Moon nakshatra.",
-      "crumb": "Profession"
+      "crumb": "Career"
     },
     "medical": {
       "title": "Nakshatra Medical — Body Map & Dosha",
       "description": "Body-part mapping, dosha tendencies and a medical reference based on your birth nakshatra.",
-      "crumb": "Medical"
+      "crumb": "Health"
     }
   },
   "page": {
@@ -79,7 +124,6 @@
     "openBirthForm": "Open birth form"
   },
   "hero": {
-    "eyebrow": "Janma Nakshatra",
     "pada": "Pada {n}",
     "moonSub": "Birth Moon star · lord {lord}",
     "lord": "Lord",
@@ -111,21 +155,33 @@
     "analysisAria": "Nakshatra analysis",
     "sectionsAria": "Nakshatra sections",
     "overview": "Profile",
+    "planet": "Planets",
+    "starlords": "Star Lords",
+    "degrees": "Sensitive Degrees",
+    "special": "Nadi Nakshatras",
     "navtara": "Navtara",
     "taramandal": "Taramandal",
-    "taramandalShort": "Mandal",
+    "compat": "Compatibility",
     "bestdays": "Best Days",
-    "bestdaysShort": "Days",
+    "birthday": "Star Birthday",
     "muhurta": "Muhurta",
     "panchaka": "Panchaka",
-    "planet": "Planets",
-    "compat": "Compat",
+    "latta": "Latta",
+    "profession": "Career",
+    "medical": "Health",
     "remedies": "Remedies",
-    "remediesShort": "Remedy",
-    "profession": "Profession",
-    "professionShort": "Career",
-    "medical": "Medical",
-    "advanced": "Advanced"
+    "gandmool": "Gandmool",
+    "namakshar": "Name Letters",
+    "ghatak": "Ghatak",
+    "slowtransits": "Slow Transits",
+    "journey": "Life Journey"
+  },
+  "groups": {
+    "aria": "Nakshatra groups",
+    "birth": "Birth Star",
+    "patterns": "Patterns",
+    "timing": "Timing",
+    "guidance": "Guidance"
   },
   "overview": {
     "title": "Birth star",
@@ -578,13 +634,7 @@
   },
   "advanced": {
     "viz": {
-      "specialTitle": "Special-star wheel",
-      "specialCaption": "Your birth star sits at the top; the wheel runs through all 27 stars. Gold marks the Janma star, rose the hard stars, amber the sensitive ones. Natal planets sit inside the ring; today's transits on special stars sit outside.",
       "legendJanma": "Janma star",
-      "legendHard": "Hard star",
-      "legendSensitive": "Sensitive star",
-      "legendNatal": "Natal planet",
-      "legendTransit": "Transit today",
       "webTitle": "Star-lord web",
       "webCaption": "Each arrow runs from a planet to the lord of its star. Larger gold nodes govern two or more placements; a teal loop means a planet sits in its own star; gold arrows are star exchanges. The Lagna is at the centre.",
       "legendArrow": "Star-lord link",
@@ -608,80 +658,135 @@
       "legendMrityu": "Mrityu Bhaga",
       "legendFlagged": "Flagged planet"
     },
-    "intro": "Nakshatra jyotish works as a system of its own: stars counted from your birth star, the star lord behind every planet, the stars each planet strikes, and the degrees where a star turns sensitive.",
-    "sections": {
-      "special": "Special stars",
-      "specialShort": "Stars",
-      "starlord": "Star lords",
-      "starlordShort": "Lords",
-      "birthday": "Star birthday",
-      "birthdayShort": "Birthday",
-      "degrees": "Latta & degrees",
-      "degreesShort": "Degrees"
-    },
-    "sectionsAria": "Advanced nakshatra sections",
     "goldFeature": "Advanced nakshatra analysis",
-    "teaser": "Free preview: the special stars of your chart. Gold opens the transits over them, the star-lord chain, your star birthdays, Latta and sensitive degrees.",
+    "teaser": "Free preview: the navatara grid, nadi roles and each planet's tara. Gold adds the dasha reading, transits over the nadi stars, star lords, star birthdays, Latta and sensitive degrees.",
     "special": {
-      "title": "Special stars from your birth star",
-      "lead": "Counting from the Moon's star (1 = Janma), certain stars carry a fixed meaning for you. Planets placed in them at birth colour that theme for life; transits over them time it.",
-      "vainashikaLabel": "Vainashika count",
-      "vainashika22": "22nd (88th pada)",
+      "title": "Navatara and nadi nakshatras",
+      "lead": "Counting from the janma star, the 27 stars fall into three rounds (paryay) of nine taras. Certain counts carry a fixed role of their own — career, mother, father, mind, ruin, rise — so the planets sitting there, and the transits passing over them, speak to that part of life.",
+      "pov": {
+        "label": "Count from",
+        "moon": "Moon",
+        "lagna": "Lagna",
+        "sun": "Sun",
+        "dasha": "Dasha lord"
+      },
+      "povNote": "Janma star: {star} ({lord}). The Moon is the main point of view; Lagna, Sun and the running mahadasha lord add further layers.",
+      "vainashikaLabel": "Vainashika",
       "vainashika23": "23rd",
+      "vainashika22": "22nd (88th pada)",
+      "gridTitle": "Navatara grid",
+      "gridCaption": "Rows are the nine taras, columns the three rounds. Stars sharing a row share a lord and play the same tara role. Named cells are nadi roles; codes show this chart's planets.",
+      "paryay": "Round {n}",
       "headers": {
         "star": "Special star",
         "count": "Count",
         "nakshatra": "Nakshatra",
-        "natal": "Natal planets"
+        "natal": "Natal planets",
+        "tara": "Tara",
+        "body": "Planet",
+        "role": "Nadi role",
+        "reading": "What it means"
       },
       "count": "#{n}",
       "none": "—",
       "nature": {
         "sensitive": "Sensitive",
-        "malefic": "Hard"
+        "malefic": "Hard",
+        "benefic": "Favourable"
       },
+      "taraGloss": {
+        "Janma": "birth",
+        "Sampat": "wealth",
+        "Vipat": "danger",
+        "Kshema": "welfare",
+        "Pratyari": "obstacle",
+        "Sadhaka": "attainment",
+        "Vadha": "ruin",
+        "Mitra": "friend",
+        "AtiMitra": "great friend"
+      },
+      "taraEffect": {
+        "Janma": "Tied to body, health and temperament; malefics here weigh on wellbeing, benefics lift it.",
+        "Sampat": "Brings resources and prosperity in its periods; a malefic here can still feel a sense of lack.",
+        "Vipat": "Loses some strength; its houses and significations meet setbacks and poor choices.",
+        "Kshema": "Supported and protected; its significations prosper in its periods.",
+        "Pratyari": "Meets blocks in what it signifies and rules; can strain health in its periods.",
+        "Sadhaka": "Helps achievement; ambitions linked to it tend to be realised.",
+        "Vadha": "Difficult; can bring sudden, eighth-house-like turns in its periods.",
+        "Mitra": "Friendly and helpful to the chart's progress.",
+        "AtiMitra": "A strong ally; supportive in every way."
+      },
+      "planetsTitle": "Where each planet stands",
+      "planetsLead": "The tara and nadi role of every planet from the chosen janma star. Read the planet's karakatva and house rulership through this lens.",
+      "rolesTitle": "The nadi roles",
       "stars": {
         "janma": {
           "name": "Janma",
-          "meaning": "Body, health and the self. Whatever touches this star touches you directly."
+          "meaning": "Body, health and the self. What touches this star touches you directly."
+        },
+        "jati": {
+          "name": "Jati",
+          "meaning": "Lineage, community and the society that supports you. A favourable star for family continuity and comfort."
+        },
+        "matru": {
+          "name": "Matru",
+          "meaning": "The mother and the bond with her. Malefics here or transiting it affect her and the relationship."
         },
         "karma": {
           "name": "Karma",
-          "meaning": "Work, action and reputation. The 10th star works like a 10th house of the stars."
+          "meaning": "Work, career and reputation. Planets here colour the profession; good transits can lift the career."
         },
         "sanghatika": {
           "name": "Sanghatika",
-          "meaning": "Associations and groups. Hard transits here bring trouble through company, partners or crowds."
+          "meaning": "Close associations that can wound. Planets here suffer through company and intimate ties."
         },
         "samudaya": {
           "name": "Samudaya",
-          "meaning": "Collective events and gatherings. Hard transits bring mishaps in public or shared undertakings."
+          "meaning": "Rise and good karma carried from the past. Planets here help you ascend in their periods."
         },
         "adhana": {
           "name": "Adhana",
-          "meaning": "Conception and foundations; the third trine of the Janma star. Shows what you build and carry forward."
+          "meaning": "Conception and creativity — where new projects are seeded. The father is also judged from here."
         },
         "vainashika": {
           "name": "Vainashika",
-          "meaning": "The star of loss and endings. Malefic transits here call for caution with health, money and risky starts."
+          "meaning": "Ruin and loss. Planets here are weakened; watch health, and avoid starting important work when the Moon is here."
         },
         "manasa": {
           "name": "Manasa",
-          "meaning": "Mind and feelings. Transits colour mood, worry and peace of mind."
+          "meaning": "The mind. Malefics here or transiting it bring worry and unclear decisions; Saturn's entry here is often felt like the start of Sade Sati."
+        },
+        "abhisheka": {
+          "name": "Abhisheka",
+          "meaning": "Coronation — power, status and achievement. Benefic transits here raise standing and open doors."
         }
       },
-      "transitTitle": "Transits over your special stars now",
-      "transitLead": "Hard planets (Sun, Mars, Saturn, Rahu, Ketu) on a hard star call for care; on a sensitive star they need attention. Benefics on any special star support its theme.",
+      "dashaTitle": "Dasha through the nadis",
+      "dashaLead": "First the mahadasha lord's tara from the Moon, then each antardasha lord's tara counted from the mahadasha lord's own star. Good taras from both views bring opportunity; hard ones bring pressure.",
+      "mahaLabel": "Mahadasha",
+      "mahaLine": "{lord} in {star}: star {count} from the Moon, {tara} tara",
+      "dashaHeaders": {
+        "antar": "Antardasha",
+        "star": "Star",
+        "count": "From MD star",
+        "tara": "Tara",
+        "role": "Nadi role",
+        "period": "Period"
+      },
+      "current": "now",
+      "dashaNone": "No running Vimshottari dasha was found for this chart.",
+      "transitTitle": "Transits over the nadi stars now",
+      "transitLead": "Hard planets (Sun, Mars, Saturn, Rahu, Ketu) on a hard star call for care; on a sensitive or favourable star they need attention. Benefics on any of these stars support its theme.",
       "transitLoading": "Loading today's transits…",
       "transitFailed": "Could not load today's transits.",
-      "transitNone": "No planet is transiting a special star today.",
+      "transitNone": "No planet is transiting a nadi star today.",
       "tone": {
         "alert": "Care",
         "caution": "Attention",
         "support": "Support"
       },
       "transitLine": "{graha} in {nakshatra} — your {star} star",
-      "note": "Texts disagree on Vainashika (22nd or 23rd) and on the Jati, Desha and Abhisheka stars used for kings, so those are not shown."
+      "note": "Sources number some roles differently; the 23rd is used for Vainashika here, with the 22nd (88th-pada rule) as an option."
     },
     "starlord": {
       "title": "Star-lord chain",
@@ -778,6 +883,289 @@
         "pushkaraBhaga": "Pushkara Bhaga: the single most auspicious degree of the sign (within 1°).",
         "mrityuBhaga": "Mrityu Bhaga: a classical danger degree. Read it as a point of strain and transformation, never on its own as a verdict.",
         "sandhi": "Nakshatra sandhi: within 0.5° of a star boundary. A small error in birth time can move the planet into the next star, so check the time before relying on its star."
+      }
+    }
+  },
+  "extras": {
+    "gandmool": {
+      "title": "Gandmool dosha",
+      "lead": "A child born with the Moon in Ashwini, Ashlesha, Magha, Jyeshtha, Mula or Revati is called Gandmool. These stars sit where a water sign ends and a fire sign begins, and each pada is said to affect a particular person or area of life.",
+      "born": "Born in Gandmool: {star}, pada {pada}",
+      "severity": {
+        "strong": "Strong (junction pada)",
+        "mild": "Mild"
+      },
+      "abhukta": "Abhukta Mula",
+      "effectLabel": "Traditional effect of this pada:",
+      "effects": {
+        "father": "difficulties for the father",
+        "mother": "difficulties for the mother",
+        "self": "difficulties for the native",
+        "wealth": "loss of wealth",
+        "elderSibling": "difficulties for an elder sibling",
+        "youngerSibling": "difficulties for a younger sibling",
+        "comfort": "comfort and happiness",
+        "honour": "honour and recognition",
+        "minister": "high office or a ministerial post",
+        "auspicious": "auspicious, no harm",
+        "gain": "gain of wealth and learning"
+      },
+      "effectsShort": {
+        "father": "Father",
+        "mother": "Mother",
+        "self": "Self",
+        "wealth": "Wealth loss",
+        "elderSibling": "Elder sibling",
+        "youngerSibling": "Younger sibling",
+        "comfort": "Comfort",
+        "honour": "Honour",
+        "minister": "High office",
+        "auspicious": "Auspicious",
+        "gain": "Gains"
+      },
+      "side": {
+        "water": "This is a water star that ends a sign group, ruled by {lord}.",
+        "fire": "This is a fire star that begins a sign group, ruled by {lord}."
+      },
+      "strongNote": "This pada touches the water–fire junction (Gandanta), so tradition treats it as the strongest form.",
+      "abhuktaNote": "The Moon is within the last or first moments of Jyeshtha–Mula (Abhukta Mula), the most sensitive part of Gandmool.",
+      "clear": "Not Gandmool: the birth Moon is in {star}.",
+      "remedyTitle": "Remedy (Gandmool Shanti)",
+      "remedyShanti": "Perform Gandmool Shanti when the Moon next returns to {star}, traditionally about 27 days after birth, or on any later return of that star.",
+      "remedyJapa": "Japa of the {lord} mantra, {count} repetitions in all, spread over the days before the Shanti.",
+      "remedyDeity": "Worship of the star's deity, {deity}.",
+      "remedyCharity": "Charity and feeding of Brahmins or the needy on the day of the Shanti.",
+      "tableTitle": "Gandmool padas",
+      "tableCaption": "What each pada of the six Gandmool stars is said to affect. Rose cells are difficult, teal ones favourable; the dashed outline marks the strong junction pada. Your pada is outlined in gold.",
+      "legendHard": "Difficult",
+      "legendSoft": "Favourable",
+      "legendStrong": "Junction pada",
+      "pada": "Pada {n}",
+      "note": "Traditions differ on some pada effects. Gandmool is one factor and is read together with the whole chart, never on its own."
+    },
+    "namakshar": {
+      "title": "Name letters (Namakshar)",
+      "lead": "Each nakshatra pada has a sound that a name can begin with. The janma name traditionally starts with the syllable of the birth Moon's pada.",
+      "yours": "Your syllable: {star}, pada {pada}",
+      "starSet": "Your star's syllables:",
+      "checkLabel": "Check a name",
+      "placeholder": "Type a name, e.g. Ananya or अनन्या",
+      "noMatch": "No nakshatra syllable matches the start of this name.",
+      "matchLine": "{syllable} belongs to {star}, pada {pada}",
+      "verdict": {
+        "exact": "Exact match with your birth pada.",
+        "sameStar": "Same star as your birth star, a different pada — also traditional.",
+        "good": "{tara} tara from your birth star: favourable.",
+        "neutral": "{tara} tara from your birth star: neutral.",
+        "avoid": "{tara} tara from your birth star: usually avoided for a name."
+      },
+      "gridTitle": "All 108 syllables",
+      "gridCaption": "Four syllables per nakshatra, one for each pada. Your pada is outlined in gold; a checked name is highlighted in teal.",
+      "pada": "Pada {n}"
+    },
+    "ghatak": {
+      "title": "Ghatak chakra",
+      "lead": "For a Moon in {sign}, these elements of time are Ghatak (harmful). Tradition avoids starting journeys, lawsuits, surgery and other important work when they occur.",
+      "todayTitle": "{count, plural, =0 {Today hits no Ghatak element} one {Today hits # Ghatak element} other {Today hits # Ghatak elements}}",
+      "todayClear": "No Ghatak factor is active today for your Moon sign.",
+      "todayAdvice": "Where you can, postpone important new beginnings while these factors are active.",
+      "todayLoading": "Checking today's Moon, tithi and weekday…",
+      "todayFailed": "Could not load today's panchang.",
+      "items": {
+        "sign": "Moon sign",
+        "transitMoonSign": "Ghatak Moon",
+        "month": "Month",
+        "tithi": "Tithi",
+        "weekday": "Weekday",
+        "nakshatra": "Nakshatra"
+      },
+      "tithiGroup": "{group} ({nums})",
+      "groups": {
+        "nanda": "Nanda",
+        "bhadra": "Bhadra",
+        "jaya": "Jaya",
+        "rikta": "Rikta",
+        "purna": "Purna"
+      },
+      "weekdays": {
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday"
+      },
+      "months": {
+        "chaitra": "Chaitra",
+        "vaishakha": "Vaishakha",
+        "jyeshtha": "Jyeshtha",
+        "ashadha": "Ashadha",
+        "shravana": "Shravana",
+        "bhadrapada": "Bhadrapada",
+        "ashwin": "Ashwin",
+        "kartik": "Kartik",
+        "margashirsha": "Margashirsha",
+        "pausha": "Pausha",
+        "magha": "Magha",
+        "phalguna": "Phalguna"
+      },
+      "todaySame": "Active today",
+      "todayIs": "Today: {value}",
+      "tableTitle": "Ghatak chakra for all Moon signs",
+      "note": "Some texts add a Ghatak Lagna and prahar; they differ between sources, so they are not shown."
+    },
+    "slow": {
+      "title": "Slow-planet star transits",
+      "lead": "Saturn, Jupiter, Rahu and Ketu stay in a nakshatra for months. The tara each stay makes from your birth star colours what that planet brings while it is there.",
+      "goldFeature": "Slow-planet star transits",
+      "loading": "Calculating with Swiss Ephemeris…",
+      "failed": "Could not load the transits.",
+      "tara": "{tara} tara from your birth star",
+      "next": "Next: {star} on {date}",
+      "timelineTitle": "Star by star, last year to five years ahead",
+      "timelineCaption": "Each bar is one stay in a nakshatra, coloured by its tara from your birth star. R marks a retrograde re-entry; the black line is today.",
+      "legendGood": "Favourable tara",
+      "legendNeutral": "Janma tara",
+      "legendHard": "Hard tara",
+      "upcomingTitle": "Coming stays",
+      "headers": {
+        "planet": "Planet",
+        "star": "Nakshatra",
+        "tara": "Tara",
+        "from": "From",
+        "to": "Until"
+      },
+      "retro": "retrograde"
+    }
+  },
+  "journey": {
+    "title": "The life journey through the 27 stars",
+    "intro": "A sign is a broad brush. Aquarius, for example, holds parts of Dhanishta, Shatabhisha and Purva Bhadrapada, three stars with very different natures, so a reading built on the sign alone stays general. The nakshatra gives the specific picture.",
+    "lead": "One traditional way to read the 27 stars in order is as a lifetime, from the first breath in Ashwini to release in Revati. Planets placed in a star show which stage's lessons are active in this chart.",
+    "rows": {
+      "0": "Growing up",
+      "1": "Engaging the world",
+      "2": "Turning inward"
+    },
+    "pathTitle": "The path of 27 stages",
+    "pathCaption": "Read left to right, then back, then forward again. The birth star is ringed in gold; this chart's planets and Lagna sit above their stars. Select any star to read its stage.",
+    "legendBirth": "Birth star",
+    "legendOccupied": "Occupied by a planet",
+    "legendSelected": "Selected",
+    "stageOf": "Stage {n} of 27 · {star}",
+    "here": "In this chart: {bodies}",
+    "yourTitle": "Your chart's stages",
+    "yourLead": "The stages your planets and Lagna sit in, in path order. These are the themes this chart keeps returning to.",
+    "note": "This is a symbolic reading of the sequence, not a timetable: the stages describe themes, and a person meets them in their own order and time.",
+    "stages": {
+      "0": {
+        "title": "First breath",
+        "text": "Life begins on pure instinct. We are carried entirely by others and act by reflex, quick and unthinking."
+      },
+      "1": {
+        "title": "Holding on",
+        "text": "The infant body changes fast. The first wants and refusals appear, and with them the first effort to feed ourselves."
+      },
+      "2": {
+        "title": "First lessons",
+        "text": "Walking, speaking and letters. Discipline trims raw instinct so that learning can take shape."
+      },
+      "3": {
+        "title": "Taste of the world",
+        "text": "New skills turn into enjoyment. The material world becomes attractive, fertile and full of things to grow."
+      },
+      "4": {
+        "title": "Curiosity",
+        "text": "The search begins. We follow whatever catches our interest, wandering from one discovery to the next."
+      },
+      "5": {
+        "title": "Making sense",
+        "text": "Experience has to be analysed, sometimes painfully, until it is understood. Storms clear the air."
+      },
+      "6": {
+        "title": "Belonging",
+        "text": "Feelings awaken. We find our place in family and community, mixing play with care for others."
+      },
+      "7": {
+        "title": "Promise",
+        "text": "Responsibility grows and life looks full of promise. The heart opens and nourishes what it loves."
+      },
+      "8": {
+        "title": "Hard truths",
+        "text": "The world shows its harsher side. Innocence ends, and we learn to manoeuvre, defend and survive."
+      },
+      "9": {
+        "title": "Identity",
+        "text": "A clear identity takes shape, together with a sense of roots, lineage and what we inherit."
+      },
+      "10": {
+        "title": "Pleasure and partnership",
+        "text": "With identity secure, we relax, create and enjoy. The search for a partner begins."
+      },
+      "11": {
+        "title": "Commitment",
+        "text": "Family, marriage and a steady role in society. Social identity grows alongside the personal one."
+      },
+      "12": {
+        "title": "Skill at work",
+        "text": "Worldly duties absorb us. We plan, organise and start projects with cleverness and dexterity."
+      },
+      "13": {
+        "title": "Making",
+        "text": "Plans become finished works. Craft, design and the pleasure of building something real."
+      },
+      "14": {
+        "title": "Trade",
+        "text": "What we made goes out into the world. We relate to others through exchange, independence and business."
+      },
+      "15": {
+        "title": "A higher aim",
+        "text": "Success leaves a hunger for something more meaningful. Purpose narrows to a single goal."
+      },
+      "16": {
+        "title": "Devotion",
+        "text": "That hunger is met through friendship, devotion and understanding the quiet laws of nature."
+      },
+      "17": {
+        "title": "Seniority",
+        "text": "We become the respected elder and protector, and must watch the pride that comes with the role."
+      },
+      "18": {
+        "title": "Uprooting",
+        "text": "What was built is pulled up to reveal what still remains to be understood. The impersonal begins here."
+      },
+      "19": {
+        "title": "Invincibility",
+        "text": "Having survived the uprooting, we feel unbeatable and start to share what we learned, still in our own way."
+      },
+      "20": {
+        "title": "Larger purpose",
+        "text": "Personal ambition is placed in service of something larger. Victory now means victory for all."
+      },
+      "21": {
+        "title": "Listening",
+        "text": "With the ego quieter, subtler and deeper voices can be heard. Learning comes through listening."
+      },
+      "22": {
+        "title": "Rhythm",
+        "text": "Living in step with that larger rhythm brings abundance, fame and fulfilment on every level."
+      },
+      "23": {
+        "title": "The question",
+        "text": "Even abundance is not enough. We turn inward and ask what existence itself is."
+      },
+      "24": {
+        "title": "Austerity",
+        "text": "The question drives intense sacrifice and discipline, willing to give up everything for truth."
+      },
+      "25": {
+        "title": "The middle path",
+        "text": "Wisdom arrives through calm, steady and gentler means. Depth replaces extremes."
+      },
+      "26": {
+        "title": "Release",
+        "text": "Every duality dissolves into the ocean of consciousness. The journey completes, and a new one can begin."
       }
     }
   }

@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { AyanamshaMode, Rashi } from '@/types/astrology'
-import { getAyanamsha, getPlanetPosition, SWISSEPH_IDS, toSidereal } from './ephemeris'
+import { getAyanamsha, getPlanetPosition, NODE_IDS, SWISSEPH_IDS, toSidereal } from './ephemeris'
 
 const NAK_SPAN = 360 / 27
 const JD_UNIX_EPOCH = 2440587.5
@@ -185,6 +185,59 @@ export function moonCalendarMonth(
       date: `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
       nakshatraIndex: idxAt(dayStart + 0.25),
       changes,
+    }
+  })
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Slow-planet nakshatra transits
+// ─────────────────────────────────────────────────────────────
+
+export type SlowPlanet = 'Sa' | 'Ju' | 'Ra' | 'Ke'
+export const SLOW_PLANETS: SlowPlanet[] = ['Sa', 'Ju', 'Ra', 'Ke']
+const SLOW_STEP_DAYS = 1
+
+/** Sidereal longitude sampler for Saturn, Jupiter or a lunar node. */
+export function slowPlanetSampler(
+  body: SlowPlanet,
+  mode: AyanamshaMode,
+  nodeMode: 'mean' | 'true' = 'true',
+): LonSampler {
+  const id = body === 'Sa' || body === 'Ju' ? SWISSEPH_IDS[body] : NODE_IDS[nodeMode]
+  const flip = body === 'Ke' ? 180 : 0
+  return (jd: number) => toSidereal(getPlanetPosition(jd, id, false).longitude + flip, getAyanamsha(jd, mode))
+}
+
+export interface StarStay {
+  nakshatraIndex: number
+  start: string
+  end: string
+  /** Entered moving backward (retrograde re-entry), or left backward. */
+  enteredRetro: boolean
+  clippedStart: boolean
+  clippedEnd: boolean
+}
+
+/**
+ * Every nakshatra stay of a slow planet between two instants, including the
+ * back-and-forth re-entries that retrograde motion causes.
+ */
+export function slowPlanetStays(body: SlowPlanet, fromMs: number, toMs: number, sample: LonSampler): StarStay[] {
+  const a = jdFromMs(fromMs)
+  const b = jdFromMs(toMs)
+  const spans = scanSpans(a, b, SLOW_STEP_DAYS, jd => nakOf(sample(jd)))
+  return spans.map((s, i) => {
+    const prev = spans[i - 1]
+    // Rahu/Ketu move backward by nature; for them "retro" means moving forward.
+    const backward = prev ? ((s.index - prev.index + 27) % 27) === 26 : false
+    const natural = body === 'Ra' || body === 'Ke' ? !backward : backward
+    return {
+      nakshatraIndex: s.index,
+      start: new Date(msFromJd(s.startJd)).toISOString(),
+      end: new Date(msFromJd(s.endJd)).toISOString(),
+      enteredRetro: prev ? natural : false,
+      clippedStart: s.clippedStart,
+      clippedEnd: s.clippedEnd,
     }
   })
 }

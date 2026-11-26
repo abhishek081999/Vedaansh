@@ -9,7 +9,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { CalendarHeart, Crosshair, GitBranch, Sparkles, type LucideIcon } from 'lucide-react'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { DEFAULT_AYANAMSHA, GRAHA_NAMES, NAKSHATRA_NAMES, NAKSHATRA_SHORT, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { TransitPlanetRow } from '@/types/reel-transit'
@@ -19,10 +18,18 @@ import { cn } from '@/lib/ui/cn'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { VizCard } from '@/components/ui/viz'
-import { DegreeStrip, LattaRing, ReturnsTimeline, SpecialStarsRing, StarLordWeb, type NakLabels } from '@/components/ui/NakshatraAdvancedViz'
+import { DegreeStrip, LattaRing, ReturnsTimeline, StarLordWeb, type NakLabels } from '@/components/ui/NakshatraAdvancedViz'
 import {
   analyzeSensitiveDegrees,
   analyzeSpecialStars,
+  dashaNadi,
+  navataraGrid,
+  planetNadiRoles,
+  povNakshatra,
+  roleNature,
+  type NadiPov,
+  type SpecialStarId,
+  type SpecialStarNature,
   analyzeStarLords,
   computeLattas,
   lattaHits,
@@ -35,18 +42,9 @@ import type { TimedWindow, VedicBirthday } from '@/lib/engine/nakshatraReturns'
 import panel from './NakshatraPanel.module.css'
 import styles from './NakshatraAdvancedTab.module.css'
 
-type Section = 'special' | 'starlord' | 'birthday' | 'degrees'
+export type TransitPos = { id: GrahaId; nakshatraIndex: number; lonSidereal: number; rashi: Rashi }
 
-const SECTIONS: { id: Section; Icon: LucideIcon }[] = [
-  { id: 'special', Icon: Sparkles },
-  { id: 'starlord', Icon: GitBranch },
-  { id: 'birthday', Icon: CalendarHeart },
-  { id: 'degrees', Icon: Crosshair },
-]
-
-type TransitPos = { id: GrahaId; nakshatraIndex: number }
-
-function useNames() {
+export function useNames() {
   const { hi } = useLang()
   const tPlanet = useTranslations('nakshatra.planet')
   const tr = (en: string) => (hi ? termHi(en) : en)
@@ -60,6 +58,7 @@ function useNames() {
   return {
     body,
     nak,
+    tara: (name: string) => tr(name),
     sign: (r: Rashi) => tr(RASHI_NAMES[r]),
     signShort: (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r]),
     labels,
@@ -67,7 +66,7 @@ function useNames() {
 }
 
 /** Today's grahas from the transit API (shared by special stars and Latta). */
-function useTodayTransits(chart: ChartOutput, enabled: boolean) {
+export function useTodayTransits(chart: ChartOutput, enabled: boolean) {
   const [rows, setRows] = useState<TransitPos[] | null>(null)
   const [error, setError] = useState(false)
   const ayanamsha = chart.meta?.settings?.ayanamsha ?? DEFAULT_AYANAMSHA
@@ -89,7 +88,7 @@ function useTodayTransits(chart: ChartOutput, enabled: boolean) {
       .then(({ ok, j }) => {
         if (cancelled) return
         if (!ok || !j.success) throw new Error('FETCH_FAILED')
-        setRows((j.grahas as TransitPlanetRow[]).map(g => ({ id: g.id as GrahaId, nakshatraIndex: g.nakshatraIndex })))
+        setRows((j.grahas as TransitPlanetRow[]).map(g => ({ id: g.id as GrahaId, nakshatraIndex: g.nakshatraIndex, lonSidereal: g.lonSidereal, rashi: g.rashi as Rashi })))
       })
       .catch(() => { if (!cancelled) setError(true) })
     return () => { cancelled = true }
@@ -98,48 +97,52 @@ function useTodayTransits(chart: ChartOutput, enabled: boolean) {
   return { rows, error, loading: enabled && !rows && !error }
 }
 
-export function NakshatraAdvancedTab({ chart, userPlan }: { chart: ChartOutput; userPlan: UserPlan }) {
+export type NakshatraSystemSection = 'special' | 'starlords' | 'birthday' | 'degrees' | 'latta'
+
+/**
+ * One nakshatra-system tab. Special Stars is the free teaser; the other
+ * sections are Gold+ (the star-birthday API also enforces Gold).
+ */
+export function NakshatraSystemTab({
+  chart,
+  userPlan,
+  section,
+}: {
+  chart: ChartOutput
+  userPlan: UserPlan
+  section: NakshatraSystemSection
+}) {
   const t = useTranslations('nakshatra.advanced')
-  const [section, setSection] = useState<Section>('special')
   const gold = planMeetsUiGate(userPlan, 'gold')
-  const transits = useTodayTransits(chart, gold)
+  const needsTransits = section === 'special' || section === 'latta'
+  const transits = useTodayTransits(chart, gold && needsTransits)
 
-  return (
-    <div className={panel.stack}>
-      <p className={panel.lead}>{t('intro')}</p>
-
-      <div className={styles.sectionBar} role="tablist" aria-label={t('sectionsAria')}>
-        {SECTIONS.map(({ id, Icon }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={section === id}
-            className={cn(styles.sectionBtn, section === id && styles.sectionBtnOn)}
-            onClick={() => setSection(id)}
-          >
-            <Icon size={14} aria-hidden />
-            <span className={styles.labelLong}>{t(`sections.${id}`)}</span>
-            <span className={styles.labelShort}>{t(`sections.${id}Short`)}</span>
-          </button>
-        ))}
+  if (section === 'special') {
+    return (
+      <div className={panel.stack}>
+        {!gold && <p className={styles.teaser}>{t('teaser')}</p>}
+        <SpecialStarsSection chart={chart} gold={gold} userPlan={userPlan} transits={transits} />
       </div>
-
-      {!gold && <p className={styles.teaser}>{t('teaser')}</p>}
-
-      {section === 'special' && <SpecialStarsSection chart={chart} gold={gold} userPlan={userPlan} transits={transits} />}
-      {section !== 'special' && (
-        <PlanGate userPlan={userPlan} required="gold" featureName={t('goldFeature')}>
-          {section === 'starlord' && <StarLordSection chart={chart} />}
-          {section === 'birthday' && <BirthdaySection chart={chart} enabled={gold} />}
-          {section === 'degrees' && <LattaDegreesSection chart={chart} transits={transits} />}
-        </PlanGate>
-      )}
-    </div>
+    )
+  }
+  return (
+    <PlanGate userPlan={userPlan} required="gold" featureName={t('goldFeature')}>
+      {section === 'starlords' && <StarLordSection chart={chart} />}
+      {section === 'birthday' && <BirthdaySection chart={chart} enabled={gold} />}
+      {section === 'degrees' && <DegreesSection chart={chart} />}
+      {section === 'latta' && <LattaSection chart={chart} transits={transits} />}
+    </PlanGate>
   )
 }
 
 // ── Special stars ────────────────────────────────────────────
+
+const taraKey = (tara: string) => (tara === 'Ati-Mitra' ? 'AtiMitra' : tara)
+const qualityInk = (q: 'auspicious' | 'inauspicious' | 'neutral') =>
+  q === 'auspicious' ? panel.inkGood : q === 'inauspicious' ? panel.inkBad : panel.inkMid
+const natureInk = (n: SpecialStarNature) =>
+  n === 'benefic' ? panel.inkGood : n === 'malefic' ? panel.inkBad : panel.inkMid
+const POVS: NadiPov[] = ['moon', 'lagna', 'sun', 'dasha']
 
 function SpecialStarsSection({
   chart, gold, userPlan, transits,
@@ -151,66 +154,133 @@ function SpecialStarsSection({
 }) {
   const t = useTranslations('nakshatra.advanced.special')
   const tAdv = useTranslations('nakshatra.advanced')
-  const tv = useTranslations('nakshatra.advanced.viz')
   const names = useNames()
-  const [vainashika, setVainashika] = useState<VainashikaCount>(22)
-  const stars = useMemo(() => analyzeSpecialStars(chart, vainashika), [chart, vainashika])
+  const { lang } = useLang()
+  const [vainashika, setVainashika] = useState<VainashikaCount>(23)
+  const [pov, setPov] = useState<NadiPov>('moon')
+  const janma = useMemo(() => povNakshatra(chart, pov), [chart, pov])
+  const stars = useMemo(() => analyzeSpecialStars(chart, vainashika, janma.nakshatraIndex), [chart, vainashika, janma.nakshatraIndex])
+  const grid = useMemo(() => navataraGrid(chart, janma.nakshatraIndex, vainashika), [chart, janma.nakshatraIndex, vainashika])
+  const roles = useMemo(() => planetNadiRoles(chart, janma.nakshatraIndex, vainashika), [chart, janma.nakshatraIndex, vainashika])
+  const dasha = useMemo(() => dashaNadi(chart, vainashika), [chart, vainashika])
   const hits = useMemo(() => (transits.rows ? specialStarTransits(stars, transits.rows) : []), [stars, transits.rows])
+  const fmt = useMemo(() => new Intl.DateTimeFormat(lang === 'hi' ? 'hi-IN' : 'en-IN', { month: 'short', year: 'numeric' }), [lang])
+  const roleName = (id: SpecialStarId) => t(`stars.${id}.name`)
 
   return (
     <div className={panel.stack}>
       <SectionHead title={t('title')} />
       <p className={panel.lead}>{t('lead')}</p>
 
-      <div className={styles.inlineControl}>
-        <span className={styles.controlLabel}>{t('vainashikaLabel')}</span>
-        <div className={panel.viewToggle} role="group" aria-label={t('vainashikaLabel')}>
-          {([22, 23] as const).map(n => (
-            <button
-              key={n}
-              type="button"
-              aria-pressed={vainashika === n}
-              className={cn(panel.viewBtn, vainashika === n && panel.viewBtnOn)}
-              onClick={() => setVainashika(n)}
-            >
-              {t(n === 22 ? 'vainashika22' : 'vainashika23')}
-            </button>
-          ))}
+      <div className={styles.controlRow}>
+        <div className={styles.inlineControl}>
+          <span className={styles.controlLabel}>{t('pov.label')}</span>
+          <div className={panel.viewToggle} role="group" aria-label={t('pov.label')}>
+            {POVS.map(p => (
+              <button
+                key={p}
+                type="button"
+                aria-pressed={pov === p}
+                className={cn(panel.viewBtn, pov === p && panel.viewBtnOn)}
+                onClick={() => setPov(p)}
+              >
+                {t(`pov.${p}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={styles.inlineControl}>
+          <span className={styles.controlLabel}>{t('vainashikaLabel')}</span>
+          <div className={panel.viewToggle} role="group" aria-label={t('vainashikaLabel')}>
+            {([23, 22] as const).map(n => (
+              <button
+                key={n}
+                type="button"
+                aria-pressed={vainashika === n}
+                className={cn(panel.viewBtn, vainashika === n && panel.viewBtnOn)}
+                onClick={() => setVainashika(n)}
+              >
+                {t(n === 22 ? 'vainashika22' : 'vainashika23')}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+      <p className={styles.footnote}>
+        {t('povNote', { star: names.nak(janma.nakshatraIndex), lord: janma.lord ? names.body(janma.lord) : names.body('As') })}
+      </p>
 
-      <VizCard
-        title={tv('specialTitle')}
-        caption={tv('specialCaption')}
-        legend={[
-          { label: tv('legendJanma'), color: 'color-mix(in srgb, var(--gold) 45%, var(--surface-2))' },
-          { label: tv('legendHard'), color: 'color-mix(in srgb, var(--rose) 32%, var(--surface-2))' },
-          { label: tv('legendSensitive'), color: 'color-mix(in srgb, var(--amber) 28%, var(--surface-2))' },
-          { label: tv('legendNatal'), color: 'var(--gold)' },
-          ...(gold ? [{ label: tv('legendTransit'), color: 'var(--teal)' }] : []),
-        ]}
-      >
-        <SpecialStarsRing
-          birthNak={stars[0].nakshatraIndex}
-          stars={stars}
-          transits={gold ? transits.rows : null}
-          labels={names.labels}
-          starName={id => t(`stars.${id}.name`)}
-        />
+      <VizCard title={t('gridTitle')} caption={t('gridCaption')}>
+        <div className={styles.ntGrid} role="table" aria-label={t('gridTitle')}>
+          <div className={styles.ntHead} role="row">
+            <span role="columnheader">{t('headers.tara')}</span>
+            {[1, 2, 3].map(n => <span key={n} role="columnheader">{t('paryay', { n })}</span>)}
+          </div>
+          {Array.from({ length: 9 }, (_, row) => {
+            const first = grid[row]
+            return (
+              <div key={row} className={styles.ntRow} role="row">
+                <span role="rowheader" className={cn(styles.ntTara, qualityInk(first.quality))}>
+                  <strong>{first.taraNumber}. {names.tara(first.tara)}</strong>
+                  <small>{t(`taraGloss.${taraKey(first.tara)}`)}</small>
+                </span>
+                {[0, 1, 2].map(pr => {
+                  const c = grid[pr * 9 + row]
+                  return (
+                    <span
+                      key={pr}
+                      role="cell"
+                      className={cn(styles.ntCell, c.role && styles[`ntCell_${roleNature(c.role)}`], c.count === 1 && styles.ntCellJanma)}
+                      title={`${c.count}. ${names.nak(c.nakshatraIndex)}${c.role ? ` · ${roleName(c.role)}` : ''}`}
+                    >
+                      <span className={styles.ntTop}>
+                        <span className={styles.ntCount}>{c.count}</span>
+                        {c.role && <span className={styles.ntRole}>{roleName(c.role)}</span>}
+                      </span>
+                      <span className={styles.ntStar}>{names.nak(c.nakshatraIndex)}</span>
+                      {c.bodies.length > 0 && <span className={styles.ntBodies}>{c.bodies.join(' ')}</span>}
+                    </span>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
       </VizCard>
 
+      <SectionHead title={t('planetsTitle')} />
+      <p className={panel.lead}>{t('planetsLead')}</p>
+      <div className={panel.tableWrap}>
+        <table className={panel.table}>
+          <thead>
+            <tr>{(['body', 'nakshatra', 'count', 'tara', 'role', 'reading'] as const).map(k => <th key={k}>{t(`headers.${k}`)}</th>)}</tr>
+          </thead>
+          <tbody>
+            {roles.map(r => (
+              <tr key={r.body}>
+                <td><strong>{r.body}</strong> {names.body(r.body)}</td>
+                <td>{names.nak(r.nakshatraIndex)}</td>
+                <td>{r.count}</td>
+                <td className={qualityInk(r.quality)}>{names.tara(r.tara)}</td>
+                <td className={r.role ? natureInk(roleNature(r.role)) : undefined}>{r.role ? roleName(r.role) : '—'}</td>
+                <td className={styles.cellWrap}>{t(`taraEffect.${taraKey(r.tara)}`)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <SectionHead title={t('rolesTitle')} />
       <div className={styles.starGrid}>
         {stars.map(s => (
-          <div key={s.id} className={cn(styles.starCard, s.nature === 'malefic' && styles.starCardHard)}>
+          <div key={s.id} className={cn(styles.starCard, s.nature === 'malefic' && styles.starCardHard, s.nature === 'benefic' && styles.starCardGood)}>
             <div className={styles.starTop}>
-              <span className={styles.starName}>{t(`stars.${s.id}.name`)}</span>
+              <span className={styles.starName}>{roleName(s.id)}</span>
               <span className={styles.starCount}>{t('count', { n: s.count })}</span>
             </div>
             <div className={styles.starNak}>
               {names.nak(s.nakshatraIndex)}
-              <span className={cn(styles.natureTag, s.nature === 'malefic' ? panel.inkBad : panel.inkMid)}>
-                {t(`nature.${s.nature}`)}
-              </span>
+              <span className={cn(styles.natureTag, natureInk(s.nature))}>{t(`nature.${s.nature}`)}</span>
             </div>
             <p className={styles.starMeaning}>{t(`stars.${s.id}.meaning`)}</p>
             <div className={styles.starNatal}>
@@ -223,6 +293,47 @@ function SpecialStarsSection({
 
       <PlanGate userPlan={userPlan} required="gold" featureName={tAdv('goldFeature')}>
         <div className={panel.stack}>
+          <SectionHead title={t('dashaTitle')} />
+          <p className={panel.lead}>{t('dashaLead')}</p>
+          {dasha ? (
+            <>
+              <div className={cn(styles.hit, styles[`hit_${dasha.maha.quality === 'auspicious' ? 'support' : dasha.maha.quality === 'inauspicious' ? 'alert' : 'caution'}`])}>
+                <span className={styles.hitTone}>{t('mahaLabel')}</span>
+                <span>
+                  {t('mahaLine', {
+                    lord: names.body(dasha.maha.lord),
+                    star: names.nak(dasha.maha.nakshatraIndex),
+                    count: dasha.maha.count,
+                    tara: names.tara(dasha.maha.tara),
+                  })}
+                  {dasha.maha.role ? ` · ${roleName(dasha.maha.role)}` : ''}
+                </span>
+                <span className={styles.hitMeaning}>{t(`taraEffect.${taraKey(dasha.maha.tara)}`)}</span>
+              </div>
+              <div className={panel.tableWrap}>
+                <table className={panel.table}>
+                  <thead>
+                    <tr>{(['antar', 'star', 'count', 'tara', 'role', 'period'] as const).map(k => <th key={k}>{t(`dashaHeaders.${k}`)}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {dasha.antars.map(a => (
+                      <tr key={a.start} className={a.current ? styles.rowCurrent : undefined}>
+                        <td><strong>{a.lord}</strong> {names.body(a.lord)}{a.current ? ` · ${t('current')}` : ''}</td>
+                        <td>{names.nak(a.nakshatraIndex)}</td>
+                        <td>{a.count}</td>
+                        <td className={qualityInk(a.quality)}>{names.tara(a.tara)}</td>
+                        <td className={a.role ? natureInk(roleNature(a.role)) : undefined}>{a.role ? roleName(a.role) : '—'}</td>
+                        <td>{fmt.format(new Date(a.start))} – {fmt.format(new Date(a.end))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <p className={panel.lead}>{t('dashaNone')}</p>
+          )}
+
           <SectionHead title={t('transitTitle')} />
           <p className={panel.lead}>{t('transitLead')}</p>
           {gold && transits.loading && <p className={panel.lead}>{t('transitLoading')}</p>}
@@ -237,7 +348,7 @@ function SpecialStarsSection({
                     {t('transitLine', {
                       graha: names.body(h.graha),
                       nakshatra: names.nak(h.nakshatraIndex),
-                      star: t(`stars.${h.starId}.name`),
+                      star: roleName(h.starId),
                     })}
                   </span>
                   <span className={styles.hitMeaning}>{t(`stars.${h.starId}.meaning`)}</span>
@@ -451,9 +562,8 @@ function BirthdaySection({ chart, enabled }: { chart: ChartOutput; enabled: bool
 
 // ── Latta & sensitive degrees ────────────────────────────────
 
-function LattaDegreesSection({ chart, transits }: { chart: ChartOutput; transits: ReturnType<typeof useTodayTransits> }) {
+function LattaSection({ chart, transits }: { chart: ChartOutput; transits: ReturnType<typeof useTodayTransits> }) {
   const t = useTranslations('nakshatra.advanced.latta')
-  const td = useTranslations('nakshatra.advanced.degrees')
   const tv = useTranslations('nakshatra.advanced.viz')
   const ts = useTranslations('nakshatra.advanced.special')
   const names = useNames()
@@ -467,7 +577,6 @@ function LattaDegreesSection({ chart, transits }: { chart: ChartOutput; transits
   const natal = useMemo(() => computeLattas(chart.grahas.map(g => ({ id: g.id, nakshatraIndex: g.nakshatraIndex }))), [chart.grahas])
   const natalHits = useMemo(() => lattaHits(natal, keys), [natal, keys])
   const transitHits = useMemo(() => (transits.rows ? lattaHits(computeLattas(transits.rows), keys) : []), [transits.rows, keys])
-  const degrees = useMemo(() => analyzeSensitiveDegrees(chart), [chart])
 
   const rule = (d: 'forward' | 'backward', n: number) => t(d, { n })
   const hitLine = (h: (typeof natalHits)[number]) => (
@@ -523,7 +632,18 @@ function LattaDegreesSection({ chart, transits }: { chart: ChartOutput; transits
       {transits.rows && (transitHits.length
         ? <ul className={styles.hitList}>{transitHits.map(hitLine)}</ul>
         : <p className={panel.lead}>{t('noneTransit')}</p>)}
+    </div>
+  )
+}
 
+function DegreesSection({ chart }: { chart: ChartOutput }) {
+  const td = useTranslations('nakshatra.advanced.degrees')
+  const tv = useTranslations('nakshatra.advanced.viz')
+  const names = useNames()
+  const degrees = useMemo(() => analyzeSensitiveDegrees(chart), [chart])
+
+  return (
+    <div className={panel.stack}>
       <SectionHead title={td('title')} />
       <p className={panel.lead}>{td('lead')}</p>
       <VizCard
@@ -585,7 +705,7 @@ function DegreeFlags({ row }: { row: SensitiveDegreeRow }) {
   )
 }
 
-function SectionHead({ title }: { title: string }) {
+export function SectionHead({ title }: { title: string }) {
   return (
     <div className={panel.sectionHead}>
       <h3 className={panel.sectionTitle}>{title}</h3>

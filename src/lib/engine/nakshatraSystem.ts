@@ -14,6 +14,8 @@
 import { NAKSHATRA_LORDS } from '@/types/astrology'
 import type { ChartOutput, Dignity, GandantaSeverity, GrahaId, MrityuSeverity, Rashi } from '@/types/astrology'
 import { checkGandanta } from './gandanta'
+import { TARA_NAMES, TARA_QUALITIES, type TaraName } from './nakshatraAdvanced'
+import { getDashaPathAt } from './dasha/current'
 import { checkPushkara } from './pushkara'
 import { checkMrityuBhaga } from './mrityuBhaga'
 
@@ -91,19 +93,29 @@ function chartBodies(chart: ChartOutput): BodyPos[] {
 //  1. Special stars (Adhanadi nakshatra)
 // ─────────────────────────────────────────────────────────────
 
-export type SpecialStarId = 'janma' | 'karma' | 'sanghatika' | 'samudaya' | 'adhana' | 'vainashika' | 'manasa'
-export type SpecialStarNature = 'sensitive' | 'malefic'
-/** Vainashika: 22nd (88th-pada rule) or 23rd star, both are taught. */
+export type SpecialStarId =
+  | 'janma' | 'jati' | 'matru' | 'karma' | 'sanghatika' | 'samudaya'
+  | 'adhana' | 'vainashika' | 'manasa' | 'abhisheka'
+export type SpecialStarNature = 'sensitive' | 'malefic' | 'benefic'
+/** Vainashika: 23rd star (Nadi nakshatra scheme) or 22nd (88th-pada rule). */
 export type VainashikaCount = 22 | 23
 
+/**
+ * Nadi nakshatras: roles counted from the janma star (1 = janma).
+ * Jati 4, Matru 8, Karma 10, Sanghatika 16, Samudaya 18, Adhana 19,
+ * Vainashika 23, Manasa 25, Abhisheka 27 (Jataka Parijata lineage).
+ */
 export const SPECIAL_STAR_DEFS: ReadonlyArray<{ id: SpecialStarId; count: number; nature: SpecialStarNature }> = [
   { id: 'janma',      count: 1,  nature: 'sensitive' },
+  { id: 'jati',       count: 4,  nature: 'benefic' },
+  { id: 'matru',      count: 8,  nature: 'sensitive' },
   { id: 'karma',      count: 10, nature: 'sensitive' },
   { id: 'sanghatika', count: 16, nature: 'malefic' },
-  { id: 'samudaya',   count: 18, nature: 'malefic' },
+  { id: 'samudaya',   count: 18, nature: 'benefic' },
   { id: 'adhana',     count: 19, nature: 'sensitive' },
-  { id: 'vainashika', count: 22, nature: 'malefic' },
+  { id: 'vainashika', count: 23, nature: 'malefic' },
   { id: 'manasa',     count: 25, nature: 'sensitive' },
+  { id: 'abhisheka',  count: 27, nature: 'benefic' },
 ]
 
 export type TransitTone = 'alert' | 'caution' | 'support'
@@ -126,7 +138,7 @@ export interface SpecialStarTransitHit {
 export function buildSpecialStars(
   birthNak: number,
   occupants: Array<{ id: NakBody; nakshatraIndex: number }> = [],
-  vainashika: VainashikaCount = 22,
+  vainashika: VainashikaCount = 23,
 ): SpecialStar[] {
   return SPECIAL_STAR_DEFS.map(def => {
     const count = def.id === 'vainashika' ? vainashika : def.count
@@ -141,10 +153,120 @@ export function buildSpecialStars(
   })
 }
 
-export function analyzeSpecialStars(chart: ChartOutput, vainashika: VainashikaCount = 22): SpecialStar[] {
+export function analyzeSpecialStars(
+  chart: ChartOutput,
+  vainashika: VainashikaCount = 23,
+  janmaNak?: number,
+): SpecialStar[] {
   const bodies = chartBodies(chart)
   const moon = bodies.find(b => b.id === 'Mo')
-  return buildSpecialStars(moon?.nakshatraIndex ?? 0, bodies, vainashika)
+  return buildSpecialStars(janmaNak ?? moon?.nakshatraIndex ?? 0, bodies, vainashika)
+}
+
+// ── Points of view, navatara grid, planet roles, dasha ───────
+
+/** The star treated as janma: Moon (primary), Lagna, Sun or the running mahadasha lord. */
+export type NadiPov = 'moon' | 'lagna' | 'sun' | 'dasha'
+
+export function povNakshatra(chart: ChartOutput, pov: NadiPov, now: number = Date.now()): { nakshatraIndex: number; lord: GrahaId | null } {
+  const graha = (id: GrahaId) => chart.grahas.find(g => g.id === id)
+  if (pov === 'lagna') return { nakshatraIndex: nakIndexOf(chart.lagnas.ascDegree), lord: null }
+  if (pov === 'sun') return { nakshatraIndex: graha('Su')?.nakshatraIndex ?? 0, lord: 'Su' }
+  if (pov === 'dasha') {
+    const md = getDashaPathAt(chart.dashas?.vimshottari ?? [], now)[0]
+    const lord = (md?.lord ?? null) as GrahaId | null
+    const g = lord ? graha(lord) : undefined
+    if (g) return { nakshatraIndex: g.nakshatraIndex, lord }
+  }
+  return { nakshatraIndex: graha('Mo')?.nakshatraIndex ?? 0, lord: 'Mo' }
+}
+
+const roleAt = (count: number, vainashika: VainashikaCount): SpecialStarId | null => {
+  const def = SPECIAL_STAR_DEFS.find(d => (d.id === 'vainashika' ? vainashika : d.count) === count)
+  return def?.id ?? null
+}
+
+export const roleNature = (id: SpecialStarId): SpecialStarNature =>
+  SPECIAL_STAR_DEFS.find(d => d.id === id)!.nature
+
+export interface TaraFix {
+  count: number
+  tara: TaraName
+  taraNumber: number
+  quality: 'auspicious' | 'inauspicious' | 'neutral'
+  role: SpecialStarId | null
+}
+
+/** Count, tara and nadi role of `nak` seen from `janmaNak`. */
+export function taraFix(janmaNak: number, nak: number, vainashika: VainashikaCount = 23): TaraFix {
+  const count = countFrom(janmaNak, nak)
+  const tara = TARA_NAMES[(count - 1) % 9]
+  return { count, tara, taraNumber: ((count - 1) % 9) + 1, quality: TARA_QUALITIES[tara].quality, role: roleAt(count, vainashika) }
+}
+
+export interface NavataraCell extends TaraFix {
+  nakshatraIndex: number
+  /** 0, 1, 2 — first, second, third round of nine. */
+  paryay: number
+  bodies: NakBody[]
+}
+
+/** The 27 stars from janma in count order, with tara, paryay, nadi role and occupants. */
+export function navataraGrid(chart: ChartOutput, janmaNak: number, vainashika: VainashikaCount = 23): NavataraCell[] {
+  const bodies = chartBodies(chart)
+  return Array.from({ length: 27 }, (_, i) => {
+    const nakshatraIndex = nakAtCount(janmaNak, i + 1)
+    return {
+      ...taraFix(janmaNak, nakshatraIndex, vainashika),
+      nakshatraIndex,
+      paryay: Math.floor(i / 9),
+      bodies: bodies.filter(b => b.nakshatraIndex === nakshatraIndex).map(b => b.id),
+    }
+  })
+}
+
+/** Every planet's (and the Lagna's) tara and nadi role from the chosen janma. */
+export function planetNadiRoles(
+  chart: ChartOutput,
+  janmaNak: number,
+  vainashika: VainashikaCount = 23,
+): Array<TaraFix & { body: NakBody; nakshatraIndex: number }> {
+  return chartBodies(chart).map(b => ({ body: b.id, nakshatraIndex: b.nakshatraIndex, ...taraFix(janmaNak, b.nakshatraIndex, vainashika) }))
+}
+
+export interface DashaNadi {
+  maha: TaraFix & { lord: GrahaId; nakshatraIndex: number; start: string; end: string }
+  antars: Array<TaraFix & { lord: GrahaId; nakshatraIndex: number; start: string; end: string; current: boolean }>
+}
+
+/**
+ * Mahadasha lord's tara from the Moon, then each antardasha lord's tara
+ * counted from the mahadasha lord's own star.
+ */
+export function dashaNadi(chart: ChartOutput, vainashika: VainashikaCount = 23, now: number = Date.now()): DashaNadi | null {
+  const path = getDashaPathAt(chart.dashas?.vimshottari ?? [], now)
+  const md = path[0]
+  if (!md) return null
+  const nakOfLord = (lord: string) => chart.grahas.find(g => g.id === lord)?.nakshatraIndex
+  const moonNak = nakOfLord('Mo') ?? 0
+  const mdNak = nakOfLord(md.lord)
+  if (mdNak == null) return null
+  const iso = (d: Date | string) => new Date(d).toISOString()
+  return {
+    maha: { ...taraFix(moonNak, mdNak, vainashika), lord: md.lord as GrahaId, nakshatraIndex: mdNak, start: iso(md.start), end: iso(md.end) },
+    antars: (md.children ?? []).flatMap(ad => {
+      const n = nakOfLord(ad.lord)
+      if (n == null) return []
+      return [{
+        ...taraFix(mdNak, n, vainashika),
+        lord: ad.lord as GrahaId,
+        nakshatraIndex: n,
+        start: iso(ad.start),
+        end: iso(ad.end),
+        current: ad === path[1],
+      }]
+    }),
+  }
 }
 
 /** Which transit grahas stand on the special stars right now. */

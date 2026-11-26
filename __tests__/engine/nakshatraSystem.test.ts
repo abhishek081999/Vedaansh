@@ -10,6 +10,10 @@ import {
   buildSpecialStars,
   computeLattas,
   countFrom,
+  dashaNadi,
+  navataraGrid,
+  povNakshatra,
+  taraFix,
   housesRuledBy,
   lattaHits,
   lattaTarget,
@@ -56,8 +60,11 @@ describe('special stars', () => {
   it('places each special star at its count from Ashwini', () => {
     const stars = buildSpecialStars(0)
     const at = Object.fromEntries(stars.map(s => [s.id, s.nakshatraIndex]))
-    expect(at).toEqual({ janma: 0, karma: 9, sanghatika: 15, samudaya: 17, adhana: 18, vainashika: 21, manasa: 24 })
-    expect(buildSpecialStars(0, [], 23).find(s => s.id === 'vainashika')?.nakshatraIndex).toBe(22)
+    expect(at).toEqual({
+      janma: 0, jati: 3, matru: 7, karma: 9, sanghatika: 15, samudaya: 17,
+      adhana: 18, vainashika: 22, manasa: 24, abhisheka: 26,
+    })
+    expect(buildSpecialStars(0, [], 22).find(s => s.id === 'vainashika')?.nakshatraIndex).toBe(21)
   })
 
   it('Janma star holds the natal Moon', () => {
@@ -71,13 +78,43 @@ describe('special stars', () => {
       { id: 'Sa', nakshatraIndex: 15 }, // malefic on Sanghatika → alert
       { id: 'Ma', nakshatraIndex: 9 },  // malefic on Karma → caution
       { id: 'Ju', nakshatraIndex: 0 },  // benefic on Janma → support
-      { id: 'Ve', nakshatraIndex: 3 },  // not on a special star
+      { id: 'Ve', nakshatraIndex: 5 },  // not on a special star
     ])
     expect(hits.map(h => [h.starId, h.graha, h.tone])).toEqual([
       ['sanghatika', 'Sa', 'alert'],
       ['karma', 'Ma', 'caution'],
       ['janma', 'Ju', 'support'],
     ])
+  })
+})
+
+describe('navatara grid and nadi roles', () => {
+  it('lays out 27 cells in three paryays with tara and role', () => {
+    const moonNak = chart.grahas.find(g => g.id === 'Mo')!.nakshatraIndex
+    const grid = navataraGrid(chart, moonNak)
+    expect(grid).toHaveLength(27)
+    expect(grid[0]).toMatchObject({ count: 1, tara: 'Janma', paryay: 0, role: 'janma', nakshatraIndex: moonNak })
+    expect(grid[9]).toMatchObject({ count: 10, tara: 'Janma', paryay: 1, role: 'karma' })
+    expect(grid[26]).toMatchObject({ count: 27, tara: 'Ati-Mitra', paryay: 2, role: 'abhisheka' })
+    expect(grid[0].bodies).toContain('Mo')
+    expect(grid.flatMap(c => c.bodies).sort()).toEqual(['As', 'Ju', 'Ke', 'Ma', 'Me', 'Mo', 'Ra', 'Sa', 'Su', 'Ve'])
+  })
+
+  it('counts from the chosen point of view', () => {
+    const lagna = povNakshatra(chart, 'lagna')
+    expect(lagna.nakshatraIndex).toBe(Math.floor(chart.lagnas.ascDegree / (360 / 27)))
+    expect(povNakshatra(chart, 'sun').lord).toBe('Su')
+    expect(taraFix(lagna.nakshatraIndex, lagna.nakshatraIndex).role).toBe('janma')
+  })
+
+  it('reads the dasha lords: maha from the Moon, antars from the maha lord', () => {
+    const d = dashaNadi(chart, 23, Date.UTC(2026, 10, 26))
+    expect(d).not.toBeNull()
+    const moonNak = chart.grahas.find(g => g.id === 'Mo')!.nakshatraIndex
+    expect(d!.maha.count).toBe(countFrom(moonNak, d!.maha.nakshatraIndex))
+    expect(d!.antars.length).toBe(9)
+    expect(d!.antars.filter(a => a.current)).toHaveLength(1)
+    for (const a of d!.antars) expect(a.count).toBe(countFrom(d!.maha.nakshatraIndex, a.nakshatraIndex))
   })
 })
 

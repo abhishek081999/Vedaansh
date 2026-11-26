@@ -56,15 +56,6 @@
   flex: 1;
 }
 
-.eyebrow {
-  margin: 0 0 0.3rem;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-gold);
-}
-
 .titleRow {
   display: flex;
   flex-wrap: wrap;
@@ -183,9 +174,16 @@
   min-width: 0;
 }
 
+/* Phones and tablets: the analysis the bottom nav selects comes first, the wheel after it. */
+@media (max-width: 1023.98px) {
+  .chartCol {
+    order: 2;
+  }
+}
+
 @media (min-width: 1024px) {
   .layout {
-    grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
     gap: 1.15rem;
   }
 
@@ -309,12 +307,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-}
-
-.panelFlow {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  /* Grids inside the analysis panel respond to the panel's own width,
+     not the window — the chart column takes a fixed share on desktop. */
+  container: nakpanel / inline-size;
 }
 
 .sectionHead {
@@ -341,14 +336,8 @@
 
 .traitGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.75rem), 1fr));
   gap: 0.5rem;
-}
-
-@media (min-width: 720px) {
-  .traitGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 .traitCard {
@@ -399,10 +388,6 @@
 .inkMid { color: var(--amber); font-weight: 700; }
 .inkBad { color: var(--rose); font-weight: 700; }
 
-.inkGood { color: var(--teal); font-weight: 700; }
-.inkMid { color: var(--amber); font-weight: 700; }
-.inkBad { color: var(--rose); font-weight: 700; }
-
 .padaMap {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -416,11 +401,11 @@
   border-radius: var(--r-sm);
   border: 1px solid var(--border-soft);
   background: var(--surface-2);
-  opacity: 0.5;
+  color: var(--text-secondary);
 }
 
 .padaCellActive {
-  opacity: 1;
+  color: var(--text-primary);
   border-color: color-mix(in srgb, var(--gold) 48%, var(--border));
   background: var(--gold-faint);
 }
@@ -504,20 +489,72 @@
   gap: 0.75rem;
 }
 
-@media (min-width: 900px) {
+@container nakpanel (min-width: 760px) {
   .profileSummaryGrid {
-    grid-template-columns: minmax(0, 1.4fr) minmax(12rem, 0.8fr);
+    grid-template-columns: minmax(0, 1.6fr) minmax(13rem, 0.8fr);
     align-items: start;
+  }
+
+  .profileSummaryGrid .padaMap {
+    margin-top: 0;
   }
 }
 
+.groupBar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  margin-bottom: 0.5rem;
+  padding: 3px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.groupBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: calc(var(--r-md) - 2px);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.groupBtn:hover { color: var(--text-primary); }
+
+.groupBtnOn,
+.groupBtnOn:hover {
+  background: var(--surface-1);
+  color: var(--text-gold);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.groupBtn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
 .tabRow {
+  position: relative;
   display: flex;
   flex-wrap: nowrap;
   gap: 0.35rem;
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  overflow-x: auto;
   padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.tabRow::-webkit-scrollbar {
+  display: none;
 }
 
 .tabBtn {
@@ -719,15 +756,14 @@
 .calTara {
   margin-top: 2px;
   max-width: 100%;
-  overflow: hidden;
-  padding-inline: 1px;
-  font-size: 0.52rem;
+  padding-inline: 2px;
+  font-size: clamp(0.5rem, 1.6cqi, 0.62rem);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--text-secondary);
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .calToday {
@@ -809,10 +845,9 @@
   display: flex;
   gap: 0.6rem;
   padding: 0.8rem 0.9rem;
-  border: 1px solid var(--border-soft);
-  border-left: 3px solid var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border-soft));
   border-radius: var(--r-md);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--gold) 5%, var(--surface-2));
   font-size: 0.8rem;
   line-height: 1.55;
   color: var(--text-secondary);
@@ -827,10 +862,6 @@
 .tip strong {
   color: var(--text-primary);
   font-weight: 700;
-}
-
-.tip p {
-  margin: 0;
 }
 
 .tip p {
@@ -1014,8 +1045,10 @@
 
 .glyph {
   flex-shrink: 0;
-  font-family: var(--font-chart-planets);
-  font-size: 0.95rem;
+  min-width: 1.6em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--text-gold);
 }
 

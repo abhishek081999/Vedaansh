@@ -9,15 +9,22 @@ const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').th
 const NakshatraEmpty = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraEmpty), { ssr: false })
 
 const TABS = new Set<NakshatraSubTab>([
-  'overview', 'navtara', 'taramandal', 'bestdays', 'muhurta', 'panchaka',
-  'planet', 'compat', 'remedies', 'profession', 'medical', 'advanced',
+  'overview', 'planet', 'starlords', 'degrees', 'gandmool',
+  'special', 'journey', 'navtara', 'taramandal', 'compat',
+  'bestdays', 'birthday', 'slowtransits', 'muhurta', 'panchaka', 'latta', 'ghatak',
+  'profession', 'medical', 'remedies', 'namakshar',
 ])
+
+/** Old slugs that moved: /nakshatra/advanced → Special Stars. */
+const ALIASES: Record<string, NakshatraSubTab> = { advanced: 'special' }
 
 export default function NakshatraTabPage() {
   const { tab } = useParams()
   const { chart, openBirthForm } = useChart()
   const raw = Array.isArray(tab) ? tab[0] : tab
-  const subTab: NakshatraSubTab = raw && TABS.has(raw as NakshatraSubTab) ? raw as NakshatraSubTab : 'overview'
+  const subTab: NakshatraSubTab = raw && TABS.has(raw as NakshatraSubTab)
+    ? raw as NakshatraSubTab
+    : (raw && ALIASES[raw]) || 'overview'
 
   if (!chart) {
     return (

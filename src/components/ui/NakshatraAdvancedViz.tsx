@@ -10,7 +10,6 @@
 import React, { useId } from 'react'
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { arcPath, polar } from '@/components/ui/viz'
-import { ICON } from '@/components/ui/PlanetDetailCard'
 import { MRITYU_BHAGA_DEGREES } from '@/lib/engine/mrityuBhaga'
 import {
   NAVAGRAHA,
@@ -18,7 +17,6 @@ import {
   type LattaRow,
   type NakBody,
   type SensitiveDegreeRow,
-  type SpecialStar,
   type StarLordLink,
 } from '@/lib/engine/nakshatraSystem'
 import styles from './NakshatraAdvancedTab.module.css'
@@ -26,7 +24,8 @@ import styles from './NakshatraAdvancedTab.module.css'
 const TAU = Math.PI * 2
 const SPAN = TAU / 27
 
-const glyph = (id: NakBody) => (id === 'As' ? 'As' : ICON[id] ?? id)
+/** Planet label in the graphics: two-letter code (Su, Mo, Me … As), never a symbol. */
+const glyph = (id: NakBody) => id
 
 /** Angle (radians, 0 = top, clockwise) of a nakshatra's centre, with `topNak` at the top. */
 function nakAngle(nak: number, topNak: number): number {
@@ -83,92 +82,6 @@ function ArrowMarker({ id, color }: { id: string; color: string }) {
     <marker id={id} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,1 L9,5 L0,9 z" fill={color} />
     </marker>
-  )
-}
-
-// ── 1. Special stars ring ────────────────────────────────────
-
-export function SpecialStarsRing({
-  birthNak,
-  stars,
-  transits,
-  labels,
-  starName,
-}: {
-  birthNak: number
-  stars: SpecialStar[]
-  transits: Array<{ id: GrahaId; nakshatraIndex: number }> | null
-  labels: NakLabels
-  starName: (id: SpecialStar['id']) => string
-}) {
-  const C = 200
-  const R_OUT = 150
-  const R_IN = 112
-  const byNak = new Map(stars.map(s => [s.nakshatraIndex, s]))
-  const fill = (nak: number) => {
-    const s = byNak.get(nak)
-    if (!s) return 'var(--surface-2)'
-    if (s.id === 'janma') return 'color-mix(in srgb, var(--gold) 45%, var(--surface-2))'
-    return s.nature === 'malefic'
-      ? 'color-mix(in srgb, var(--rose) 32%, var(--surface-2))'
-      : 'color-mix(in srgb, var(--amber) 28%, var(--surface-2))'
-  }
-  const natalByNak = new Map(stars.map(s => [s.nakshatraIndex, s.natal]))
-  const transitByNak = new Map<number, GrahaId[]>()
-  for (const t of transits ?? []) {
-    if (!NAVAGRAHA.includes(t.id)) continue
-    transitByNak.set(t.nakshatraIndex, [...(transitByNak.get(t.nakshatraIndex) ?? []), t.id])
-  }
-
-  return (
-    <svg viewBox="0 0 400 400" className={styles.vizSvg} role="img" aria-label={stars.map(s => `${starName(s.id)}: ${labels.name(s.nakshatraIndex)}`).join(', ')}>
-      <StarRing cx={C} cy={C} rOuter={R_OUT} rInner={R_IN} topNak={birthNak} fill={fill} labels={labels} />
-      {stars.map(s => {
-        const a = nakAngle(s.nakshatraIndex, birthNak)
-        const [x0, y0] = polar(C, C, R_OUT + 2, a)
-        const [x1, y1] = polar(C, C, R_OUT + 14, a)
-        const [tx, ty] = polar(C, C, R_OUT + 26, a)
-        return (
-          <g key={s.id}>
-            <line x1={x0} y1={y0} x2={x1} y2={y1} stroke="var(--border)" strokeWidth={1} />
-            <text x={tx} y={ty} textAnchor="middle" dominantBaseline="central" className={styles.vizStarLabel}>
-              {starName(s.id)}
-              <title>{`${starName(s.id)} · #${s.count} · ${labels.name(s.nakshatraIndex)}`}</title>
-            </text>
-          </g>
-        )
-      })}
-      {/* natal bodies inside the ring */}
-      {[...natalByNak.entries()].flatMap(([nak, bodies]) =>
-        bodies.map((b, i) => {
-          const [x, y] = polar(C, C, R_IN - 14 - i * 17, nakAngle(nak, birthNak))
-          return (
-            <g key={`n-${b}`}>
-              <circle cx={x} cy={y} r={8} fill="var(--surface-1)" stroke="var(--gold)" strokeWidth={1.5} />
-              <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className={styles.vizGlyph}>{glyph(b)}</text>
-              <title>{`${labels.body(b)} · ${labels.name(nak)}`}</title>
-            </g>
-          )
-        }),
-      )}
-      {/* today's transits on special stars, just outside the slice */}
-      {[...transitByNak.entries()].filter(([nak]) => byNak.has(nak)).flatMap(([nak, ids]) =>
-        ids.map((id, i) => {
-          const a = nakAngle(nak, birthNak) + (i - (ids.length - 1) / 2) * 0.07
-          const [x, y] = polar(C, C, R_OUT + 44, a)
-          return (
-            <g key={`t-${id}`}>
-              <circle cx={x} cy={y} r={7} fill="var(--teal)" opacity={0.18} />
-              <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className={styles.vizGlyph} style={{ fill: 'var(--teal)' }}>{glyph(id)}</text>
-              <title>{`${labels.body(id)} → ${labels.name(nak)}`}</title>
-            </g>
-          )
-        }),
-      )}
-      <circle cx={C} cy={C} r={58} fill="var(--surface-1)" stroke="var(--border-soft)" />
-      <text x={C} y={C - 8} textAnchor="middle" className={styles.vizCenterTitle}>{labels.name(birthNak)}</text>
-      <text x={C} y={C + 12} textAnchor="middle" className={styles.vizCenterSub}>{starName('janma')} · 1</text>
-    </svg>
   )
 }
 
@@ -386,7 +299,7 @@ export function LattaRing({
             >
               <title>{`${labels.body(l.graha)}: ${labels.name(l.fromNak)} → ${labels.name(l.targetNak)}`}</title>
             </path>
-            <circle cx={x0} cy={y0} r={9} fill="var(--surface-1)" stroke={hit ? 'var(--rose)' : 'var(--border)'} strokeWidth={1.5} />
+            <circle cx={x0} cy={y0} r={10} fill="var(--surface-1)" stroke={hit ? 'var(--rose)' : 'var(--border)'} strokeWidth={1.5} />
             <text x={x0} y={y0} textAnchor="middle" dominantBaseline="central" className={styles.vizGlyph}>{glyph(l.graha)}</text>
           </g>
         )
@@ -456,17 +369,102 @@ export function DegreeStrip({
       {rows.map(r => {
         const px = x(r.lonSidereal)
         const lv = level.get(r.body) ?? 0
-        const ty = BAND_Y - 13 - lv * 19
+        const ty = BAND_Y - 14 - lv * 21
         const flagged = r.flagCount > 0
         return (
           <g key={r.body}>
             <line x1={px} x2={px} y1={ty + 7} y2={BAND_Y + BAND_H} stroke={flagged ? 'var(--gold)' : 'var(--text-muted)'} strokeWidth={flagged ? 1.5 : 1} />
-            <circle cx={px} cy={ty} r={9.5} fill="var(--surface-1)" stroke={flagged ? 'var(--gold)' : 'var(--border)'} strokeWidth={1.5} />
+            <circle cx={px} cy={ty} r={10.5} fill="var(--surface-1)" stroke={flagged ? 'var(--gold)' : 'var(--border)'} strokeWidth={1.5} />
             <text x={px} y={ty} textAnchor="middle" dominantBaseline="central" className={styles.vizGlyphLg}>{glyph(r.body)}</text>
             <title>{`${bodyName(r.body)} · ${r.degreeInSign.toFixed(2)}° ${signShort(r.rashi)}`}</title>
           </g>
         )
       })}
+    </svg>
+  )
+}
+
+// ── 6. Slow-planet star timeline ─────────────────────────────
+
+export interface TimelineStay {
+  nakshatraIndex: number
+  start: string
+  end: string
+  enteredRetro: boolean
+  tone: 'auspicious' | 'inauspicious' | 'neutral'
+  title: string
+}
+
+const TONE_FILL: Record<TimelineStay['tone'], string> = {
+  auspicious: 'color-mix(in srgb, var(--teal) 34%, var(--surface-2))',
+  neutral: 'color-mix(in srgb, var(--amber) 30%, var(--surface-2))',
+  inauspicious: 'color-mix(in srgb, var(--rose) 34%, var(--surface-2))',
+}
+
+export function SlowTransitTimeline({
+  rows,
+  from,
+  to,
+  labels,
+}: {
+  rows: Array<{ id: GrahaId; stays: TimelineStay[] }>
+  from: string
+  to: string
+  labels: NakLabels
+}) {
+  const W = 720
+  const LEFT = 34
+  const RIGHT = 8
+  const ROW_H = 30
+  const TOP = 22
+  const t0 = Date.parse(from)
+  const t1 = Date.parse(to)
+  const x = (ms: number) => LEFT + ((ms - t0) / (t1 - t0)) * (W - LEFT - RIGHT)
+  const H = TOP + rows.length * ROW_H + 6
+  const years: number[] = []
+  for (let y = new Date(t0).getUTCFullYear(); y <= new Date(t1).getUTCFullYear(); y++) years.push(y)
+  const now = Date.now()
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className={styles.vizSvgWide} role="img" aria-label={rows.map(r => labels.body(r.id)).join(', ')}>
+      {years.map(y => {
+        const ms = Date.UTC(y, 0, 1)
+        if (ms < t0 || ms > t1) return null
+        return (
+          <g key={y}>
+            <line x1={x(ms)} x2={x(ms)} y1={TOP - 4} y2={H - 4} stroke="var(--border-soft)" />
+            <text x={x(ms) + 3} y={TOP - 8} className={styles.vizAxis}>{y}</text>
+          </g>
+        )
+      })}
+      {rows.map((r, i) => {
+        const y = TOP + i * ROW_H
+        return (
+          <g key={r.id}>
+            <text x={0} y={y + ROW_H / 2 - 2} dominantBaseline="central" className={styles.vizAxisStrong}>{r.id}</text>
+            {r.stays.map(s => {
+              const a = x(Math.max(Date.parse(s.start), t0))
+              const b = x(Math.min(Date.parse(s.end), t1))
+              const w = Math.max(1.5, b - a - 1)
+              return (
+                <g key={s.start}>
+                  <rect x={a} y={y} width={w} height={ROW_H - 8} rx={3} fill={TONE_FILL[s.tone]} stroke="var(--surface-1)" strokeWidth={1}>
+                    <title>{s.title}</title>
+                  </rect>
+                  {w > 30 && (
+                    <text x={a + w / 2} y={y + (ROW_H - 8) / 2} textAnchor="middle" dominantBaseline="central" className={styles.vizSliceLabel}>
+                      {labels.short(s.nakshatraIndex)}{s.enteredRetro ? ' R' : ''}
+                    </text>
+                  )}
+                </g>
+              )
+            })}
+          </g>
+        )
+      })}
+      {now > t0 && now < t1 && (
+        <line x1={x(now)} x2={x(now)} y1={TOP - 4} y2={H - 2} stroke="var(--text-primary)" strokeWidth={2} />
+      )}
     </svg>
   )
 }

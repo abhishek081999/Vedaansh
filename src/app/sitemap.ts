@@ -12,8 +12,10 @@ const CONTENT_REV = new Date('2026-03-14T00:00:00.000Z')
 
 /** Nakshatra tab slugs — keep in sync with nakshatra/[tab]/layout.tsx TAB_META */
 const NAKSHATRA_TABS = [
-  'overview', 'navtara', 'taramandal', 'bestdays', 'muhurta', 'panchaka', 'planet',
-  'compat', 'remedies', 'profession', 'medical', 'advanced',
+  'overview', 'planet', 'starlords', 'degrees', 'gandmool',
+  'special', 'journey', 'navtara', 'taramandal', 'compat',
+  'bestdays', 'birthday', 'slowtransits', 'muhurta', 'panchaka', 'latta', 'ghatak',
+  'profession', 'medical', 'remedies', 'namakshar',
 ] as const
 
 function page(
