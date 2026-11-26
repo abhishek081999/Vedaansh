@@ -10,7 +10,7 @@ const NakshatraEmpty = dynamic(() => import('@/components/ui/NakshatraPanel').th
 
 const TABS = new Set<NakshatraSubTab>([
   'overview', 'navtara', 'taramandal', 'bestdays', 'muhurta', 'panchaka',
-  'planet', 'compat', 'remedies', 'profession', 'medical',
+  'planet', 'compat', 'remedies', 'profession', 'medical', 'advanced',
 ])
 
 export default function NakshatraTabPage() {

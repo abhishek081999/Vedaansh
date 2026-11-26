@@ -1,0 +1,357 @@
+/* NakshatraAdvancedTab — builds on NakshatraPanel.module.css tokens */
+
+.sectionBar {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  scrollbar-width: none;
+}
+
+.sectionBtn {
+  display: inline-flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.4rem 0.7rem;
+  border: none;
+  border-radius: calc(var(--r-md) - 2px);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sectionBtn:hover { color: var(--text-primary); }
+
+.sectionBtnOn,
+.sectionBtnOn:hover {
+  background: var(--gold-faint);
+  color: var(--text-gold);
+}
+
+.sectionBtn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.labelShort { display: none; }
+
+@media (max-width: 520px) {
+  .labelLong { display: none; }
+  .labelShort { display: inline; }
+}
+
+.teaser {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--border));
+  border-radius: var(--r-md);
+  background: var(--gold-faint);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.inlineControl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controlLabel {
+  margin-right: 0.35rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.starGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 0.6rem;
+}
+
+.starCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--amber) 30%, var(--border-soft));
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.starCardHard {
+  border-color: color-mix(in srgb, var(--rose) 35%, var(--border-soft));
+  background: color-mix(in srgb, var(--rose) 5%, var(--surface-2));
+}
+
+.starTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.starName {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: var(--text-gold);
+}
+
+.starCount {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.starNak {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.natureTag {
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.starMeaning {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.starNatal {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border-soft);
+  font-size: 0.76rem;
+  color: var(--text-primary);
+}
+
+.hitList,
+.plainList,
+.returnList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plainList li {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.hit {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.hit_alert { border-color: color-mix(in srgb, var(--rose) 35%, var(--border-soft)); background: color-mix(in srgb, var(--rose) 6%, var(--surface-2)); }
+.hit_caution { border-color: color-mix(in srgb, var(--amber) 35%, var(--border-soft)); background: color-mix(in srgb, var(--amber) 6%, var(--surface-2)); }
+.hit_support { border-color: color-mix(in srgb, var(--teal) 35%, var(--border-soft)); background: color-mix(in srgb, var(--teal) 6%, var(--surface-2)); }
+
+.hitTone {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hit_alert .hitTone { color: var(--rose); }
+.hit_caution .hitTone { color: var(--amber); }
+.hit_support .hitTone { color: var(--teal); }
+
+.hitMeaning {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.returnList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+}
+
+.returnList li,
+.birthdayDate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.returnList li {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.chain {
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.chip {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.flagRow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.flagRow .chip { margin-left: 0; }
+
+.chipGood { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 40%, var(--border)); }
+.chipBad { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 40%, var(--border)); }
+.chipMid { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 40%, var(--border)); }
+
+.muted { color: var(--text-muted); }
+
+.footnote {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* ── graphics ─────────────────────────────────────────────── */
+
+.vizSvg {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.vizSvgWide {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.vizScroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.vizScroll .vizSvgWide { min-width: 520px; }
+
+.vizStripSign {
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.vizSliceLabel {
+  font-size: 8.5px;
+  font-weight: 600;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.vizStarLabel {
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--text-primary);
+}
+
+.vizGlyph {
+  font-size: 10px;
+  fill: var(--text-primary);
+  pointer-events: none;
+}
+
+.vizGlyphLg {
+  font-size: 13px;
+  fill: var(--text-primary);
+  pointer-events: none;
+}
+
+.vizCenterTitle {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 650;
+  fill: var(--text-gold);
+}
+
+.vizCenterSub {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  fill: var(--text-muted);
+}
+
+.vizAxis {
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.vizAxisStrong {
+  font-size: 10.5px;
+  font-weight: 700;
+  fill: var(--text-primary);
+}
+
+.vizSvg path,
+.vizSvg circle,
+.vizSvgWide rect,
+.vizSvgWide g { transition: opacity 120ms ease; }
+
+.vizSvg path:hover,
+.vizSvgWide rect:hover { opacity: 0.8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vizSvg path,
+  .vizSvg circle,
+  .vizSvgWide rect,
+  .vizSvgWide g { transition: none; }
+}

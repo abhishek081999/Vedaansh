@@ -30,7 +30,7 @@
 | `PROTECTED_API` | Whole-segment prefixes in `src/lib/security/proxyRules.ts`. Includes `/api/chart/save`, `/api/chart/template`, `/api/user`, `/api/muhurta`, `/api/clients`, and payment checkout/verify |
 | `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`, `/api/lal-kitab` |
 | `GOLD_API` `/api/muhurta` | Muhurta timeline and report |
-| Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) `/api/marriage/gochar-windows`, `/api/numerology/premium`, `/api/numerology/calendar` (session + `requirePlanGate('gold')`) and `/api/numerology/save-to-client` (`requirePlanGate('platinum')`) in the handler |
+| Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) `/api/marriage/gochar-windows`, `/api/numerology/premium`, `/api/numerology/calendar`, `/api/nakshatra/returns` (session + `requirePlanGate('gold')`) and `/api/numerology/save-to-client` (`requirePlanGate('platinum')`) in the handler |
 
 ---
 
@@ -187,6 +187,8 @@ Also gated in `src/proxy.ts` (`PROTECTED_API` + `GOLD_API` for `/api/lal-kitab`)
 | POST | `/api/transit/forecast` | yes | gold | Predictive forecast: gochar + Vedha, BAV, MD/AD weighting, life-area scores, windows, ingress/station events (≤24 months) |
 | GET | `/api/transit/calendar` | yes | gold | Monthly gochar calendar (`format=html` printable) |
 | GET | `/api/transits/planets` | no | — | Planet positions |
+| GET | `/api/nakshatra/moon-calendar` | no | — | Moon's nakshatra at ~06:00 local for each day of a month, plus star-change times. Query `year`, `month`, `tzOffset` (minutes east of UTC), `ayanamsha`. Feeds Nakshatra Best Days. `publicEphemeris` preset |
+| GET | `/api/nakshatra/returns` | yes | **gold** | Vedic star birthdays (next 5 years) and monthly Janma-nakshatra returns (next 12 months). Query `birthNak` (0–26), `sunRashi` (1–12), `ayanamsha`. `muhurtaRead` preset |
 | GET | `/api/atlas/search` | no | — | Geocode (Photon / Open-Meteo / Nominatim + Redis) |
 
 ---

@@ -55,6 +55,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Nakshatra Profession full | Indicators + blueprint teaser | Yes | Yes | UI: `NakshatraProfessionTab` (Gold+) |
 | Nakshatra Medical full | Indicators + constitution teaser | Yes | Yes | UI: `NakshatraMedicalTab` (Gold+) |
 | Nakshatra Taramandal | Full (all mandals + chart map) | Yes | Yes | UI: `NakshatraTaramandalTab` |
+| Nakshatra Advanced | Special-star table (teaser) | Yes | Yes | UI: `NakshatraAdvancedTab` — special-star transits, star-lord chain, star birthday, Latta & sensitive degrees are Gold+; API: `/api/nakshatra/returns` (`requirePlanGate('gold')`) |
 | Planetary Energy Cycles | 2-cycle preview (short summary) | Yes | Yes | UI: `PlanetaryEnergyCyclesPanel` / `PlanetsWorkspace` (Gold+) |
 | Moon Kalas & Manas | Active kala + primary manas overview | Full 16 kalas, 7 manas, past-life flags | Full | UI: `MoonKalasManasPanel` / Planets → Moon tab (Gold+) |
 | Sun · 12 Adityas | Primary Aditya + karakatva teaser | Full 12 Adityas, spiritual, afflictions | Full | UI: `SunAdityasPanel` / Planets → Sun tab (Gold+) |

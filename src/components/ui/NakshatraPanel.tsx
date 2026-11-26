@@ -6,6 +6,7 @@
 
 import React, { useState, useMemo, useEffect, useId } from 'react'
 import { useTranslations } from 'next-intl'
+import { useSession } from 'next-auth/react'
 import {
   Activity,
   BookOpen,
@@ -24,6 +25,7 @@ import {
   Lightbulb,
   Link2,
   Moon,
+  Network,
   Orbit,
   Plane,
   Sparkles,
@@ -40,6 +42,7 @@ import { NakshatraProfessionTab } from '@/components/ui/NakshatraProfessionTab'
 import { NakshatraMedicalTab } from '@/components/ui/NakshatraMedicalTab'
 import { NakshatraTaramandalTab } from '@/components/ui/NakshatraTaramandalTab'
 import { NakshatraNavtaraTab } from '@/components/ui/NakshatraNavtaraTab'
+import { NakshatraAdvancedTab } from '@/components/ui/NakshatraAdvancedTab'
 import {
   getNakshatraCharacteristics, checkPanchaka,
   getGraNakPositions, getNakCompatibility, TARA_QUALITIES, TARA_NAMES,
@@ -60,7 +63,8 @@ import {
 } from '@/lib/engine/nakshatraRemedies'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { NAKSHATRA_NAMES as NAK_NAMES, GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
-import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
+import { DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { PlanetDetailCard, ICON } from '@/components/ui/PlanetDetailCard'
 import { NakshatraWheel } from '@/components/ui/NakshatraWheel'
 import { Button } from '@/components/ui/primitives/Button'
@@ -70,7 +74,7 @@ import { useLang } from '@/i18n/useLang'
 import { termHi } from '@/i18n/jyotish'
 import styles from './NakshatraPanel.module.css'
 
-export type NakshatraSubTab = 'overview' | 'navtara' | 'taramandal' | 'bestdays' | 'muhurta' | 'panchaka' | 'planet' | 'compat' | 'remedies' | 'profession' | 'medical'
+export type NakshatraSubTab = 'overview' | 'navtara' | 'taramandal' | 'bestdays' | 'muhurta' | 'panchaka' | 'planet' | 'compat' | 'remedies' | 'profession' | 'medical' | 'advanced'
 type SubTab = NakshatraSubTab
 
 const TAB_DEFS: { id: SubTab; labelKey: string; Icon: LucideIcon }[] = [
@@ -85,6 +89,7 @@ const TAB_DEFS: { id: SubTab; labelKey: string; Icon: LucideIcon }[] = [
   { id: 'remedies', labelKey: 'remedies', Icon: Heart },
   { id: 'profession', labelKey: 'profession', Icon: Briefcase },
   { id: 'medical', labelKey: 'medical', Icon: Activity },
+  { id: 'advanced', labelKey: 'advanced', Icon: Network },
 ]
 
 const MOBILE_TAB_DEFS: { id: SubTab; icon: LucideIcon; labelKey: string }[] = [
@@ -99,6 +104,7 @@ const MOBILE_TAB_DEFS: { id: SubTab; icon: LucideIcon; labelKey: string }[] = [
   { id: 'remedies', icon: Heart, labelKey: 'remediesShort' },
   { id: 'profession', icon: Briefcase, labelKey: 'professionShort' },
   { id: 'medical', icon: Activity, labelKey: 'medical' },
+  { id: 'advanced', icon: Network, labelKey: 'advanced' },
 ]
 
 const ACTIVITY_DEFS: { id: ActivityType; labelKey: string; Icon: LucideIcon }[] = [
@@ -134,12 +140,6 @@ const RATING_CLASS: Record<string, string> = {
   Avoid: styles.ratingAvoid,
 }
 
-const PADA_START: Record<number, number> = {
-  0: 0, 1: 0, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4, 9: 5, 10: 5, 11: 6,
-  12: 7, 13: 7, 14: 8, 15: 9, 16: 9, 17: 10, 18: 11, 19: 11, 20: 0, 21: 1,
-  22: 2, 23: 2, 24: 3, 25: 4, 26: 4,
-}
-
 function ganaClass(gana: string): string {
   if (gana === 'Deva') return styles.ganaDeva
   if (gana === 'Rakshasa') return styles.ganaRakshasa
@@ -171,7 +171,8 @@ function heatTone(score: number): string {
 }
 
 function padaSign(nakIdx: number, pada: number): string {
-  const rashi = ((((PADA_START[nakIdx] ?? 0) + pada - 1) % 12) + 1) as Rashi
+  // Navamsa of a pada: padas run through the zodiac from Aries, 4 per nakshatra.
+  const rashi = (((nakIdx * 4 + pada - 1) % 12) + 1) as Rashi
   return RASHI_SHORT[rashi]
 }
 
@@ -203,6 +204,8 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const { hi, lang } = useLang()
   const nm = (en: string) => (hi ? termHi(en) : en)
   const [subTab, setSubTab] = useState<SubTab>(initialTab)
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const [chartView, setChartView] = useState<'stars' | 'rashi'>('stars')
   const [isMobile, setIsMobile] = useState(false)
 
@@ -225,7 +228,6 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const birthNakIdx = moon?.nakshatraIndex ?? 0
   const birthNakPada = moon?.pada ?? 1
-  const moonLon = moon?.lonSidereal ?? 0
 
   const chars = useMemo(() => getNakshatraCharacteristics(birthNakIdx, birthNakPada, lang), [birthNakIdx, birthNakPada, lang])
   const starName = nm(chars.name)
@@ -395,9 +397,9 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
                 subTab={subTab}
                 birthNakIdx={birthNakIdx}
                 birthNakPada={birthNakPada}
-                moonLon={moonLon}
                 chart={chart}
                 planetPos={planetPos}
+                userPlan={userPlan}
               />
             )}
           </div>
@@ -425,22 +427,22 @@ function TabContent({
   subTab,
   birthNakIdx,
   birthNakPada,
-  moonLon,
   chart,
   planetPos,
+  userPlan,
 }: {
   subTab: SubTab
   birthNakIdx: number
   birthNakPada: number
-  moonLon: number
   chart: ChartOutput
   planetPos: Placement[]
+  userPlan: UserPlan
 }) {
   return (
     <div className={styles.stack}>
       {subTab === 'navtara' && <NakshatraNavtaraTab chart={chart} birthNakIdx={birthNakIdx} />}
       {subTab === 'taramandal' && <NakshatraTaramandalTab chart={chart} />}
-      {subTab === 'bestdays' && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
+      {subTab === 'bestdays' && <BestDaysTab birthNakIdx={birthNakIdx} chart={chart} />}
       {subTab === 'muhurta' && <MuhurtaTab nakIdx={birthNakIdx} />}
       {subTab === 'panchaka' && <PanchakaTab grahas={chart.grahas} />}
       {subTab === 'planet' && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
@@ -448,6 +450,7 @@ function TabContent({
       {subTab === 'remedies' && <RemediesTab nakIdx={birthNakIdx} />}
       {subTab === 'profession' && <NakshatraProfessionTab chart={chart} birthNakIdx={birthNakIdx} birthNakPada={birthNakPada} />}
       {subTab === 'medical' && <NakshatraMedicalTab chart={chart} birthNakIdx={birthNakIdx} />}
+      {subTab === 'advanced' && <NakshatraAdvancedTab chart={chart} userPlan={userPlan} />}
     </div>
   )
 }
@@ -944,14 +947,36 @@ function PadaMap({ nakIdx, pada }: { nakIdx: number; pada: number }) {
   )
 }
 
-function BestDaysTab({ birthNakIdx, moonLon }: { birthNakIdx: number; moonLon: number }) {
+function BestDaysTab({ birthNakIdx, chart }: { birthNakIdx: number; chart: ChartOutput }) {
   const t = useTranslations('nakshatra.bestDays')
   const { lang, hi } = useLang()
   const nm = (en: string) => (hi ? termHi(en) : en)
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [year, setYear] = useState(now.getFullYear())
-  const days = useMemo(() => getMonthlyForecast(birthNakIdx, moonLon, year, month, lang), [birthNakIdx, moonLon, year, month, lang])
+  const ayanamsha = chart.meta?.settings?.ayanamsha ?? DEFAULT_AYANAMSHA
+  // Moon's real star per day (Swiss Ephemeris, ~sunrise in the viewer's time zone).
+  const [moonDays, setMoonDays] = useState<{ key: string; naks: number[] } | null>(null)
+  const [moonError, setMoonError] = useState(false)
+  const monthKey = `${year}-${month}-${ayanamsha}`
+  useEffect(() => {
+    let cancelled = false
+    setMoonError(false)
+    const tzOffset = -new Date(year, month - 1, 15).getTimezoneOffset()
+    const qs = new URLSearchParams({ year: String(year), month: String(month), tzOffset: String(tzOffset), ayanamsha: String(ayanamsha) })
+    fetch(`/api/nakshatra/moon-calendar?${qs}`)
+      .then(r => r.json().then(j => ({ ok: r.ok, j })))
+      .then(({ ok, j }) => {
+        if (cancelled) return
+        if (!ok || !j.success) throw new Error('FETCH_FAILED')
+        setMoonDays({ key: monthKey, naks: (j.data.days as { nakshatraIndex: number }[]).map(d => d.nakshatraIndex) })
+      })
+      .catch(() => { if (!cancelled) setMoonError(true) })
+    return () => { cancelled = true }
+  }, [year, month, ayanamsha, monthKey])
+  const naks = moonDays?.key === monthKey ? moonDays.naks : null
+  const days = useMemo(() => (naks ? getMonthlyForecast(birthNakIdx, naks, year, month, lang) : []), [birthNakIdx, naks, year, month, lang])
+  const yearOptions = Array.from({ length: 6 }, (_, i) => now.getFullYear() - 1 + i)
   const top3 = useMemo(() => [...days].sort((a, b) => b.score - a.score).slice(0, 3), [days])
   const MONTHS = t.raw('months') as string[]
   const WEEKDAYS = t.raw('weekdays') as string[]
@@ -968,10 +993,12 @@ function BestDaysTab({ birthNakIdx, moonLon }: { birthNakIdx: number; moonLon: n
             {MONTHS.map((m, i) => <option key={`${m}-${i}`} value={i + 1}>{m}</option>)}
           </select>
           <select className={styles.select} value={year} onChange={e => setYear(Number(e.target.value))} aria-label={t('yearAria')}>
-            {[2024, 2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}</option>)}
+            {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
       </div>
+
+      {!naks && <p className={styles.lead}>{moonError ? t('moonFailed') : t('moonLoading')}</p>}
 
       <div className={styles.highlightGrid}>
         {top3.map((d, i) => (
@@ -1071,7 +1098,7 @@ function PanchakaTab({ grahas }: { grahas: ChartOutput['grahas'] }) {
   const t = useTranslations('nakshatra.panchaka')
   const { hi, lang } = useLang()
   const nm = (en: string) => (hi ? termHi(en) : en)
-  const panchaka = useMemo(() => grahas.map(g => ({ graha: g.id, name: g.name, ...checkPanchaka(g.nakshatraIndex, lang) })), [grahas, lang])
+  const panchaka = useMemo(() => grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)).map(g => ({ graha: g.id, name: g.name, ...checkPanchaka(g.nakshatraIndex, lang) })), [grahas, lang])
   const allNaks = useMemo(() => NAK_NAMES.map((_, i) => checkPanchaka(i, lang)), [lang])
   const hits = panchaka.filter(p => p.panchaka)
   return (
@@ -1270,7 +1297,7 @@ function CompatTab({ birthNakIdx }: { birthNakIdx: number }) {
           <Factor
             label={t('factors.nadi')}
             score={compat.nadiScore}
-            max={3}
+            max={8}
             extra={compat.nadiMatch ? t('sameNadi') : t('different')}
             fill={compat.nadiMatch ? styles.fillRose : styles.fillTeal}
             ink={compat.nadiMatch ? styles.emRose : styles.emTeal}

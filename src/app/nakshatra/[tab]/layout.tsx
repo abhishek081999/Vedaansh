@@ -60,6 +60,11 @@ const TAB_META_EN: Record<string, { title: string; description: string; crumb: s
     description: 'Body-part map, dosha tendencies, and medical reference keyed to your birth nakshatra.',
     crumb: 'Medical',
   },
+  advanced: {
+    title: 'Advanced Nakshatra — Special Stars, Star Lords & Latta',
+    description: 'Nakshatra jyotish as a system: Janma, Karma, Sanghatika and Vainashika stars with transits, the star-lord chain, your Vedic star birthday, Latta and sensitive degrees.',
+    crumb: 'Advanced',
+  },
 }
 
 const DEFAULT_META = {

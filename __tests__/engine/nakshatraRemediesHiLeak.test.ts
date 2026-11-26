@@ -60,7 +60,7 @@ describe('nakshatra remedies Hindi leak', () => {
   })
 
   it('getMonthlyForecast (lang=hi) avoids English sentence leaks', () => {
-    const months = [0, 7, 14, 22].map((nak) => getMonthlyForecast(nak, 40 + nak, 2026, 6, 'hi'))
+    const months = [0, 7, 14, 22].map((nak) => getMonthlyForecast(nak, Array.from({ length: 30 }, (_, i) => (nak + i) % 27), 2026, 6, 'hi'))
     const leaks = findEnglishLeaks(collectStrings(months))
     expect(leaks, `English leaks (${leaks.length}):\n${leaks.join('\n---\n')}`).toEqual([])
   })
@@ -75,7 +75,7 @@ describe('nakshatra remedies Hindi leak', () => {
     expect(getNakshatraMuhurtaRating(1, 'finance').note).toBe('Ugra (fierce) — not recommended')
     expect(getNakshatraMuhurtaRating(2, 'finance').note).toBe('Misra (mixed) — moderate results')
 
-    const days = getMonthlyForecast(0, 10.5, 2026, 3)
+    const days = getMonthlyForecast(0, Array.from({ length: 31 }, (_, i) => i % 27), 2026, 3)
     const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     expect(days.length).toBe(31)
     expect(days.every((d) => d.dayName === weekday[d.date.getDay()])).toBe(true)

@@ -11,6 +11,11 @@
     "keywords": ["Nakshatra", "Vedic nakshatra", "birth star", "Pada", "Yogini dasha", "nakshatra compatibility", "Ashwini", "Rohini", "Hasta"]
   },
   "tabMeta": {
+    "advanced": {
+      "title": "Advanced Nakshatra — Special Stars, Star Lords & Latta",
+      "description": "Nakshatra jyotish as a system: Janma, Karma, Sanghatika and Vainashika stars with transits, the star-lord chain, your Vedic star birthday, Latta and sensitive degrees.",
+      "crumb": "Advanced"
+    },
     "overview": {
       "title": "Nakshatra Overview — Birth Star Analysis",
       "description": "A quick look at your birth Nakshatra: ruling planet, deity, Gana, Nadi, symbol, pada and an introductory reading, calculated with Swiss Ephemeris.",
@@ -119,7 +124,8 @@
     "remediesShort": "Remedy",
     "profession": "Profession",
     "professionShort": "Career",
-    "medical": "Medical"
+    "medical": "Medical",
+    "advanced": "Advanced"
   },
   "overview": {
     "title": "Birth star",
@@ -182,6 +188,8 @@
     "otherPlacementsLead": "Every other nakshatra that holds planets in this chart — with its profile and planet readings."
   },
   "bestDays": {
+    "moonLoading": "Calculating the Moon's star for each day…",
+    "moonFailed": "Could not load the Moon's daily stars.",
     "title": "Monthly forecast",
     "bestFor": "Best days for {month} {year}",
     "monthAria": "Month",
@@ -567,5 +575,210 @@
     "refDoshaHeaders": ["Dosha", "Duration", "Count", "Characteristics", "Key Action"],
     "bodyMapAria": "Kalapurusha body map",
     "bodyParts": ["Head, brain", "Face, throat", "Shoulders, arms, lungs", "Chest, breasts", "Heart, upper abdomen", "Intestines, waist", "Lower abdomen, kidneys", "Genitals, excretory", "Hips, thighs", "Knees, joints", "Calves, ankles", "Feet"]
+  },
+  "advanced": {
+    "viz": {
+      "specialTitle": "Special-star wheel",
+      "specialCaption": "Your birth star sits at the top; the wheel runs through all 27 stars. Gold marks the Janma star, rose the hard stars, amber the sensitive ones. Natal planets sit inside the ring; today's transits on special stars sit outside.",
+      "legendJanma": "Janma star",
+      "legendHard": "Hard star",
+      "legendSensitive": "Sensitive star",
+      "legendNatal": "Natal planet",
+      "legendTransit": "Transit today",
+      "webTitle": "Star-lord web",
+      "webCaption": "Each arrow runs from a planet to the lord of its star. Larger gold nodes govern two or more placements; a teal loop means a planet sits in its own star; gold arrows are star exchanges. The Lagna is at the centre.",
+      "legendArrow": "Star-lord link",
+      "legendExchange": "Star exchange",
+      "legendOwn": "Own star",
+      "legendHub": "Key star lord",
+      "timelineTitle": "Next 12 months",
+      "timelineCaption": "Teal bars are the days the Moon is in your birth star; gold diamonds are star birthdays. The black line is today.",
+      "legendReturn": "Janma-nakshatra day",
+      "legendBirthday": "Star birthday",
+      "lattaTitle": "Latta wheel",
+      "lattaCaption": "Arrows run from each planet's star to the star it kicks. Solid arrows kick forward, dashed ones backward. Rose arrows land on your Janma (gold) or Lagna (teal) star.",
+      "legendForward": "Kicks forward",
+      "legendBackward": "Kicks backward",
+      "legendHit": "Hits Janma or Lagna star",
+      "legendLagna": "Lagna star",
+      "stripTitle": "Zodiac strip",
+      "stripCaption": "All twelve signs from 0° Aries to 30° Pisces. Rose zones are the Gandanta knots; teal ticks are each sign's Pushkara Bhaga and rose ticks its Mrityu Bhaga. Planets with any flag are ringed in gold.",
+      "legendGandanta": "Gandanta zone",
+      "legendPushkara": "Pushkara Bhaga",
+      "legendMrityu": "Mrityu Bhaga",
+      "legendFlagged": "Flagged planet"
+    },
+    "intro": "Nakshatra jyotish works as a system of its own: stars counted from your birth star, the star lord behind every planet, the stars each planet strikes, and the degrees where a star turns sensitive.",
+    "sections": {
+      "special": "Special stars",
+      "specialShort": "Stars",
+      "starlord": "Star lords",
+      "starlordShort": "Lords",
+      "birthday": "Star birthday",
+      "birthdayShort": "Birthday",
+      "degrees": "Latta & degrees",
+      "degreesShort": "Degrees"
+    },
+    "sectionsAria": "Advanced nakshatra sections",
+    "goldFeature": "Advanced nakshatra analysis",
+    "teaser": "Free preview: the special stars of your chart. Gold opens the transits over them, the star-lord chain, your star birthdays, Latta and sensitive degrees.",
+    "special": {
+      "title": "Special stars from your birth star",
+      "lead": "Counting from the Moon's star (1 = Janma), certain stars carry a fixed meaning for you. Planets placed in them at birth colour that theme for life; transits over them time it.",
+      "vainashikaLabel": "Vainashika count",
+      "vainashika22": "22nd (88th pada)",
+      "vainashika23": "23rd",
+      "headers": {
+        "star": "Special star",
+        "count": "Count",
+        "nakshatra": "Nakshatra",
+        "natal": "Natal planets"
+      },
+      "count": "#{n}",
+      "none": "—",
+      "nature": {
+        "sensitive": "Sensitive",
+        "malefic": "Hard"
+      },
+      "stars": {
+        "janma": {
+          "name": "Janma",
+          "meaning": "Body, health and the self. Whatever touches this star touches you directly."
+        },
+        "karma": {
+          "name": "Karma",
+          "meaning": "Work, action and reputation. The 10th star works like a 10th house of the stars."
+        },
+        "sanghatika": {
+          "name": "Sanghatika",
+          "meaning": "Associations and groups. Hard transits here bring trouble through company, partners or crowds."
+        },
+        "samudaya": {
+          "name": "Samudaya",
+          "meaning": "Collective events and gatherings. Hard transits bring mishaps in public or shared undertakings."
+        },
+        "adhana": {
+          "name": "Adhana",
+          "meaning": "Conception and foundations; the third trine of the Janma star. Shows what you build and carry forward."
+        },
+        "vainashika": {
+          "name": "Vainashika",
+          "meaning": "The star of loss and endings. Malefic transits here call for caution with health, money and risky starts."
+        },
+        "manasa": {
+          "name": "Manasa",
+          "meaning": "Mind and feelings. Transits colour mood, worry and peace of mind."
+        }
+      },
+      "transitTitle": "Transits over your special stars now",
+      "transitLead": "Hard planets (Sun, Mars, Saturn, Rahu, Ketu) on a hard star call for care; on a sensitive star they need attention. Benefics on any special star support its theme.",
+      "transitLoading": "Loading today's transits…",
+      "transitFailed": "Could not load today's transits.",
+      "transitNone": "No planet is transiting a special star today.",
+      "tone": {
+        "alert": "Care",
+        "caution": "Attention",
+        "support": "Support"
+      },
+      "transitLine": "{graha} in {nakshatra} — your {star} star",
+      "note": "Texts disagree on Vainashika (22nd or 23rd) and on the Jati, Desha and Abhisheka stars used for kings, so those are not shown."
+    },
+    "starlord": {
+      "title": "Star-lord chain",
+      "lead": "A planet gives the results of the lord of the nakshatra it occupies. Read each row as: this planet acts through its star lord, so it delivers the houses that lord sits in and rules.",
+      "headers": {
+        "body": "Planet",
+        "star": "Star · pada",
+        "house": "House",
+        "starLord": "Star lord",
+        "slHouse": "Lord in",
+        "rules": "Lord rules",
+        "delivers": "Delivers houses",
+        "chain": "Chain"
+      },
+      "ownStar": "own star",
+      "via": "via {lord}",
+      "retro": "R",
+      "combust": "C",
+      "loadTitle": "Key star lords",
+      "loadLead": "A star lord that governs several planets becomes a hidden manager of the chart. Its dasha and its strength decide how those planets perform.",
+      "loadLine": "{lord} governs {count, plural, one {# placement} other {# placements}}: {bodies}",
+      "exchangeTitle": "Star exchanges (nakshatra parivartana)",
+      "exchangeLead": "When two planets sit in each other's stars, they work as one unit and their dashas run each other's results.",
+      "exchangeNone": "No star exchange in this chart.",
+      "exchangeLine": "{a} ↔ {b}",
+      "houseN": "H{n}"
+    },
+    "birthday": {
+      "title": "Star birthday (Janma Nakshatra Dinam)",
+      "lead": "The Vedic birthday is the day the Moon returns to your birth star while the Sun is in its natal sign ({sign}). It is a day for prayer, charity and blessings from elders.",
+      "loading": "Calculating with Swiss Ephemeris…",
+      "failed": "Could not calculate the star birthdays.",
+      "year": "{year}",
+      "solarMonth": "Sun in {sign}: {start} – {end}",
+      "none": "The Moon does not reach your star in this solar month.",
+      "twice": "The star falls twice this solar month. Family custom decides which one to keep; many keep the one with the star at sunrise.",
+      "window": "{start} → {end}",
+      "returnsTitle": "Monthly Janma-nakshatra days",
+      "returnsLead": "Each month the Moon passes through your birth star for about a day. Many avoid big new starts then and keep it for prayer and rest.",
+      "timesNote": "Times are in your device's time zone."
+    },
+    "latta": {
+      "title": "Latta — the stars each planet kicks",
+      "lead": "Muhurta Chintamani: the Sun, Mars, Jupiter and Saturn kick a star ahead of them; the Moon, Venus, Mercury and Rahu kick one behind. A kicked star is weakened for new beginnings.",
+      "headers": {
+        "graha": "Planet",
+        "rule": "Kicks",
+        "from": "From",
+        "target": "Kicked star"
+      },
+      "forward": "{n}th star ahead",
+      "backward": "{n}th star behind",
+      "natalTitle": "Natal kicks on your Janma and Lagna stars",
+      "transitTitle": "Today's kicks on your Janma and Lagna stars",
+      "hit": "{graha} kicks your {key} star ({nakshatra})",
+      "keys": {
+        "janma": "Janma",
+        "lagna": "Lagna"
+      },
+      "noneNatal": "No natal planet kicks your Janma or Lagna star.",
+      "noneTransit": "No transit planet kicks your Janma or Lagna star today.",
+      "meanings": {
+        "Su": "Trouble with authority and money",
+        "Ma": "Quarrels, haste and accidents",
+        "Ju": "Loss of support from family and mentors",
+        "Sa": "Delay and sorrow",
+        "Mo": "Restless mind",
+        "Ve": "Discord in pleasures and relationships",
+        "Me": "Plans and paperwork go wrong",
+        "Ra": "Confusion and hidden losses"
+      }
+    },
+    "degrees": {
+      "title": "Sensitive degrees",
+      "lead": "The exact degree inside a star can matter as much as the star itself. These checks flag knots, blessed degrees, danger degrees and star edges.",
+      "headers": {
+        "body": "Planet",
+        "position": "Position",
+        "flags": "Flags"
+      },
+      "position": "{deg}° {sign}",
+      "clean": "None",
+      "flags": {
+        "gandanta": "Gandanta",
+        "gandantaExact": "Gandanta (exact)",
+        "pushkaraNavamsha": "Pushkara Navamsha",
+        "pushkaraBhaga": "Pushkara Bhaga",
+        "mrityuBhaga": "Mrityu Bhaga",
+        "sandhi": "Nakshatra sandhi"
+      },
+      "explain": {
+        "gandanta": "Gandanta: the knot where a water sign ends and a fire sign begins (Revati–Ashwini, Ashlesha–Magha, Jyeshtha–Mula). It brings karmic intensity and turning points.",
+        "pushkaraNavamsha": "Pushkara Navamsha: a nourishing navamsha that strengthens and protects the planet.",
+        "pushkaraBhaga": "Pushkara Bhaga: the single most auspicious degree of the sign (within 1°).",
+        "mrityuBhaga": "Mrityu Bhaga: a classical danger degree. Read it as a point of strain and transformation, never on its own as a verdict.",
+        "sandhi": "Nakshatra sandhi: within 0.5° of a star boundary. A small error in birth time can move the planet into the next star, so check the time before relying on its star."
+      }
+    }
   }
 }

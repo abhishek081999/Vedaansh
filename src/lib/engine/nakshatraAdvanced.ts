@@ -42,11 +42,11 @@ export const NAKSHATRA_DEITY: string[] = [
 
 /** Gana: Deva (divine), Manushya (human), Rakshasa (demonic) */
 export const NAKSHATRA_GANA: ('Deva' | 'Manushya' | 'Rakshasa')[] = [
-  'Deva','Manushya','Rakshasa','Deva',  'Deva',
+  'Deva','Manushya','Rakshasa','Manushya','Deva',
   'Manushya','Deva','Deva','Rakshasa','Rakshasa',
   'Manushya','Manushya','Deva','Rakshasa','Deva',
   'Rakshasa','Deva','Rakshasa','Rakshasa','Manushya',
-  'Manushya','Deva','Rakshasa','Deva','Manushya',
+  'Manushya','Deva','Rakshasa','Rakshasa','Manushya',
   'Manushya','Deva',
 ]
 
@@ -54,10 +54,10 @@ export const NAKSHATRA_GANA: ('Deva' | 'Manushya' | 'Rakshasa')[] = [
 export const NAKSHATRA_YONI: string[] = [
   'Horse','Elephant','Goat','Serpent','Serpent',
   'Dog','Cat','Goat','Cat','Rat',
-  'Cow','Cow','Buffalo','Tiger','Buffalo',
+  'Rat','Cow','Buffalo','Tiger','Buffalo',
   'Tiger','Hare','Hare','Dog','Monkey',
-  'Mongoose','Monkey','Lion','Horse','Elephant',
-  'Elephant','Fish',
+  'Mongoose','Monkey','Lion','Horse','Lion',
+  'Cow','Elephant',
 ]
 
 /** Nadi: Vata, Pitta, Kapha (repeats 1-2-3, 3 cycles) */
@@ -99,13 +99,17 @@ export const NAKSHATRA_SHAKTI: string[] = [
   'Poshana Shakti (the power to nourish and cherish)',
 ]
 
-/** Nature: Chara (movable), Sthira (fixed), Misra (mixed/dual) */
-export const NAKSHATRA_NATURE: ('Chara' | 'Sthira' | 'Mridu' | 'Tikshna' | 'Ugra' | 'Mixed')[] = [
-  'Chara','Ugra','Mixed','Sthira','Mridu',
-  'Tikshna','Mixed','Mridu','Tikshna','Ugra',
-  'Ugra','Mridu','Chara','Mridu','Chara',
+/**
+ * Nature (muhurta group): Sthira (fixed), Chara (movable), Ugra (fierce),
+ * Mixed (Mishra), Kshipra (swift / Laghu), Mridu (soft), Tikshna (sharp).
+ * Same classification as GROUP_BY_INDEX in nakshatraMuhurta.ts.
+ */
+export const NAKSHATRA_NATURE: ('Chara' | 'Sthira' | 'Mridu' | 'Tikshna' | 'Ugra' | 'Mixed' | 'Kshipra')[] = [
+  'Kshipra','Ugra','Mixed','Sthira','Mridu',
+  'Tikshna','Chara','Kshipra','Tikshna','Ugra',
+  'Ugra','Sthira','Kshipra','Mridu','Chara',
   'Mixed','Mridu','Tikshna','Tikshna','Ugra',
-  'Mixed','Mridu','Chara','Chara','Ugra',
+  'Sthira','Chara','Chara','Chara','Ugra',
   'Sthira','Mridu',
 ]
 
@@ -450,10 +454,11 @@ export function getNakCompatibility(nak1: number, nak2: number, lang: EngineLang
   
   // Tara
   const diff1 = (nak2 - nak1 + 27) % 27
-  const taraIdx = (diff1 + 1) % 9
-  const taraName = TARA_NAMES[taraIdx - 1] || 'Janma'
-  const isBad = (r: number) => r === 3 || r === 5 || r === 7;
-  const taraScore = isBad(taraIdx) ? 0 : 3;
+  const taraIdx = diff1 % 9            // 0 = Janma … 8 = Ati-Mitra
+  const taraName = TARA_NAMES[taraIdx]
+  const taraNumber = taraIdx + 1
+  const isBad = (r: number) => r === 3 || r === 5 || r === 7
+  const taraScore = isBad(taraNumber) ? 0 : 3
 
   // Gana
   const g1 = NAKSHATRA_GANA[nak1], g2 = NAKSHATRA_GANA[nak2]

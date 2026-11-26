@@ -42,8 +42,6 @@ export interface DayForecast {
   activities:     string[]
 }
 
-const MOON_DEGREES_PER_DAY = 360 / 27.32
-
 const QUALITY_SCORE: Record<'auspicious' | 'inauspicious' | 'neutral', number> = {
   auspicious: 85, neutral: 50, inauspicious: 20,
 }
@@ -60,9 +58,14 @@ const AUSPICIOUS_ACTIVITIES: Record<TaraName, string[]> = {
   'Ati-Mitra':['All auspicious activities','Ceremonies','Weddings','Business launches'],
 }
 
+/**
+ * Month of day forecasts from the Moon's real star on each day.
+ * `moonNakByDay[d - 1]` is the Moon's nakshatra index at ~sunrise on day d
+ * (from /api/nakshatra/moon-calendar → moonCalendarMonth in nakshatraReturns.ts).
+ */
 export function getMonthlyForecast(
   birthNakIndex: number,
-  moonLonSiderealAtBirth: number,
+  moonNakByDay: readonly number[],
   year: number,
   month: number,
   lang: EngineLang = 'en',
@@ -70,13 +73,11 @@ export function getMonthlyForecast(
   const days: DayForecast[] = []
   const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
   const dayNames = lang === 'hi' ? DAY_NAMES_HI : DAY_NAMES
-  const daysInMonth = new Date(year, month, 0).getDate()
+  const daysInMonth = Math.min(new Date(year, month, 0).getDate(), moonNakByDay.length)
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month - 1, d)
-    const dayOfYear = Math.floor((date.getTime() - new Date(year, 0, 1).getTime()) / 86400000)
-    const moonDegreesOnDay = (moonLonSiderealAtBirth + dayOfYear * MOON_DEGREES_PER_DAY) % 360
-    const moonNakIndexOnDay = Math.floor(((moonDegreesOnDay % 360) + 360) % 360 / (360 / 27))
+    const moonNakIndexOnDay = ((Math.floor(moonNakByDay[d - 1]) % 27) + 27) % 27
 
     const diff = (moonNakIndexOnDay - birthNakIndex + 27) % 27
     const taraIdx = diff % 9
