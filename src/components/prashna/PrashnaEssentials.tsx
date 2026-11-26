@@ -197,7 +197,7 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
 
           {/* ── Sign-by-sign table ───────────────────────────── */}
           <div style={box}>
-            <h4 style={h4}>{t('glance')}</h4>
+            <h4 style={h4}>{t('signGlance')}</h4>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
                 <thead>

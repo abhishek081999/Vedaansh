@@ -1,7 +1,7 @@
 // Icons for App Guide sections and topics. Keys match src/lib/help/topics.ts.
 import type { LucideIcon } from 'lucide-react'
 import {
-  BookOpen, Briefcase, CalendarCheck, CalendarDays, Clock, Gem, Hash, Heart,
+  BookMarked, BookOpen, Briefcase, CalendarCheck, CalendarDays, Clock, Gem, Hash, Heart,
   HeartHandshake, Hourglass, Layers, LayoutDashboard, Library, Map, Moon, Orbit, PenLine,
   Rocket, Settings2, Share2, ShieldAlert, Sparkles, Table2, Target, UserCog, UserPlus,
   UsersRound, Waypoints, Compass, PanelsTopLeft,
@@ -41,6 +41,7 @@ const TOPIC_ICONS: Record<string, LucideIcon> = {
   muhurta: Clock,
   nakshatra: Moon,
   advanced: Waypoints,
+  'lal-kitab': BookMarked,
   prashna: Target,
   numerology: Hash,
   'my-charts': Library,

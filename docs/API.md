@@ -1,12 +1,12 @@
 # Vedaansh — API reference
 
-**App:** `jyotish-platform` v2.6.0 · Next.js 16.4.2 App Router · **63** `route.ts` handlers · Node runtime for ephemeris routes  
+**App:** `jyotish-platform` v2.6.0 · Next.js 16.4.6 App Router · **94** `route.ts` handlers · Node runtime for ephemeris routes  
 **Response shape:** `{ success: boolean, data?: unknown, error?: string }` (some routes vary slightly)  
 **Security:** `guardRoute(req, routeSecurityPresets.*())` first — body limit, same-origin on writes, Redis rate limits  
 **Plan truth:** MongoDB via `getEffectivePlan()` / `requirePlanGate()` — not JWT alone  
 **Full entitlements:** [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)  
 **UI-only teasers** (Interpretation hub, Tattva, AI prompt export, etc.) are not REST routes — see the matrix “UI:” rows; they gate in the client with `userPlan`.  
-**Synced:** 2026-11-19
+**Synced:** 2026-11-26
 
 ---
 
@@ -28,9 +28,9 @@
 | Prefix in `src/proxy.ts` | Effect |
 |----------------------|--------|
 | `PROTECTED_API` | Whole-segment prefixes in `src/lib/security/proxyRules.ts`. Includes `/api/chart/save`, `/api/chart/template`, `/api/user`, `/api/muhurta`, `/api/clients`, and payment checkout/verify |
-| `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`, `/api/lal-kitab` |
+| `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`, `/api/chart/acg-transits`, `/api/lal-kitab`, `/api/vastu/export`, `/api/remedies` |
 | `GOLD_API` `/api/muhurta` | Muhurta timeline and report |
-| Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) `/api/marriage/gochar-windows`, `/api/numerology/premium`, `/api/numerology/calendar`, `/api/nakshatra/returns` (session + `requirePlanGate('gold')`) and `/api/numerology/save-to-client` (`requirePlanGate('platinum')`) in the handler |
+| Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler); `/api/marriage/gochar-windows`; `/api/numerology/premium`, `/api/numerology/calendar`; `/api/nakshatra/returns` and `/api/nakshatra/slow-transits` (session + `requirePlanGate('gold')`); `/api/numerology/save-to-client` (`requirePlanGate('platinum')`) |
 
 ---
 
@@ -189,6 +189,7 @@ Also gated in `src/proxy.ts` (`PROTECTED_API` + `GOLD_API` for `/api/lal-kitab`)
 | GET | `/api/transits/planets` | no | — | Planet positions |
 | GET | `/api/nakshatra/moon-calendar` | no | — | Moon's nakshatra at ~06:00 local for each day of a month, plus star-change times. Query `year`, `month`, `tzOffset` (minutes east of UTC), `ayanamsha`. Feeds Nakshatra Best Days. `publicEphemeris` preset |
 | GET | `/api/nakshatra/returns` | yes | **gold** | Vedic star birthdays (next 5 years) and monthly Janma-nakshatra returns (next 12 months). Query `birthNak` (0–26), `sunRashi` (1–12), `ayanamsha`. `muhurtaRead` preset |
+| GET | `/api/nakshatra/slow-transits` | yes | **gold** | Saturn / Jupiter / Rahu / Ketu nakshatra stays from 1 Jan of last year through 5 years ahead (retro re-entries included). Query `ayanamsha`, `node` (`mean` \| `true`). Tara is applied in the browser from the birth star. `muhurtaRead` preset |
 | GET | `/api/atlas/search` | no | — | Geocode (Photon / Open-Meteo / Nominatim + Redis) |
 
 ---

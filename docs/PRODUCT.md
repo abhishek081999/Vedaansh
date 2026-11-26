@@ -1,8 +1,8 @@
 # Vedaansh — product brief
 
 **Product:** Vedic astrology (Jyotish) SaaS — charts, dashas, vargas, panchang, muhurta, CRM, admin  
-**Version:** `jyotish-platform` 2.6.0 · Next.js 16.4.2 · live codebase over marketing copy  
-**Synced:** 2026-11-10  
+**Version:** `jyotish-platform` 2.6.0 · Next.js 16.4.6 · live codebase over marketing copy  
+**Synced:** 2026-11-26  
 **Monetization:** `free` | `gold` | `platinum` — see [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)
 
 Default list prices (INR, code defaults; admin `BillingConfig` may override): Gold ₹168/mo · ₹1,443/yr · Platinum ₹336/mo · ₹2,888/yr (`src/lib/subscription/pricing.ts`).
@@ -28,7 +28,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 4. **Share** — toggle public → unique slug + OG metadata.
 5. **Upgrade** — `/pricing` → Razorpay checkout → verify → plan refresh.
 6. **Muhurta (Gold+)** — find auspicious windows; timeline + report APIs. Marriage Ju–Sa windows: `GET /api/marriage/gochar-windows`.
-7. **Read the chart** — Today, Interpretation hub, relationship and marriage, career and profession, Nadi, Prashna, Jaimini, Nakshatra, Numerology, Tattva. Free sees teasers; Gold unlocks the full readings listed in the matrix.
+7. **Read the chart** — Today, Interpretation hub, relationship and marriage, career and profession, Nadi, Prashna, Jaimini, Lal Kitab, Nakshatra lab (Kota Chakra, Navtara, journey, timing), Numerology, Tattva. Free sees teasers; Gold unlocks the full readings listed in the matrix.
 8. **Consult (Platinum)** — Clients CRM with notes, remedies, sessions.
 9. **Admin** — manage users/plans, billing config, ops cleanup.
 
@@ -45,7 +45,9 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - Interpretation hub on the chart workspace and public `/chart/[slug]` (overview teaser on Free; full sections on Gold+)
 - AI prompt export on the chart toolbar: one Markdown prompt for ChatGPT / Claude / Gemini with all calculations and optional topic studies (personality and mind (default), career, love life, marriage, wealth, health, education, children, spirituality, Lal Kitab); Free gets data + method, Gold+ adds the hub notes and engine readings
 - Lal Kitab (`/lal-kitab`): Teva, predictions, doshas, rin, remedies, Varshphal, timeline; Free teasers; Gold full reading, PDF export, and saved 43-day tracker
-- Prashna, Jaimini, Nadi (`/nadi`), ACG, Vastu, Nakshatra lab, Numerology, Naamkaran, Tattva
+- Prashna, Jaimini, Nadi (`/nadi`), ACG, Vastu, Numerology, Naamkaran, Tattva
+- Nakshatra lab (`/nakshatra/[tab]`): five groups — Birth Star, Chakras (Navtara, Taramandal, Life Journey, Nadi Nakshatras), Transits (Slow Transits, Kota Chakra, Star Birthday), Timing (Best Days, Muhurta, Panchaka, Latta, Ghatak), Guidance (Compatibility, Career, Health, Remedies, Name Letters). Free core + Kota natal; Gold for profession/medical full, slow-transit API, star-birthday returns, and Kota transit overlay
+- App Guide (`/help`) and homepage explore list every core journey, including Lal Kitab and the expanded Nakshatra lab
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging
 - Admin Social Studio (`/admin/social`) for Instagram stills/carousels; Remotion CLI (`npm run reel:mp4`) for HQ Reels from a Remotion pack export

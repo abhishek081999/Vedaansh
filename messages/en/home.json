@@ -146,7 +146,7 @@
       "nakshatra": {
         "title": "Nakshatra",
         "subtitle": "Lunar",
-        "text": "Nakshatra insights day by day."
+        "text": "Birth star, Kota Chakra, Navtara, life journey, and timing."
       },
       "jaimini": {
         "title": "Jaimini Astrology",
@@ -157,6 +157,11 @@
         "title": "Nadi Astrology",
         "subtitle": "Advanced",
         "text": "Chart, planetary positions, and dasha."
+      },
+      "lal_kitab": {
+        "title": "Lal Kitab",
+        "subtitle": "Teva",
+        "text": "Teva, predictions, rin, remedies, and the 43-day tracker."
       },
       "sarvatobhadra": {
         "title": "Sarvatobhadra Chakra",
@@ -202,8 +207,8 @@
       "text": "Work through classical methods on real charts, with plain-language guides beside the calculations.",
       "links": [
         "Jyotish guides",
-        "Jaimini",
-        "Nadi"
+        "Nakshatra lab",
+        "Lal Kitab"
       ]
     },
     "practitioners": {

@@ -4,7 +4,7 @@ Context for coding agents working in this repo. **Trust live code over docs** wh
 
 ## What this is
 
-**Vedaansh** (`jyotish-platform` v2.6.0) is a Vedic astrology (Jyotish) web app: birth charts, dashas, vargas, panchang, muhurta, Kundali Milan, relationship and marriage, career and profession, prashna, Jaimini, Nadi, SBC, astrocartography, client CRM, and admin tools. Calculations use **Swiss Ephemeris** via the `sweph` npm package. Stack pin: Next.js 16.4.6, React 19.2.7, Zod 4.6.7.
+**Vedaansh** (`jyotish-platform` v2.6.0) is a Vedic astrology (Jyotish) web app: birth charts, dashas, vargas, panchang, muhurta, Kundali Milan, relationship and marriage, career and profession, prashna, Jaimini, Nadi, Lal Kitab, Nakshatra lab (Kota Chakra and related), SBC, astrocartography, client CRM, and admin tools. Calculations use **Swiss Ephemeris** via the `sweph` npm package. Stack pin: Next.js 16.4.6, React 19.2.7, Zod 4.6.7.
 
 ## Stack (verify in `package.json`)
 
@@ -46,8 +46,8 @@ Canonical plan names: `free` | `gold` | `platinum`.
 
 | Plan | Chart saves | Default price (INR) | Notable gates |
 |------|-------------|---------------------|---------------|
-| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser, AI prompt (short teaser), Lal Kitab Teva/overview teasers |
-| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows, full AI prompt (Full length, focus studies, hub notes + topic engine readings), Lal Kitab full reading + PDF + 43-day tracker |
+| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser, AI prompt (short teaser), Lal Kitab Teva/overview teasers, Nakshatra core lab + Kota natal |
+| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows, full AI prompt (Full length, focus studies, hub notes + topic engine readings), Lal Kitab full reading + PDF + 43-day tracker, Nakshatra profession/medical, Kota transit overlay, star birthdays, slow transits |
 | Platinum | Unlimited charts and Kundali Milan matches | ₹336/mo · ₹2,888/yr | Email charts (incl. Lal Kitab chapter), bulk ZIP, client CRM, white-label, full 41 vargas |
 
 Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).

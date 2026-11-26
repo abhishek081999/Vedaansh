@@ -52,10 +52,13 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Cosmic Weather full guidance | Labels + short lines | Yes | Yes | UI: `PersonalDayCard` (`userPlan` / Gold+) |
 | Astro Vastu full analysis | Chart + compass preview | Yes | Yes | UI: `AstroVastuPanel` (`userPlan` / Gold+) |
 | Sarvatobhadra Chakra full | Birth star + grid | Yes | Yes | UI: `sbc/page` (`userPlan` / Gold+) |
+| Nakshatra core lab (Profile, Planets, Navtara, Taramandal, Life Journey, Best Days, Muhurta, Panchaka, Compat, Remedies, Name Letters, Gandmool, Ghatak, Nadi Nakshatras) | Yes | Yes | Yes | UI: `NakshatraPanel` tabs via `NAKSHATRA_GROUPS` in `navConfig.ts` |
 | Nakshatra Profession full | Indicators + blueprint teaser | Yes | Yes | UI: `NakshatraProfessionTab` (Gold+) |
 | Nakshatra Medical full | Indicators + constitution teaser | Yes | Yes | UI: `NakshatraMedicalTab` (Gold+) |
-| Nakshatra Taramandal | Full (all mandals + chart map) | Yes | Yes | UI: `NakshatraTaramandalTab` |
-| Nakshatra Advanced | Special-star table (teaser) | Yes | Yes | UI: `NakshatraAdvancedTab` — special-star transits, star-lord chain, star birthday, Latta & sensitive degrees are Gold+; API: `/api/nakshatra/returns` (`requirePlanGate('gold')`) |
+| Nakshatra Kota Chakra | Natal fort (Swami, Pala, seats) | Natal + live transit overlay | Same as Gold | UI: `NakshatraExtrasTab` Kota section (`planMeetsUiGate` for transit view) |
+| Nakshatra Slow Transits | Locked | Yes | Yes | UI: `NakshatraExtrasTab`; API: `GET /api/nakshatra/slow-transits` (`requirePlanGate('gold')`) |
+| Nakshatra system / advanced | Special-star table (teaser) | Yes | Yes | UI: `NakshatraAdvancedTab` / system sections — special-star transits, star-lord chain, Latta, sensitive degrees, star birthday are Gold+; API: `GET /api/nakshatra/returns` (`requirePlanGate('gold')`) |
+| Nakshatra moon calendar | Yes | Yes | Yes | API: `GET /api/nakshatra/moon-calendar` (public; feeds Best Days) |
 | Planetary Energy Cycles | 2-cycle preview (short summary) | Yes | Yes | UI: `PlanetaryEnergyCyclesPanel` / `PlanetsWorkspace` (Gold+) |
 | Moon Kalas & Manas | Active kala + primary manas overview | Full 16 kalas, 7 manas, past-life flags | Full | UI: `MoonKalasManasPanel` / Planets → Moon tab (Gold+) |
 | Sun · 12 Adityas | Primary Aditya + karakatva teaser | Full 12 Adityas, spiritual, afflictions | Full | UI: `SunAdityasPanel` / Planets → Sun tab (Gold+) |
