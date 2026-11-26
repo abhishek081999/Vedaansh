@@ -635,6 +635,7 @@
       "body": "Body parts",
       "places": "Places and objects",
       "traits": "{sign} by classification",
+      "signGlance": "Signs at a glance",
       "glance": {
         "title": "This prashna at a glance",
         "subtitle": "The cast chart, read through the essentials below.",
