@@ -484,6 +484,18 @@ export const ARUDHA_REFERENCE: ReferenceSection[] = [
     ],
   },
   {
+    id: 'reading',
+    title: 'Reading a prashna chart',
+    points: [
+      'These rules are for the prashna chart only, not the birth chart, unless a rule says it holds in both. Applying them to a birth chart misleads the client.',
+      'Before speaking to the querist, compile the Lagna and its lord, the Moon, the navamsha Lagna, the degrees and nakshatras, and the dasha running at the moment of the question.',
+      'Keep to one question per chart where you can. One chart can still answer many questions, read from the Lagna, the navamsha, the Sun, the Moon, Venus and so on; then bhavat bhavam (the house from the house) helps.',
+      'Theft at a glance: the Lagna shows the thief\'s appearance, the 7th the thief\'s details, Mars the thief, the 4th where the article is, and the sign type (movable, fixed or dual) the distance and who it was.',
+      'The dasha at the time of the chart can also show what happened today or what will happen in the next few hours.',
+      'For a silent question (mook prashna), knowing the day\'s panchang is the key.',
+    ],
+  },
+  {
     id: 'astrologer',
     title: 'The astrologer',
     points: [
