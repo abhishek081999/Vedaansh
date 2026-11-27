@@ -783,6 +783,38 @@
           "abstract": "Abstract",
           "misc": "Miscellaneous"
         }
+      },
+      "map": {
+        "viewAria": "Essentials view",
+        "view": {
+          "details": "Details",
+          "cheatsheet": "Cheatsheet",
+          "mindmap": "Mind map"
+        },
+        "cheatIntro": "Everything in one place. Tap a card to open it as a mind map.",
+        "mapIntro": "Pick one to see its essentials branch out from the centre.",
+        "openMap": "Open as mind map",
+        "now": "Now in",
+        "karakaOf": "Significator of",
+        "colourDir": "Colour and direction",
+        "planetsHere": "Planets here now",
+        "dmj": "Dhatu, mula, jeeva",
+        "allRashi": "All 12 rashis",
+        "allPlanets": "All 9 planets",
+        "allHouses": "All 12 houses",
+        "allHint": "Tap a branch to open it",
+        "byProperty": "By property",
+        "friendship": "Friendship (prashna)",
+        "friendshipNote": "In praśna, planets in the same group are friends and planets in the other group are enemies.",
+        "friendGroup": "Group {n}",
+        "timeStrength": "Strength by time",
+        "strongDay": "Strong by day",
+        "strongNight": "Strong at night",
+        "strongAlways": "Strong at both",
+        "eventTime": "Time of event",
+        "eventTimeNote": "A planet in (or aspecting) the Lagna points to this time of day for the event.",
+        "dwelling": "Dwelling places",
+        "allProperties": "All properties"
       }
     },
     "orManual": "or choose a date, time and place",

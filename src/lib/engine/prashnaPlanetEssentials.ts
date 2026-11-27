@@ -611,8 +611,9 @@ export const EVENT_TIME: Partial<Record<GrahaId, EventTime>> = {
   Me: 'morning', Ju: 'morning', Su: 'noon', Ma: 'noon', Ve: 'afternoon', Mo: 'afternoon', Sa: 'evening', Ra: 'evening',
 }
 
-const DAY_STRONG: GrahaId[] = ['Su', 'Ju', 'Ve']
-const NIGHT_STRONG: GrahaId[] = ['Mo', 'Ma', 'Sa']
+/** Strong by day / at night; Mercury is strong at both. */
+export const DAY_STRONG: GrahaId[] = ['Su', 'Ju', 'Ve']
+export const NIGHT_STRONG: GrahaId[] = ['Mo', 'Ma', 'Sa']
 
 export function readPrashnaPlanets(input: PlanetReadingInput) {
   const rows: PlanetReadingRow[] = PLANETS.map((id): PlanetReadingRow | undefined => {
