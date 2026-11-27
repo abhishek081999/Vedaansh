@@ -13,6 +13,7 @@ import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { PrashnaHouseEssentials } from '@/components/prashna/PrashnaHouseEssentials'
 import { PrashnaPlanetEssentials } from '@/components/prashna/PrashnaPlanetEssentials'
 import { PrashnaGlanceCard } from '@/components/prashna/PrashnaGlanceCard'
+import { PrashnaEssentialsMap, type EssentialsView } from '@/components/prashna/PrashnaEssentialsMap'
 import {
   CONSTITUTION_COMBOS,
   CONSTITUTION_KINDS,
@@ -34,6 +35,7 @@ import {
 } from '@/lib/engine/prashnaRashiEssentials'
 
 type Tab = 'rashi' | 'planets' | 'houses'
+type View = 'details' | EssentialsView
 const SIGNS: Rashi[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 const box: React.CSSProperties = { padding: '0.7rem 0.8rem', borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.45rem', minWidth: 0 }
@@ -45,6 +47,7 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
   const { lang } = useLang()
   const hi = lang === 'hi'
   const [tab, setTab] = useState<Tab>('rashi')
+  const [view, setView] = useState<View>('details')
   const ascRashi = chart?.lagnas.ascRashi as Rashi | undefined
   const [picked, setPicked] = useState<Rashi | null>(null)
   const selected: Rashi = picked ?? ascRashi ?? 1
@@ -114,13 +117,29 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
         </div>
       </div>
 
-      {chart && at && <PrashnaGlanceCard chart={chart} at={at} />}
+      <div role="radiogroup" aria-label={t('map.viewAria')} style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999 }}>
+        {(['details', 'cheatsheet', 'mindmap'] as const).map(v => (
+          <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
+            style={{
+              height: 24, padding: '0 0.75rem', border: 'none', borderRadius: 999, fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer',
+              background: view === v ? 'var(--surface-1)' : 'transparent',
+              color: view === v ? 'var(--text-gold)' : 'var(--text-muted)',
+              boxShadow: view === v ? 'inset 0 0 0 1px var(--gold)' : undefined,
+            }}>
+            {t(`map.view.${v}`)}
+          </button>
+        ))}
+      </div>
 
-      {tab === 'planets' && <PrashnaPlanetEssentials chart={chart} at={at} />}
+      {chart && at && view === 'details' && <PrashnaGlanceCard chart={chart} at={at} />}
 
-      {tab === 'houses' && <PrashnaHouseEssentials chart={chart} />}
+      {view !== 'details' && <PrashnaEssentialsMap subject={tab} view={view} onView={setView} chart={chart} />}
 
-      {tab === 'rashi' && (
+      {view === 'details' && tab === 'planets' && <PrashnaPlanetEssentials chart={chart} at={at} />}
+
+      {view === 'details' && tab === 'houses' && <PrashnaHouseEssentials chart={chart} />}
+
+      {view === 'details' && tab === 'rashi' && (
         <>
           {/* ── Readings for the cast moment ─────────────────── */}
           {reading ? (
