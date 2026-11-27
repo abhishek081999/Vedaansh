@@ -14,6 +14,7 @@ import { PrashnaHouseEssentials } from '@/components/prashna/PrashnaHouseEssenti
 import { PrashnaPlanetEssentials } from '@/components/prashna/PrashnaPlanetEssentials'
 import { PrashnaGlanceCard } from '@/components/prashna/PrashnaGlanceCard'
 import { PrashnaEssentialsMap, type EssentialsView } from '@/components/prashna/PrashnaEssentialsMap'
+import { PrashnaArudhaEssentials } from '@/components/prashna/PrashnaArudhaEssentials'
 import {
   CONSTITUTION_COMBOS,
   CONSTITUTION_KINDS,
@@ -34,7 +35,7 @@ import {
   type SignRef,
 } from '@/lib/engine/prashnaRashiEssentials'
 
-type Tab = 'rashi' | 'planets' | 'houses'
+type Tab = 'rashi' | 'planets' | 'houses' | 'arudha'
 type View = 'details' | EssentialsView
 const SIGNS: Rashi[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
@@ -104,7 +105,7 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>{t('title')}</h2>
         <div role="tablist" aria-label={t('tabsAria')} style={{ display: 'inline-flex', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999, marginLeft: 'auto' }}>
-          {(['rashi', 'planets', 'houses'] as const).map(v => (
+          {(['rashi', 'planets', 'houses', 'arudha'] as const).map(v => (
             <button key={v} type="button" role="tab" aria-selected={tab === v} onClick={() => setTab(v)}
               style={{
                 height: 26, padding: '0 0.8rem', border: 'none', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
@@ -133,7 +134,9 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
 
       {chart && at && view === 'details' && <PrashnaGlanceCard chart={chart} at={at} />}
 
-      {view !== 'details' && <PrashnaEssentialsMap subject={tab} view={view} onView={setView} chart={chart} />}
+      {tab === 'arudha' && <PrashnaArudhaEssentials chart={chart} view={view} onView={setView} />}
+
+      {view !== 'details' && tab !== 'arudha' && <PrashnaEssentialsMap subject={tab} view={view} onView={setView} chart={chart} />}
 
       {view === 'details' && tab === 'planets' && <PrashnaPlanetEssentials chart={chart} at={at} />}
 

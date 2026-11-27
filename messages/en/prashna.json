@@ -610,7 +610,8 @@
       "tab": {
         "rashi": "Rashi",
         "planets": "Planets",
-        "houses": "Houses"
+        "houses": "Houses",
+        "arudha": "Arudha"
       },
       "comingSoon": "This section is coming soon.",
       "castHint": "Cast a chart to mark the Lagna sign and see these essentials read for that moment.",
@@ -815,6 +816,110 @@
         "eventTimeNote": "A planet in (or aspecting) the Lagna points to this time of day for the event.",
         "dwelling": "Dwelling places",
         "allProperties": "All properties"
+      },
+      "arudha": {
+        "intro": "Fix the Arudha Lagna by one of the classical methods, then read it against the cast chart.",
+        "findTitle": "Find the Arudha",
+        "methodsAria": "Method for the Arudha",
+        "method": {
+          "number": "Number 1–108",
+          "letter": "First letter",
+          "chakra": "Navamsa chakra",
+          "lines": "Line ends",
+          "direction": "Direction"
+        },
+        "hint": {
+          "number": "Ask the querist for any number from 1 to 108. Divide by 9: the quotient plus one is the Arudha sign, the remainder the navamsha running.",
+          "letter": "Note the first letter the querist speaks. Letters in odd columns give the planet's odd sign, even columns its even sign.",
+          "chakra": "The querist touches a square or places gold on it. Its block is the Arudha sign and the number the navamsha. The signs are not written; the astrologer knows them.",
+          "lines": "Draw three vertical and three horizontal lines without numbers. The end the querist touches is the Arudha.",
+          "direction": "The direction from which the querist approaches the astrologer gives the Arudha."
+        },
+        "numberLabel": "Number",
+        "numberInvalid": "Enter a whole number from 1 to 108.",
+        "letterAria": "Letters by planet and element",
+        "letterResult": "{letter} belongs to {planet} and to {element}.",
+        "letterBenefic": "A benefic's letter: favourable results follow.",
+        "letterMalefic": "A malefic's letter: unfavourable results follow.",
+        "byElement": "By element: {result}",
+        "byVowel": "As a vowel (jeeva): {result}",
+        "vowels": "Vowels",
+        "chakraCenter": "Arudha Navamsa Chakra",
+        "cellTitle": "{sign}, navamsha {n}",
+        "showSigns": "Show signs",
+        "directionAria": "Directions",
+        "directionSigns": "Signs for {dir}:",
+        "pickHint": "Or pick the Arudha sign directly:",
+        "pickAria": "Arudha sign",
+        "result": "Arudha: {sign}",
+        "resultNav": "Arudha: {sign}, navamsha {n} ({from}–{to})",
+        "clear": "Clear",
+        "chartTitle": "With the cast chart",
+        "castHint": "Cast a prashna chart to read the sutra, Chatra Lagna and signs of a sincere query.",
+        "udaya": "Udaya Lagna",
+        "arudhaShort": "Arudha",
+        "needArudha": "Fix the Arudha above to see the sutra and Chatra Lagna.",
+        "sutra": "Sutra",
+        "sutraLine": "Udaya lord {u} and Arudha lord {a} are {kind}.",
+        "sutraKind": {
+          "friend": "friends: good results",
+          "neutral": "neutral: average results",
+          "enemy": "enemies: bad results"
+        },
+        "sutraBoth": "{u} → {a}: {r1} · {a} → {u}: {r2}",
+        "rel": {
+          "friend": "friend",
+          "neutral": "neutral",
+          "enemy": "enemy"
+        },
+        "chatra": "Chatra Lagna",
+        "chatraLine": "Sun in {sun} gives veethi rashi {veethi}. From the Arudha to the Udaya Lagna is {count}; {count} from {veethi} is {chatra}.",
+        "same": "Udaya and Arudha fall in the same sign, as they do in sincere queries.",
+        "sincerityTitle": "Sincere or insincere query",
+        "sinceritySummary": "Present now: {insincere} signs of an insincere query, {sincere} of a sincere one.",
+        "sincereSign": "Sincere",
+        "insincereSign": "Insincere",
+        "absent": "Not present",
+        "unknown": "Needs Arudha",
+        "sincerityNote": "In sincere queries the prashna Lagna also often matches the birth Lagna or Moon sign; compare with the birth chart if you have it.",
+        "ashtaTitle": "Ashtamangala figure",
+        "ashtaHint": "Three heaps of cowries with the eights taken out: left heap is the hundreds (past), middle the tens (present), right the ones (future). Without the ritual, ask for a number from 111 to 888.",
+        "ashtaLabel": "Figure",
+        "ashtaInvalid": "Use three digits, each from 1 to 8.",
+        "place": {
+          "past": "Past",
+          "present": "Present",
+          "future": "Future"
+        },
+        "ashtaStrength": "Weigh each result by that planet's strength in the prashna chart.",
+        "ashtaTable": "Remainder, planet, yoni, animal and element",
+        "col": {
+          "n": "No.",
+          "planet": "Planet",
+          "yoni": "Yoni",
+          "animal": "Animal",
+          "element": "Element",
+          "reading": "Results"
+        },
+        "referenceTitle": "From the chapter",
+        "sheetIntro": "Every Arudha method and rule in one place. Tap a card to see them as a mind map.",
+        "openMap": "Open as mind map",
+        "centre": "Arudha and Lagna",
+        "sheet": {
+          "rule": "Rule",
+          "numberRule": "Divide by 9: quotient + 1 = sign, remainder = navamsha",
+          "example": "Example",
+          "numberExample": "57 → Libra, navamsha 3 (6°40′–10°)",
+          "veethi": "Veethi {v}",
+          "sunIn": "Sun in",
+          "steps": "Steps",
+          "chatraSteps": "Count from the Arudha to the Udaya Lagna, then count as far from the veethi rashi"
+        },
+        "sutraResult": {
+          "friend": "Good results",
+          "neutral": "Average results",
+          "enemy": "Bad results"
+        }
       }
     },
     "orManual": "or choose a date, time and place",
