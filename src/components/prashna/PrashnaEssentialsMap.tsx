@@ -54,13 +54,13 @@ const shortSymbol = (s: string) => {
   return cut > 0 ? first.slice(0, cut) : first
 }
 
-interface Branch { title: string; items: string[]; chips?: boolean; pick?: string; mark?: boolean }
-interface MapNode { title: string; subtitle?: string; badge?: string; branches: Branch[]; /** Keep order: first half left, rest right. */ ordered?: boolean; note?: string }
-interface SheetCard { key: string; title: string; badge?: string; rows: [string, string][]; tags?: string[] }
+export interface Branch { title: string; items: string[]; chips?: boolean; pick?: string; mark?: boolean }
+export interface MapNode { title: string; subtitle?: string; badge?: string; branches: Branch[]; /** Keep order: first half left, rest right. */ ordered?: boolean; note?: string }
+export interface SheetCard { key: string; title: string; badge?: string; rows: [string, string][]; tags?: string[] }
 
 // ── Mind map ────────────────────────────────────────────────
 
-function MindMap({ node, onPick, pickLabel }: { node: MapNode; onPick?: (key: string) => void; pickLabel?: string }) {
+export function MindMap({ node, onPick, pickLabel }: { node: MapNode; onPick?: (key: string) => void; pickLabel?: string }) {
   const wrap = useRef<HTMLDivElement>(null)
   const centerRef = useRef<HTMLDivElement>(null)
   const branchRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -197,7 +197,7 @@ function MindMap({ node, onPick, pickLabel }: { node: MapNode; onPick?: (key: st
 
 // ── Cheatsheet ──────────────────────────────────────────────
 
-function Cheatsheet({ cards, onOpen, openLabel }: { cards: SheetCard[]; onOpen: (key: string) => void; openLabel: string }) {
+export function Cheatsheet({ cards, onOpen, openLabel }: { cards: SheetCard[]; onOpen: (key: string) => void; openLabel: string }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
       {cards.map(c => (

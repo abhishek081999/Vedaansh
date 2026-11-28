@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import Script from 'next/script'
 import { Newsreader, Inter, IBM_Plex_Mono, JetBrains_Mono, Noto_Sans_Devanagari } from 'next/font/google'
 import './globals.css'
+import { auth }               from '@/auth'
 import { AuthProvider }      from '@/components/providers/SessionProvider'
 import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
 import { ChartProvider }     from '@/components/providers/ChartProvider'
@@ -309,7 +310,8 @@ const jsonLdOrg = {
 
 // ── Root Layout ───────────────────────────────────────────────
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const nonce = (await headers()).get('x-nonce') ?? ''
+  const [nonceHeader, session] = await Promise.all([headers(), auth()])
+  const nonce = nonceHeader.get('x-nonce') ?? ''
   const rawLocale = await getLocale()
   const locale = isAppLocale(rawLocale) ? rawLocale : 'en'
   const clientMessages = pickClientMessages(
@@ -359,7 +361,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <IntlProvider locale={locale} messages={clientMessages}>
-        <AuthProvider>
+        <AuthProvider session={session}>
           <AppLayoutProvider>
             <ChartProvider>
               <ChartStyleProvider>

@@ -179,8 +179,9 @@ export function PrashnaAiPromptButton({ chart, at, question, place, lat, lng, tz
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-flex' }}>
-      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-haspopup="dialog" title={t('title')} className="btn btn-sm btn-secondary" style={{ whiteSpace: 'nowrap' }}>
-        ✦ {tc('button')}
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-haspopup="dialog" aria-label={tc('button')} title={t('title')}
+        className="btn btn-sm btn-secondary" style={{ width: 32, minWidth: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Sparkles size={15} aria-hidden />
       </button>
       {open && (isPhone && portalReady
         ? createPortal(

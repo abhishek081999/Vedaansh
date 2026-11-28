@@ -1,14 +1,17 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/vedicPrashna.ts
 //  Vedic praśna: Parashari significators (lagna lord, kārya-bhāva lord, kāraka,
-//  Moon) plus Tajika links between them (ithasala, ishrafa, nakta, yamaya,
-//  kamboola, as used in praśna works such as Nīlakaṇṭha's Praśna Tantra).
+//  Moon) plus the sixteen Tajika yogas between them (ithasala, ishrafa,
+//  nakta, yamaya, manau, kamboola, radda, kuttha and the rest), as used in
+//  praśna works such as Nīlakaṇṭha's Praśna Tantra. Detection is in tajika.ts.
 //  Pure, no React/DB/Redis.
 // ─────────────────────────────────────────────────────────────
 
 import type { BhavaBalaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { hasParasharaAspect, wholeSignCount } from './aspects'
-import { checkTajikaAspect } from './tajika'
+import { checkTajikaAspect, findTajikaYogas, futureIthasala, tajikaLink, type TajikaYogaHit } from './tajika'
+import { panchavargiyaFor, type PanchavargiyaBala } from './tajikaBala'
+import { SAHAMS, TOPIC_SAHAMS, computeSahams } from './tajikaSahams'
 import {
   KENDRAS, SEVEN_GRAHAS, SIGN_TABLE, TRIKONAS,
   buildChartFacts, grahaName, listNames, ordinal, signName,
@@ -60,42 +63,7 @@ export const VEDIC_TOPICS: VedicTopicMeta[] = [
   { id: 'dispute', label: 'Dispute or lawsuit', hint: '6th house, Mars', house: 6, karaka: 'Ma', notice: 'Traditional indication only, not legal advice.' },
 ]
 
-/** Tajika deeptāṃśa (orb of light) in degrees. */
-export const DEEPTAMSA: Partial<Record<GrahaId, number>> = { Su: 15, Mo: 12, Ma: 8, Me: 7, Ju: 9, Ve: 7, Sa: 9 }
-
-export type TajikaLinkType = 'ithasala' | 'ishrafa' | 'none'
-
-export interface TajikaLink {
-  type: TajikaLinkType
-  fast: GrahaId
-  slow: GrahaId
-  aspect: 'friendly' | 'hostile' | 'none'
-  gap: number
-  orb: number
-  /** Days to exact at current speeds, for an ithasala. */
-  daysAtCurrentSpeed: number | null
-}
-
-/** Reads actual signed speeds, so a retrograde planet applies or separates correctly. */
-export function tajikaLink(a: GrahaData, b: GrahaData): TajikaLink {
-  const [fast, slow] = Math.abs(a.speed) >= Math.abs(b.speed) ? [a, b] : [b, a]
-  const nature = checkTajikaAspect(fast.rashi, slow.rashi)
-  const orb = ((DEEPTAMSA[fast.id] ?? 0) + (DEEPTAMSA[slow.id] ?? 0)) / 2
-  const gap = slow.degree - fast.degree
-  const base = { fast: fast.id, slow: slow.id, gap: Math.round(Math.abs(gap) * 100) / 100, orb }
-  if (nature === 'neutral' || Math.abs(gap) > orb) {
-    return { ...base, type: 'none', aspect: nature === 'neutral' ? 'none' : nature, daysAtCurrentSpeed: null }
-  }
-  const relative = fast.speed - slow.speed
-  // Within 1° still counts as perfecting.
-  const applying = Math.abs(gap) <= 1 || gap * relative > 0
-  return {
-    ...base,
-    type: applying ? 'ithasala' : 'ishrafa',
-    aspect: nature,
-    daysAtCurrentSpeed: applying && relative !== 0 ? Math.max(0, Math.ceil(Math.abs(gap / relative))) : null,
-  }
-}
+export { DEEPTAMSA, tajikaLink, type TajikaLink, type TajikaLinkType } from './tajika'
 
 export type VedicPolarity = 'favourable' | 'unfavourable' | 'mixed' | 'descriptive'
 
@@ -207,52 +175,131 @@ function connectionFactor(f: ChartFacts, a: GrahaId, b: GrahaId, karyaHouse: num
     : { ...base, weight: 2, title: say(L, 'No Parashari link between the querist and the matter', 'प्रश्नकर्ता और विषय के बीच कोई पाराशरी संबंध नहीं'), detail: say(L, `${ab} are not joined, in exchange or in aspect.`, `${ab} न साथ हैं, न परिवर्तन में, न दृष्टि में।`), polarity: 'unfavourable' }
 }
 
-function tajikaFactors(f: ChartFacts, a: GrahaId, b: GrahaId, L: EngineLang = 'en'): VedicFactor[] {
+const GRADE_HI = { uttama: 'उत्तम', madhyama: 'मध्यम', adhama: 'अधम' } as const
+
+export function tajikaYogaFactor(y: TajikaYogaHit, L: EngineLang): VedicFactor {
   const group = 'Tajika' as const
-  if (a === b) return []
-  const link = tajikaLink(f.grahas[a], f.grahas[b])
-  const pair = say(L, `${grahaName(link.fast)} and ${grahaName(link.slow)}`, `${gN(link.fast, L)} और ${gN(link.slow, L)}`)
-  const out: VedicFactor[] = []
-  if (link.type === 'ithasala') {
-    out.push({
-      id: 'ithasala', group, weight: 4,
-      title: say(L, `Ithasala between ${pair}: the matter is applying`, `${pair} के बीच इत्थशाल: विषय निकट आ रहा है`),
-      detail: say(L,
-        `${link.gap}° apart, inside the ${link.orb}° orb, in ${link.aspect === 'friendly' ? 'a friendly' : 'a hostile'} aspect${link.aspect === 'hostile' ? ', so it comes with friction' : ''}.`,
-        `${link.gap}° की दूरी, ${link.orb}° दीप्तांश के भीतर, ${link.aspect === 'friendly' ? 'मित्र' : 'शत्रु'} दृष्टि में${link.aspect === 'hostile' ? ', इसलिए यह घर्षण के साथ आता है' : ''}।`),
-      polarity: link.aspect === 'friendly' ? 'favourable' : 'mixed',
-    })
-    const moon = f.grahas.Mo
-    if (a !== 'Mo' && b !== 'Mo') {
-      const toMoon = [a, b].filter(id => tajikaLink(moon, f.grahas[id]).type === 'ithasala')
-      if (toMoon.length) {
-        out.push({ id: 'kamboola', group, weight: 2, title: say(L, 'Kamboola: the Moon supports the ithasala', 'कंबूल: चंद्र इत्थशाल को सहारा देता है'), detail: say(L, `The Moon applies to ${listNames(toMoon)}.`, `चंद्र ${listN(toMoon, L)} की ओर बढ़ रहा है।`), polarity: 'favourable' })
-      }
+  const [p, q, r, s] = y.planets as [GrahaId, GrahaId, GrahaId?, GrahaId?]
+  const en = (id?: GrahaId) => (id ? grahaName(id) : '')
+  const hi = (id?: GrahaId) => (id ? gN(id, L) : '')
+  const pair = say(L, `${en(p)} and ${en(q)}`, `${hi(p)} और ${hi(q)}`)
+  const l = y.link
+  switch (y.id) {
+    case 'ikkabala':
+      return { id: 'ikkabala', group, weight: 1.5, polarity: 'favourable',
+        title: say(L, 'Ikkabāla: every planet in a kendra or paṇaphara', 'इक्कबाल: हर ग्रह केंद्र या पणफर में'),
+        detail: say(L, 'No planet is in a falling house (3rd, 6th, 9th, 12th), so the chart has the strength to act.', 'कोई ग्रह आपोक्लिम (3, 6, 9, 12) में नहीं, इसलिए कुंडली में कार्य करने का बल है।') }
+    case 'induvara':
+      return { id: 'induvara', group, weight: 1.5, polarity: 'unfavourable',
+        title: say(L, 'Induvāra: every planet in a falling house', 'इन्दुवार: हर ग्रह आपोक्लिम में'),
+        detail: say(L, 'All seven are in the 3rd, 6th, 9th or 12th, so the chart lacks the strength to act.', 'सातों ग्रह 3, 6, 9 या 12वें भाव में हैं, इसलिए कुंडली में कार्य करने का बल नहीं।') }
+    case 'ithasala':
+      return { id: 'ithasala', group, weight: 4, polarity: l!.aspect === 'friendly' ? 'favourable' : 'mixed',
+        title: l!.gap <= 1
+          ? say(L, `Pūrṇa ithasala between ${pair}: the matter is about to complete`, `${pair} के बीच पूर्ण इत्थशाल: विषय पूरा होने को है`)
+          : say(L, `Vartamāna ithasala between ${pair}: the matter is applying`, `${pair} के बीच वर्तमान इत्थशाल: विषय निकट आ रहा है`),
+        detail: say(L,
+          `${l!.gap}° apart, inside the ${l!.orb}° orb, in ${l!.aspect === 'friendly' ? 'a friendly' : 'a hostile'} aspect${l!.aspect === 'hostile' ? ', so it comes with friction' : ''}.${l!.gap <= 1 ? ' Within 1°: the event comes very soon.' : ' The process is already active; other houses show whether the result is good.'}`,
+          `${l!.gap}° की दूरी, ${l!.orb}° दीप्तांश के भीतर, ${l!.aspect === 'friendly' ? 'मित्र' : 'शत्रु'} दृष्टि में${l!.aspect === 'hostile' ? ', इसलिए यह घर्षण के साथ आता है' : ''}।${l!.gap <= 1 ? ' 1° के भीतर: घटना बहुत शीघ्र।' : ' प्रक्रिया आरंभ हो चुकी है; परिणाम अच्छा है या नहीं, अन्य भाव बताते हैं।'}`) }
+    case 'bhavishyat-ithasala':
+      return { id: 'bhavishyat-ithasala', group, weight: 3, polarity: l!.aspect === 'friendly' ? 'favourable' : 'mixed',
+        title: say(L, `Bhaviṣyat ithasala: ${en(p)} will apply to ${en(q)} from the next sign`, `भविष्यत् इत्थशाल: ${hi(p)} अगली राशि से ${hi(q)} की ओर बढ़ेगा`),
+        detail: say(L, `${en(p)} is at the end of its sign, ${l!.gap}° from ${en(q)} across the cusp, inside the ${l!.orb}° orb. The link forms once it changes sign, so the matter comes later.`, `${hi(p)} अपनी राशि के अंत में है, संधि के पार ${hi(q)} से ${l!.gap}°, ${l!.orb}° दीप्तांश के भीतर। राशि बदलते ही संबंध बनेगा, इसलिए विषय बाद में आता है।`) }
+    case 'ishrafa':
+      return { id: 'ishrafa', group, weight: 3, polarity: 'unfavourable',
+        title: say(L, `Ishrafa between ${pair}: the moment has passed`, `${pair} के बीच ईसराफ़: क्षण बीत चुका है`),
+        detail: say(L, `${l!.gap}° apart and separating. The contact is over, so the matter tends to slip away.`, `${l!.gap}° की दूरी और अलग हो रहे हैं। संपर्क बीत चुका है, इसलिए विषय हाथ से निकलने की प्रवृत्ति रखता है।`) }
+    case 'nakta':
+      return { id: `nakta-${r}`, group, weight: 2.5, polarity: 'favourable',
+        title: say(L, `Nakta: ${en(r)} carries the matter between them`, `नक्त: ${hi(r)} विषय को उनके बीच ले जाता है`),
+        detail: say(L, `${pair} are not joined. Faster than both, ${en(r)} applies to each: fulfilment through a go-between.`, `${pair} आपस में नहीं जुड़े। दोनों से तेज़, ${hi(r)} दोनों की ओर बढ़ता है: किसी मध्यस्थ के माध्यम से पूर्ति।`) }
+    case 'yamaya':
+      return { id: `yamaya-${r}`, group, weight: 2.5, polarity: 'favourable',
+        title: say(L, `Yamaya: ${en(r)} gathers the matter`, `यमया: ${hi(r)} विषय को समेटता है`),
+        detail: say(L, `${pair} are not joined, but both apply to the slower ${en(r)}: fulfilment through a third party.`, `${pair} आपस में नहीं जुड़े, पर दोनों धीमे ${hi(r)} की ओर बढ़ते हैं: किसी तीसरे व्यक्ति के माध्यम से पूर्ति।`) }
+    case 'manau':
+      return { id: 'manau', group, weight: 3, polarity: 'unfavourable',
+        title: say(L, `Manaū: ${en(r)} cuts the ithasala`, `मणऊ: ${hi(r)} इत्थशाल को काटता है`),
+        detail: say(L, `${en(r)} is in hostile aspect to a significator, inside its orb. Obstruction from a rival or authority.`, `${hi(r)} की कारक पर शत्रु दृष्टि है, दीप्तांश के भीतर। किसी प्रतिद्वंद्वी या अधिकारी से बाधा।`) }
+    case 'kamboola': {
+      const grade = y.grade!
+      return { id: 'kamboola', group, weight: grade === 'uttama' ? 3 : grade === 'madhyama' ? 2 : 1.5, polarity: 'favourable',
+        title: say(L, `Kamboola (${grade}): the Moon supports the ithasala`, `कंबूल (${GRADE_HI[grade]}): चंद्र इत्थशाल को सहारा देता है`),
+        detail: say(L, `The Moon applies to ${en(s)}. Grade from the dignity of the Moon and ${en(s)}.`, `चंद्र ${hi(s)} की ओर बढ़ रहा है। श्रेणी चंद्र और ${hi(s)} की गरिमा से।`) }
     }
-    return out
-  }
-  if (link.type === 'ishrafa') {
-    out.push({ id: 'ishrafa', group, weight: 3, title: say(L, `Ishrafa between ${pair}: the moment has passed`, `${pair} के बीच ईसराफ़: क्षण बीत चुका है`), detail: say(L, `${link.gap}° apart and separating. The contact is over, so the matter tends to slip away.`, `${link.gap}° की दूरी और अलग हो रहे हैं। संपर्क बीत चुका है, इसलिए विषय हाथ से निकलने की प्रवृत्ति रखता है।`), polarity: 'unfavourable' })
-  }
-  // A third planet can carry the light between two that do not perfect.
-  for (const id of SEVEN_GRAHAS) {
-    if (id === a || id === b) continue
-    const c = f.grahas[id]
-    const la = tajikaLink(c, f.grahas[a])
-    const lb = tajikaLink(c, f.grahas[b])
-    if (la.type !== 'ithasala' || lb.type !== 'ithasala') continue
-    if (la.fast === id && lb.fast === id) {
-      out.push({ id: `nakta-${id}`, group, weight: 2.5, title: say(L, `Nakta: ${grahaName(id)} carries the matter between them`, `नक्त: ${gN(id, L)} विषय को उनके बीच ले जाता है`), detail: say(L, `Faster than both, it applies to ${grahaName(a)} and ${grahaName(b)}: fulfilment through a go-between.`, `दोनों से तेज़, यह ${gN(a, L)} और ${gN(b, L)} की ओर बढ़ता है: किसी मध्यस्थ के माध्यम से पूर्ति।`), polarity: 'favourable' })
-    } else if (la.slow === id && lb.slow === id) {
-      out.push({ id: `yamaya-${id}`, group, weight: 2.5, title: say(L, `Yamaya: ${grahaName(id)} gathers the matter`, `यमया: ${gN(id, L)} विषय को समेटता है`), detail: say(L, `Slower than both, ${grahaName(a)} and ${grahaName(b)} apply to it: fulfilment through a third party.`, `दोनों से धीमा; ${gN(a, L)} और ${gN(b, L)} इसकी ओर बढ़ते हैं: किसी तीसरे व्यक्ति के माध्यम से पूर्ति।`), polarity: 'favourable' })
+    case 'gairi-kamboola':
+      return { id: 'gairi-kamboola', group, weight: 1.5, polarity: 'favourable',
+        title: say(L, 'Gairi-kamboola: the Moon will lend support from the next sign', 'गैरि-कंबूल: चंद्र अगली राशि से सहारा देगा'),
+        detail: say(L, `The Moon joins no planet now, but on changing sign it applies to a strong ${en(s)}. Help comes, a little late.`, `चंद्र अभी किसी ग्रह से नहीं जुड़ा, पर राशि बदलने पर बलवान ${hi(s)} की ओर बढ़ता है। सहायता आती है, थोड़ी देर से।`) }
+    case 'khallasara':
+      return { id: 'khallasara', group, weight: 2, polarity: 'unfavourable',
+        title: say(L, 'Khallāsara: the Moon is void and gives no support', 'खल्लासर: चंद्र शून्य मार्ग में, सहारा नहीं'),
+        detail: say(L, 'The Moon is in no Tajika aspect within orb to any planet, so the ithasala yields little.', 'चंद्र दीप्तांश के भीतर किसी ग्रह से ताजिक दृष्टि में नहीं, इसलिए इत्थशाल का फल थोड़ा रहता है।') }
+    case 'radda': {
+      const combust = y.cause === 'combust'
+      return { id: 'radda', group, weight: 3, polarity: 'unfavourable',
+        title: say(L, `Radda: ${en(r)} spoils the ithasala`, `रद्द: ${hi(r)} इत्थशाल को बिगाड़ता है`),
+        detail: say(L, `${pair} form the ithasala, but ${en(r)} is ${combust ? 'combust' : 'retrograde'}. The matter comes close and then turns back.`, `${pair} इत्थशाल बनाते हैं, पर ${hi(r)} ${combust ? 'अस्त' : 'वक्री'} है। विषय पास आकर लौट जाता है।`) }
     }
+    case 'durupha':
+      return { id: 'durupha', group, weight: 2.5, polarity: 'unfavourable',
+        title: say(L, `Durupha: both ${pair} are weak`, `दुरुफ: ${pair} दोनों दुर्बल`),
+        detail: say(L, 'Each is weak by pañcavargīya bala or in the 6th, 8th or 12th. The ithasala lacks the strength to deliver.', 'हर एक पंचवर्गीय बल से दुर्बल है या 6, 8, 12वें भाव में। इत्थशाल में फल देने का बल नहीं।') }
+    case 'dutthottha-davira':
+      return { id: 'dutthottha-davira', group, weight: 2, polarity: 'mixed',
+        title: say(L, `Dutthottha-davīra: a strong ${en(r)} lifts the weak significators`, `दुत्थोत्थ-दवीर: बलवान ${hi(r)} दुर्बल कारकों को उठाता है`),
+        detail: say(L, `A significator applies to ${en(r)}, which is strong by pañcavargīya bala. Success with others' help and effort.`, `एक कारक ${hi(r)} की ओर बढ़ता है, जो पंचवर्गीय बल से बलवान है। दूसरों की सहायता और प्रयत्न से सफलता।`) }
+    case 'duphali-kuttha':
+      return { id: 'duphali-kuttha', group, weight: 2, polarity: 'favourable',
+        title: say(L, `Duphāli-kuttha: the strong ${en(q)} carries the weak ${en(p)}`, `दुफालि-कुत्थ: बलवान ${hi(q)} दुर्बल ${hi(p)} को सँभालता है`),
+        detail: say(L, `The faster ${en(p)} is weak, the slower ${en(q)} is strong by pañcavargīya bala. The matter succeeds through the stronger side.`, `तेज़ ${hi(p)} दुर्बल है, धीमा ${hi(q)} पंचवर्गीय बल से बलवान है। विषय बलवान पक्ष से सफल होता है।`) }
+    case 'kuttha':
+      return { id: 'kuttha', group, weight: 2.5, polarity: 'favourable',
+        title: say(L, `Kuttha: ${pair} are strong and well placed`, `कुत्थ: ${pair} बलवान और अच्छी स्थिति में`),
+        detail: say(L, 'Neither is weak, at least one is strong by pañcavargīya bala, and both are in kendras or paṇapharas.', 'कोई दुर्बल नहीं, कम से कम एक पंचवर्गीय बल से बलवान, और दोनों केंद्र या पणफर में।') }
+    case 'tambira':
+      return { id: 'tambira', group, weight: 2, polarity: 'favourable',
+        title: say(L, `Tambīra: a significator will reach the strong ${en(r)} in the next sign`, `तंबीर: एक कारक अगली राशि में बलवान ${hi(r)} तक पहुँचेगा`),
+        detail: say(L, `${pair} are not in ithasala, but one is at the end of its sign and will apply to ${en(r)} once it moves on. Fulfilment later, through ${en(r)}.`, `${pair} इत्थशाल में नहीं, पर एक अपनी राशि के अंत में है और आगे बढ़ते ही ${hi(r)} की ओर बढ़ेगा। ${hi(r)} के माध्यम से बाद में पूर्ति।`) }
   }
-  if (!out.length) {
-    out.push({ id: 'no-tajika', group, weight: 2, title: say(L, 'No Tajika link between the significators', 'कारकों के बीच कोई ताजिक संबंध नहीं'), detail: say(L,
+}
+
+function tajikaFactors(f: ChartFacts, a: GrahaId, b: GrahaId, bala: Record<string, PanchavargiyaBala>, L: EngineLang = 'en'): VedicFactor[] {
+  const yogas = findTajikaYogas({ grahas: f.grahas, house: f.house, band: id => bala[id]?.band ?? 'middling' }, a, b)
+  const out = yogas.map(y => tajikaYogaFactor(y, L))
+  const joined = yogas.some(y => !['ikkabala', 'induvara'].includes(y.id))
+  if (a !== b && !joined) {
+    const link = tajikaLink(f.grahas[a], f.grahas[b])
+    const pair = say(L, `${grahaName(link.fast)} and ${grahaName(link.slow)}`, `${gN(link.fast, L)} और ${gN(link.slow, L)}`)
+    out.push({ id: 'no-tajika', group: 'Tajika', weight: 2, title: say(L, 'No Tajika link between the significators', 'कारकों के बीच कोई ताजिक संबंध नहीं'), detail: say(L,
       `${pair} are ${link.aspect === 'none' ? 'in signs without Tajika aspect' : `${link.gap}° apart, outside the ${link.orb}° orb`}, and no third planet carries the light.`,
       `${pair} ${link.aspect === 'none' ? 'ऐसी राशियों में हैं जिनमें ताजिक दृष्टि नहीं' : `${link.gap}° दूर हैं, ${link.orb}° दीप्तांश से बाहर`}, और कोई तीसरा ग्रह प्रकाश नहीं पहुँचाता।`), polarity: 'unfavourable' })
   }
   return out
+}
+
+const BAND_HI = { strong: 'बलवान', middling: 'मध्यम', weak: 'दुर्बल' } as const
+
+/** The matter's chief saham: where it falls, and the strength and reach of its lord. */
+function sahamFactor(f: ChartFacts, ascDegree: number, topic: VedicTopic, lagnaLord: GrahaId, bala: Record<string, PanchavargiyaBala>, L: EngineLang): VedicFactor | null {
+  const id = TOPIC_SAHAMS[topic]?.[0]
+  if (!id || SEVEN_GRAHAS.some(g => !f.grahas[g])) return null
+  const s = computeSahams({ ascDegree, grahas: f.grahas }, L === 'hi' ? 'hi' : 'en').find(x => x.id === id)!
+  const lord = f.grahas[s.lord]
+  const band = bala[s.lord]?.band ?? 'middling'
+  const badHouse = DUSTHANAS.includes(s.house)
+  const lordSees = s.lord === lagnaLord ? false : checkTajikaAspect(lord.rashi, s.rashi) !== 'neutral' || lord.rashi === s.rashi
+  const joinsLagnaLord = s.lord === lagnaLord || tajikaLink(lord, f.grahas[lagnaLord]).type === 'ithasala'
+  const good = Number(band === 'strong') + Number(!badHouse) + Number(lordSees || s.lord === lagnaLord) + Number(joinsLagnaLord)
+  const polarity: VedicPolarity = band === 'weak' && badHouse ? 'unfavourable' : good >= 3 ? 'favourable' : good <= 1 ? 'unfavourable' : 'mixed'
+  const name = SAHAMS.find(x => x.id === id)!
+  return {
+    id: 'saham', group: 'Tajika', weight: 2, polarity,
+    title: say(L, `${name.en} saham in the ${ordinal(s.house)}, its lord ${grahaName(s.lord)} ${band}`, `${name.hi} सहम ${oH(s.house)} में, स्वामी ${gN(s.lord, L)} ${BAND_HI[band]}`),
+    detail: say(L,
+      `${s.degree.toFixed(1)}° ${signName(s.rashi)}${badHouse ? ', a difficult house' : ''}. ${grahaName(s.lord)} has pañcavargīya bala ${bala[s.lord]?.total.toFixed(1)}/20${lordSees ? ' and aspects the saham' : ''}${joinsLagnaLord && s.lord !== lagnaLord ? ', in ithasala with the lagna lord' : ''}${s.lord === lagnaLord ? ' and is the lagna lord itself' : ''}.`,
+      `${sN(s.rashi, L)} ${s.degree.toFixed(1)}°${badHouse ? ', कठिन भाव' : ''}। ${gN(s.lord, L)} का पंचवर्गीय बल ${bala[s.lord]?.total.toFixed(1)}/20${lordSees ? ', सहम पर दृष्टि' : ''}${joinsLagnaLord && s.lord !== lagnaLord ? ', लग्नेश से इत्थशाल' : ''}${s.lord === lagnaLord ? ', स्वयं लग्नेश' : ''}।`),
+  }
 }
 
 function moonFactors(f: ChartFacts, karyaHouse: number, L: EngineLang = 'en'): VedicFactor[] {
@@ -349,6 +396,16 @@ function buildTiming(f: ChartFacts, a: GrahaId, b: GrahaId, L: EngineLang = 'en'
           working: say(L, 'When the aspect becomes exact at current speeds. This is a transit date, not a promise of the event.', 'वर्तमान गति से दृष्टि कब सटीक होगी। यह गोचर की तिथि है, घटना का वादा नहीं।'),
         })
       }
+    } else {
+      const future = futureIthasala(f.grahas[a], f.grahas[b])
+      if (future?.daysAtCurrentSpeed != null) {
+        out.push({
+          name: say(L, 'Astronomical perfection', 'खगोलीय पूर्णता'),
+          days: future.daysAtCurrentSpeed,
+          value: say(L, `About ${future.daysAtCurrentSpeed} days`, `लगभग ${future.daysAtCurrentSpeed} दिन`),
+          working: say(L, 'When the bhaviṣyat ithasala becomes exact at current speeds, across the sign change. A transit date, not a promise of the event.', 'वर्तमान गति से भविष्यत् इत्थशाल राशि बदलने के बाद कब सटीक होगा। गोचर की तिथि, घटना का वादा नहीं।'),
+        })
+      }
     }
   }
   return out
@@ -360,13 +417,15 @@ export function runVedicPrashna(chart: VedicChartInput, topicId: VedicTopic, lan
   if (!topic) throw new Error(`Unknown Vedic prashna topic: ${topicId}`)
   const lagnaLord = f.lagnaLord
   const karyaLord = f.lordOf(topic.house)
+  const bala = panchavargiyaFor(f.grahas, SEVEN_GRAHAS)
 
   const factors: VedicFactor[] = [
     significatorFactor(f, lagnaLord, say(lang, 'Lagna lord', 'लग्नेश'), 'lagna-lord', 3, lang),
     ...(karyaLord !== lagnaLord ? [significatorFactor(f, karyaLord, say(lang, `${ordinal(topic.house)} lord`, `${oH(topic.house)} का स्वामी`), 'karya-lord', 3, lang)] : []),
     ...(topic.karaka !== lagnaLord && topic.karaka !== karyaLord ? [significatorFactor(f, topic.karaka, say(lang, 'Kāraka', 'कारक'), 'karaka', 1.5, lang)] : []),
     connectionFactor(f, lagnaLord, karyaLord, topic.house, lang),
-    ...tajikaFactors(f, lagnaLord, karyaLord, lang),
+    ...tajikaFactors(f, lagnaLord, karyaLord, bala, lang),
+    ...[sahamFactor(f, chart.lagnas.ascDegree, topic.id, lagnaLord, bala, lang)].filter((x): x is VedicFactor => x !== null),
     ...moonFactors(f, topic.house, lang),
     ...houseFactors(f, chart, topic.house, lang),
   ]

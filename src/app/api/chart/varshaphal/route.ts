@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     const completedAge = returnYear - birthYear
     const natalAscRashi = (body.natalAscRashi || 1) as Rashi
     const munthaRashi = getMunthaRashi(natalAscRashi, completedAge)
-    const tajikaYogas = getTajikaYogas(chart.grahas)
+    const tajikaYogas = getTajikaYogas(chart.grahas, chart.lagnas.ascRashi)
 
     // 5. Attach Varshaphal metadata to the chart object for export
     chart.varshaphal = {

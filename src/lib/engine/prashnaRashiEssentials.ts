@@ -92,7 +92,7 @@ export const RASHI_PROFILES: RashiProfile[] = [
     places: [
       'Towns, cities and small towns (kasbas)',
       'Parks and gardens of your village or city',
-      'Gambling dens, gambling houses and casinos',
+      'Gambling dens, gambling houses and casinos (to find the place itself, look at Gemini)',
       'Places of worship and the puja room',
       'Pleasure houses, music and ballet rooms, concert venues',
       'Kothas (dance and music houses of classical texts) and dance practice rooms',
@@ -191,6 +191,7 @@ export const RASHI_PROFILES: RashiProfile[] = [
       'Dwelling in water; stored clean water',
       'Clay-soil areas',
       'Gambling dens and gambling houses',
+      'A person with the habit or addiction of gambling (Gemini shows the place)',
       'Art galleries',
       'Homes tied to arts and crafts',
     ],
@@ -238,6 +239,7 @@ export const RASHI_CLASSIFICATIONS: RashiClassification[] = [
   {
     id: 'nature-lord', title: 'Benefic or malefic (by lord)',
     intro: 'Another view: signs owned by benefic planets are benefic, signs owned by malefic planets are malefic.',
+    notes: ['Judge both views together. Jupiter owns 9 and 12: Sagittarius is odd, so malefic by sign, yet benefic by lordship. Jupiter is a natural benefic, but check its functional role in every chart: it can still spoil matters.'],
     groups: [
       grp('nature-lord-malefic', 'Malefic lordship', [1, 5, 8, 10, 11]),
       grp('nature-lord-benefic', 'Benefic lordship', [2, 3, 4, 6, 7, 9, 12]),
@@ -376,6 +378,12 @@ export const RASHI_CLASSIFICATIONS: RashiClassification[] = [
       grp('constitution-dhatu', 'Dhatu (mineral)', [1, 4, 7, 10]),
       grp('constitution-mula', 'Mula (root)', [2, 5, 8, 11]),
       grp('constitution-jeeva', 'Jeeva (living)', [3, 6, 9, 12]),
+    ],
+    notes: [
+      'Dhatu: an attack with a metal object (rod, knife, sword), or a metal article involved.',
+      'Jeeva: a bite from a dog, cat or rat, or an animal involved.',
+      'Mula: something hidden or fallen in the bedroom, the foundation, under the building, or near the roots of a tree or in a garden.',
+      'Read this together with the direction and with the time of the question (day or night).',
     ],
   },
 ]

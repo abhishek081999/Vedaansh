@@ -23,7 +23,7 @@ import { getMarakaBadhakaFlags, marakaBadhakaTags } from '@/lib/engine/marakaBad
 
 // ── Polygon vertices ──────────────────────────────────────────
 
-function polyPts(h: number, S: number): [number, number][] {
+export function polyPts(h: number, S: number): [number, number][] {
   const Q = S / 4, M = S / 2
   switch (h) {
     case 1: return [[Q, Q], [M, M], [3 * Q, Q], [M, 0]]
@@ -42,7 +42,7 @@ function polyPts(h: number, S: number): [number, number][] {
   }
 }
 
-function centroid(pts: [number, number][]): [number, number] {
+export function centroid(pts: [number, number][]): [number, number] {
   return [
     pts.reduce((s, p) => s + p[0], 0) / pts.length,
     pts.reduce((s, p) => s + p[1], 0) / pts.length,
