@@ -1578,7 +1578,7 @@ function PrashnaM2() {
 
               {/* ── Satpanchasika rule engine ───────────────────────────────── */}
               {mode === 'satpanchasika' && satpanchasikaReading && (
-                <SatpanchasikaPanel reading={satpanchasikaReading} questionText={questionText} stability={stability} askedOn={chart.meta?.birthDate} lagnaRashi={chart.lagnas.ascRashi} lagnaDegree={chart.lagnas.ascDegreeInRashi} />
+                <SatpanchasikaPanel reading={satpanchasikaReading} questionText={questionText} stability={stability} askedOn={chart.meta?.birthDate} lagnaRashi={chart.lagnas.ascRashi} lagnaDegree={chart.lagnas.ascDegreeInRashi} book={{ ascRashi: chart.lagnas.ascRashi, ascDegree: chart.lagnas.ascDegree, grahas: chart.grahas }} />
               )}
               {mode === 'satpanchasika' && satResult.error && (
                 <div role="alert" style={{ fontSize: '0.78rem', color: 'var(--rose)', padding: '0.6rem 0.75rem', borderRadius: 8, border: '1px solid var(--rose)' }}>

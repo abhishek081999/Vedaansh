@@ -5,7 +5,7 @@
 //  what was not evaluated, the 8-step method and interpretive decisions.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useLang } from '@/i18n/useLang'
 import { RASHI_HI } from '@/i18n/jyotish'
@@ -26,6 +26,7 @@ import { getSatpanchasikaSloka } from '@/lib/engine/satpanchasikaSlokas'
 import type { StabilityResult } from '@/lib/engine/prashnaStability'
 import type { EngineLang } from '@/lib/engine/lang'
 import { PrashnaLagnaSignCard } from './PrashnaLagnaSignCard'
+import { satpanchasikaBookLost, type SatBookInput } from '@/lib/engine/satpanchasikaBook'
 
 /** Verdict colours; the labels live in `prashna.verdict`. */
 export const VERDICT_STYLE: Record<SatpanchasikaVerdict, { color: string }> = {
@@ -221,13 +222,14 @@ function PlanetTable({ reading }: { reading: SatpanchasikaReading }) {
   )
 }
 
-export function SatpanchasikaPanel({ reading: r, questionText, stability, askedOn, lagnaRashi, lagnaDegree }: { reading: SatpanchasikaReading; questionText: string; stability?: StabilityResult | null; askedOn?: string; lagnaRashi?: number; lagnaDegree?: number }) {
+export function SatpanchasikaPanel({ reading: r, questionText, stability, askedOn, lagnaRashi, lagnaDegree, book }: { reading: SatpanchasikaReading; questionText: string; stability?: StabilityResult | null; askedOn?: string; lagnaRashi?: number; lagnaDegree?: number; book?: SatBookInput }) {
   const tr = useTranslations('prashna.sat')
   const tv = useTranslations('prashna.verdict')
   const tp = useTranslations('prashna.polarity')
   const { lang } = useLang()
   const [copied, setCopied] = useState(false)
   const v = VERDICT_STYLE[r.verdict]
+  const bookLost = useMemo(() => (r.lostItem && book ? satpanchasikaBookLost(book, lang) : []), [r.lostItem, book, lang])
   const showClarity = r.verdict !== 'indication_only' && r.verdict !== 'insufficient'
 
   const copy = async () => {
@@ -322,6 +324,12 @@ export function SatpanchasikaPanel({ reading: r, questionText, stability, askedO
           <DetailRow label={tr('distance')} value={`${r.lostItem.distance.steps} ${r.lostItem.distance.steps === 1 ? tr('step') : tr('steps')}`} working={r.lostItem.distance.working} />
           <DetailRow label={tr('whenLost')} value={satpanchasikaText(r.lostItem.whenLost.value, lang)} working={r.lostItem.whenLost.working} />
           <DetailRow label={tr('age')} value={r.lostItem.personAge.value} working={r.lostItem.personAge.working} />
+          {bookLost.length > 0 && (
+            <>
+              <div style={{ margin: '0.6rem 0 0.1rem', fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr('bookAdds')}</div>
+              {bookLost.map(b => <DetailRow key={b.id} label={b.label} value={b.value} working={b.working} />)}
+            </>
+          )}
         </Section>
       )}
 

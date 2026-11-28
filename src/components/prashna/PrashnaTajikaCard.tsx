@@ -20,10 +20,13 @@ import { panchavargiyaFor, type BalaBand } from '@/lib/engine/tajikaBala'
 import { TOPIC_SAHAMS, computeSahams, type SahamId } from '@/lib/engine/tajikaSahams'
 import { RASHI_HI } from '@/i18n/jyotish'
 import { RASHI_NAMES } from '@/types/astrology'
+import { BOOK_TOPIC_SAHAMS, bookSahams, readBookSaham, readTajikaBook, type BookTone } from '@/lib/engine/prashnaTajikaBook'
+
+const BOOK_TONE: Record<BookTone, string> = { good: 'var(--teal)', mixed: 'var(--gold)', bad: 'var(--rose)', neutral: 'var(--text-secondary)' }
 
 const LORDS: Record<number, GrahaId> = { 1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me', 7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju' }
 const BAND_TONE: Record<BalaBand, string> = { strong: 'var(--teal)', middling: 'var(--gold)', weak: 'var(--rose)' }
-type Pane = 'yogas' | 'bala' | 'sahams'
+type Pane = 'yogas' | 'book' | 'bala' | 'sahams'
 type ChartKind = 'north' | 'south' | 'circle'
 const PARTS = ['kshetra', 'ucca', 'hadda', 'drekkana', 'navamsa'] as const
 const PART_MAX = { kshetra: 30, ucca: 20, hadda: 15, drekkana: 10, navamsa: 5 }
@@ -73,6 +76,14 @@ export function PrashnaTajikaCard({ chart }: { chart: ChartOutput }) {
     return findTajikaYogas({ grahas, house, band: id => bala[id]?.band ?? 'middling' }, lagnaLord, matterLord)
       .map(y => ({ ...tajikaYogaFactor(y, lang), planets: y.id === 'ikkabala' || y.id === 'induvara' ? null : y.planets }))
   }, [grahas, asc, bala, lagnaLord, matterLord, lang])
+
+  const bookChart = useMemo(() => ({ ascRashi: asc, ascDegree: chart.lagnas.ascDegree, grahas: chart.grahas }), [asc, chart.lagnas.ascDegree, chart.grahas])
+  const book = useMemo(() => readTajikaBook(bookChart, lagnaLord, matterLord, lang), [bookChart, lagnaLord, matterLord, lang])
+  const bookSahamList = useMemo(() => bookSahams(bookChart, lang), [bookChart, lang])
+  const bookTopic = useMemo(
+    () => (BOOK_TOPIC_SAHAMS[topic] ?? []).map(id => bookSahamList.find(x => x.id === id)).filter(x => x !== undefined).map(x => readBookSaham(bookChart, x, lang)),
+    [topic, bookSahamList, bookChart, lang],
+  )
 
   const rows = useMemo(() => {
     const ids = TAJIKA_SEVEN.filter(id => grahas[id])
@@ -152,7 +163,7 @@ export function PrashnaTajikaCard({ chart }: { chart: ChartOutput }) {
       </figure>
       <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
       <div role="tablist" aria-label={t('paneAria')} style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999, maxWidth: '100%', overflowX: 'auto' }}>
-        {(['yogas', 'bala', 'sahams'] as const).map(v => (
+        {(['yogas', 'book', 'bala', 'sahams'] as const).map(v => (
           <button key={v} type="button" role="tab" aria-selected={pane === v} onClick={() => setPane(v)}
             style={{ height: 26, padding: '0 0.8rem', border: 'none', borderRadius: 999, fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
               background: pane === v ? 'var(--gold)' : 'transparent', color: pane === v ? 'var(--text-on-gold)' : 'var(--text-secondary)' }}>
@@ -178,6 +189,44 @@ export function PrashnaTajikaCard({ chart }: { chart: ChartOutput }) {
           ))}
         </ul>
       ))}
+
+      {pane === 'book' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{t('bookSub')}</p>
+          {[...book, ...bookTopic].length === 0 ? (
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t('none')}</p>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {[...book, ...bookTopic].map(r => (
+                <li key={r.id} style={{ padding: '0.55rem 0.7rem', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <span aria-hidden style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 999, background: BOOK_TONE[r.tone], marginRight: 6, verticalAlign: 'middle' }} />
+                    {r.title}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.5 }}>{r.text}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <details>
+            <summary style={{ cursor: 'pointer', fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{t('bookSahams', { n: bookSahamList.length })}</summary>
+            <div style={{ overflowX: 'auto', marginTop: '0.35rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.68rem', fontVariantNumeric: 'tabular-nums' }}>
+                <tbody>
+                  {bookSahamList.map(x => (
+                    <tr key={x.id} style={{ borderTop: '1px solid var(--border-soft)' }}>
+                      <td style={{ padding: '0.28rem 0.35rem', fontWeight: 600, color: x.adverse ? 'var(--rose)' : 'var(--text-primary)' }}>{x.name}</td>
+                      <td style={{ padding: '0.28rem 0.35rem', color: 'var(--text-muted)' }}>{x.for}</td>
+                      <td style={{ padding: '0.28rem 0.35rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{signName(x.rashi)} {x.degree.toFixed(1)}°</td>
+                      <td style={{ padding: '0.28rem 0.35rem', color: [6, 8, 12].includes(x.house) ? 'var(--rose)' : 'var(--text-secondary)', textAlign: 'right' }}>{x.house}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      )}
 
       {pane === 'bala' && (
         <div>

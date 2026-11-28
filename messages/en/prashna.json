@@ -305,7 +305,8 @@
     "copyRules": "RULES THAT FIRED",
     "copyTiming": "TIMING (separate methods, not added together)",
     "stableSummary": "The verdict holds across about 8 minutes either side, so a small error in the time does not change it.",
-    "unstableSummary": "The verdict changes within {min} minutes of the recorded time. Note the exact moment carefully and hold this reading loosely."
+    "unstableSummary": "The verdict changes within {min} minutes of the recorded time. Note the exact moment carefully and hold this reading loosely.",
+    "bookAdds": "As this book adds"
   },
   "vedic": {
     "kicker": "Vedic praśna · {topic}",
@@ -350,7 +351,10 @@
       "timing": "Timing",
       "detail": "Item detail",
       "subject": "Subject"
-    }
+    },
+    "topicsTitle": "Find by topic",
+    "topicsHint": "From the book's index. Pick a śloka to show it below.",
+    "topicOpen": "Show śloka {id}"
   },
   "ui": {
     "modeBtn": {
@@ -612,6 +616,10 @@
         "planets": "Planets",
         "houses": "Houses",
         "arudha": "Arudha",
+        "principles": "Principles",
+        "tajika": "Tajika",
+        "mook": "Mook",
+        "satpanchasika": "Satpanchasika",
         "method": "Method"
       },
       "comingSoon": "This section is coming soon.",
@@ -921,6 +929,51 @@
           "neutral": "Average results",
           "enemy": "Bad results"
         }
+      },
+      "principles": {
+        "chartTitle": "General principles for this chart",
+        "castHint": "Cast a chart to read these principles for that moment.",
+        "chartNote": "Each rule is one strand. Judge the chart as a whole, and against what the querist actually wants.",
+        "houses": {
+          "past": "9–12",
+          "present": "1–4",
+          "future": "5–8"
+        },
+        "sutrasTitle": "Jeeva, Roga and Mrityu sutras",
+        "sutrasIntro": "Give the Arudha as a number from 1 to 108 (sign and navamsha), or pick the Arudha sign. Add the birth nakshatra for the nakshatra sutra.",
+        "number": "Number 1–108",
+        "arudhaSign": "Arudha sign",
+        "birthNak": "Birth nakshatra",
+        "numberInvalid": "Enter a whole number from 1 to 108.",
+        "pickArudha": "Enter a number or pick the Arudha sign to read the sutras.",
+        "sutrasMissing": "The navamsha sutra needs the number 1–108; the nakshatra sutra needs the birth nakshatra."
+      },
+      "mook": {
+        "castHint": "Cast a chart to read the silent question and the closed fist for that moment.",
+        "summaryTitle": "The silent question at a glance",
+        "kindVotes": "Dhatu, mula or jeeva (tests agreeing)",
+        "houseVotes": "Houses pointed to",
+        "strongest": "Strongest planet",
+        "houseN": "House {n}",
+        "votes": "{n} tests",
+        "summaryNote": "Each test is a pointer, not a verdict. Where they agree, the matter is likely; confirm by asking the querist.",
+        "mushtiTitle": "Mushti: what is in the fist",
+        "kendraStrong": "Strong planets in kendras: {list}.",
+        "kendraNone": "No strong planet in a kendra; read from the planets in kendras as they are."
+      },
+      "satpanchasika": {
+        "analysisTitle": "Satpanchasika analysis of this chart",
+        "analysisIntro": "Choose the kind of question. The 56 ślokas are applied to the M1 chart: verdict, the rules that fired, timing and details.",
+        "analysisCast": "Cast a chart to run the Satpanchasika analysis on it.",
+        "kind": "Kind of question",
+        "topicsTitle": "Shatpanchasika by topic",
+        "topicsIntro": "The book's index to Prithuyasas' 56 ślokas. Pick a topic, then a śloka, to read it.",
+        "topic": "Topic",
+        "slokasAria": "Ślokas for this topic",
+        "slokaN": "Śloka {id}",
+        "lostTitle": "Lost article, as this book reads it",
+        "lostIntro": "From ślokas 6.3–6.5 for this chart. The Satpanchasika panel (M2) gives the full lost-item reading.",
+        "castHint": "Cast a chart to read the lost article's colour, size, touch, distance and direction for that moment."
       }
     },
     "orManual": "or choose a date, time and place",
@@ -959,6 +1012,7 @@
       "paneAria": "Tajika detail",
       "pane": {
         "yogas": "Yogas",
+        "book": "This text",
         "bala": "Pañcavargīya bala",
         "sahams": "Sahams"
       },
@@ -1000,7 +1054,9 @@
         "south": "South",
         "circle": "Circle"
       },
-      "gridHint": "Lines join the planets, whatever their degree inside the sign. Hover a yoga or a link to pick out its planets."
+      "gridHint": "Lines join the planets, whatever their degree inside the sign. Hover a yoga or a link to pick out its planets.",
+      "bookSub": "The book's own reading of the same pair: Iqbal and Induvaar by majority, Purna and Bhavishyat ithsala, Manau, Kamboola and Khallasara by the Moon, Rudda with debility and 6/8/12, graded Ishraf, Nakta with any mix of links, Rahu–Ketu, and its sahams for this matter.",
+      "bookSahams": "The book's 15 sahams ({n})"
     },
     "question": {
       "title": "Question guide",
@@ -1034,7 +1090,9 @@
       "colFrom": "House {n} from it · lord",
       "twelveNote": "Up to 12 questions. Stronger or weaker of Venus and Mercury is by pañcavargīya bala. Once the questions are done, the chart is finished.",
       "lostOnly": "These clues are meant for a lost or stolen item question.",
-      "lostNote": "From the class rules and case studies: D1 lagna for who, D9 lagna for where, Mars for theft, Saturn for servants and iron, the Moon for the mind on the loss. Answer insider-or-outsider questions with great care."
+      "lostNote": "From the class rules and case studies: D1 lagna for who, D9 lagna for where, Mars for theft, Saturn for servants and iron, the Moon for the mind on the loss. Answer insider-or-outsider questions with great care.",
+      "principlesTitle": "Principles present for this question",
+      "principlesTally": "{good} in favour · {bad} against"
     }
   }
 }

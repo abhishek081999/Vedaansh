@@ -20,6 +20,9 @@ import { readPrashnaRashi, lookText, constitutionText, combinedIndication } from
 import { readPrashnaPlanets } from './prashnaPlanetEssentials'
 import { HOUSE_KARAKAS } from './prashnaHouseEssentials'
 import { getHouseSignifications } from './prashnaHouseSignifications'
+import { readPrinciples, timeFrames } from './prashnaPrinciples'
+import { bookSahams, readBookSaham, readTajikaBook } from './prashnaTajikaBook'
+import { kindLabel, readMook, readMushti } from './prashnaMook'
 
 export interface PrashnaAiPromptOptions {
   question?: string
@@ -185,6 +188,65 @@ function summarySection(g: ReturnType<typeof buildPrashnaGlance>, wars: ReturnTy
   ].join('\n')
 }
 
+function principlesSection(chart: ChartOutput): string {
+  const input = {
+    ascRashi: chart.lagnas.ascRashi,
+    ascDegree: chart.lagnas.ascDegreeInRashi,
+    varaLord: chart.panchang?.vara?.lord,
+    grahas: chart.grahas.filter(g => CLASSICAL.includes(g.id)),
+  }
+  const tag = { good: 'for', bad: 'against', mixed: 'mixed', neutral: 'note' } as const
+  const tf = timeFrames(input)
+  return [
+    '## 6b. General principles present',
+    '',
+    'Rules from "General Principles of Prashna" that apply to this chart. Weigh them with the karyesh of the actual question (link of lagnesh and karyesh, retrograde planets on them, kartari on the karya bhava).',
+    '',
+    ...readPrinciples(input).map(r => `- [${tag[r.tone]}] ${r.text}`),
+    `- [note] Planets by time frame: past (houses 9–12) ${tf.past.map(gname).join(', ') || '—'}; present (1–4) ${tf.present.map(gname).join(', ') || '—'}; future (5–8) ${tf.future.map(gname).join(', ') || '—'}.`,
+  ].join('\n')
+}
+
+function tajikaBookSection(chart: ChartOutput): string {
+  const c = { ascRashi: chart.lagnas.ascRashi, ascDegree: chart.lagnas.ascDegree, grahas: chart.grahas }
+  const lagnesh = signLord(chart.lagnas.ascRashi)
+  const wide = readTajikaBook(c, lagnesh, lagnesh)
+  const sahams = bookSahams(c)
+  return [
+    '## 6c. Tajika as the book reads it',
+    '',
+    'Judge the question with the lagnesh and the karyesh (lord of the house of the question): ithsala (purna if within 1°, bhavishyat if it forms on a sign change or is within 1° beyond the mean orb), kamboola if the Moon is in ithsala with either, khallasara if the Moon is linked with neither, rudda if one of the pair is retrograde, combust, debilitated or in 6/8/12 (permanent if from 6/8/12 or with their lords), manau if a malefic afflicts the faster planet within orb, ishraf (past, unfavourable), nakta / yamaya through a third planet. Rahu or Ketu with the pair spoils it. The Moon tied to only one of them does not fulfil the query.',
+    '',
+    ...(wide.length ? wide.map(r => `- **${r.title}:** ${r.text}`) : ['- No chart-wide Iqbal or Induvaar.']),
+    '',
+    'Sahams (book formulas). Adverse sahams (roga, mrityu, bandhan) should be weak; good ones strong:',
+    '',
+    ...sahams.map(s => { const r = readBookSaham(c, s); return `- ${r.title} (${s.for}): ${r.text}` }),
+  ].join('\n')
+}
+
+function mookSection(chart: ChartOutput): string {
+  const d9 = chart.vargas?.D9
+  const c = {
+    ascRashi: chart.lagnas.ascRashi, ascDegree: chart.lagnas.ascDegree, grahas: chart.grahas,
+    ...(d9 ? { d9: Object.fromEntries(d9.map(g => [g.id, g.rashi])) as Partial<Record<GrahaId, Rashi>> } : {}),
+  }
+  const m = readMook(c)
+  const fist = readMushti(c)
+  const votes = (Object.entries(m.tally) as [keyof typeof m.tally, number][]).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${kindLabel(k)} ${n}`).join(', ')
+  return [
+    '## 6d. Mook praśna: what the unspoken question is about',
+    '',
+    'Pointers from "Mook and Mushti Prashna". Use them to find the matter when the querent has not said it, or to check whether something else is on their mind. The karyesh is the lord of the house the question turns out to be about.',
+    '',
+    `- **Dhatu / mula / jeeva votes:** ${votes}`,
+    `- **Houses pointed to:** ${m.houses.map(h => `house ${h.house} (${h.topic}, ${h.votes})`).join('; ') || '—'}`,
+    `- **Strongest planet:** ${gname(m.strongest)}`,
+    ...m.groups.flatMap(g => g.items.map(it => `- ${it.text}`)),
+    `- **Mushti (closed fist):** ${fist.schools.map(s => `${s.name}: ${s.kind ? kindLabel(s.kind) : '—'}`).join('; ')}${fist.items.length ? `. ${fist.items.map(i => i.text).join(' ')}` : ''}`,
+  ].join('\n')
+}
+
 function dashaSection(chart: ChartOutput, at: Date): string {
   const vim = chart.dashas?.vimshottari
   if (!vim?.length) return ''
@@ -234,6 +296,9 @@ export function buildPrashnaAiPrompt(chart: ChartOutput, opts: PrashnaAiPromptOp
     planetSection(chart, avasthas, pr),
     houseSection(chart),
     summarySection(glance, planetaryWars(planets)),
+    principlesSection(chart),
+    tajikaBookSection(chart),
+    mookSection(chart),
     dashaSection(chart, opts.at),
   ]
   const full = (opts.plan ?? 'free') !== 'free' && opts.detail !== 'short'

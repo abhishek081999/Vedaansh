@@ -15,6 +15,10 @@ import {
 } from '@/lib/engine/prashnaQuestions'
 
 type Pane = 'checklist' | 'twelve' | 'lost'
+import { karyaPrinciples, readPrinciples, type PrincipleTone } from '@/lib/engine/prashnaPrinciples'
+import { readTajikaBook } from '@/lib/engine/prashnaTajikaBook'
+
+const PTONE: Record<PrincipleTone, string> = { good: 'var(--teal)', mixed: 'var(--gold)', bad: 'var(--rose)', neutral: 'var(--text-secondary)' }
 const TONE: Record<ChecklistNote['tone'], string> = { good: 'var(--teal)', mixed: 'var(--gold)', bad: 'var(--rose)', info: 'var(--text-secondary)' }
 
 function toInput(chart: ChartOutput): QuestionChartInput {
@@ -42,6 +46,23 @@ export function PrashnaQuestionCard({ chart }: { chart: ChartOutput }) {
   const list = useMemo(() => buildQuestionChecklist(input, kind, lang), [input, kind, lang])
   const points = useMemo(() => twelveQuestionPoints(input, lang), [input, lang])
   const clues = useMemo(() => lostItemClues(input, lang), [input, lang])
+  const principles = useMemo(() => {
+    const karya = karyaPrinciples(input, def.karyeshaHouse, lang)
+    const general = readPrinciples({
+      ascRashi: input.ascRashi,
+      ascDegree: chart.lagnas.ascDegreeInRashi,
+      varaLord: chart.panchang?.vara?.lord,
+      grahas: input.grahas.filter(g => ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'].includes(g.id)),
+    }, lang)
+    const SL = ['Ma', 'Ve', 'Me', 'Mo', 'Su', 'Me', 'Ve', 'Ma', 'Ju', 'Sa', 'Sa', 'Ju'] as const
+    const lagnesh = SL[input.ascRashi - 1]
+    const karyesh = SL[((input.ascRashi - 1 + def.karyeshaHouse - 1) % 12)]
+    const tajika = readTajikaBook({ ascRashi: input.ascRashi, ascDegree: chart.lagnas.ascDegree, grahas: input.grahas }, lagnesh, karyesh, lang)
+      .filter(r => !r.id.startsWith('node-'))
+      .map(r => ({ id: `tajika-${r.id}`, tone: r.tone, text: `${r.title}: ${r.text}` }))
+    return [...karya, ...tajika, ...general]
+  }, [input, def.karyeshaHouse, chart, lang])
+  const tally = { good: principles.filter(p => p.tone === 'good').length, bad: principles.filter(p => p.tone === 'bad').length }
 
   const placeText = (p: PlanetPlace) =>
     `${p.sign} ${p.degree}° · ${t('houseN', { n: p.house })} · ${p.dignity}${p.flags.length ? ` · ${p.flags.join(', ')}` : ''}${p.d9Sign ? ` · D9 ${p.d9Sign}` : ''}`
@@ -132,6 +153,20 @@ export function PrashnaQuestionCard({ chart }: { chart: ChartOutput }) {
               ))}
             </ul>
           )}
+          <div style={{ padding: '0.55rem 0.65rem', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div style={muted}>{t('principlesTitle')}</div>
+              <span style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>{t('principlesTally', { good: tally.good, bad: tally.bad })}</span>
+            </div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {principles.map(p => (
+                <li key={p.id} style={{ fontSize: '0.72rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                  <span aria-hidden style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 999, background: PTONE[p.tone], marginRight: 6, verticalAlign: 'middle' }} />
+                  {p.text}
+                </li>
+              ))}
+            </ul>
+          </div>
           <p style={{ margin: 0, fontSize: '0.64rem', color: 'var(--text-muted)' }}>{t('checklistNote')}</p>
         </>
       )}
