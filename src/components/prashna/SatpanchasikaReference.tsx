@@ -17,6 +17,7 @@ import {
 } from '@/lib/engine/satpanchasikaSlokas'
 import type { SlokaStatus } from '@/lib/engine/satpanchasikaEngine'
 import { SlokaText } from './SatpanchasikaPanel'
+import { satpanchasikaTopics } from '@/lib/engine/satpanchasikaBook'
 
 /** Badge colours; the labels live in `prashna.ref.status`. */
 const STATUS_COLOR: Partial<Record<SlokaStatus, string>> = {
@@ -39,10 +40,11 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
     const q = query.trim().toLowerCase()
     return SATPANCHASIKA_SLOKAS.filter(s =>
       (chapter === 'all' || s.chapter === chapter)
-      && (!q || s.id.startsWith(q) || (getSatpanchasikaSloka(s.id, lang)?.meaning ?? s.meaning).toLowerCase().includes(q) || s.sanskrit.includes(query.trim())),
+      && (!q || (/^\d+\.\d+$/.test(q) ? s.id === q : s.id.startsWith(q)) || (getSatpanchasikaSloka(s.id, lang)?.meaning ?? s.meaning).toLowerCase().includes(q) || s.sanskrit.includes(query.trim())),
     )
   }, [query, chapter, lang])
 
+  const topics = useMemo(() => satpanchasikaTopics(lang), [lang])
   const Chevron = open ? ChevronDown : ChevronRight
 
   return (
@@ -82,6 +84,26 @@ export function SatpanchasikaReference({ status }: { status?: Record<string, Slo
               ))}
             </select>
           </div>
+
+          <details>
+            <summary style={{ cursor: 'pointer', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{t('topicsTitle')}</summary>
+            <p style={{ margin: '0.35rem 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('topicsHint')}</p>
+            <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'minmax(140px, max-content) 1fr', gap: '0.3rem 0.7rem', fontSize: '0.72rem', lineHeight: 1.5 }}>
+              {topics.map(x => (
+                <div key={x.topic} style={{ display: 'contents' }}>
+                  <dt style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{x.topic}</dt>
+                  <dd style={{ margin: 0, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {x.slokas.map(id => (
+                      <button key={id} type="button" onClick={() => { setChapter('all'); setQuery(id) }} aria-label={t('topicOpen', { id })}
+                        style={{ padding: '0 0.45rem', height: 22, borderRadius: 999, border: '1px solid var(--border-soft)', background: query.trim() === id ? 'var(--gold)' : 'var(--surface-2)', color: query.trim() === id ? 'var(--text-on-gold)' : 'var(--text-gold)', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}>
+                        {id}
+                      </button>
+                    ))}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </details>
 
           {list.length === 0 && <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t('none')}</p>}
 

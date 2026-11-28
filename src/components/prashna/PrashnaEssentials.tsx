@@ -16,6 +16,10 @@ import { PrashnaGlanceCard } from '@/components/prashna/PrashnaGlanceCard'
 import { PrashnaEssentialsMap, type EssentialsView } from '@/components/prashna/PrashnaEssentialsMap'
 import { PrashnaArudhaEssentials } from '@/components/prashna/PrashnaArudhaEssentials'
 import { PrashnaMethodEssentials } from '@/components/prashna/PrashnaMethodEssentials'
+import { PrashnaPrinciplesEssentials } from '@/components/prashna/PrashnaPrinciplesEssentials'
+import { PrashnaTajikaEssentials } from '@/components/prashna/PrashnaTajikaEssentials'
+import { PrashnaMookEssentials } from '@/components/prashna/PrashnaMookEssentials'
+import { PrashnaSatpanchasikaEssentials } from '@/components/prashna/PrashnaSatpanchasikaEssentials'
 import {
   CONSTITUTION_COMBOS,
   CONSTITUTION_KINDS,
@@ -36,7 +40,7 @@ import {
   type SignRef,
 } from '@/lib/engine/prashnaRashiEssentials'
 
-type Tab = 'rashi' | 'planets' | 'houses' | 'arudha' | 'method'
+type Tab = 'rashi' | 'planets' | 'houses' | 'arudha' | 'principles' | 'tajika' | 'mook' | 'satpanchasika' | 'method'
 type View = 'details' | EssentialsView
 const SIGNS: Rashi[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
@@ -105,11 +109,11 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
     <section className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>{t('title')}</h2>
-        <div role="tablist" aria-label={t('tabsAria')} style={{ display: 'inline-flex', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999, marginLeft: 'auto' }}>
-          {(['rashi', 'planets', 'houses', 'arudha', 'method'] as const).map(v => (
+        <div role="tablist" aria-label={t('tabsAria')} style={{ display: 'inline-flex', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999, marginLeft: 'auto', maxWidth: '100%', overflowX: 'auto' }}>
+          {(['rashi', 'planets', 'houses', 'arudha', 'principles', 'tajika', 'mook', 'satpanchasika', 'method'] as const).map(v => (
             <button key={v} type="button" role="tab" aria-selected={tab === v} onClick={() => setTab(v)}
               style={{
-                height: 26, padding: '0 0.8rem', border: 'none', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
+                height: 26, padding: '0 0.8rem', border: 'none', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
                 background: tab === v ? 'var(--gold)' : 'transparent',
                 color: tab === v ? 'var(--text-on-gold)' : 'var(--text-secondary)',
               }}>
@@ -119,7 +123,7 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
         </div>
       </div>
 
-      {tab !== 'method' && <div role="radiogroup" aria-label={t('map.viewAria')} style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999 }}>
+      {tab !== 'method' && tab !== 'principles' && tab !== 'tajika' && tab !== 'mook' && tab !== 'satpanchasika' && <div role="radiogroup" aria-label={t('map.viewAria')} style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999 }}>
         {(['details', 'cheatsheet', 'mindmap'] as const).map(v => (
           <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
             style={{
@@ -137,9 +141,17 @@ export function PrashnaEssentials({ chart, at }: { chart?: ChartOutput | null; a
 
       {tab === 'arudha' && <PrashnaArudhaEssentials chart={chart} view={view} onView={setView} />}
 
+      {tab === 'principles' && <PrashnaPrinciplesEssentials chart={chart} />}
+
+      {tab === 'tajika' && <PrashnaTajikaEssentials />}
+
+      {tab === 'mook' && <PrashnaMookEssentials chart={chart} />}
+
+      {tab === 'satpanchasika' && <PrashnaSatpanchasikaEssentials chart={chart} />}
+
       {tab === 'method' && <PrashnaMethodEssentials />}
 
-      {view !== 'details' && tab !== 'arudha' && tab !== 'method' && <PrashnaEssentialsMap subject={tab} view={view} onView={setView} chart={chart} />}
+      {view !== 'details' && tab !== 'arudha' && tab !== 'method' && tab !== 'principles' && tab !== 'tajika' && tab !== 'mook' && tab !== 'satpanchasika' && <PrashnaEssentialsMap subject={tab} view={view} onView={setView} chart={chart} />}
 
       {view === 'details' && tab === 'planets' && <PrashnaPlanetEssentials chart={chart} at={at} />}
 
