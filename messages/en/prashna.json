@@ -611,7 +611,8 @@
         "rashi": "Rashi",
         "planets": "Planets",
         "houses": "Houses",
-        "arudha": "Arudha"
+        "arudha": "Arudha",
+        "method": "Method"
       },
       "comingSoon": "This section is coming soon.",
       "castHint": "Cast a chart to mark the Lagna sign and see these essentials read for that moment.",
@@ -933,6 +934,107 @@
       "fullHint": "Adds what each house covers in praśna, so the AI can pick the right house for your question.",
       "hideQuestion": "Leave out the question (tell the AI yourself)",
       "privacy": "The prompt includes the date, time, place and your question. It goes to the AI provider you upload it to, under their privacy terms."
+    },
+    "tajika": {
+      "title": "Tajika yogas",
+      "sub": "Nīlakaṇṭha's sixteen yogas between the querist and the matter, read from this chart.",
+      "matter": "Matter",
+      "querist": "Querist (lagna lord)",
+      "matterLord": "Matter ({ord} lord)",
+      "sameLord": "One planet rules both the lagna and the matter, so there is no pair to join.",
+      "none": "No Tajika yoga forms between these significators.",
+      "links": "Links between the seven ({n})",
+      "linksEmpty": "No ithasala or ishrafa between any two planets.",
+      "ithasala": "Ithasala",
+      "ishrafa": "Ishrafa",
+      "future": "Bhaviṣyat",
+      "friendly": "friendly",
+      "hostile": "hostile",
+      "gap": "{gap}° of {orb}° orb",
+      "days": "exact in ~{n} days",
+      "note": "Fast planet first. A study aid from classical Tajika, not a forecast.",
+      "wheelAria": "Tajika chart: the seven planets with their ithasala, bhaviṣyat ithasala and ishrafa links",
+      "sigLegend": "Significators",
+      "wheelHint": "Lagna on the left. Hover a yoga or a link to pick out its planets.",
+      "paneAria": "Tajika detail",
+      "pane": {
+        "yogas": "Yogas",
+        "bala": "Pañcavargīya bala",
+        "sahams": "Sahams"
+      },
+      "saham": "saham",
+      "sahamFor": "Saham for this matter",
+      "house": "house {n}",
+      "lordIs": "Lord {lord}:",
+      "band": {
+        "strong": "strong",
+        "middling": "middling",
+        "weak": "weak"
+      },
+      "allSahams": "All sahams ({n})",
+      "sahamNote": "A − B + C, reversed by night for most; +30° when C is not between B and A. Equal-house cusps from the lagna degree. Hover to mark a saham on the chart.",
+      "rel": {
+        "own": "own",
+        "friend": "friend",
+        "neutral": "neutral",
+        "enemy": "enemy"
+      },
+      "bala": {
+        "planet": "Planet",
+        "kshetra": "Kṣe",
+        "ucca": "Ucca",
+        "hadda": "Hadda",
+        "drekkana": "Dre",
+        "navamsa": "Nav",
+        "total": "Total",
+        "kshetraFull": "Kṣetra (sign lord)",
+        "uccaFull": "Ucca (exaltation)",
+        "haddaFull": "Hadda (term lord)",
+        "drekkanaFull": "Drekkāṇa lord",
+        "navamsaFull": "Navāṃśa lord",
+        "note": "Sum of the five over 4. 10 and above is strong, below 5 weak. Own lord gives full points, a friend half, neutral a quarter, an enemy an eighth (Parashari natural friendship). The yogas use this strength."
+      },
+      "chartAria": "Chart style",
+      "chartKind": {
+        "north": "North",
+        "south": "South",
+        "circle": "Circle"
+      },
+      "gridHint": "Lines join the planets, whatever their degree inside the sign. Hover a yoga or a link to pick out its planets."
+    },
+    "question": {
+      "title": "Question guide",
+      "sub": "What to examine for each kind of question, read from this chart.",
+      "kind": "Question",
+      "paneAria": "Question guide view",
+      "pane": {
+        "checklist": "Checklist",
+        "twelve": "12 questions",
+        "lost": "Lost item"
+      },
+      "lagnaLord": "Lagna lord ({sign} lagna)",
+      "moon": "Moon: the mind",
+      "karyesha": "Karyesha ({n}th lord)",
+      "houseN": "house {n}",
+      "genuineYes": "Question looks genuine:",
+      "genuineNo": "Moon and lagna lord not tied to the question houses.",
+      "genuineHint": "The question may be vague, or not what the querent really has in mind. Check before answering.",
+      "colHouse": "House",
+      "colRole": "Shows",
+      "colSign": "Sign",
+      "colLord": "Lord",
+      "colIn": "Planets in it",
+      "colAspect": "Aspected by",
+      "karakas": "Kārakas",
+      "checklistNote": "Never drop the lagna and lagna lord, whatever the question. Read each house's lord, sign and planets, then the aspects and the Tajika yogas below.",
+      "twelveIntro": "Cast only when a question is actually asked. For further questions on a different topic from the same chart, the reference point moves: question 1 reads from the D1 lagna, question 2 from the D9 lagna, and so on. Count the matter's house from the point for that question.",
+      "matterHouse": "Matter's house",
+      "colPoint": "Reference point",
+      "colRefSign": "Sign · lord",
+      "colFrom": "House {n} from it · lord",
+      "twelveNote": "Up to 12 questions. Stronger or weaker of Venus and Mercury is by pañcavargīya bala. Once the questions are done, the chart is finished.",
+      "lostOnly": "These clues are meant for a lost or stolen item question.",
+      "lostNote": "From the class rules and case studies: D1 lagna for who, D9 lagna for where, Mars for theft, Saturn for servants and iron, the Moon for the mind on the loss. Answer insider-or-outsider questions with great care."
     }
   }
 }

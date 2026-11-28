@@ -16,6 +16,21 @@ import type { EngineLang } from '@/lib/engine/lang'
 
 const CACHE_TTL_SECONDS = 3 * 86_400
 
+/**
+ * Process cache for when Upstash rejects the write (plan limit).
+ * Lives on globalThis so duplicate dev bundles share one map.
+ */
+const memoryReports: Map<string, DailyHoroscopeReport> = ((globalThis as { __vedaHoroscopeReports?: Map<string, DailyHoroscopeReport> }).__vedaHoroscopeReports ??= new Map())
+const MEMORY_REPORTS_MAX = 16
+
+function rememberReport(key: string, report: DailyHoroscopeReport): void {
+  if (memoryReports.size >= MEMORY_REPORTS_MAX && !memoryReports.has(key)) {
+    const oldest = memoryReports.keys().next().value
+    if (oldest) memoryReports.delete(oldest)
+  }
+  memoryReports.set(key, report)
+}
+
 export function horoscopeCacheKey(date: string, lang: EngineLang = 'en'): string {
   return buildHoroscopeCacheKey(date, lang)
 }
@@ -34,10 +49,17 @@ function isCurrentShape(r: DailyHoroscopeReport | null): r is DailyHoroscopeRepo
 
 export async function getDailyHoroscope(date: string, lang: EngineLang = 'en'): Promise<DailyHoroscopeReport> {
   const key = horoscopeCacheKey(date, lang)
+  const memorized = memoryReports.get(key)
+  if (memorized) return memorized
+
   const cached = await redis.get<DailyHoroscopeReport>(key)
-  if (isCurrentShape(cached)) return cached
+  if (isCurrentShape(cached)) {
+    rememberReport(key, cached)
+    return cached
+  }
 
   const report = buildDailyHoroscopeReport(buildDailyHoroscopeSky(date), lang)
+  rememberReport(key, report)
   await redis.set(key, report, CACHE_TTL_SECONDS)
   return report
 }

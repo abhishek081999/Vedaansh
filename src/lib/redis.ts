@@ -20,6 +20,45 @@ function isChartCacheKey(key: string): boolean {
   return key.includes(':chart:')
 }
 
+/** Upstash puts the full Redis command in `error.message`. Keep logs to the reason. */
+function redisErrorText(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err)
+  const commandAt = raw.indexOf(', command was:')
+  const text = commandAt === -1 ? raw : raw.slice(0, commandAt)
+  return text.replace(/\s+/g, ' ').trim().slice(0, 240)
+}
+
+function isRedisPlanLimit(message: string): boolean {
+  const msg = message.toLowerCase()
+  return msg.includes('quota') || msg.includes('plan limit') || msg.includes('max requests') || msg.includes('daily request limit')
+}
+
+/**
+ * Values we tried to write while Upstash is over its plan limit.
+ * Chart payloads stay out — those are multi-megabyte.
+ */
+const WRITE_FALLBACK = new Map<string, { value: unknown; expires: number }>()
+const WRITE_FALLBACK_MAX = 24
+
+function readWriteFallback<T>(key: string): T | null {
+  const entry = WRITE_FALLBACK.get(key)
+  if (!entry) return null
+  if (entry.expires <= Date.now()) {
+    WRITE_FALLBACK.delete(key)
+    return null
+  }
+  return entry.value as T
+}
+
+function rememberWriteFallback(key: string, value: unknown, ttlSeconds: number): void {
+  if (isChartCacheKey(key)) return
+  if (WRITE_FALLBACK.size >= WRITE_FALLBACK_MAX && !WRITE_FALLBACK.has(key)) {
+    const oldest = WRITE_FALLBACK.keys().next().value
+    if (oldest) WRITE_FALLBACK.delete(oldest)
+  }
+  WRITE_FALLBACK.set(key, { value, expires: Date.now() + ttlSeconds * 1000 })
+}
+
 // Chart payloads are ~2MB JSON each; serialize/compress one at a time to avoid OOM.
 let chartCacheWriteQueue: Promise<void> = Promise.resolve()
 
@@ -105,7 +144,7 @@ export const redis = {
       if (!client) return null
       
       const raw = await client.get<unknown>(key)
-      if (!raw) return null
+      if (!raw) return readWriteFallback<T>(key)
 
       let result: T | null = null
 
@@ -131,22 +170,14 @@ export const redis = {
 
       return result
     } catch (err) {
-      if (typeof err === 'object' && err !== null) {
-        const msg = (err as any).message || ''
-        const isTransient = msg.includes('refused') || 
-                            msg.includes('failed') || 
-                            msg.includes('terminated') || 
-                            msg.includes('timeout')
-        
-        if (msg.includes('quota exceeded')) return null
-        
-        if (isTransient) {
-          // Log transient errors as warnings with less noise
-          console.warn(`[redis.get] Network issue: ${msg.split(',')[0]} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
-          return null
-        }
+      const msg = redisErrorText(err)
+      if (isRedisPlanLimit(msg)) return readWriteFallback<T>(key)
+      const isTransient = /refused|failed|terminated|timeout/i.test(msg)
+      if (isTransient) {
+        console.warn(`[redis.get] Network issue: ${msg} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
+        return null
       }
-      console.warn('[redis.get] error:', err)
+      console.warn('[redis.get] error:', msg)
       return null
     }
   },
@@ -193,21 +224,17 @@ export const redis = {
         maybeGcAfterLargeWrite()
       }
     } catch (err) {
-      if (typeof err === 'object' && err !== null) {
-        const msg = (err as any).message || ''
-        const isTransient = msg.includes('refused') || 
-                            msg.includes('failed') || 
-                            msg.includes('terminated') || 
-                            msg.includes('timeout')
-
-        if (msg.includes('quota exceeded')) return
-        
-        if (isTransient) {
-          console.warn(`[redis.set] Network issue: ${msg.split(',')[0]} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
-          return
-        }
+      const msg = redisErrorText(err)
+      if (isRedisPlanLimit(msg)) {
+        rememberWriteFallback(key, value, ttlSeconds)
+        return
       }
-      console.warn('[redis.set] error:', err)
+      const isTransient = /refused|failed|terminated|timeout/i.test(msg)
+      if (isTransient) {
+        console.warn(`[redis.set] Network issue: ${msg} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
+        return
+      }
+      console.warn('[redis.set] error:', msg)
     }
   },
 

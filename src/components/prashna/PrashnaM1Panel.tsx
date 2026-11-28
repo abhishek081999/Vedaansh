@@ -16,6 +16,8 @@ import { DashaTree } from '@/components/dasha/DashaTree'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { PrashnaEssentials } from '@/components/prashna/PrashnaEssentials'
 import { PrashnaAiPromptButton } from '@/components/prashna/PrashnaAiPromptButton'
+import { PrashnaTajikaCard } from '@/components/prashna/PrashnaTajikaCard'
+import { PrashnaQuestionCard } from '@/components/prashna/PrashnaQuestionCard'
 import { GRAHA_NAMES, RASHI_NAMES, type ChartOutput, type GrahaId, type UserPlan, DEFAULT_AYANAMSHA } from '@/types/astrology'
 import { useLang } from '@/i18n/useLang'
 import { getHoraTable } from '@/lib/engine/nakshatra'
@@ -67,6 +69,8 @@ export function PrashnaM1Panel() {
   const { lang } = useLang()
   const hi = lang === 'hi'
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
+  // Prashna Essentials and the Question guide are study tools for admins only.
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin'
 
   const [location, setLocation] = useState<LocationValue>(getSavedLocation)
   const [date, setDate] = useState('')
@@ -265,10 +269,12 @@ export function PrashnaM1Panel() {
             style={{ whiteSpace: 'nowrap', background: showSaved ? 'var(--gold-faint)' : undefined }}>
             {t('savedBtn', { n: saved.length })}
           </button>
-          <button type="button" onClick={() => setShowEssentials(v => !v)} aria-expanded={showEssentials} className="btn btn-sm btn-ghost"
-            style={{ whiteSpace: 'nowrap', background: showEssentials ? 'var(--gold-faint)' : undefined }}>
-            {t('essentialsBtn')}
-          </button>
+          {isAdmin && (
+            <button type="button" onClick={() => setShowEssentials(v => !v)} aria-expanded={showEssentials} className="btn btn-sm btn-ghost"
+              style={{ whiteSpace: 'nowrap', background: showEssentials ? 'var(--gold-faint)' : undefined }}>
+              {t('essentialsBtn')}
+            </button>
+          )}
         </div>
 
         {showSaved && (
@@ -300,7 +306,7 @@ export function PrashnaM1Panel() {
       </div>
 
       {/* Before a chart is cast, Essentials opens here as a plain reference. */}
-      {showEssentials && !(chart && castAt) && (
+      {isAdmin && showEssentials && !(chart && castAt) && (
         <div ref={essentialsRef} style={{ scrollMarginTop: 80 }}><PrashnaEssentials /></div>
       )}
 
@@ -426,8 +432,12 @@ export function PrashnaM1Panel() {
             </div>
           </div>
 
+          {isAdmin && <PrashnaQuestionCard chart={chart} />}
+
+          <PrashnaTajikaCard chart={chart} />
+
           {/* With a cast chart, Essentials reads that chart, below it. */}
-          {showEssentials && (
+          {isAdmin && showEssentials && (
             <div ref={essentialsRef} style={{ scrollMarginTop: 80 }}>
               <PrashnaEssentials chart={chart} at={castAt.instant} />
             </div>

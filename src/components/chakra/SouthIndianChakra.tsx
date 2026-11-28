@@ -23,7 +23,7 @@ import { getMarakaBadhakaFlags, marakaBadhakaTags } from '@/lib/engine/marakaBad
 
 // ── Fixed sign → [row, col] in 4×4 grid ──────────────────────
 
-const SIGN_CELLS: Record<number, [number, number]> = {
+export const SIGN_CELLS: Record<number, [number, number]> = {
   12: [0, 0], 1: [0, 1], 2: [0, 2],  3: [0, 3],
   11: [1, 0],                          4: [1, 3],
   10: [2, 0],                          5: [2, 3],

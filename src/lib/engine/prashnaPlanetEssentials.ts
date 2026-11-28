@@ -66,7 +66,7 @@ export const PLANET_TABLES: PlanetTable[] = [
     ['Fixed', '{Su}, {Ju}, {Sa}'],
     ['Dual', '{Me}'],
   ]),
-  T('avastha', 'Avasthas (states of planets)', ['Avastha', 'Condition', 'In praśna (class notes)'], [
+  T('avastha', 'Avasthas (states of planets)', ['Avastha', 'Condition', 'In praśna'], [
     ['Deepta', 'In its exaltation sign', 'In its exaltation sign'],
     ['Swastha (healthy)', 'In its own sign', 'In its own sign'],
     ['Mudita', 'In a friend\'s sign', 'In a friend\'s sign'],
@@ -80,7 +80,7 @@ export const PLANET_TABLES: PlanetTable[] = [
   ], { notes: [
     'Scholars classify avasthas in several ways. Retrogression has no place in these ten. In praśna a retrograde planet shows repetition, cancellation or failure, depending on the other influences.',
     'Seen from Earth, a planet too close to the Sun cannot be seen with the naked eye: it is heliacally set. When it moves away and becomes visible it is heliacally rising.',
-    'Class notes: Peedita and Bheeta both describe a combust planet. Combustion limits given in class: Saturn about 15° from the Sun, Venus about 10–12°.',
+    'Peedita and Bheeta both describe a combust planet. Combustion limits: Saturn about 15° from the Sun, Venus about 10–12°.',
   ] }),
   T('dayNight', 'Strength by day or night', ['Strength', 'Planets'], [
     ['Strong by day (divabali)', '{Su}, {Ju}, {Ve}'],
@@ -165,7 +165,7 @@ export const PLANET_TABLES: PlanetTable[] = [
     ['{Ju}', 'Ether (akash)'],
     ['{Sa}, {Ra}', 'Air (vayu)'],
   ]),
-  T('taste', 'Taste', ['Planet', 'Taste (text)', 'Taste (class notes)'], [
+  T('taste', 'Taste', ['Planet', 'Taste (text)', 'Taste (another view)'], [
     ['{Su}', 'Bitter-spicy', 'Bitter'],
     ['{Mo}', 'Salty', 'Salty'],
     ['{Ma}', 'Bitter-spicy', 'Spicy, bitter'],
@@ -208,7 +208,7 @@ export const PLANET_TABLES: PlanetTable[] = [
     ['{Sa}', 'One year', 'Winter (shishir)'],
     ['{Ra}', '8 months', '–'],
     ['{Ke}', '3 months', '–'],
-  ], { notes: ['Use these periods to time when something will happen or when someone will return. Class notes give Ketu as 3 or 5 months.'] }),
+  ], { notes: ['Use these periods to time when something will happen or when someone will return. Some take Ketu as 5 months.'] }),
   T('age', 'Ages', ['Planet', 'Age'], [
     ['{Me}', '7 years'],
     ['{Ma}', '16 years'],
@@ -253,7 +253,7 @@ export const PLANET_TABLES: PlanetTable[] = [
     ['{Ve}', 'Semen'],
     ['{Sa}', 'Nerves and muscles'],
     ['{Ra}, {Ke}', 'Bones and feet'],
-  ], { notes: ['Class notes add: the Sun also rules the heart, and Venus the kidneys and reproductive organs.'] }),
+  ], { notes: ['The Sun also rules the heart, and Venus the kidneys and reproductive organs.'] }),
   T('humour', 'Vaat, pitta and kapha', ['Planet', 'Humour', 'Diseases'], [
     ['{Su}, {Ma}', 'Pitta', 'Fever, diarrhoea and dysentery, stomach disorders, high blood pressure, headaches'],
     ['{Mo}, {Ve}', 'Kapha', 'Cough and cold, pneumonia, bronchitis, asthma, constipation, jaundice'],
@@ -296,8 +296,8 @@ export const PLANET_TABLES: PlanetTable[] = [
   ], { notes: [
     'Mercury also takes the deity of the planet it joins.',
     'The ten avatars of Vishnu: Matsya, Kurma, Varaha, Narasimha, Vamana, Parashurama, Rama, Balarama, Buddha and Kalki.',
-    'Class notes: a strong Moon (exalted, full, or in shukla paksha from ashtami onwards) points to Krishna, Durga or Parvati. A weak Moon (in Scorpio, in krishna paksha or on amavasya, or joined or aspected by Rahu or Saturn) points to Chamunda or Kali.',
-    'Class notes: Mars in {r1}, {r3}, {r7} or {r11} can point to Hanuman; otherwise to fierce forms such as Bhairava or Chamunda.',
+    'A strong Moon (exalted, full, or in shukla paksha from ashtami onwards) points to Krishna, Durga or Parvati. A weak Moon (in Scorpio, in krishna paksha or on amavasya, or joined or aspected by Rahu or Saturn) points to Chamunda or Kali.',
+    'Mars in {r1}, {r3}, {r7} or {r11} can point to Hanuman; otherwise to fierce forms such as Bhairava or Chamunda.',
     'These praśna deities, used for remedies and upasana, are separate from the Ishta devata; do not mix the two. The deity changes with the sign, so check the sign before suggesting a remedy.',
   ] }),
   T('death', 'Cause of death', ['Planet', 'Cause'], [
@@ -331,7 +331,7 @@ export const PLANET_TABLES: PlanetTable[] = [
     ['{Ra}', 'Bones, including ivory'],
   ], {
     intro: 'All minerals and metals taken from the earth are dhatu: one group of gold, silver and jewels, another of soil, stones, coal and minerals. They may also be split into malleable and non-malleable.',
-    notes: ['Class notes give the metals differently: Moon silver; Jupiter gold and gold ornaments; Saturn iron, lead and oil; Mars brass; Sun gems and copper.'],
+    notes: ['Another view of the metals: Moon silver; Jupiter gold and gold ornaments; Saturn iron, lead and oil; Mars brass; Sun gems and copper.'],
   }),
   T('mula', 'Mula: which vegetation', ['Condition', 'Indication'], [
     ['Planets influencing the Lagna', '{Su} or {Ve}'],
